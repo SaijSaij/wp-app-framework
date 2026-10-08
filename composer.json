@@ -1,0 +1,20 @@
+{
+    "name": "saij/wp-app-framework",
+    "description": "Framework for standalone full site editing themes for WordPress.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Saij\\WpAppFramework\\": "src/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "8.5"
+        },
+        "sort-packages": true
+    }
+}
