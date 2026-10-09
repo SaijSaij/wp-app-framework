@@ -30,7 +30,7 @@ final class ManifestBuilderTest extends TestCase
     {
         self::assertSame(
             [Valid\Clock::class, Valid\Dto::class, Valid\Greeter::class, Valid\Hooks::class, Valid\UnusedService::class],
-            self::buildValid()->candidates,
+            self::buildValid()->getCandidates(),
         );
     }
 
@@ -42,7 +42,7 @@ final class ManifestBuilderTest extends TestCase
                 Valid\Greeter::class => ['clock' => Valid\Clock::class],
                 Valid\Hooks::class => [],
             ],
-            self::buildValid()->services,
+            self::buildValid()->getServices(),
         );
     }
 
@@ -65,9 +65,9 @@ final class ManifestBuilderTest extends TestCase
             ];
 
             foreach ($expected as $message) {
-                self::assertContains($message, $exception->errors);
+                self::assertContains($message, $exception->getErrors());
             }
-            self::assertCount(count($expected), $exception->errors);
+            self::assertCount(count($expected), $exception->getErrors());
             self::assertStringStartsWith("Manifest build failed:\n - ", $exception->getMessage());
         }
     }
@@ -84,16 +84,16 @@ final class ManifestBuilderTest extends TestCase
     {
         $source = ManifestBuilder::frameworkSource();
 
-        self::assertSame('Saij\\WpAppFramework\\', $source->prefix);
-        self::assertSame(realpath(__DIR__ . '/../../../src'), $source->directory);
+        self::assertSame('Saij\\WpAppFramework\\', $source->getPrefix());
+        self::assertSame(realpath(__DIR__ . '/../../../src'), $source->getDirectory());
     }
 
     public function testFrameworkClassesAreNotServicesExceptTheTheme(): void
     {
         $result = new ManifestBuilder([ManifestBuilder::frameworkSource()], [], [\Saij\WpAppFramework\Theme::class])->build();
 
-        self::assertSame([\Saij\WpAppFramework\Theme::class], $result->candidates);
-        self::assertSame([], $result->services);
-        self::assertSame([], $result->hooks);
+        self::assertSame([\Saij\WpAppFramework\Theme::class], $result->getCandidates());
+        self::assertSame([], $result->getServices());
+        self::assertSame([], $result->getHooks());
     }
 }

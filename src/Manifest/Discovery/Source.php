@@ -6,7 +6,6 @@ namespace Saij\WpAppFramework\Manifest\Discovery;
 
 use Saij\WpAppFramework\DependencyInjection\NoService;
 
-
 /**
  * A PSR-4 namespace prefix and the directory it maps to.
  */
@@ -18,8 +17,18 @@ final readonly class Source
      * @param string $directory Absolute real path without trailing slash.
      */
     public function __construct(
-        public string $prefix,
-        public string $directory,
+        private string $prefix,
+        private string $directory,
     ) {
+    }
+
+    public function getPrefix(): string
+    {
+        return $this->prefix;
+    }
+
+    public function getDirectory(): string
+    {
+        return $this->directory;
     }
 }

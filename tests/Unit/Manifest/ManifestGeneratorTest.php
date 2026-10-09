@@ -46,7 +46,7 @@ final class ManifestGeneratorTest extends TestCase
         );
 
         self::assertNull(($hooks['fixture_action']['callback'])($container, []));
-        self::assertSame(['action'], $container->get(Valid\Hooks::class)->calls);
+        self::assertSame(['action'], $container->get(Valid\Hooks::class)->getCalls());
     }
 
     public function testMissingOptionalWordPressArgumentUsesTheDefault(): void

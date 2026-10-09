@@ -52,22 +52,22 @@ final class ClassDiscovery
         $classes = [];
         $errors = [];
 
-        foreach (self::files($source->directory) as $relative) {
+        foreach (self::files($source->getDirectory()) as $relative) {
             $segments = explode('/', substr($relative, 0, -4));
 
             foreach ($segments as $segment) {
                 if (preg_match('/^' . self::IDENTIFIER . '$/', $segment) !== 1) {
                     $errors[] = sprintf(
                         '%s/%s is below the PSR-4 directory of %s but is not a valid class file name.',
-                        $source->directory,
+                        $source->getDirectory(),
                         $relative,
-                        $source->prefix,
+                        $source->getPrefix(),
                     );
                     continue 2;
                 }
             }
 
-            $classes[$source->directory . '/' . $relative] = $source->prefix . implode('\\', $segments);
+            $classes[$source->getDirectory() . '/' . $relative] = $source->getPrefix() . implode('\\', $segments);
         }
 
         if ($errors !== []) {

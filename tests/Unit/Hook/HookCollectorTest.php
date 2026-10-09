@@ -28,7 +28,7 @@ final class HookCollectorTest extends TestCase
         $collector = new HookCollector(ServiceResolver::forClasses($classes, []));
         $hooks = [];
         foreach ($collector->collect($classes) as $hook) {
-            $hooks[$hook->name] = $hook;
+            $hooks[$hook->getName()] = $hook;
         }
         self::assertSame([], $collector->errors());
 
@@ -47,16 +47,16 @@ final class HookCollectorTest extends TestCase
     {
         $filter = self::collectValid()['fixture_filter'];
 
-        self::assertTrue($filter->filter);
-        self::assertSame(10, $filter->priority);
-        self::assertSame(2, $filter->acceptedArgs);
+        self::assertTrue($filter->isFilter());
+        self::assertSame(10, $filter->getPriority());
+        self::assertSame(2, $filter->getAcceptedArgs());
         self::assertSame(
             [
                 ['param' => 'value', 'index' => 0],
                 ['param' => 'greeter', 'service' => Valid\Greeter::class],
                 ['param' => 'context', 'index' => 1],
             ],
-            $filter->arguments,
+            $filter->getArguments(),
         );
     }
 
@@ -64,9 +64,9 @@ final class HookCollectorTest extends TestCase
     {
         $action = self::collectValid()['fixture_action'];
 
-        self::assertFalse($action->filter);
-        self::assertSame(5, $action->priority);
-        self::assertSame(0, $action->acceptedArgs);
+        self::assertFalse($action->isFilter());
+        self::assertSame(5, $action->getPriority());
+        self::assertSame(0, $action->getAcceptedArgs());
     }
 
     public function testRepeatedAttributeAndFilterWithoutWordPressParameters(): void
@@ -74,8 +74,8 @@ final class HookCollectorTest extends TestCase
         $hooks = self::collectValid();
 
         // A filter without WordPress parameters still accepts the original value (returned on errors).
-        self::assertSame(1, $hooks['fixture_first']->acceptedArgs);
-        self::assertSame(20, $hooks['fixture_second']->priority);
-        self::assertSame('repeated', $hooks['fixture_second']->method);
+        self::assertSame(1, $hooks['fixture_first']->getAcceptedArgs());
+        self::assertSame(20, $hooks['fixture_second']->getPriority());
+        self::assertSame('repeated', $hooks['fixture_second']->getMethod());
     }
 }

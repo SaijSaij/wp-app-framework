@@ -16,8 +16,16 @@ final class BuildException extends RuntimeException
     /**
      * @param non-empty-list<string> $errors
      */
-    public function __construct(public readonly array $errors)
+    public function __construct(private readonly array $errors)
     {
         parent::__construct("Manifest build failed:\n - " . implode("\n - ", $errors));
+    }
+
+    /**
+     * @return non-empty-list<string>
+     */
+    public function getErrors(): array
+    {
+        return $this->errors;
     }
 }

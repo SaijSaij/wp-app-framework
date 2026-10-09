@@ -84,8 +84,8 @@ final class ManifestBuilder
         $sources[] = $framework;
 
         $trackedFiles = [$composerFile];
-        foreach (ClassDiscovery::files($framework->directory) as $relative) {
-            $trackedFiles[] = $framework->directory . '/' . $relative;
+        foreach (ClassDiscovery::files($framework->getDirectory()) as $relative) {
+            $trackedFiles[] = $framework->getDirectory() . '/' . $relative;
         }
 
         return new self($sources, $trackedFiles, [Theme::class]);
@@ -139,7 +139,7 @@ final class ManifestBuilder
             try {
                 $found = ClassDiscovery::classes($source);
             } catch (BuildException $exception) {
-                array_push($errors, ...$exception->errors);
+                array_push($errors, ...$exception->getErrors());
                 continue;
             }
 

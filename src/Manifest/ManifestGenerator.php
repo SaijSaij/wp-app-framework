@@ -23,13 +23,13 @@ final class ManifestGenerator
         $code .= sprintf("    'format' => %d,\n", Manifest::FORMAT);
 
         $code .= "    'candidates' => [\n";
-        foreach ($result->candidates as $class) {
+        foreach ($result->getCandidates() as $class) {
             $code .= sprintf("        %s,\n", self::export($class));
         }
         $code .= "    ],\n";
 
         $code .= "    'services' => [\n";
-        foreach ($result->services as $class => $arguments) {
+        foreach ($result->getServices() as $class => $arguments) {
             $parameters = [];
             foreach ($arguments as $parameter => $service) {
                 $parameters[] = sprintf('%s: $c->get(%s::class)', $parameter, self::name($service));
@@ -46,10 +46,10 @@ final class ManifestGenerator
         $code .= "    ],\n";
 
         $code .= "    'hooks' => [\n";
-        foreach ($result->hooks as $hook) {
+        foreach ($result->getHooks() as $hook) {
             $wordPressParameters = [];
             $parameters = [];
-            foreach ($hook->arguments as $argument) {
+            foreach ($hook->getArguments() as $argument) {
                 if (isset($argument['service'])) {
                     $parameters[] = sprintf('%s: $c->get(%s::class)', $argument['param'], self::name($argument['service']));
                 } else {
@@ -58,11 +58,11 @@ final class ManifestGenerator
             }
 
             $code .= "        [\n";
-            $code .= sprintf("            'name' => %s,\n", self::export($hook->name));
-            $code .= sprintf("            'priority' => %d,\n", $hook->priority);
-            $code .= sprintf("            'acceptedArgs' => %d,\n", $hook->acceptedArgs);
-            $code .= sprintf("            'filter' => %s,\n", $hook->filter ? 'true' : 'false');
-            $code .= sprintf("            'source' => %s,\n", self::export($hook->class . '::' . $hook->method . '()'));
+            $code .= sprintf("            'name' => %s,\n", self::export($hook->getName()));
+            $code .= sprintf("            'priority' => %d,\n", $hook->getPriority());
+            $code .= sprintf("            'acceptedArgs' => %d,\n", $hook->getAcceptedArgs());
+            $code .= sprintf("            'filter' => %s,\n", $hook->isFilter() ? 'true' : 'false');
+            $code .= sprintf("            'source' => %s,\n", self::export($hook->getClass() . '::' . $hook->getMethod() . '()'));
             $code .= sprintf("            'callback' => static function (%s \$c, array \$args): mixed {\n", $container);
 
             if ($wordPressParameters !== []) {
@@ -79,8 +79,8 @@ final class ManifestGenerator
 
             $code .= sprintf(
                 "                return \$c->get(%s::class)->%s(%s);\n",
-                self::name($hook->class),
-                $hook->method,
+                self::name($hook->getClass()),
+                $hook->getMethod(),
                 implode(', ', $parameters),
             );
             $code .= "            },\n";

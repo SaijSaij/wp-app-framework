@@ -42,7 +42,7 @@ Saij\WpAppFramework\Theme::boot();
 
 Every concrete class under the theme's PSR-4 directories (`autoload.psr-4` in its `composer.json`) and under the framework's `src/` is a service candidate. Interfaces, abstract classes, traits, enums, attribute classes and classes marked `#[NoService]` (`Saij\WpAppFramework\DependencyInjection\NoService`) are not. Services are shared and autowired by constructor parameter types; scalar parameters must have a default value.
 
-Only services reachable from entry points (currently `#[Hook]` methods) are built and checked, so value objects that are never injected need no marking. Aliases and tags are not supported. The container is internal; theme code receives services through constructor and hook parameters only. `Saij\WpAppFramework\Theme` is injectable and provides the template, stylesheet and framework directories.
+Only services reachable from entry points (currently `#[Hook]` methods) are built and checked, so value objects that are never injected need no marking. Aliases and tags are not supported. The container is internal; theme code receives services through constructor and hook parameters only. `Saij\WpAppFramework\Theme` is a predefined instance: `Theme::boot()` creates it (its constructor is private) and hands it to the container, which never builds it. Services can inject it to read the paths via `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()` and `getFrameworkDirectory()`.
 
 ### Hooks
 
@@ -84,6 +84,11 @@ Builds and checks the manifest of the project whose `vendor/autoload.php` the Co
 | `Console/` | Command line entry point of `bin/wp-app-framework` |
 
 New areas (REST routes, Twig, blocks, settings, block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
+
+## Conventions
+
+- Class properties are never public; access goes through getters with a `get` prefix (`is`/`has` for booleans). Attribute classes such as `#[Hook]` are the exception and expose public readonly properties.
+- Code, comments and documentation are in English.
 
 ## Development
 

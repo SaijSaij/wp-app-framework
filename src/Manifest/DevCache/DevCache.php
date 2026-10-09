@@ -150,17 +150,17 @@ final class DevCache
     private function meta(BuildResult $result): array
     {
         $directories = [];
-        foreach ($result->sources as $source) {
-            $directories[] = [...$this->relative($source->directory), self::listingHash($source->directory)];
+        foreach ($result->getSources() as $source) {
+            $directories[] = [...$this->relative($source->getDirectory()), self::listingHash($source->getDirectory())];
         }
 
         $files = [];
-        foreach ($result->trackedFiles as $file) {
+        foreach ($result->getTrackedFiles() as $file) {
             $files[] = [...$this->relative($file), hash_file('xxh128', $file)];
         }
 
         $classes = [];
-        foreach ($result->classes as $name => $class) {
+        foreach ($result->getClasses() as $name => $class) {
             $classes[$name] = [
                 'files' => array_map($this->relative(...), Signature::files($class)),
                 'signature' => Signature::of($class),

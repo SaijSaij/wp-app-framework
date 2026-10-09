@@ -14,7 +14,9 @@ use Saij\WpAppFramework\Manifest\ManifestBuilder;
 /**
  * Boots the framework for the active theme and provides its paths.
  *
- * The instance is predefined in the container and can be injected into services.
+ * The instance is created only by boot() and handed to the container as a
+ * predefined instance: the container never builds it, but services can inject
+ * it to read the paths.
  */
 final class Theme
 {
@@ -34,12 +36,52 @@ final class Theme
      * @param string $frameworkDirectory    Filesystem path of the framework package; never derive URLs from it.
      */
     private function __construct(
-        public readonly string $templateDirectory,
-        public readonly string $templateDirectoryUri,
-        public readonly string $stylesheetDirectory,
-        public readonly string $stylesheetDirectoryUri,
-        public readonly string $frameworkDirectory,
+        private readonly string $templateDirectory,
+        private readonly string $templateDirectoryUri,
+        private readonly string $stylesheetDirectory,
+        private readonly string $stylesheetDirectoryUri,
+        private readonly string $frameworkDirectory,
     ) {
+    }
+
+    /**
+     * Directory of the parent theme, as returned by get_template_directory().
+     */
+    public function getTemplateDirectory(): string
+    {
+        return $this->templateDirectory;
+    }
+
+    /**
+     * URI of the parent theme directory, as returned by get_template_directory_uri().
+     */
+    public function getTemplateDirectoryUri(): string
+    {
+        return $this->templateDirectoryUri;
+    }
+
+    /**
+     * Directory of the active (child) theme, as returned by get_stylesheet_directory().
+     */
+    public function getStylesheetDirectory(): string
+    {
+        return $this->stylesheetDirectory;
+    }
+
+    /**
+     * URI of the active (child) theme directory, as returned by get_stylesheet_directory_uri().
+     */
+    public function getStylesheetDirectoryUri(): string
+    {
+        return $this->stylesheetDirectoryUri;
+    }
+
+    /**
+     * Filesystem path of the framework package; never derive URLs from it.
+     */
+    public function getFrameworkDirectory(): string
+    {
+        return $this->frameworkDirectory;
     }
 
     /**

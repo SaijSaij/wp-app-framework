@@ -8,12 +8,13 @@ use Saij\WpAppFramework\Hook\Hook;
 
 final class Hooks
 {
-    public array $calls = [];
+    /** @var list<string> */
+    private array $calls = [];
 
     #[Hook('fixture_filter')]
     public function filter(string $value, Greeter $greeter, ?Context $context = null): string
     {
-        return $value . $greeter->greet($context?->label ?? 'nobody');
+        return $value . $greeter->greet($context?->getLabel() ?? 'nobody');
     }
 
     #[Hook('fixture_action', 5)]
@@ -31,5 +32,13 @@ final class Hooks
 
     public function notAHook(): void
     {
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getCalls(): array
+    {
+        return $this->calls;
     }
 }

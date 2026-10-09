@@ -64,9 +64,9 @@ final class Cli
 
         fwrite($stdout, sprintf(
             "Manifest OK: %d service candidates, %d services, %d hooks.%s\n",
-            count($result->candidates),
-            count($result->services),
-            count($result->hooks),
+            count($result->getCandidates()),
+            count($result->getServices()),
+            count($result->getHooks()),
             $output !== null ? ' Written to ' . $output . '.' : ' Nothing written (no --output).',
         ));
 

@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Manifest;
 
 use ReflectionClass;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Hook\HookDefinition;
+use Saij\WpAppFramework\Manifest\Discovery\Source;
 
 /**
  * Everything the builder found; input for the manifest generator and the dev cache.
@@ -22,12 +24,60 @@ final readonly class BuildResult
      * @param list<HookDefinition>                              $hooks
      */
     public function __construct(
-        public array $sources,
-        public array $trackedFiles,
-        public array $classes,
-        public array $candidates,
-        public array $services,
-        public array $hooks,
+        private array $sources,
+        private array $trackedFiles,
+        private array $classes,
+        private array $candidates,
+        private array $services,
+        private array $hooks,
     ) {
+    }
+
+    /**
+     * @return list<Source>
+     */
+    public function getSources(): array
+    {
+        return $this->sources;
+    }
+
+    /**
+     * @return list<string> Absolute paths of files whose content affects the build.
+     */
+    public function getTrackedFiles(): array
+    {
+        return $this->trackedFiles;
+    }
+
+    /**
+     * @return array<class-string, ReflectionClass<object>> All scanned classes, interfaces, traits and enums.
+     */
+    public function getClasses(): array
+    {
+        return $this->classes;
+    }
+
+    /**
+     * @return list<class-string> Service candidates, sorted.
+     */
+    public function getCandidates(): array
+    {
+        return $this->candidates;
+    }
+
+    /**
+     * @return array<class-string, array<string, class-string>> Reachable services: constructor parameter => injected service.
+     */
+    public function getServices(): array
+    {
+        return $this->services;
+    }
+
+    /**
+     * @return list<HookDefinition>
+     */
+    public function getHooks(): array
+    {
+        return $this->hooks;
     }
 }
