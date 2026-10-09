@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Tests\Unit\Twig;
 
 use PHPUnit\Framework\TestCase;
+use Saij\WpAppFramework\Block\BlockTemplateFunctions;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
@@ -39,6 +40,8 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Filter, 'wrap', TwigValid\TextHelpers::class, 'wrap', false],
                 [TemplateCallableKind::Filter, 'wrap_html', TwigValid\TextHelpers::class, 'wrapHtml', true],
                 [TemplateCallableKind::Function, 'count_items', TwigValid\TextHelpers::class, 'countItems', false],
+                [TemplateCallableKind::Function, 'block_wrapper_attributes', BlockTemplateFunctions::class, 'blockWrapperAttributes', true],
+                [TemplateCallableKind::Function, 'attachment_image', BlockTemplateFunctions::class, 'attachmentImage', true],
             ],
             $collected,
         );

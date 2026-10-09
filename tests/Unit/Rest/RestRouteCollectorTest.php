@@ -80,18 +80,18 @@ final class RestRouteCollectorTest extends TestCase
     {
         self::assertSame(
             [
-                ['param' => 'id', 'kind' => 'url', 'enum' => null, 'nullable' => false],
-                ['param' => 'title', 'kind' => 'param', 'enum' => null, 'nullable' => false],
+                ['param' => 'id', 'kind' => 'url', 'value' => ['type' => 'int', 'nullable' => false]],
+                ['param' => 'title', 'kind' => 'param', 'value' => ['type' => 'string', 'nullable' => false]],
                 ['param' => 'request', 'kind' => 'request'],
-                ['param' => 'contact', 'kind' => 'param', 'enum' => null, 'nullable' => true],
+                ['param' => 'contact', 'kind' => 'param', 'value' => ['type' => 'string', 'nullable' => true]],
             ],
             self::routes()['update']->getArguments(),
         );
         self::assertSame(
             [
-                ['param' => 'id', 'kind' => 'url', 'enum' => null, 'nullable' => false],
+                ['param' => 'id', 'kind' => 'url', 'value' => ['type' => 'int', 'nullable' => false]],
                 ['param' => 'items', 'kind' => 'service', 'class' => RestValid\ItemRepository::class],
-                ['param' => 'variant', 'kind' => 'param', 'enum' => RestValid\Variant::class, 'nullable' => false],
+                ['param' => 'variant', 'kind' => 'param', 'value' => ['type' => 'enum', 'class' => RestValid\Variant::class, 'nullable' => false]],
             ],
             self::routes()['show']->getArguments(),
         );
@@ -109,7 +109,7 @@ final class RestRouteCollectorTest extends TestCase
                 'class' => RestValid\ItemController::class,
                 'method' => 'canEdit',
                 'arguments' => [
-                    ['param' => 'id', 'kind' => 'url', 'enum' => null, 'nullable' => false],
+                    ['param' => 'id', 'kind' => 'url', 'value' => ['type' => 'int', 'nullable' => false]],
                     ['param' => 'items', 'kind' => 'service', 'class' => RestValid\ItemRepository::class],
                 ],
             ],
@@ -137,7 +137,7 @@ final class RestRouteCollectorTest extends TestCase
         } catch (BuildException $exception) {
             $c = 'Saij\\WpAppFramework\\Tests\\Fixtures\\RestBroken\\BrokenRoutes';
             $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\RestBroken\\';
-            $supported = 'use int, float, string, bool or a backed enum (arrays follow with #[ListOf])';
+            $supported = 'use int, float, string, bool, a backed enum, a value class or array with #[ListOf]';
             $expected = [
                 "#[RestController] on {$ns}BadController has the invalid namespace \"/broken/\": use letters, digits, \".\", \"_\", \"-\" and \"/\" without leading or trailing slash, e.g. \"sections/v1\".",
                 "#[RestController] on {$ns}BadController has the invalid base path \"items/\": it must be empty or start with \"/\" and not end with \"/\".",
@@ -150,7 +150,7 @@ final class RestRouteCollectorTest extends TestCase
                 "#[RestRoute] on {$c}::placeholderWithoutParameter(): placeholder {missing} in route \"/placeholder/{missing}\" has no request argument parameter \$missing.",
                 "parameter \$id of {$c}::optionalPathParameter() is a path parameter and must be required: no default value and not nullable.",
                 "parameter \$ratio of {$c}::floatPathParameter() is a path parameter and must be int, string or a backed enum.",
-                "parameter \$list of {$c}::arrayParameter(): type array is not supported for REST arguments; {$supported}.",
+                "parameter \$list of {$c}::arrayParameter() is an array and needs #[ListOf(Item::class)] with a backed enum or a value class.",
                 "parameter \$value of {$c}::untypedParameter() has no type; {$supported}.",
                 "parameter \$count of {$c}::nullableWithoutDefault() is nullable and needs a default value: WordPress treats null as a missing argument.",
                 "#[Param] on parameter \$name of {$c}::paramMismatch(): minimum does not apply to string arguments.",

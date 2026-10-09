@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Manifest;
 
 use ReflectionClass;
+use Saij\WpAppFramework\Block\BlockDefinition;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Hook\HookDefinition;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
@@ -13,6 +14,8 @@ use Saij\WpAppFramework\Twig\TemplateCallableDefinition;
 
 /**
  * Everything the builder found; input for the manifest generator and the dev cache.
+ *
+ * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  */
 #[NoService]
 final readonly class BuildResult
@@ -26,6 +29,8 @@ final readonly class BuildResult
      * @param list<HookDefinition>                              $hooks
      * @param list<RestRouteDefinition>                         $routes
      * @param list<TemplateCallableDefinition>                  $templateCallables
+     * @param list<BlockDefinition>                             $blocks
+     * @param array<class-string, array<string, ValueField>>    $values       Value classes used by blocks and REST arguments.
      */
     public function __construct(
         private array $sources,
@@ -36,6 +41,8 @@ final readonly class BuildResult
         private array $hooks,
         private array $routes,
         private array $templateCallables,
+        private array $blocks,
+        private array $values,
     ) {
     }
 
@@ -101,5 +108,21 @@ final readonly class BuildResult
     public function getTemplateCallables(): array
     {
         return $this->templateCallables;
+    }
+
+    /**
+     * @return list<BlockDefinition>
+     */
+    public function getBlocks(): array
+    {
+        return $this->blocks;
+    }
+
+    /**
+     * @return array<class-string, array<string, ValueField>> Value classes: constructor parameter => field.
+     */
+    public function getValues(): array
+    {
+        return $this->values;
     }
 }

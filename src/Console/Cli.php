@@ -71,13 +71,14 @@ final class Cli
         ));
 
         fwrite($stdout, sprintf(
-            "Manifest OK: %d service candidates, %d services, %d hooks, %d routes, %d template functions, %d template filters.%s\n",
+            "Manifest OK: %d service candidates, %d services, %d hooks, %d routes, %d template functions, %d template filters, %d blocks.%s\n",
             count($result->getCandidates()),
             count($result->getServices()),
             count($result->getHooks()),
             count($result->getRoutes()),
             $functions,
             count($result->getTemplateCallables()) - $functions,
+            count($result->getBlocks()),
             $output !== null ? ' Written to ' . $output . '.' : ' Nothing written (no --output).',
         ));
 

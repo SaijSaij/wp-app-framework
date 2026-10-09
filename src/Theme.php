@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework;
 
 use LogicException;
+use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\Hook\HookRegistrar;
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
@@ -12,6 +13,7 @@ use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Rest\RestRegistrar;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
+use Saij\WpAppFramework\Value\ValueFactory;
 
 /**
  * Boots the framework for the active theme and provides its paths.
@@ -135,10 +137,17 @@ final class Theme
         $debug = defined('WP_DEBUG') && WP_DEBUG;
         new HookRegistrar($container, $debug)->register($manifest['hooks']);
 
-        $restRegistrar = new RestRegistrar($container, $debug);
+        $values = new ValueFactory($manifest['values']);
+        $restRegistrar = new RestRegistrar($container, $values, $debug);
         $routes = $manifest['routes'];
         add_action('rest_api_init', static function () use ($restRegistrar, $routes): void {
             $restRegistrar->register($routes);
+        });
+
+        $blockRegistrar = new BlockRegistrar($container, $values, $debug);
+        $blocks = $manifest['blocks'];
+        add_action('init', static function () use ($blockRegistrar, $blocks): void {
+            $blockRegistrar->register($blocks);
         });
 
         do_action(self::INIT_HOOK);

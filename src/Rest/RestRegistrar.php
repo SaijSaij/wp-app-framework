@@ -8,6 +8,7 @@ use Closure;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\Manifest;
+use Saij\WpAppFramework\Value\ValueFactory;
 use Throwable;
 use WP_Error;
 use WP_REST_Request;
@@ -32,6 +33,7 @@ final readonly class RestRegistrar
 
     public function __construct(
         private Container $container,
+        private ValueFactory $values,
         private bool $debug,
     ) {
     }
@@ -105,7 +107,8 @@ final readonly class RestRegistrar
      *
      * Path parameters come from the URL parameters (WordPress would prefer a query
      * argument of the same name in get_param()). Other request arguments are passed
-     * only if present, so parameter defaults apply. Enum values are converted.
+     * only if present, so parameter defaults apply. Enums and lists are converted
+     * by the value factory.
      *
      * @param list<RestArgument>        $arguments
      * @param array<string, mixed>|null $prepared  Validated and sanitized request arguments of a permission callback.
@@ -141,8 +144,7 @@ final readonly class RestRegistrar
                 continue;
             }
 
-            $enum = $argument['enum'];
-            $named[$param] = $enum !== null && $value !== null ? $enum::from($value) : $value;
+            $named[$param] = $this->values->create($argument['value'], $value, $param);
         }
 
         return $named;

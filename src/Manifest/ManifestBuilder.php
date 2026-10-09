@@ -6,6 +6,7 @@ namespace Saij\WpAppFramework\Manifest;
 
 use JsonException;
 use ReflectionClass;
+use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Hook\HookCollector;
@@ -15,6 +16,7 @@ use Saij\WpAppFramework\Rest\RestRouteCollector;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableCollector;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
+use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
 
 /**
@@ -112,10 +114,13 @@ final class ManifestBuilder
         $classes = $this->loadClasses($errors);
 
         $resolver = ServiceResolver::forClasses($classes, $this->predefined);
+        $values = new ValueSchemaBuilder($classes);
         $hookCollector = new HookCollector($resolver);
         $hooks = $hookCollector->collect($classes);
-        $routeCollector = new RestRouteCollector($resolver);
+        $routeCollector = new RestRouteCollector($resolver, $values);
         $routes = $routeCollector->collect($classes);
+        $blockCollector = new BlockCollector($resolver, $values, self::frameworkSource()->getDirectory());
+        $blocks = $blockCollector->collect($classes);
         $templateCallableCollector = new TemplateCallableCollector($resolver, TemplateRenderer::getBuiltInNames());
         $templateCallables = $templateCallableCollector->collect($classes);
 
@@ -124,6 +129,8 @@ final class ManifestBuilder
             ...$hookCollector->errors(),
             ...$routeCollector->errors(),
             ...$templateCallableCollector->errors(),
+            ...$blockCollector->errors(),
+            ...$values->errors(),
             ...$resolver->errors(),
         ];
         if ($errors !== []) {
@@ -139,6 +146,8 @@ final class ManifestBuilder
             $hooks,
             $routes,
             $templateCallables,
+            $blocks,
+            $values->values(),
         );
     }
 

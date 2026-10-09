@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework\Manifest\DevCache;
 use Closure;
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionEnum;
+use ReflectionEnumBackedCase;
 use ReflectionFunction;
 use ReflectionMethod;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -35,6 +37,13 @@ final class Signature
             implode(',', self::sorted($class->getInterfaceNames())),
             implode(',', self::sorted($class->getTraitNames())),
         ];
+
+        // Enum cases are constants, not methods; they define the values of schemas.
+        if ($class->isEnum()) {
+            foreach (new ReflectionEnum($class->getName())->getCases() as $case) {
+                $parts[] = 'case ' . $case->getName() . '=' . self::describe($case instanceof ReflectionEnumBackedCase ? $case->getBackingValue() : null);
+            }
+        }
 
         $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
         $constructor = $class->getConstructor();

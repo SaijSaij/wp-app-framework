@@ -14,6 +14,7 @@ use Saij\WpAppFramework\Rest\RestException;
 use Saij\WpAppFramework\Rest\RestRegistrar;
 use Saij\WpAppFramework\Tests\Fixtures\RestValid;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use Saij\WpAppFramework\Value\ValueFactory;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -35,6 +36,8 @@ final class RestRegistrarTest extends TestCase
 
     private Container $container;
 
+    private ValueFactory $values;
+
     protected function setUp(): void
     {
         $this->file = (string) tempnam(sys_get_temp_dir(), 'manifest');
@@ -50,6 +53,7 @@ final class RestRegistrarTest extends TestCase
             $this->routes[$route['method']] = $route;
         }
         $this->container = new Container($manifest['services']);
+        $this->values = new ValueFactory($manifest['values']);
     }
 
     protected function tearDown(): void
@@ -65,7 +69,7 @@ final class RestRegistrarTest extends TestCase
      */
     private function respond(string $method, array $params = [], array $urlParams = [], bool $debug = false): mixed
     {
-        return new RestRegistrar($this->container, $debug)->respond($this->routes[$method], new WP_REST_Request($params, $urlParams));
+        return new RestRegistrar($this->container, $this->values, $debug)->respond($this->routes[$method], new WP_REST_Request($params, $urlParams));
     }
 
     public function testMissingOptionalArgumentsUseParameterDefaults(): void
@@ -154,7 +158,7 @@ final class RestRegistrarTest extends TestCase
 
     public function testPermissionCallbackReceivesUrlParametersAndServices(): void
     {
-        $callback = new RestRegistrar($this->container, false)->permissionCallback($this->routes['update']);
+        $callback = new RestRegistrar($this->container, $this->values, false)->permissionCallback($this->routes['update']);
 
         self::assertTrue($callback(new WP_REST_Request([], ['id' => 1])));
         self::assertFalse($callback(new WP_REST_Request([], ['id' => 13])));
@@ -164,7 +168,7 @@ final class RestRegistrarTest extends TestCase
     {
         // rest_send_allow_header() calls the callbacks of all handlers with a request that was
         // sanitized for another handler, or not at all.
-        $callback = new RestRegistrar($this->container, false)->permissionCallback($this->routes['update']);
+        $callback = new RestRegistrar($this->container, $this->values, false)->permissionCallback($this->routes['update']);
 
         self::assertTrue($callback(new WP_REST_Request([], ['id' => '1'])));
         self::assertFalse($callback(new WP_REST_Request([], ['id' => '13'])));
@@ -175,7 +179,7 @@ final class RestRegistrarTest extends TestCase
 
     public function testPublicRouteIsAlwaysPermitted(): void
     {
-        self::assertTrue(new RestRegistrar($this->container, false)->permissionCallback($this->routes['show'])());
+        self::assertTrue(new RestRegistrar($this->container, $this->values, false)->permissionCallback($this->routes['show'])());
     }
 
     public function testRestExceptionNeedsAnErrorStatus(): void

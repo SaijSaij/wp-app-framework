@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /*
- * Minimal test doubles of the WordPress REST classes used by the framework's
- * runtime code. They implement only what the framework calls; WordPress is not
- * loaded in unit tests.
+ * Minimal test doubles of the WordPress classes and functions used by the
+ * framework's runtime code. They implement only what the framework calls;
+ * WordPress is not loaded in unit tests.
  */
 
 final class WP_Error
@@ -117,4 +117,47 @@ function rest_validate_value_from_schema(mixed $value, array $args, string $para
 function rest_sanitize_value_from_schema(mixed $value, array $args, string $param = ''): mixed
 {
     return $value !== null && in_array('integer', (array) $args['type'], true) ? (int) $value : $value;
+}
+
+/**
+ * Holds only the block name; enough to pass it to render callbacks.
+ */
+final class WP_Block
+{
+    public function __construct(private string $name = '')
+    {
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+}
+
+/**
+ * Records the registered block types in $GLOBALS['wp_app_framework_test_blocks'].
+ *
+ * @param array<string, mixed> $args
+ */
+function register_block_type(string $name, array $args = []): bool
+{
+    $GLOBALS['wp_app_framework_test_blocks'][$name] = $args;
+
+    return true;
+}
+
+/**
+ * @param array<string, string> $extra
+ */
+function get_block_wrapper_attributes(array $extra = []): string
+{
+    return 'class="wp-block-test' . (isset($extra['class']) ? ' ' . $extra['class'] : '') . '"';
+}
+
+/**
+ * @param array<string, string> $attr
+ */
+function wp_get_attachment_image(int $attachment_id, string $size = 'thumbnail', bool $icon = false, array $attr = []): string
+{
+    return sprintf('<img data-id="%d" data-size="%s">', $attachment_id, $size);
 }

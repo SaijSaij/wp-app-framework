@@ -8,7 +8,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Generates the manifest file: a plain data array exported with var_export().
- * The runtime (container, hook and REST registrars) interprets it without
+ * The runtime (container, registrars, value factory) interprets it without
  * reflection; no code is generated.
  *
  * @phpstan-import-type ManifestData from Manifest
@@ -67,6 +67,16 @@ final class ManifestGenerator
             ];
         }
 
+        $blocks = [];
+        foreach ($result->getBlocks() as $block) {
+            $blocks[] = [
+                'name' => $block->getName(),
+                'args' => $block->getArgs(),
+                'class' => $block->getClass(),
+                'arguments' => $block->getArguments(),
+            ];
+        }
+
         return [
             'format' => Manifest::FORMAT,
             'candidates' => $result->getCandidates(),
@@ -74,6 +84,8 @@ final class ManifestGenerator
             'hooks' => $hooks,
             'routes' => $routes,
             'templateCallables' => $templateCallables,
+            'blocks' => $blocks,
+            'values' => $result->getValues(),
         ];
     }
 }

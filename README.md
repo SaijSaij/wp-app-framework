@@ -10,7 +10,7 @@ The framework is a library that themes include via Composer. It is neither a the
 
 ## Status
 
-Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig (step 3): `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`; development mode only so far (release mode follows with the release build). Blocks and the editor runtime follow.
+Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig (step 3): `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`; development mode only so far (release mode follows with the release build). Server-side blocks (step 4): `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments. The editor runtime (inline editing) follows; until then the block editor shows the blocks as unsupported.
 
 ## Usage
 
@@ -42,7 +42,7 @@ Saij\WpAppFramework\Theme::boot();
 
 Every concrete class under the theme's PSR-4 directories (`autoload.psr-4` in its `composer.json`) and under the framework's `src/` is a service candidate. Interfaces, abstract classes, traits, enums, attribute classes and classes marked `#[NoService]` (`Saij\WpAppFramework\DependencyInjection\NoService`) are not. Services are shared and autowired by constructor parameter types; scalar parameters must have a default value.
 
-Only services reachable from entry points (`#[Hook]`, `#[RestRoute]`, `#[TemplateFunction]` and `#[TemplateFilter]` methods, including permission callbacks) are built and checked, so value objects that are never injected need no marking. Aliases and tags are not supported. The container is internal; theme code receives services through constructor and hook parameters only. `Saij\WpAppFramework\Theme` is a predefined instance: `Theme::boot()` creates it (its constructor is private) and hands it to the container, which never builds it. Services can inject it to read the paths via `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()` and `getFrameworkDirectory()`. `Saij\WpAppFramework\Twig\TemplateRenderer` is predefined as well; the framework creates it on first use.
+Only services reachable from entry points (`#[Hook]`, `#[RestRoute]`, `#[TemplateFunction]` and `#[TemplateFilter]` methods, including permission callbacks, and `#[Block]` classes) are built and checked, so value objects that are never injected need no marking. Aliases and tags are not supported. The container is internal; theme code receives services through constructor and hook parameters only. `Saij\WpAppFramework\Theme` is a predefined instance: `Theme::boot()` creates it (its constructor is private) and hands it to the container, which never builds it. Services can inject it to read the paths via `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()` and `getFrameworkDirectory()`. `Saij\WpAppFramework\Twig\TemplateRenderer` is predefined as well; the framework creates it on first use.
 
 ### Hooks
 
@@ -109,7 +109,7 @@ final class ItemController
 - `#[RestRoute(path, methods, permission)]` is repeatable; all three arguments are required, so a missing permission is reported by the IDE and by the build. `path` is empty or starts with `/`; `methods` is an `HttpMethod` case or a list of them.
 - **Permission:** `new PublicAccess()` (everybody), `new Capability('…')` (`current_user_can()`) or `new Callback(self::method(...))`. A callback is a first-class callable of a public **static** method returning `bool` – PHP allows first-class callables in attribute arguments only for static methods. Its parameters follow the route rules below; request arguments must exist in the route with the same name and type. Before calling it, the framework validates and sanitizes these arguments against the route's own schema and denies access if one is invalid, because WordPress also calls permission callbacks for the `Allow` header with a request validated for another handler.
 - **Path placeholders** `{name}` match the parameter of the same name, which must be required and of type `int` (`\d+`), `string` (`[^/]+`) or a backed enum (its values). Their values are taken from the URL parameters, never from a query argument of the same name. Route paths may only contain letters, digits, `.`, `_`, `~`, `-`, `/` and placeholders.
-- **Parameters:** service candidates are injected, `WP_REST_Request` receives the request, all other parameters are request arguments of the same name: `int`, `float`, `string`, `bool` or a backed enum, optionally nullable with a default value. The argument schema (`type`, `enum`, `required`, `default`) is derived from the signature; WordPress validates and sanitizes the arguments, answers 400 on errors and shows the schema on `OPTIONS`. Missing optional arguments use the parameter default; enum values are converted with `::from()`.
+- **Parameters:** service candidates are injected, `WP_REST_Request` receives the request, all other parameters are request arguments of the same name: `int`, `float`, `string`, `bool`, a backed enum or `array` with `#[ListOf(Enum::class)]` / `#[ListOf(ValueClass::class)]` (see [Values](#values)), optionally nullable with a default value. A single value class without `#[ListOf]` is not supported: a class type is injected as service. The argument schema (`type`, `enum`, `items`, `required`, `default`) is derived from the signature; WordPress validates and sanitizes the arguments, answers 400 on errors and shows the schema on `OPTIONS`. Missing optional arguments use the parameter default; enums, value objects and lists are converted by the value factory.
 - `#[Param(description:, minimum:, maximum:, minLength:, maxLength:, pattern:, format: Format::…)]` adds schema keywords; the build checks that they apply to the parameter type.
 - **Responses:** a `void` method responds with 204 No Content; any other value goes through `rest_ensure_response()` (200). Return a `WP_REST_Response` for another status or headers.
 - **Errors:** throw `RestException(code, message, status, data)` (status 400–599) for an error response. Any other exception is logged with `error_log()` and answered with 500 `wp_app_framework_internal_error`; class, message, file, line and stack trace are included only if `WP_DEBUG` is enabled.
@@ -165,6 +165,117 @@ final class Formatting
 - **`#[TemplateFunction(name, html: false)]` / `#[TemplateFilter(name, html: false)]`** register public, non-static methods of services; the service is created when a template first calls them. Names must be valid identifiers, unique per kind and must not reuse a function or filter Twig provides (Twig would silently replace it); parameters must not be services (inject them through the constructor), variadic or by reference. A filter receives the filtered value as its first parameter.
 - **Escaping:** results are escaped unless `html: true`; such a method must return `string`. An HTML filter receives the filtered value HTML-escaped unless it is already safe (e.g. `|raw`, like Twig's `nl2br`). Other arguments are passed unescaped: an HTML function or filter must escape every argument it puts into its result.
 
+### Blocks
+
+A block is a service class with `#[Block]` and a `render()` method; its attributes are a typed attribute class. There is no `block.json`: the build derives the attribute schema from the attribute class, and WordPress passes it to the editor (`get_block_editor_server_block_settings()`). The post content stores only the block comment with the attributes as JSON, e.g. `<!-- wp:sections/hero {"topline":"Summer"} /-->`.
+
+```php
+use Saij\WpAppFramework\Block\Align;
+use Saij\WpAppFramework\Block\Block;
+use Saij\WpAppFramework\Block\BlockCategory;
+use Saij\WpAppFramework\Block\Content;
+use Saij\WpAppFramework\Block\PlainText;
+use Saij\WpAppFramework\Block\RichText;
+use Saij\WpAppFramework\Block\Supports;
+use Saij\WpAppFramework\Twig\TemplateRenderer;
+use Saij\WpAppFramework\Value\ListOf;
+use Saij\WpAppFramework\Value\Url;
+
+#[Block('sections/hero', title: 'Hero', category: BlockCategory::Design, icon: 'cover-image')]
+#[Supports(anchor: true, align: [Align::Wide, Align::Full])]
+final class Hero
+{
+    public function __construct(private readonly TemplateRenderer $renderer)
+    {
+    }
+
+    public function render(HeroAttributes $attrs, string $content, WP_Block $block): string
+    {
+        return $this->renderer->render('Block/Hero/Hero.twig', ['attrs' => $attrs, 'content' => $content]);
+    }
+}
+
+final readonly class HeroAttributes
+{
+    public function __construct(
+        #[PlainText] public string $topline = '',
+        #[RichText] public string $headline = '',
+        #[Content] public ?int $imageId = null,
+        public Gradient $gradient = Gradient::Black,
+        #[ListOf(Button::class)] public array $buttons = [],
+    ) {
+    }
+}
+
+final readonly class Button
+{
+    public function __construct(
+        #[PlainText] public string $label,
+        #[Content] #[Url] public string $url = '',
+    ) {
+    }
+}
+```
+
+```twig
+<section {{ block_wrapper_attributes({class: 'hero hero--' ~ attrs.gradient.value}) }}>
+    <p>{{ attrs.topline }}</p>
+    <h1>{{ attrs.headline|raw }}</h1>
+    {{ attachment_image(attrs.imageId, 'large') }}
+    {% for button in attrs.buttons %}
+        <a href="{{ button.url }}">{{ button.label }}</a>
+    {% endfor %}
+    {{ content|raw }}
+</section>
+```
+
+- **`#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [])]`** on a service class. The name is `namespace/name` (lowercase letters, digits, `-`); the namespace `core` and duplicate names are build errors, and the framework itself declares no blocks. `category` is a `BlockCategory` case. `usesContext` lists the context values the block reads from `WP_Block::$context`, e.g. `postId` in a query loop. Blocks are registered on `init` with `api_version` 3.
+- **`#[Supports(contentRole: false, anchor: false, align: [], customClassName: true, multiple: true, reusable: true, inserter: true, lock: true, renaming: true)]`** with WordPress' defaults; only differing values are registered. `html` is always disabled. Container blocks set `contentRole: true`, so inner blocks can be inserted in contentOnly mode.
+- **`render()`** is public, non-static and returns `string`. Its parameters are matched by type, each at most once and in any order: the attribute class, `string` (the rendered inner blocks) and `WP_Block`. Services come through the constructor; the block service is created when the block is first rendered.
+- **Attribute class:** a value class (see [Values](#values)) whose parameters all have a default value, because an attribute can always be missing in the content. The names `lock`, `metadata`, `className`, `anchor`, `align` and `style` are reserved for the attributes WordPress adds itself (`style` comes with the `customCSS` support, enabled by default in WordPress 7). The attribute schema gets `type`, `enum`, `properties`/`items`, `default` and `role: content` (below).
+- **Fields:** `#[PlainText]` (inline text, strings only) and `#[RichText]` (inline HTML, strings only) mark inline editable fields, `#[Content]` other content such as images or links. An attribute gets `role: content` if it or a nested field is marked, so the block stays editable in contentOnly mode (patterns and template parts open in it in WordPress 7). The marks have no effect on REST arguments.
+- **Attributes at render time:** WordPress validates the attributes against the schema before rendering (an invalid value falls back to the default) but does not sanitize them. The value factory sanitizes each attribute against its schema (`rest_sanitize_value_from_schema()`) and creates the attribute object; attributes of block supports are ignored.
+- **Errors:** exceptions in `render()` or in creating the attributes are rethrown if `WP_DEBUG` is enabled; otherwise they are logged with `error_log()` and the block renders nothing.
+- **Core blocks:** the framework disables none. A theme decides itself which core blocks it allows, e.g. with a hook:
+
+```php
+final class AllowedBlocks
+{
+    /**
+     * @param bool|list<string> $allowed
+     * @return bool|list<string>
+     */
+    #[Hook('allowed_block_types_all')]
+    public function filter(bool|array $allowed): bool|array
+    {
+        return ['core/post-content', 'core/template-part', 'sections/hero' /* … */];
+    }
+}
+```
+
+#### Escaping
+
+| Value | Output |
+|---|---|
+| `#[PlainText]` and other strings | `{{ attrs.topline }}` – Twig's autoescaping |
+| `#[RichText]` | `{{ attrs.headline\|raw }}` – exactly as stored; WordPress filters it with `wp_kses` when a user without `unfiltered_html` saves |
+| `#[Url]` strings | `{{ button.url }}` – the schema has `format: uri`, so the value is sanitized with `sanitize_url()` (disallowed protocols such as `javascript:` become empty) and then autoescaped |
+| Images | attachment ID with `{{ attachment_image(attrs.imageId, size = 'full', attributes = {}) }}` (`wp_get_attachment_image()`; empty for `null`) |
+| Inner blocks | `{{ content\|raw }}` |
+| Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports) |
+
+No string filters such as `upper` on HTML (uppercase via CSS).
+
+### Values
+
+Block attribute classes, nested value classes and `#[ListOf]` REST arguments share one schema derivation (build) and one value factory (runtime, without reflection).
+
+- **Value class:** a `readonly` class whose values are all public promoted constructor parameters and that declares no other properties. Value classes are the exception to the rule that properties are never public.
+- **Types:** `int`, `float`, `string`, `bool`, backed enums (schema `enum` with the case values), value classes (schema `object` with `properties`) and `array` with `#[ListOf(Enum::class)]` or `#[ListOf(ValueClass::class)]` (schema `array` with `items`), each optionally nullable (`type: [..., 'null']`). Lists of scalars are not supported yet. Enums and value classes must be in the scanned PSR-4 directories; recursive value classes are build errors.
+- **Defaults** become the schema `default` (enums as their value, value objects as arrays). Inside a nested value class a parameter without default is `required`. Unknown keys in nested objects are ignored, like WordPress ignores unknown block attributes.
+- **`#[Url]`** on a string adds `format: uri` (sanitized with `sanitize_url()`).
+- **Conversion:** missing values use the constructor default; a value that does not match its type throws an `InvalidArgumentException` naming the path, e.g. `buttons[1].url` – values are never coerced silently.
+
 ### Build
 
 ```sh
@@ -183,16 +294,18 @@ Builds and checks the manifest of the project whose `vendor/autoload.php` the Co
 | `Hook/` | `#[Hook]` attribute, collector (build), definition, registrar (runtime) |
 | `Rest/` | `#[RestController]`, `#[RestRoute]`, `#[Param]` attributes, `HttpMethod`/`Format` enums, `Permission/` (`PublicAccess`, `Capability`, `Callback`), `RestException`, collector (build), definition, registrar (runtime) |
 | `Twig/` | `#[TemplateFunction]`, `#[TemplateFilter]` attributes, collector (build), definition, `TemplateRenderer` and runtime loader (runtime), override finder (build) |
+| `Block/` | `#[Block]`, `#[Supports]`, `#[PlainText]`, `#[RichText]`, `#[Content]` attributes, `BlockCategory`/`Align` enums, collector (build), definition, registrar and template functions (runtime) |
+| `Value/` | `#[ListOf]`, `#[Url]` attributes, schema derivation of typed values (build), value factory (runtime) |
 | `DependencyInjection/` | `#[NoService]` attribute, service candidates and resolver (build), container (runtime) |
 | `Manifest/` | Manifest builder, generator and loader, checks shared by entry point collectors; `Discovery/` (PSR-4 class discovery), `DevCache/` (development mode cache) |
 | `Console/` | Command line entry point of `bin/wp-app-framework` |
 
-New areas (blocks, settings, block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
+New areas (settings, block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
 
 ## Conventions
 
 - The theme API must be fully resolvable by IDEs: enums and classes instead of magic strings, first-class callables instead of method names, required information as required attribute arguments.
-- Class properties are never public; access goes through getters with a `get` prefix (`is`/`has` for booleans). Attribute classes such as `#[Hook]` are the exception and expose public readonly properties.
+- Class properties are never public; access goes through getters with a `get` prefix (`is`/`has` for booleans). Attribute classes such as `#[Hook]` and value classes (block attribute classes) are the exceptions and expose public readonly properties.
 - Code, comments and documentation are in English.
 
 ## Development
@@ -201,7 +314,7 @@ Themes include this repository during development through a Composer `path` repo
 
 A local WordPress for testing is provided by [wp-dev-env](https://github.com/saijsaij/wp-dev-env).
 
-Tests (PHPUnit) run in the `tools` container of [wp-dev-env](https://github.com/saijsaij/wp-dev-env); WordPress is not loaded, minimal test doubles of the REST classes live in `tests/Stubs/`:
+Tests (PHPUnit) run in the `tools` container of [wp-dev-env](https://github.com/saijsaij/wp-dev-env); WordPress is not loaded, minimal test doubles of the WordPress classes and functions live in `tests/Stubs/`:
 
 ```sh
 composer install

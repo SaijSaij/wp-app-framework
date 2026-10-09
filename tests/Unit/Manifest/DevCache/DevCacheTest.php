@@ -171,7 +171,26 @@ final class DevCacheTest extends TestCase
         self::assertSame('stale', $this->probe('check'));
     }
 
-        public function testNewAndDeletedFilesRebuild(): void
+    public function testNewEnumCaseAndChangedDefaultRebuild(): void
+    {
+        $enum = static fn (string $cases): string => "<?php\n\nnamespace DevCacheProbe;\n\nenum Level: string\n{\n{$cases}}\n";
+        $attributes = static fn (string $default): string => "<?php\n\nnamespace DevCacheProbe;\n\nfinal readonly class Attributes\n{\n    public function __construct(public Level \$level = Level::{$default})\n    {\n    }\n}\n";
+
+        $this->writeSource('Level.php', $enum("    case Low = 'low';\n"));
+        $this->writeSource('Attributes.php', $attributes('Low'));
+        $this->probe('load');
+        self::assertSame('fresh', $this->probe('check'));
+
+        // Enum cases are constants, not methods; they still define the schema.
+        $this->writeSource('Level.php', $enum("    case Low = 'low';\n    case High = 'high';\n"));
+        self::assertSame('stale', $this->probe('check'));
+
+        $this->probe('load');
+        $this->writeSource('Attributes.php', $attributes('High'));
+        self::assertSame('stale', $this->probe('check'));
+    }
+
+    public function testNewAndDeletedFilesRebuild(): void
     {
         $this->probe('load');
         $this->writeSource('Extra.php', "<?php\n\nnamespace DevCacheProbe;\n\nfinal class Extra\n{\n}\n");

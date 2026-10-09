@@ -9,9 +9,10 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 /**
  * A validated `#[RestRoute]` method.
  *
+ * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-type RestArgument array{param: string, kind: 'service', class: class-string}
  *     |array{param: string, kind: 'request'}
- *     |array{param: string, kind: 'url'|'param', enum: class-string<\BackedEnum>|null, nullable: bool}
+ *     |array{param: string, kind: 'url'|'param', value: Value}
  * @phpstan-type RestPermission array{type: 'public'}
  *     |array{type: 'capability', capability: string}
  *     |array{type: 'callback', class: class-string, method: string, arguments: list<RestArgument>}

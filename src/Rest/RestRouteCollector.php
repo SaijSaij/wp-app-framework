@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Rest;
 
 use BackedEnum;
+use LogicException;
 use ReflectionClass;
-use ReflectionEnum;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -17,6 +17,8 @@ use Saij\WpAppFramework\Manifest\EntryPointInspector;
 use Saij\WpAppFramework\Rest\Permission\Callback;
 use Saij\WpAppFramework\Rest\Permission\Capability;
 use Saij\WpAppFramework\Rest\Permission\PublicAccess;
+use Saij\WpAppFramework\Value\ListOf;
+use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
 
 /**
@@ -25,12 +27,13 @@ use Throwable;
  *
  * @phpstan-import-type RestArgument from RestRouteDefinition
  * @phpstan-import-type RestPermission from RestRouteDefinition
+ * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-type Parameter array{
  *     param: string,
  *     kind: 'service'|'request'|'param'|'url',
  *     class?: class-string,
+ *     value?: Value,
  *     enum?: class-string<BackedEnum>|null,
- *     nullable?: bool,
  *     required?: bool,
  *     type?: string,
  *     schema?: array<string, mixed>
@@ -41,8 +44,6 @@ final class RestRouteCollector
 {
     private const string REQUEST_CLASS = 'WP_REST_Request';
 
-    private const array SCALAR_TYPES = ['int' => 'integer', 'float' => 'number', 'string' => 'string', 'bool' => 'boolean'];
-
     private const string PERMISSION_HINT = "new PublicAccess(), new Capability('…') or new Callback(self::method(...))";
 
     /** @var list<string> */
@@ -50,8 +51,10 @@ final class RestRouteCollector
 
     private readonly EntryPointInspector $inspector;
 
-    public function __construct(private readonly ServiceResolver $resolver)
-    {
+    public function __construct(
+        private readonly ServiceResolver $resolver,
+        private readonly ValueSchemaBuilder $values,
+    ) {
         $this->inspector = new EntryPointInspector($resolver);
     }
 
@@ -256,34 +259,23 @@ final class RestRouteCollector
      */
     private function argument(ReflectionParameter $parameter, string $parameterLocation): ?array
     {
-        $type = $parameter->getType();
-        $supported = 'use int, float, string, bool or a backed enum (arrays follow with #[ListOf])';
-
-        if ($type === null) {
-            $this->errors[] = sprintf('%s has no type; %s.', $parameterLocation, $supported);
-
-            return null;
-        }
-        if (!$type instanceof ReflectionNamedType) {
-            $this->errors[] = sprintf('%s: type %s is not supported for REST arguments; %s, optionally nullable.', $parameterLocation, $type, $supported);
-
+        $field = $this->values->parameter($parameter, $parameterLocation);
+        if ($field === null) {
             return null;
         }
 
-        $typeName = $type->getName();
-        $enum = null;
-        if (isset(self::SCALAR_TYPES[$typeName])) {
-            $schemaType = self::SCALAR_TYPES[$typeName];
-        } elseif (!$type->isBuiltin() && enum_exists($typeName) && is_subclass_of($typeName, BackedEnum::class)) {
-            $enum = $typeName;
-            $schemaType = (string) new ReflectionEnum($typeName)->getBackingType() === 'int' ? 'integer' : 'string';
-        } else {
-            $this->errors[] = sprintf('%s: type %s is not supported for REST arguments; %s.', $parameterLocation, $type, $supported);
+        $value = $field['value'];
+        if ($value['type'] === 'object') {
+            $this->errors[] = sprintf(
+                '%s: a single value class is not supported as REST argument (a class type without #[ListOf] is injected as service); use #[ListOf(%s::class)] array for a list.',
+                $parameterLocation,
+                $value['class'],
+            );
 
             return null;
         }
 
-        $nullable = $type->allowsNull();
+        $nullable = $value['nullable'];
         $required = !$parameter->isDefaultValueAvailable();
         if ($nullable && $required) {
             $this->errors[] = sprintf('%s is nullable and needs a default value: WordPress treats null as a missing argument.', $parameterLocation);
@@ -291,34 +283,38 @@ final class RestRouteCollector
             return null;
         }
 
-        $schema = ['type' => $nullable ? [$schemaType, 'null'] : $schemaType];
-        if ($enum !== null) {
-            $values = array_map(static fn (BackedEnum $case): int|string => $case->value, $enum::cases());
-            $schema['enum'] = $nullable ? [...$values, null] : $values;
-        }
+        $schema = $field['schema'];
         if ($required) {
             $schema['required'] = true;
         } else {
-            $default = $parameter->getDefaultValue();
-            if ($default instanceof BackedEnum) {
-                $schema['default'] = $default->value;
-            } elseif ($default !== null) {
+            $default = ValueSchemaBuilder::export($parameter->getDefaultValue());
+            if ($default !== null) {
                 $schema['default'] = $default;
             }
         }
 
-        $keywords = $this->keywords($parameter, $parameterLocation, $enum === null ? $schemaType : 'enum');
+        $schemaKind = match ($value['type']) {
+            'enum' => 'enum',
+            'list' => 'array',
+            default => (array) $schema['type'],
+        };
+        $keywords = $this->keywords($parameter, $parameterLocation, is_array($schemaKind) ? $schemaKind[0] : $schemaKind);
         if ($keywords === null) {
+            return null;
+        }
+        if (isset($keywords['format'], $schema['format'])) {
+            $this->errors[] = sprintf('%s has #[Url] and #[Param(format:)]; use one of them.', $parameterLocation);
+
             return null;
         }
 
         return [
             'param' => $parameter->getName(),
             'kind' => 'param',
-            'enum' => $enum,
-            'nullable' => $nullable,
+            'value' => $value,
+            'enum' => $value['type'] === 'enum' ? $value['class'] : null,
             'required' => $required,
-            'type' => (string) $type,
+            'type' => (string) $parameter->getType(),
             'schema' => [...$schema, ...$keywords],
         ];
     }
@@ -358,7 +354,11 @@ final class RestRouteCollector
             'string' => ['description', 'minLength', 'maxLength', 'pattern', 'format'],
             default => ['description'],
         };
-        $typeLabel = $schemaType === 'enum' ? 'a backed enum' : $schemaType;
+        $typeLabel = match ($schemaType) {
+            'enum' => 'a backed enum',
+            'array' => 'list',
+            default => $schemaType,
+        };
 
         $valid = true;
         foreach (array_keys($keywords) as $keyword) {
@@ -650,13 +650,14 @@ final class RestRouteCollector
             }
 
             $routeArgument = $routeArguments[$parameter->getName()] ?? null;
-            $type = (string) $parameter->getType();
-            if ($routeArgument === null || $routeArgument['type'] !== $type) {
+            $type = self::declaredType($parameter);
+            $routeType = $routeArgument === null ? null : self::declaredType($routeArgument);
+            if ($routeArgument === null || $routeType !== $type) {
                 $this->errors[] = sprintf(
                     '%s must be a service, WP_REST_Request or a request argument of %s with the same name and type (%s).',
                     $parameterLocation,
                     $location,
-                    $routeArgument === null ? 'no such argument' : 'the route declares ' . $routeArgument['type'],
+                    $routeArgument === null ? 'no such argument' : 'the route declares ' . $routeType,
                 );
                 $valid = false;
                 continue;
@@ -689,9 +690,34 @@ final class RestRouteCollector
             default => [
                 'param' => $parameter['param'],
                 'kind' => $parameter['kind'],
-                'enum' => $parameter['enum'] ?? null,
-                'nullable' => $parameter['nullable'] ?? false,
+                'value' => $parameter['value'] ?? throw new LogicException(sprintf('Request argument $%s has no value description.', $parameter['param'])),
             ],
         };
+    }
+
+    /**
+     * The PHP type of a parameter, including the item class of a list, e.g. "array<Level>".
+     *
+     * @param ReflectionParameter|Parameter $parameter
+     */
+    private static function declaredType(ReflectionParameter|array $parameter): string
+    {
+        if (is_array($parameter)) {
+            $value = $parameter['value'] ?? null;
+            $type = $parameter['type'] ?? '';
+
+            return $value !== null && $value['type'] === 'list' && isset($value['items']['class'])
+                ? sprintf('%s<%s>', $type, $value['items']['class'])
+                : $type;
+        }
+
+        $type = (string) $parameter->getType();
+        $listOf = $parameter->getAttributes(ListOf::class)[0] ?? null;
+        if ($listOf === null) {
+            return $type;
+        }
+        $arguments = $listOf->getArguments();
+
+        return sprintf('%s<%s>', $type, (string) ($arguments[0] ?? $arguments['class'] ?? ''));
     }
 }
