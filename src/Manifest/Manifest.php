@@ -25,6 +25,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * @phpstan-import-type RestPermission from RestRouteDefinition
  * @phpstan-import-type TemplateCallableEntry from TemplateRenderer
  * @phpstan-import-type BlockArgument from BlockDefinition
+ * @phpstan-import-type BlockEditor from BlockDefinition
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-type HookEntry array{name: string, priority: int, acceptedArgs: int, filter: bool, class: class-string, method: string, arguments: list<HookArgument>}
  * @phpstan-type RouteEntry array{
@@ -42,7 +43,8 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     name: string,
  *     args: array{attributes: array<string, array<string, mixed>>, ...<string, mixed>},
  *     class: class-string,
- *     arguments: list<BlockArgument>
+ *     arguments: list<BlockArgument>,
+ *     editor: BlockEditor
  * }
  * @phpstan-type ManifestData array{
  *     format: int,
@@ -58,7 +60,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 5;
+    public const int FORMAT = 6;
 
     /**
      * @return ManifestData

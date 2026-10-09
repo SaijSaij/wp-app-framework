@@ -11,7 +11,9 @@ use ReflectionEnum;
 use ReflectionEnumBackedCase;
 use ReflectionFunction;
 use ReflectionMethod;
+use Saij\WpAppFramework\Block\Labeled;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Throwable;
 use UnitEnum;
 
 /**
@@ -42,6 +44,10 @@ final class Signature
         if ($class->isEnum()) {
             foreach (new ReflectionEnum($class->getName())->getCases() as $case) {
                 $parts[] = 'case ' . $case->getName() . '=' . self::describe($case instanceof ReflectionEnumBackedCase ? $case->getBackingValue() : null);
+                // The editor labels come from a method body, which the signature otherwise ignores.
+                if ($class->implementsInterface(Labeled::class)) {
+                    $parts[] = 'label ' . self::label($case->getValue());
+                }
             }
         }
 
@@ -97,6 +103,16 @@ final class Signature
         sort($files, SORT_STRING);
 
         return $files;
+    }
+
+    private static function label(UnitEnum $case): string
+    {
+        try {
+            return $case instanceof Labeled ? var_export($case->label(), true) : '';
+        } catch (Throwable $exception) {
+            // The build reports the error; a different message still means a different signature.
+            return 'error ' . $exception->getMessage();
+        }
     }
 
     /**

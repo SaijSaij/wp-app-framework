@@ -7,6 +7,9 @@ namespace Saij\WpAppFramework;
 use LogicException;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\DependencyInjection\Container;
+use Saij\WpAppFramework\Editor\EditorAssets;
+use Saij\WpAppFramework\Editor\RenderContext;
+use Saij\WpAppFramework\Editor\RenderController;
 use Saij\WpAppFramework\Hook\HookRegistrar;
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
 use Saij\WpAppFramework\Manifest\Manifest;
@@ -29,6 +32,9 @@ final class Theme
 
     /** Manifest of a release build, relative to the template directory. Its presence selects release mode. */
     public const string RELEASE_MANIFEST = 'generated/manifest.php';
+
+    /** Output directory of the theme's script build, relative to the template directory. */
+    public const string BUILD_DIRECTORY = 'build';
 
     private static bool $booted = false;
 
@@ -118,10 +124,13 @@ final class Theme
             ? $theme->loadDevelopmentManifest($cacheDirectory . '/manifest')
             : Manifest::load($releaseManifest);
 
+        // The slug names everything global of this framework instance: REST route, script handles, JS global.
+        $slug = get_template();
+        $renderContext = new RenderContext();
         $templateCallables = $manifest['templateCallables'];
         $container = new Container(
             $manifest['services'],
-            [self::class => $theme],
+            [self::class => $theme, RenderContext::class => $renderContext],
             [
                 TemplateRenderer::class => static fn(Container $container): TemplateRenderer => new TemplateRenderer(
                     $theme->templateDirectory,
@@ -140,15 +149,26 @@ final class Theme
         $values = new ValueFactory($manifest['values']);
         $restRegistrar = new RestRegistrar($container, $values, $debug);
         $routes = $manifest['routes'];
-        add_action('rest_api_init', static function () use ($restRegistrar, $routes): void {
+        $blocks = $manifest['blocks'];
+        $renderController = new RenderController($slug, array_column($blocks, 'name'), $renderContext, $debug);
+        add_action('rest_api_init', static function () use ($restRegistrar, $routes, $renderController): void {
             $restRegistrar->register($routes);
+            $renderController->register();
         });
 
-        $blockRegistrar = new BlockRegistrar($container, $values, $debug);
-        $blocks = $manifest['blocks'];
+        $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug);
         add_action('init', static function () use ($blockRegistrar, $blocks): void {
             $blockRegistrar->register($blocks);
         });
+
+        $editorAssets = new EditorAssets(
+            $slug,
+            $theme->templateDirectory . '/' . self::BUILD_DIRECTORY,
+            $theme->templateDirectoryUri . '/' . self::BUILD_DIRECTORY,
+            $blocks,
+            $development,
+        );
+        add_action('enqueue_block_editor_assets', $editorAssets->enqueue(...));
 
         do_action(self::INIT_HOOK);
     }

@@ -190,6 +190,34 @@ final class DevCacheTest extends TestCase
         self::assertSame('stale', $this->probe('check'));
     }
 
+    public function testEditorChangesRebuild(): void
+    {
+        $enum = static fn (string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Labeled;\n\nenum Tone: string implements Labeled\n{\n    case Light = 'light';\n\n    public function label(): string\n    {\n        return '{$label}';\n    }\n}\n";
+        $attributes = static fn (string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Label;\n\nfinal readonly class Attributes\n{\n    public function __construct(#[Label('{$label}')] public Tone \$tone = Tone::Light)\n    {\n    }\n}\n";
+
+        $this->writeSource('Tone.php', $enum('Bright'));
+        $this->writeSource('Attributes.php', $attributes('Tone'));
+        $this->probe('load');
+        self::assertSame('fresh', $this->probe('check'));
+
+        // Enum labels come from a method body.
+        $this->writeSource('Tone.php', $enum('Light'));
+        self::assertSame('stale', $this->probe('check'));
+
+        $this->probe('load');
+        $this->writeSource('Attributes.php', $attributes('Mood'));
+        self::assertSame('stale', $this->probe('check'));
+
+        // Whether a block has an editor script is part of the manifest.
+        $this->probe('load');
+        file_put_contents($this->theme . '/src/Hooks.editor.js', '');
+        self::assertSame('stale', $this->probe('check'));
+
+        $this->probe('load');
+        unlink($this->theme . '/src/Hooks.editor.js');
+        self::assertSame('stale', $this->probe('check'));
+    }
+
     public function testNewAndDeletedFilesRebuild(): void
     {
         $this->probe('load');

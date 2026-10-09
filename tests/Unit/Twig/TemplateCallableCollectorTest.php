@@ -6,6 +6,7 @@ namespace Saij\WpAppFramework\Tests\Unit\Twig;
 
 use PHPUnit\Framework\TestCase;
 use Saij\WpAppFramework\Block\BlockTemplateFunctions;
+use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
@@ -42,6 +43,9 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Function, 'count_items', TwigValid\TextHelpers::class, 'countItems', false],
                 [TemplateCallableKind::Function, 'block_wrapper_attributes', BlockTemplateFunctions::class, 'blockWrapperAttributes', true],
                 [TemplateCallableKind::Function, 'attachment_image', BlockTemplateFunctions::class, 'attachmentImage', true],
+                [TemplateCallableKind::Function, 'field', EditorTemplateFunctions::class, 'field', true],
+                [TemplateCallableKind::Function, 'inner_blocks', EditorTemplateFunctions::class, 'innerBlocks', true],
+                [TemplateCallableKind::Function, 'is_editor', EditorTemplateFunctions::class, 'isEditor', false],
             ],
             $collected,
         );

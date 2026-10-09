@@ -90,11 +90,26 @@ final class ManifestBuilderTest extends TestCase
 
     public function testFrameworkServicesAreThePredefinedOnesAndItsTemplateFunctions(): void
     {
-        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class];
+        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class, \Saij\WpAppFramework\Editor\RenderContext::class];
         $result = new ManifestBuilder([ManifestBuilder::frameworkSource()], [], $predefined)->build();
 
-        self::assertSame([\Saij\WpAppFramework\Block\BlockTemplateFunctions::class, ...$predefined], $result->getCandidates());
-        self::assertSame([\Saij\WpAppFramework\Block\BlockTemplateFunctions::class => []], $result->getServices());
+        self::assertSame(
+            [
+                \Saij\WpAppFramework\Block\BlockTemplateFunctions::class,
+                \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class,
+                \Saij\WpAppFramework\Editor\RenderContext::class,
+                \Saij\WpAppFramework\Theme::class,
+                \Saij\WpAppFramework\Twig\TemplateRenderer::class,
+            ],
+            $result->getCandidates(),
+        );
+        self::assertSame(
+            [
+                \Saij\WpAppFramework\Block\BlockTemplateFunctions::class => [],
+                \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class => ['context' => \Saij\WpAppFramework\Editor\RenderContext::class],
+            ],
+            $result->getServices(),
+        );
         self::assertSame([], $result->getHooks());
         self::assertSame([], $result->getRoutes());
         self::assertSame([], $result->getBlocks());

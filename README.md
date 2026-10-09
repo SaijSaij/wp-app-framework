@@ -4,13 +4,13 @@ PHP/JS framework for building standalone full site editing themes for WordPress 
 
 - Composer package: `saij/wp-app-framework`
 - PHP namespace: `Saij\WpAppFramework`
-- JS import name: `@saij/wp-app-framework`, runtime global: `window.wpAppFramework`
+- JS import name: `@saij/wp-app-framework`, runtime global: `window.wpAppFramework[slug]` (one per framework instance)
 
 The framework is a library that themes include via Composer. It is neither a theme nor a plugin and registers no blocks itself.
 
 ## Status
 
-Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig (step 3): `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`; development mode only so far (release mode follows with the release build). Server-side blocks (step 4): `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments. The editor runtime (inline editing) follows; until then the block editor shows the blocks as unsupported.
+Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig (step 3): `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`; development mode only so far (release mode follows with the release build). Server-side blocks (step 4): `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments. Editor runtime (step 5): inline editing in the canvas, generated inspector, batch render route, webpack helper.
 
 ## Usage
 
@@ -174,6 +174,8 @@ use Saij\WpAppFramework\Block\Align;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Content;
+use Saij\WpAppFramework\Block\Image;
+use Saij\WpAppFramework\Block\Label;
 use Saij\WpAppFramework\Block\PlainText;
 use Saij\WpAppFramework\Block\RichText;
 use Saij\WpAppFramework\Block\Supports;
@@ -199,8 +201,8 @@ final readonly class HeroAttributes
 {
     public function __construct(
         #[PlainText] public string $topline = '',
-        #[RichText] public string $headline = '',
-        #[Content] public ?int $imageId = null,
+        #[RichText(allowedFormats: ['core/bold', 'core/italic'])] public string $headline = '',
+        #[Image] #[Label('Image')] public ?int $imageId = null,
         public Gradient $gradient = Gradient::Black,
         #[ListOf(Button::class)] public array $buttons = [],
     ) {
@@ -219,21 +221,26 @@ final readonly class Button
 
 ```twig
 <section {{ block_wrapper_attributes({class: 'hero hero--' ~ attrs.gradient.value}) }}>
-    <p>{{ attrs.topline }}</p>
-    <h1>{{ attrs.headline|raw }}</h1>
-    {{ attachment_image(attrs.imageId, 'large') }}
+    {% if attrs.topline or is_editor() %}
+        <p{{ field('topline') }}>{{ attrs.topline }}</p>
+    {% endif %}
+    <h1{{ field('headline') }}>{{ attrs.headline|raw }}</h1>
+    <figure{{ field('imageId') }}>{{ attachment_image(attrs.imageId, 'large') }}</figure>
     {% for button in attrs.buttons %}
-        <a href="{{ button.url }}">{{ button.label }}</a>
+        <a href="{{ button.url }}"{{ field(['buttons', loop.index0, 'label']) }}>{{ button.label }}</a>
     {% endfor %}
-    {{ content|raw }}
+    <div{{ inner_blocks() }}>{{ content|raw }}</div>
 </section>
 ```
 
-- **`#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [])]`** on a service class. The name is `namespace/name` (lowercase letters, digits, `-`); the namespace `core` and duplicate names are build errors, and the framework itself declares no blocks. `category` is a `BlockCategory` case. `usesContext` lists the context values the block reads from `WP_Block::$context`, e.g. `postId` in a query loop. Blocks are registered on `init` with `api_version` 3.
+`field()`, `inner_blocks()` and `is_editor()` only matter in the editor; on the front end the marks are empty (see [Editor](#editor)).
+
+- **`#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [], allowedBlocks: null)]`** on a service class. The name is `namespace/name` (lowercase letters, digits, `-`); the namespace `core` and duplicate names are build errors, and the framework itself declares no blocks. `category` is a `BlockCategory` case. `usesContext` lists the context values the block reads from `WP_Block::$context`, e.g. `postId` in a query loop. `allowedBlocks` limits the blocks that can be inserted as inner blocks (`allowed_blocks`); it requires `render()` to accept `string $content`. Blocks are registered on `init` with `api_version` 3.
 - **`#[Supports(contentRole: false, anchor: false, align: [], customClassName: true, multiple: true, reusable: true, inserter: true, lock: true, renaming: true, customCSS: true)]`** with WordPress' defaults; only differing values are registered. `html` is always disabled. Container blocks set `contentRole: true`, so inner blocks can be inserted in contentOnly mode. `customCSS` (enabled by default in WordPress 7) lets users with `edit_css` store free CSS per block instance; the theme decides whether it allows it – per block with `customCSS: false`, or for all blocks with its own `register_block_type_args` hook.
 - **`render()`** is public, non-static and returns `string`. Its parameters are matched by type, each at most once and in any order: the attribute class, `string` (the rendered inner blocks) and `WP_Block`. Services come through the constructor; the block service is created when the block is first rendered.
 - **Attribute class:** a value class (see [Values](#values)) whose parameters all have a default value, because an attribute can always be missing in the content. The names `lock`, `metadata`, `className`, `anchor`, `align` and `style` are reserved for the attributes WordPress adds itself (`style` comes with the `customCSS` support, enabled by default in WordPress 7). The attribute schema gets `type`, `enum`, `properties`/`items`, `default` and `role: content` (below).
-- **Fields:** `#[PlainText]` (inline text, strings only) and `#[RichText]` (inline HTML, strings only) mark inline editable fields, `#[Content]` other content such as images or links. An attribute gets `role: content` if it or a nested field is marked, so the block stays editable in contentOnly mode (patterns and template parts open in it in WordPress 7). The marks have no effect on REST arguments.
+- **Fields:** `#[PlainText]` (inline text, strings only), `#[RichText(allowedFormats: null)]` (inline HTML, strings only; `allowedFormats` lists the formats the editor offers, e.g. `['core/bold']`, `null` allows all, `[]` none) and `#[Image]` (an attachment ID, `?int` only) mark the fields edited in the canvas; `#[Content]` marks other content such as links. An attribute gets `role: content` if it or a nested field is marked, so the block stays editable in contentOnly mode (patterns and template parts open in it in WordPress 7). The marks have no effect on REST arguments.
+- **Editor labels:** `#[Label('…')]` labels a value in the inspector and is the placeholder of an inline field; without it the label is derived from the parameter name (`imageId` → "Image id"). A backed enum implements `Block\Labeled` (`label(): string`, evaluated in the build) to label its cases; otherwise the editor shows the case values. `#[Hidden]` keeps a value out of the generated inspector (not allowed on inline fields).
 - **Attributes at render time:** WordPress validates the attributes against the schema before rendering (an invalid value falls back to the default) but does not sanitize them. The value factory sanitizes each attribute against its schema (`rest_sanitize_value_from_schema()`) and creates the attribute object; attributes of block supports are ignored.
 - **Errors:** exceptions in `render()` or in creating the attributes are rethrown if `WP_DEBUG` is enabled; otherwise they are logged with `error_log()` and the block renders nothing.
 - **Core blocks:** the framework disables none. A theme decides itself which core blocks it allows, e.g. with a hook:
@@ -260,11 +267,67 @@ final class AllowedBlocks
 | `#[PlainText]` and other strings | `{{ attrs.topline }}` – Twig's autoescaping |
 | `#[RichText]` | `{{ attrs.headline\|raw }}` – exactly as stored; WordPress filters it with `wp_kses` when a user without `unfiltered_html` saves |
 | `#[Url]` strings | `{{ button.url }}` – the schema has `format: uri`, so the value is sanitized with `sanitize_url()` (disallowed protocols such as `javascript:` become empty) and then autoescaped |
-| Images | attachment ID with `{{ attachment_image(attrs.imageId, size = 'full', attributes = {}) }}` (`wp_get_attachment_image()`; empty for `null`) |
+| Images | `#[Image]` attachment ID with `{{ attachment_image(attrs.imageId, size = 'full', attributes = {}) }}` (`wp_get_attachment_image()`; empty for `null`) |
 | Inner blocks | `{{ content\|raw }}` |
 | Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports) |
 
 No string filters such as `upper` on HTML (uppercase via CSS).
+
+### Editor
+
+The editor runtime renders every block of the theme in the block editor on the server, from the same Twig template as the front end, and replaces the marked elements with editors. Markup exists only once, in Twig.
+
+**Templates.** In editor renders the template functions mark the editable elements:
+
+- `{{ field('topline') }}`, `{{ field('caption.text') }}`, `{{ field(['buttons', loop.index0, 'label']) }}` on the element of an inline field. The path must name a `#[PlainText]`, `#[RichText]` or `#[Image]` field of the block (list items by index); anything else throws an exception, in the editor and on the front end. Text fields become `RichText` with the element's tag; an image field keeps the server markup and offers select, replace and reset – mark an element around the image (e.g. `<figure>`), not the `<img>`.
+- `{{ inner_blocks() }}` on the element that contains the inner blocks (blocks whose `render()` accepts `string $content`). It may be the root element.
+- `is_editor()` for a structure that does not depend on inline values: render inline fields in the editor even when they are empty, `{% if attrs.topline or is_editor() %}`. In development mode the runtime warns about fields the markup does not mark.
+- The template renders exactly one root element with `block_wrapper_attributes()`; the runtime adds the editor's block props to it (no extra wrapper).
+
+**Rendering.** All blocks render through the batch route of the instance, `POST /wp-app-framework/v1/{slug}/render` (`edit_posts`, and `edit_post` for a block's `postId`), like WordPress' block renderer (`render_block()` with empty inner blocks, block supports apply). Each block gets its own result, so one failing block shows an error and the others render. Requests of the same moment are sent together, including the framework blocks inside a container. Inline text values are blanked in the request: typing never re-renders, every other change does – images, enums, list items. Results are cached for the editor session by block name, attributes and post, so undo/redo and duplicates need no request. While new markup loads, the old markup stays (dimmed).
+
+**Inspector.** The runtime generates controls from the attribute classes: enum → select, `bool` → toggle, `int`/`float` → number, `string` → text (`#[Url]`: URL), value classes → their values, lists → list editor (add, remove, reorder; inline values of items are edited in the canvas). Typed text is applied after a short pause. Content attributes (`role: content`) appear in the "Content" group, which stays available in contentOnly mode; all others in "Settings".
+
+**Editor scripts.** A block can extend the editor with a script next to its class, `src/Block/Hero/Hero.editor.js`, loaded with the runtime:
+
+```js
+import { registerControl, registerPanel } from '@saij/wp-app-framework';
+import { PanelBody, RangeControl } from '@wordpress/components';
+
+// Replaces the generated control of an attribute.
+registerControl( 'sections/hero', 'count', ( { value, onChange } ) => (
+	<RangeControl label="Count" value={ value } onChange={ onChange } min={ 1 } max={ 6 } />
+) );
+
+// Adds a panel to the "Settings" group.
+registerPanel( 'sections/hero', ( { attributes, setAttributes } ) => <PanelBody title="Hero">…</PanelBody> );
+```
+
+Both warn in the console about unknown blocks and attributes. `@saij/wp-app-framework` maps to the runtime of the theme's own framework instance.
+
+**Build.** The theme builds the runtime and its editor scripts with `@wordpress/scripts` and the framework's webpack helper; the framework ships only sources (`js/`). In development the theme's watcher also picks up changes of a symlinked framework checkout.
+
+```json
+{
+	"scripts": { "build": "wp-scripts build", "start": "wp-scripts start" },
+	"devDependencies": {
+		"@saij/wp-app-framework": "file:vendor/saij/wp-app-framework",
+		"@wordpress/scripts": "^36.1.0"
+	}
+}
+```
+
+```js
+// webpack.config.js of the theme
+module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( {
+	slug: 'theme-sections', // get_template()
+	root: __dirname,
+} );
+```
+
+The output goes to `build/`: the runtime to `build/vendor/wp-app-framework/editor.js`, editor scripts mirrored from `src/` (`build/Block/Hero/Hero.editor.js`), each with its `.asset.php`. Without a build the editor fails with an exception naming the missing file; a theme without blocks loads no runtime and needs no build. Run `composer install` before `npm install`: the `file:` dependency points into `vendor/`.
+
+**Instances.** Everything global is derived from the slug of the instance (`get_template()`): the render route, the script handles (`{slug}-wp-app-framework`, `{slug}-{block}-editor`) and the JS global `window.wpAppFramework[slug]`, so several framework instances in different versions can run side by side.
 
 ### Values
 
@@ -294,13 +357,16 @@ Builds and checks the manifest of the project whose `vendor/autoload.php` the Co
 | `Hook/` | `#[Hook]` attribute, collector (build), definition, registrar (runtime) |
 | `Rest/` | `#[RestController]`, `#[RestRoute]`, `#[Param]` attributes, `HttpMethod`/`Format` enums, `Permission/` (`PublicAccess`, `Capability`, `Callback`), `RestException`, collector (build), definition, registrar (runtime) |
 | `Twig/` | `#[TemplateFunction]`, `#[TemplateFilter]` attributes, collector (build), definition, `TemplateRenderer` and runtime loader (runtime), override finder (build) |
-| `Block/` | `#[Block]`, `#[Supports]`, `#[PlainText]`, `#[RichText]`, `#[Content]` attributes, `BlockCategory`/`Align` enums, collector (build), definition, registrar and template functions (runtime) |
+| `Block/` | `#[Block]`, `#[Supports]`, `#[PlainText]`, `#[RichText]`, `#[Image]`, `#[Content]`, `#[Label]`, `#[Hidden]` attributes, `Labeled` interface, `BlockCategory`/`Align` enums, collector (build), definition, registrar and template functions (runtime) |
+| `Editor/` | Editor template functions (`field()`, `inner_blocks()`, `is_editor()`), render context, batch render route and editor assets (runtime) |
 | `Value/` | `#[ListOf]`, `#[Url]` attributes, schema derivation of typed values (build), value factory (runtime) |
 | `DependencyInjection/` | `#[NoService]` attribute, service candidates and resolver (build), container (runtime) |
 | `Manifest/` | Manifest builder, generator and loader, checks shared by entry point collectors; `Discovery/` (PSR-4 class discovery), `DevCache/` (development mode cache) |
 | `Console/` | Command line entry point of `bin/wp-app-framework` |
 
 New areas (settings, block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
+
+The editor runtime lives in `js/` (`editor.js` entry, `runtime/` modules, tests in `runtime/test/`); `webpack.config.js` is the helper for the theme's build.
 
 ## Conventions
 
@@ -319,4 +385,13 @@ Tests (PHPUnit) run in the `tools` container of [wp-dev-env](https://github.com/
 ```sh
 composer install
 composer test
+```
+
+JavaScript unit tests (Vitest) and linting of the runtime, also in the `tools` container:
+
+```sh
+npm install
+npm test
+npm run lint
+npm run format
 ```

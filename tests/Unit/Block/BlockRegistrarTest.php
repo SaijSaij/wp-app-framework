@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\DependencyInjection\Container;
+use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Value\ValueFactory;
@@ -51,7 +52,7 @@ final class BlockRegistrarTest extends TestCase
      */
     private function register(bool $debug): array
     {
-        new BlockRegistrar(new Container($this->manifest['services']), new ValueFactory($this->manifest['values']), $debug)
+        new BlockRegistrar(new Container($this->manifest['services']), new ValueFactory($this->manifest['values']), new RenderContext(), $debug)
             ->register($this->manifest['blocks']);
 
         return $GLOBALS['wp_app_framework_test_blocks'];

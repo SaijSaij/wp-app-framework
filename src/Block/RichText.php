@@ -15,4 +15,11 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
 final readonly class RichText
 {
+    /**
+     * @param list<string>|null $allowedFormats Formats the editor offers, e.g. ["core/bold", "core/italic"];
+     *                                          null allows all registered formats, [] none.
+     */
+    public function __construct(public ?array $allowedFormats = null)
+    {
+    }
 }

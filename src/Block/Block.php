@@ -19,6 +19,8 @@ final readonly class Block
      * @param string       $name        Block name, e.g. "sections/hero".
      * @param list<string> $keywords    Search terms for the inserter.
      * @param list<string> $usesContext Context values the block reads from WP_Block::$context, e.g. "postId".
+     * @param list<string>|null $allowedBlocks Blocks that may be inserted as inner blocks, e.g. ["sections/hero"];
+     *                                         null allows all. Requires render() to accept string $content.
      */
     public function __construct(
         public string $name,
@@ -28,6 +30,7 @@ final readonly class Block
         public string $description = '',
         public array $keywords = [],
         public array $usesContext = [],
+        public ?array $allowedBlocks = null,
     ) {
     }
 }

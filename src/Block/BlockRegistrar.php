@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Block;
 use LogicException;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Throwable;
@@ -16,7 +17,8 @@ use WP_Block;
  * Registers the blocks of the manifest with WordPress (on init).
  *
  * The block service is resolved only when a block is rendered. The attributes
- * pass through the value factory. Errors are rethrown when debugging is
+ * pass through the value factory. While rendering, the block is the current
+ * block of the render context (for field() and inner_blocks()). Errors are rethrown when debugging is
  * enabled; otherwise they are logged and the block renders nothing.
  *
  * @internal
@@ -29,6 +31,7 @@ final readonly class BlockRegistrar
     public function __construct(
         private Container $container,
         private ValueFactory $values,
+        private RenderContext $context,
         private bool $debug,
     ) {
     }
@@ -68,7 +71,12 @@ final readonly class BlockRegistrar
                 };
             }
 
-            return $this->container->get($block['class'])->render(...$named);
+            return $this->context->renderBlock(
+                $block['name'],
+                $block['editor']['fields'],
+                $block['editor']['innerBlocks'],
+                fn (): string => $this->container->get($block['class'])->render(...$named),
+            );
         } catch (Throwable $exception) {
             if ($this->debug) {
                 throw $exception;

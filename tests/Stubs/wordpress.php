@@ -99,6 +99,13 @@ function is_wp_error(mixed $thing): bool
 function rest_validate_value_from_schema(mixed $value, array $args, string $param = ''): true|WP_Error
 {
     $types = (array) $args['type'];
+    if (in_array('object', $types, true) && ($args['additionalProperties'] ?? true) === false && is_array($value)) {
+        foreach (array_keys($value) as $key) {
+            if (!isset($args['properties'][$key])) {
+                return new WP_Error('rest_additional_properties_forbidden', sprintf('%s is not a valid property of Object.', $key));
+            }
+        }
+    }
     if ($value === null && in_array('null', $types, true)) {
         return true;
     }
@@ -160,4 +167,133 @@ function get_block_wrapper_attributes(array $extra = []): string
 function wp_get_attachment_image(int $attachment_id, string $size = 'thumbnail', bool $icon = false, array $attr = []): string
 {
     return sprintf('<img data-id="%d" data-size="%s">', $attachment_id, $size);
+}
+
+/**
+ * Registered block types with their registration arguments; render_block() calls their render callback.
+ */
+final class WP_Block_Type_Registry
+{
+    private static ?self $instance = null;
+
+    /** @var array<string, WP_Block_Type> */
+    private array $types = [];
+
+    public static function get_instance(): self
+    {
+        return self::$instance ??= new self();
+    }
+
+    /**
+     * @param array<string, mixed> $args
+     */
+    public function register(string $name, array $args): void
+    {
+        $this->types[$name] = new WP_Block_Type($name, $args);
+    }
+
+    public function unregister_all(): void
+    {
+        $this->types = [];
+    }
+
+    public function get_registered(string $name): ?WP_Block_Type
+    {
+        return $this->types[$name] ?? null;
+    }
+}
+
+final class WP_Block_Type
+{
+    /**
+     * @param array<string, mixed> $args
+     */
+    public function __construct(private string $name, private array $args)
+    {
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function get_attributes(): array
+    {
+        return ($this->args['attributes'] ?? []) + ['lock' => ['type' => 'object'], 'metadata' => ['type' => 'object']];
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     */
+    public function render(array $attributes): string
+    {
+        return ($this->args['render_callback'])($attributes, '', new WP_Block($this->name));
+    }
+}
+
+/**
+ * @param array{blockName: string, attrs: array<string, mixed>} $block
+ */
+function render_block(array $block): string
+{
+    return WP_Block_Type_Registry::get_instance()->get_registered($block['blockName'])?->render($block['attrs']) ?? '';
+}
+
+/**
+ * Capabilities of the current user: $GLOBALS['wp_app_framework_test_caps'] lists the granted ones,
+ * e.g. "edit_posts" or "edit_post:7".
+ */
+function current_user_can(string $capability, mixed ...$args): bool
+{
+    $name = $args === [] ? $capability : $capability . ':' . implode(':', $args);
+
+    return in_array($name, $GLOBALS['wp_app_framework_test_caps'] ?? [], true);
+}
+
+/**
+ * Posts from $GLOBALS['wp_app_framework_test_posts'] by ID.
+ */
+function get_post(int $post): ?object
+{
+    return $GLOBALS['wp_app_framework_test_posts'][$post] ?? null;
+}
+
+function setup_postdata(object $post): bool
+{
+    $GLOBALS['wp_app_framework_test_postdata'] = $post->ID;
+
+    return true;
+}
+
+function esc_attr(string $text): string
+{
+    return htmlspecialchars($text, ENT_QUOTES);
+}
+
+function wp_json_encode(mixed $value, int $flags = 0): string|false
+{
+    return json_encode($value, $flags);
+}
+
+/**
+ * Records registered scripts in $GLOBALS['wp_app_framework_test_scripts'].
+ *
+ * @param list<string>         $deps
+ * @param array<string, mixed> $args
+ */
+function wp_register_script(string $handle, string $src, array $deps = [], string|bool|null $ver = false, array|bool $args = []): bool
+{
+    $GLOBALS['wp_app_framework_test_scripts'][$handle] = ['src' => $src, 'deps' => $deps, 'ver' => $ver, 'enqueued' => false, 'before' => []];
+
+    return true;
+}
+
+function wp_add_inline_script(string $handle, string $data, string $position = 'after'): bool
+{
+    $GLOBALS['wp_app_framework_test_scripts'][$handle][$position][] = $data;
+
+    return true;
+}
+
+function wp_enqueue_script(string $handle): void
+{
+    $GLOBALS['wp_app_framework_test_scripts'][$handle]['enqueued'] = true;
 }

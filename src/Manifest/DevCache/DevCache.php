@@ -6,6 +6,7 @@ namespace Saij\WpAppFramework\Manifest\DevCache;
 
 use ReflectionClass;
 use RuntimeException;
+use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
@@ -214,9 +215,16 @@ final class DevCache
         return $relative === '' ? $this->bases[$base] : $this->bases[$base] . '/' . $relative;
     }
 
+    /**
+     * Hash of the PHP files and block editor scripts below a source directory:
+     * adding or removing an editor script changes the manifest as well.
+     */
     private static function listingHash(string $directory): string
     {
-        return hash('xxh128', implode("\n", ClassDiscovery::files($directory)));
+        return hash('xxh128', implode("\n", [
+            ...ClassDiscovery::files($directory),
+            ...ClassDiscovery::files($directory, BlockCollector::EDITOR_SCRIPT_SUFFIX),
+        ]));
     }
 
     private static function write(string $file, string $content): void

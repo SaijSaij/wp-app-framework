@@ -186,7 +186,7 @@ final class BlockCollectorTest extends TestCase
                 "{$ns}SupportsOnly has #[Supports], but no #[Block].",
                 "parameter \$second of {$ns}TwoContents::render(): render() accepts only one string \$content parameter.",
                 sprintf($a, 'plainInt') . ' has #[PlainText], which is only allowed on strings.',
-                sprintf($a, 'both') . ' has #[PlainText] and #[RichText]; use one of them.',
+                sprintf($a, 'both') . ' has #[PlainText] and #[RichText]; use only one of #[PlainText], #[RichText] and #[Image].',
                 sprintf($a, 'richContent') . ' has #[RichText] and #[Content]; #[RichText] already marks the field as content.',
                 sprintf($a, 'urlInt') . ' has #[Url], which is only allowed on strings.',
                 sprintf($a, 'urlText') . ' has #[Url] and #[PlainText]; a URL is not inline text, mark it with #[Content] instead.',

@@ -19,6 +19,9 @@ use Throwable;
  * attribute schemas from their attribute classes and resolves the services.
  *
  * @phpstan-import-type BlockArgument from BlockDefinition
+ * @phpstan-import-type BlockEditor from BlockDefinition
+ * @phpstan-import-type Control from ValueSchemaBuilder
+ * @phpstan-import-type EditorField from ValueSchemaBuilder
  */
 #[NoService]
 final class BlockCollector
@@ -27,6 +30,9 @@ final class BlockCollector
     private const string NAME_PATTERN = '~^[a-z0-9-]+/[a-z0-9-]+$~';
 
     private const string BLOCK_CLASS = 'WP_Block';
+
+    /** Suffix of a block's editor script next to its class file: Hero.php → Hero.editor.js. */
+    public const string EDITOR_SCRIPT_SUFFIX = '.editor.js';
 
     /**
      * Attributes WordPress adds itself: `lock` and `metadata` to every block
@@ -46,12 +52,15 @@ final class BlockCollector
     private readonly EntryPointInspector $inspector;
 
     /**
-     * @param string $frameworkDirectory Source directory of the framework, which must not declare blocks.
+     * @param string      $frameworkDirectory Source directory of the framework, which must not declare blocks.
+     * @param string|null $scriptDirectory    Directory the consumer's build compiles scripts from (its `src/`);
+     *                                        editor scripts must be below it. Null if the consumer has none.
      */
     public function __construct(
         private readonly ServiceResolver $resolver,
         private readonly ValueSchemaBuilder $values,
         private readonly string $frameworkDirectory,
+        private readonly ?string $scriptDirectory = null,
     ) {
         $this->inspector = new EntryPointInspector($resolver);
     }
@@ -118,7 +127,8 @@ final class BlockCollector
         $error = $this->inspector->serviceError($name, $name, '#[Block]')
             ?? $this->nameError($block, $name)
             ?? $this->listError($block->keywords, 'keywords', $name)
-            ?? $this->listError($block->usesContext, 'usesContext', $name);
+            ?? $this->listError($block->usesContext, 'usesContext', $name)
+            ?? ($block->allowedBlocks === null ? null : $this->listError($block->allowedBlocks, 'allowedBlocks', $name));
         if ($error !== null) {
             $this->errors[] = $error;
 
@@ -131,7 +141,17 @@ final class BlockCollector
             return null;
         }
 
-        [$arguments, $attributeSchemas] = $render;
+        [$arguments, $attributeSchemas, $fields, $controls] = $render;
+        $innerBlocks = in_array('content', array_column($arguments, 'kind'), true);
+        if ($block->allowedBlocks !== null && !$innerBlocks) {
+            $this->errors[] = sprintf('#[Block] on %s has allowedBlocks, but %s::render() accepts no string $content, so the block has no inner blocks.', $name, $name);
+
+            return null;
+        }
+        $editorScript = $this->editorScript($file, $name);
+        if ($editorScript === false) {
+            return null;
+        }
         $this->names[$block->name] = $name;
 
         $args = [
@@ -151,10 +171,43 @@ final class BlockCollector
         if ($block->usesContext !== []) {
             $args['uses_context'] = $block->usesContext;
         }
+        if ($block->allowedBlocks !== null) {
+            $args['allowed_blocks'] = $block->allowedBlocks;
+        }
         $args['supports'] = self::supports($supports, $alignments);
         $args['attributes'] = $attributeSchemas;
 
-        return new BlockDefinition($block->name, $args, $name, $arguments);
+        return new BlockDefinition($block->name, $args, $name, $arguments, [
+            'fields' => $fields,
+            'controls' => $controls,
+            'innerBlocks' => $innerBlocks,
+            'editorScript' => $editorScript,
+        ]);
+    }
+
+    /**
+     * The editor script next to the class file, as path below the script directory without extension.
+     *
+     * @return string|null|false Null without editor script, false on error (recorded).
+     */
+    private function editorScript(string $classFile, string $class): string|null|false
+    {
+        $script = dirname($classFile) . '/' . basename($classFile, '.php') . self::EDITOR_SCRIPT_SUFFIX;
+        if (!is_file($script)) {
+            return null;
+        }
+        if ($this->scriptDirectory === null || !str_starts_with($script, $this->scriptDirectory . '/')) {
+            $this->errors[] = sprintf(
+                'The editor script %s of %s is outside the script directory %s, which the build of the theme compiles.',
+                $script,
+                $class,
+                $this->scriptDirectory ?? '(none)',
+            );
+
+            return false;
+        }
+
+        return substr($script, strlen($this->scriptDirectory) + 1, -strlen('.js'));
     }
 
     private function nameError(Block $block, string $class): ?string
@@ -239,10 +292,10 @@ final class BlockCollector
     }
 
     /**
-     * Checks render() and derives the attribute schemas.
+     * Checks render() and derives the attribute schemas, inline fields and inspector controls.
      *
      * @param ReflectionClass<object> $class
-     * @return array{list<BlockArgument>, array<string, array<string, mixed>>}|null
+     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, array<string, mixed>>, array<string, Control>}|null
      */
     private function render(ReflectionClass $class): ?array
     {
@@ -270,12 +323,14 @@ final class BlockCollector
     }
 
     /**
-     * @return array{list<BlockArgument>, array<string, array<string, mixed>>}|null
+     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, array<string, mixed>>, array<string, Control>}|null
      */
     private function renderParameters(ReflectionMethod $method, string $location): ?array
     {
         $arguments = [];
         $schemas = [];
+        $fields = [];
+        $controls = [];
         $kinds = [];
         $valid = true;
 
@@ -323,16 +378,18 @@ final class BlockCollector
                 $valid = false;
                 continue;
             }
-            $schemas = $attributeSchemas;
+            [$schemas, $fields, $controls] = $attributeSchemas;
             $arguments[] = ['param' => $parameter->getName(), 'kind' => 'attributes', 'class' => $attributesClass];
         }
 
-        return $valid ? [$arguments, $schemas] : null;
+        return $valid ? [$arguments, $schemas, $fields, $controls] : null;
     }
 
     /**
+     * Schemas by attribute name, inline fields by path (e.g. "buttons.*.label") and inspector controls by attribute name.
+     *
      * @param class-string $class
-     * @return array<string, array<string, mixed>>|null
+     * @return array{array<string, array<string, mixed>>, array<string, array<string, mixed>>, array<string, Control>}|null
      */
     private function attributeSchemas(string $class, string $location): ?array
     {
@@ -341,6 +398,8 @@ final class BlockCollector
         $parameters = $this->values->hasClass($class) ? $this->values->getClass($class)->getConstructor()?->getParameters() ?? [] : [];
 
         $schemas = [];
+        $editorFields = [];
+        $controls = [];
         $valid = $fields !== null;
         foreach ($parameters as $parameter) {
             $name = $parameter->getName();
@@ -370,8 +429,18 @@ final class BlockCollector
                 $schema['role'] = 'content';
             }
             $schemas[$name] = $schema;
+
+            foreach ($field['fields'] as $editorField) {
+                $path = $editorField['path'] === '' ? $name : $name . '.' . $editorField['path'];
+                unset($editorField['path']);
+                $editorFields[$path] = $editorField;
+            }
+            if ($field['control'] !== null) {
+                // The inspector shows content controls in the "content" group, which stays visible in contentOnly mode.
+                $controls[$name] = [...$field['control'], 'content' => $field['content']];
+            }
         }
 
-        return $valid ? $schemas : null;
+        return $valid ? [$schemas, $editorFields, $controls] : null;
     }
 }

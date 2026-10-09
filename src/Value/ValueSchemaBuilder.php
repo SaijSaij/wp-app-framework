@@ -10,6 +10,10 @@ use ReflectionEnum;
 use ReflectionNamedType;
 use ReflectionParameter;
 use Saij\WpAppFramework\Block\Content;
+use Saij\WpAppFramework\Block\Hidden;
+use Saij\WpAppFramework\Block\Image;
+use Saij\WpAppFramework\Block\Label;
+use Saij\WpAppFramework\Block\Labeled;
 use Saij\WpAppFramework\Block\PlainText;
 use Saij\WpAppFramework\Block\RichText;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -24,9 +28,16 @@ use Throwable;
  * is `readonly` and declares all its values as public promoted constructor
  * parameters. Enums and value classes must be among the scanned classes.
  *
+ * For the block editor it also describes the inline fields of a value (their
+ * paths relative to the value, `*` for list items) and the control of the
+ * generated inspector (null for inline and hidden values).
+ *
  * @phpstan-import-type Value from ValueFactory
  * @phpstan-import-type ValueField from ValueFactory
- * @phpstan-type Field array{schema: array<string, mixed>, value: Value, content: bool}
+ * @phpstan-type EditorField array{path: string, kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>}
+ * @phpstan-type Control array<string, mixed>
+ * @phpstan-type Field array{schema: array<string, mixed>, value: Value, content: bool, fields: list<EditorField>, control: Control|null}
+ * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, label: string, hidden: bool}
  */
 #[NoService]
 final class ValueSchemaBuilder
@@ -100,6 +111,13 @@ final class ValueSchemaBuilder
                 'schema' => ['type' => self::type('array', $nullable), 'items' => $item['schema']],
                 'value' => ['type' => 'list', 'items' => $item['value'], 'nullable' => $nullable],
                 'content' => $markers['content'] || $item['content'],
+                'fields' => self::prefixFields('*', $item['fields']),
+                'control' => $markers['hidden'] ? null : [
+                    'type' => 'list',
+                    'label' => $markers['label'],
+                    'nullable' => $nullable,
+                    'item' => $item['control'],
+                ],
             ];
         }
 
@@ -115,10 +133,25 @@ final class ValueSchemaBuilder
                 $schema['format'] = 'uri';
             }
 
+            $fields = [];
+            if ($markers['kind'] !== null) {
+                $field = ['path' => '', 'kind' => $markers['kind'], 'label' => $markers['label']];
+                if ($markers['allowedFormats'] !== null) {
+                    $field['allowedFormats'] = $markers['allowedFormats'];
+                }
+                $fields[] = $field;
+            }
+            $control = ['type' => $name, 'label' => $markers['label'], 'nullable' => $nullable];
+            if ($markers['url']) {
+                $control['url'] = true;
+            }
+
             return [
                 'schema' => $schema,
                 'value' => ['type' => $name, 'nullable' => $nullable],
                 'content' => $markers['content'],
+                'fields' => $fields,
+                'control' => $markers['kind'] !== null || $markers['hidden'] ? null : $control,
             ];
         }
 
@@ -133,6 +166,10 @@ final class ValueSchemaBuilder
             return null;
         }
         $field['content'] = $field['content'] || $markers['content'];
+        // An object whose values are all inline or hidden needs no control of its own.
+        $field['control'] = $markers['hidden'] || $field['control'] === null || ($field['control']['type'] === 'object' && $field['control']['fields'] === [])
+            ? null
+            : ['type' => $field['control']['type'], 'label' => $markers['label'], 'nullable' => $nullable] + $field['control'];
 
         return $field;
     }
@@ -259,22 +296,30 @@ final class ValueSchemaBuilder
     }
 
     /**
-     * @return array{content: bool, url: bool}|null
+     * @return Markers|null
      */
     private function markers(ReflectionParameter $parameter, ReflectionNamedType $type, string $location): ?array
     {
         $plain = $parameter->getAttributes(PlainText::class) !== [];
-        $rich = $parameter->getAttributes(RichText::class) !== [];
+        $richAttributes = $parameter->getAttributes(RichText::class);
+        $rich = $richAttributes !== [];
+        $image = $parameter->getAttributes(Image::class) !== [];
         $content = $parameter->getAttributes(Content::class) !== [];
         $url = $parameter->getAttributes(Url::class) !== [];
+        $hidden = $parameter->getAttributes(Hidden::class) !== [];
+        $labelAttributes = $parameter->getAttributes(Label::class);
         $isString = $type->getName() === 'string';
+        $kinds = array_keys(array_filter(['PlainText' => $plain, 'RichText' => $rich, 'Image' => $image]));
+        $kind = $kinds[0] ?? null;
 
         $error = match (true) {
-            $plain && $rich => 'has #[PlainText] and #[RichText]; use one of them',
-            ($plain || $rich) && $content => sprintf('has #[%s] and #[Content]; #[%1$s] already marks the field as content', $plain ? 'PlainText' : 'RichText'),
-            ($plain || $rich) && !$isString => sprintf('has #[%s], which is only allowed on strings', $plain ? 'PlainText' : 'RichText'),
+            count($kinds) > 1 => sprintf('has #[%s]; use only one of #[PlainText], #[RichText] and #[Image]', implode('] and #[', $kinds)),
+            $kind !== null && $content => sprintf('has #[%s] and #[Content]; #[%1$s] already marks the field as content', $kind),
+            ($plain || $rich) && !$isString => sprintf('has #[%s], which is only allowed on strings', $kind),
+            $image && ($type->getName() !== 'int' || !$type->allowsNull()) => 'has #[Image], which is only allowed on ?int (the attachment ID, null without image)',
             $url && !$isString => 'has #[Url], which is only allowed on strings',
-            $url && ($plain || $rich) => sprintf('has #[Url] and #[%s]; a URL is not inline text, mark it with #[Content] instead', $plain ? 'PlainText' : 'RichText'),
+            $url && ($plain || $rich) => sprintf('has #[Url] and #[%s]; a URL is not inline text, mark it with #[Content] instead', $kind),
+            $hidden && $kind !== null => sprintf('has #[Hidden] and #[%s]; inline fields have no inspector control to hide', $kind),
             default => null,
         };
         if ($error !== null) {
@@ -283,7 +328,60 @@ final class ValueSchemaBuilder
             return null;
         }
 
-        return ['content' => $plain || $rich || $content, 'url' => $url];
+        try {
+            $allowedFormats = $rich ? $richAttributes[0]->newInstance()->allowedFormats : null;
+            $label = $labelAttributes !== [] ? $labelAttributes[0]->newInstance()->label : self::humanize($parameter->getName());
+        } catch (Throwable $exception) {
+            $this->errors[] = sprintf('Invalid #[RichText] or #[Label] on %s: %s', $location, $exception->getMessage());
+
+            return null;
+        }
+
+        if ($allowedFormats !== null && (!array_is_list($allowedFormats) || array_filter($allowedFormats, static fn (mixed $format): bool => !is_string($format) || $format === '') !== [])) {
+            $this->errors[] = sprintf('%s: allowedFormats of #[RichText] must be a list of format names such as "core/bold", or null for all formats.', $location);
+
+            return null;
+        }
+        if (trim($label) === '') {
+            $this->errors[] = sprintf('%s has an empty #[Label].', $location);
+
+            return null;
+        }
+
+        /** @var list<string>|null $allowedFormats */
+        return [
+            'content' => $kind !== null || $content,
+            'url' => $url,
+            'kind' => match ($kind) {
+                'PlainText' => 'plain',
+                'RichText' => 'rich',
+                'Image' => 'image',
+                default => null,
+            },
+            'allowedFormats' => $allowedFormats,
+            'label' => $label,
+            'hidden' => $hidden,
+        ];
+    }
+
+    /**
+     * A label from a parameter name: "imageId" becomes "Image id".
+     */
+    private static function humanize(string $name): string
+    {
+        return ucfirst(strtolower((string) preg_replace('/(?<=[a-z0-9])([A-Z])/', ' $1', $name)));
+    }
+
+    /**
+     * @param list<EditorField> $fields
+     * @return list<EditorField>
+     */
+    private static function prefixFields(string $prefix, array $fields): array
+    {
+        return array_map(
+            static fn (array $field): array => ['path' => $field['path'] === '' ? $prefix : $prefix . '.' . $field['path']] + $field,
+            $fields,
+        );
     }
 
     /**
@@ -326,16 +424,28 @@ final class ValueSchemaBuilder
 
             $values = array_map(static fn (BackedEnum $case): int|string => $case->value, $class::cases());
             $backing = (string) new ReflectionEnum($class)->getBackingType() === 'int' ? 'integer' : 'string';
+            $options = $this->enumOptions($class, $location);
+            if ($options === null) {
+                return null;
+            }
 
             return [
                 'schema' => ['type' => self::type($backing, $nullable), 'enum' => $nullable ? [...$values, null] : $values],
                 'value' => ['type' => 'enum', 'class' => $class, 'nullable' => $nullable],
                 'content' => false,
+                'fields' => [],
+                'control' => ['type' => 'enum', 'nullable' => $nullable, 'options' => $options],
             ];
         }
 
         if (!class_exists($class)) {
             $this->errors[] = sprintf('%s: %s is not a class or backed enum.', $location, $class);
+
+            return null;
+        }
+
+        if (is_subclass_of($class, Labeled::class)) {
+            $this->errors[] = sprintf('%s: value class %s implements %s, which only labels the cases of backed enums.', $location, $class, Labeled::class);
 
             return null;
         }
@@ -347,6 +457,8 @@ final class ValueSchemaBuilder
 
         $properties = [];
         $content = false;
+        $editorFields = [];
+        $controls = [];
         foreach ($this->classes[$class]->getConstructor()?->getParameters() ?? [] as $parameter) {
             $field = $fields[$parameter->getName()];
             $schema = $field['schema'];
@@ -357,6 +469,10 @@ final class ValueSchemaBuilder
             }
             $properties[$parameter->getName()] = $schema;
             $content = $content || $field['content'];
+            array_push($editorFields, ...self::prefixFields($parameter->getName(), $field['fields']));
+            if ($field['control'] !== null) {
+                $controls[$parameter->getName()] = $field['control'];
+            }
         }
 
         /** @var class-string $class */
@@ -364,7 +480,40 @@ final class ValueSchemaBuilder
             'schema' => ['type' => self::type('object', $nullable), 'properties' => $properties],
             'value' => ['type' => 'object', 'class' => $class, 'nullable' => $nullable],
             'content' => $content,
+            'fields' => $editorFields,
+            'control' => ['type' => 'object', 'nullable' => $nullable, 'fields' => $controls],
         ];
+    }
+
+    /**
+     * Value and label of each case; the label comes from Labeled::label() or is the value.
+     *
+     * @param class-string<BackedEnum> $class
+     * @return list<array{value: int|string, label: string}>|null
+     */
+    private function enumOptions(string $class, string $location): ?array
+    {
+        $options = [];
+        foreach ($class::cases() as $case) {
+            $label = (string) $case->value;
+            if ($case instanceof Labeled) {
+                try {
+                    $label = $case->label();
+                } catch (Throwable $exception) {
+                    $this->errors[] = sprintf('%s: %s::%s->label() failed: %s', $location, $class, $case->name, $exception->getMessage());
+
+                    return null;
+                }
+                if (trim($label) === '') {
+                    $this->errors[] = sprintf('%s: %s::%s->label() returned an empty label.', $location, $class, $case->name);
+
+                    return null;
+                }
+            }
+            $options[] = ['value' => $case->value, 'label' => $label];
+        }
+
+        return $options;
     }
 
     /**

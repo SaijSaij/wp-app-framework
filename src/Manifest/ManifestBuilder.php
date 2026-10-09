@@ -9,6 +9,7 @@ use ReflectionClass;
 use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
+use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Hook\HookCollector;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
@@ -31,11 +32,13 @@ final class ManifestBuilder
      * @param list<Source>       $sources
      * @param list<string>       $trackedFiles Absolute paths of files whose content affects the build.
      * @param list<class-string> $predefined   Candidates provided at runtime instead of built.
+     * @param string|null        $scriptDirectory Directory the consumer's build compiles scripts from (its `src/`).
      */
     public function __construct(
         private readonly array $sources,
         private readonly array $trackedFiles = [],
         private readonly array $predefined = [],
+        private readonly ?string $scriptDirectory = null,
     ) {
     }
 
@@ -93,7 +96,14 @@ final class ManifestBuilder
             $trackedFiles[] = $framework->getDirectory() . '/' . $relative;
         }
 
-        return new self($sources, $trackedFiles, [Theme::class, TemplateRenderer::class]);
+        $scriptDirectory = realpath($root . '/' . TemplateRenderer::TEMPLATE_DIRECTORY);
+
+        return new self(
+            $sources,
+            $trackedFiles,
+            [Theme::class, TemplateRenderer::class, RenderContext::class],
+            $scriptDirectory === false ? null : $scriptDirectory,
+        );
     }
 
     /**
@@ -119,7 +129,7 @@ final class ManifestBuilder
         $hooks = $hookCollector->collect($classes);
         $routeCollector = new RestRouteCollector($resolver, $values);
         $routes = $routeCollector->collect($classes);
-        $blockCollector = new BlockCollector($resolver, $values, self::frameworkSource()->getDirectory());
+        $blockCollector = new BlockCollector($resolver, $values, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
         $blocks = $blockCollector->collect($classes);
         $templateCallableCollector = new TemplateCallableCollector($resolver, TemplateRenderer::getBuiltInNames());
         $templateCallables = $templateCallableCollector->collect($classes);

@@ -19,11 +19,12 @@ final class ClassDiscovery
     private const string IDENTIFIER = '[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*';
 
     /**
-     * Relative paths (with forward slashes) of all PHP files below the directory, sorted.
+     * Relative paths (with forward slashes) of all files below the directory
+     * whose name ends with the suffix (PHP files by default), sorted.
      *
      * @return list<string>
      */
-    public static function files(string $directory): array
+    public static function files(string $directory, string $suffix = '.php'): array
     {
         $files = [];
         $iterator = new RecursiveIteratorIterator(
@@ -31,7 +32,7 @@ final class ClassDiscovery
         );
 
         foreach ($iterator as $file) {
-            if ($file->isFile() && $file->getExtension() === 'php') {
+            if ($file->isFile() && str_ends_with($file->getFilename(), $suffix)) {
                 $files[] = str_replace('\\', '/', substr($file->getPathname(), strlen($directory) + 1));
             }
         }
