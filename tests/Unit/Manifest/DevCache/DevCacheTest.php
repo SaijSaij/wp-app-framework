@@ -1,0 +1,161 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Saij\WpAppFramework\Tests\Unit\Manifest\DevCache;
+
+use FilesystemIterator;
+use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+
+final class DevCacheTest extends TestCase
+{
+    private string $theme;
+    private string $cache;
+
+    protected function setUp(): void
+    {
+        $root = sys_get_temp_dir() . '/wpaf-dev-cache-' . bin2hex(random_bytes(4));
+        mkdir($root . '/theme/src', 0777, true);
+        $this->theme = (string) realpath($root . '/theme');
+        $this->cache = $root . '/cache';
+
+        file_put_contents($this->theme . '/composer.json', json_encode(
+            ['autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src/']]],
+            JSON_THROW_ON_ERROR,
+        ));
+        $this->writeHooks("return 'first';", '');
+    }
+
+    protected function tearDown(): void
+    {
+        $root = dirname($this->theme);
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
+        );
+        foreach ($iterator as $file) {
+            $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
+        }
+        rmdir($root);
+    }
+
+    private function writeHooks(string $body, string $extraMethod): void
+    {
+        $this->writeSource('Hooks.php', <<<PHP
+            <?php
+
+            declare(strict_types=1);
+
+            namespace DevCacheProbe;
+
+            use Saij\\WpAppFramework\\Hook\\Hook;
+
+            final class Hooks
+            {
+                #[Hook('probe_filter')]
+                public function filter(string \$value): string
+                {
+                    {$body}
+                }
+            {$extraMethod}
+            }
+            PHP);
+    }
+
+    private function writeSource(string $name, string $code): void
+    {
+        $file = $this->theme . '/src/' . $name;
+        file_put_contents($file, $code);
+        // Newer than the cached manifest, so the change is always inspected.
+        touch($file, time() + 10);
+    }
+
+    private function probe(string $mode): string
+    {
+        $command = [PHP_BINARY, __DIR__ . '/../../../bin/dev-cache-probe.php', $mode, $this->cache, $this->theme];
+        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        self::assertIsResource($process);
+        $output = (string) stream_get_contents($pipes[1]) . (string) stream_get_contents($pipes[2]);
+        proc_close($process);
+
+        return $output;
+    }
+
+    public function testBuildsOnceAndReusesTheCache(): void
+    {
+        self::assertSame('stale', $this->probe('check'));
+        self::assertSame('probe_filter', $this->probe('load'));
+        self::assertFileExists($this->cache . '/manifest.php');
+        self::assertFileExists($this->cache . '/manifest.meta.php');
+        self::assertSame('fresh', $this->probe('check'));
+    }
+
+    public function testMetaFileContainsNoAbsolutePaths(): void
+    {
+        $this->probe('load');
+        $meta = (string) file_get_contents($this->cache . '/manifest.meta.php');
+
+        self::assertStringNotContainsString($this->theme, $meta);
+        self::assertStringNotContainsString((string) realpath(__DIR__ . '/../../../..'), $meta);
+        self::assertStringContainsString("'theme',", $meta);
+        self::assertStringContainsString("'src/Hooks.php',", $meta);
+        self::assertStringContainsString("'framework',", $meta);
+    }
+
+    public function testMethodBodyChangeKeepsTheCache(): void
+    {
+        $this->probe('load');
+        $this->writeHooks("return 'second';", '');
+
+        self::assertSame('fresh', $this->probe('check'));
+    }
+
+    public function testSignatureChangeRebuilds(): void
+    {
+        $this->probe('load');
+        $this->writeHooks("return 'first';", <<<'PHP'
+
+                #[Hook('probe_action')]
+                public function action(): void
+                {
+                }
+            PHP);
+
+        self::assertSame('stale', $this->probe('check'));
+        self::assertSame('probe_filter,probe_action', $this->probe('load'));
+        self::assertSame('fresh', $this->probe('check'));
+    }
+
+    public function testNewAndDeletedFilesRebuild(): void
+    {
+        $this->probe('load');
+        $this->writeSource('Extra.php', "<?php\n\nnamespace DevCacheProbe;\n\nfinal class Extra\n{\n}\n");
+        self::assertSame('stale', $this->probe('check'));
+
+        $this->probe('load');
+        unlink($this->theme . '/src/Extra.php');
+        self::assertSame('stale', $this->probe('check'));
+    }
+
+    public function testComposerJsonChangeRebuilds(): void
+    {
+        $this->probe('load');
+        file_put_contents($this->theme . '/composer.json', json_encode(
+            ['autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src']]],
+            JSON_THROW_ON_ERROR,
+        ));
+        touch($this->theme . '/composer.json', time() + 10);
+
+        self::assertSame('stale', $this->probe('check'));
+    }
+
+    public function testPathOutsideTheBaseDirectoriesIsAnError(): void
+    {
+        self::assertStringContainsString(
+            $this->theme . '/src is outside the base directories of the manifest cache (framework: ',
+            $this->probe('load-without-theme-base'),
+        );
+    }
+}

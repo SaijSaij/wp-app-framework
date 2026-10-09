@@ -6,10 +6,24 @@
     "require": {
         "php": ">=8.5"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
     "autoload": {
         "psr-4": {
             "Saij\\WpAppFramework\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Saij\\WpAppFramework\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/wp-app-framework"
+    ],
+    "scripts": {
+        "test": "phpunit"
     },
     "config": {
         "platform": {

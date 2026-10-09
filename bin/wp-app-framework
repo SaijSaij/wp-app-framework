@@ -1,0 +1,17 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Composer's bin proxy (vendor/bin/wp-app-framework) defines the autoloader path of the project.
+if (!isset($_composer_autoload_path)) {
+    fwrite(STDERR, "wp-app-framework must be run through Composer's bin proxy (vendor/bin/wp-app-framework).\n");
+    exit(1);
+}
+
+require $_composer_autoload_path;
+
+// The project root is the directory containing vendor/.
+$projectDirectory = dirname((string) realpath($_composer_autoload_path), 2);
+
+exit(Saij\WpAppFramework\Console\Cli::run(array_slice($argv, 1), $projectDirectory, STDOUT, STDERR));
