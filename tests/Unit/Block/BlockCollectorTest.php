@@ -57,7 +57,7 @@ final class BlockCollectorTest extends TestCase
             $hero,
         );
         self::assertSame(
-            ['api_version' => 3, 'title' => 'Section', 'category' => 'design', 'supports' => ['html' => false, 'contentRole' => true], 'attributes' => []],
+            ['api_version' => 3, 'title' => 'Section', 'category' => 'design', 'supports' => ['html' => false, 'contentRole' => true, 'customCSS' => false], 'attributes' => []],
             $blocks['fixture/section']->getArgs(),
         );
         self::assertSame(['postId'], $blocks['fixture/post-title']->getArgs()['uses_context']);

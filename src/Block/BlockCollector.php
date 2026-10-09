@@ -226,7 +226,7 @@ final class BlockCollector
         $defaults = new Supports();
         $result = ['html' => false];
 
-        foreach (['contentRole', 'anchor', 'customClassName', 'multiple', 'reusable', 'inserter', 'lock', 'renaming'] as $support) {
+        foreach (['contentRole', 'anchor', 'customClassName', 'multiple', 'reusable', 'inserter', 'lock', 'renaming', 'customCSS'] as $support) {
             if ($supports->{$support} !== $defaults->{$support}) {
                 $result[$support] = $supports->{$support};
             }

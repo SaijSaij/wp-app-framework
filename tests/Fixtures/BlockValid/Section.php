@@ -9,7 +9,7 @@ use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Supports;
 
 #[Block('fixture/section', title: 'Section', category: BlockCategory::Design)]
-#[Supports(contentRole: true)]
+#[Supports(contentRole: true, customCSS: false)]
 final class Section
 {
     public function render(string $content): string
