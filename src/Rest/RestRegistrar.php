@@ -1,0 +1,240 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Saij\WpAppFramework\Rest;
+
+use Closure;
+use Saij\WpAppFramework\DependencyInjection\Container;
+use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Manifest\Manifest;
+use Throwable;
+use WP_Error;
+use WP_REST_Request;
+use WP_REST_Response;
+
+/**
+ * Registers the REST routes of the manifest with WordPress (on rest_api_init).
+ *
+ * Services are resolved only when a route is called. A RestException becomes a
+ * WP_Error with its status; any other exception is logged and answered with
+ * 500 – including details and stack trace only when debugging is enabled.
+ *
+ * @internal
+ *
+ * @phpstan-import-type RouteEntry from Manifest
+ * @phpstan-import-type RestArgument from RestRouteDefinition
+ */
+#[NoService]
+final readonly class RestRegistrar
+{
+    public const string INTERNAL_ERROR_CODE = 'wp_app_framework_internal_error';
+
+    public function __construct(
+        private Container $container,
+        private bool $debug,
+    ) {
+    }
+
+    /**
+     * @param list<RouteEntry> $routes
+     */
+    public function register(array $routes): void
+    {
+        foreach ($routes as $route) {
+            register_rest_route($route['namespace'], $route['route'], [
+                'methods' => $route['methods'],
+                'args' => $route['args'],
+                'permission_callback' => $this->permissionCallback($route),
+                'callback' => fn (WP_REST_Request $request): mixed => $this->respond($route, $request),
+            ]);
+        }
+    }
+
+    /**
+     * @param RouteEntry $route
+     */
+    public function permissionCallback(array $route): callable
+    {
+        $permission = $route['permission'];
+
+        if ($permission['type'] === 'public') {
+            return static fn (): bool => true;
+        }
+
+        if ($permission['type'] === 'capability') {
+            $capability = $permission['capability'];
+
+            return static fn (): bool => current_user_can($capability);
+        }
+
+        return function (WP_REST_Request $request) use ($route, $permission): bool|WP_Error {
+            $prepared = $this->preparePermissionArguments($route, $permission['arguments'], $request);
+            if ($prepared === null) {
+                return false;
+            }
+
+            return $this->call(
+                $route,
+                'permission callback',
+                fn (): bool => [$permission['class'], $permission['method']](...$this->arguments($permission['arguments'], $request, $prepared)),
+            );
+        };
+    }
+
+    /**
+     * @param RouteEntry $route
+     */
+    public function respond(array $route, WP_REST_Request $request): mixed
+    {
+        $result = $this->call(
+            $route,
+            'callback',
+            fn (): mixed => $this->container->get($route['class'])->{$route['method']}(...$this->arguments($route['arguments'], $request, null)),
+        );
+
+        if ($route['void'] && !$result instanceof WP_Error) {
+            return new WP_REST_Response(null, 204);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Maps the request to the named arguments of a route or permission method.
+     *
+     * Path parameters come from the URL parameters (WordPress would prefer a query
+     * argument of the same name in get_param()). Other request arguments are passed
+     * only if present, so parameter defaults apply. Enum values are converted.
+     *
+     * @param list<RestArgument>        $arguments
+     * @param array<string, mixed>|null $prepared  Validated and sanitized request arguments of a permission callback.
+     * @return array<string, mixed>
+     */
+    private function arguments(array $arguments, WP_REST_Request $request, ?array $prepared): array
+    {
+        $url = $request->get_url_params();
+        $named = [];
+
+        foreach ($arguments as $argument) {
+            $param = $argument['param'];
+
+            if ($argument['kind'] === 'service') {
+                $named[$param] = $this->container->get($argument['class']);
+                continue;
+            }
+            if ($argument['kind'] === 'request') {
+                $named[$param] = $request;
+                continue;
+            }
+
+            if ($prepared !== null) {
+                if (!array_key_exists($param, $prepared)) {
+                    continue;
+                }
+                $value = $prepared[$param];
+            } elseif ($argument['kind'] === 'url') {
+                $value = $url[$param];
+            } elseif ($request->has_param($param)) {
+                $value = $request->get_param($param);
+            } else {
+                continue;
+            }
+
+            $enum = $argument['enum'];
+            $named[$param] = $enum !== null && $value !== null ? $enum::from($value) : $value;
+        }
+
+        return $named;
+    }
+
+    /**
+     * Validates and sanitizes the request arguments a permission callback needs,
+     * against the schema of its own route.
+     *
+     * WordPress validates and sanitizes a request only for the handler it
+     * matched (and not at all if validation failed), but rest_send_allow_header()
+     * calls the permission callbacks of all handlers of the route with that
+     * request to compute the Allow header. Without this step a callback could
+     * receive raw strings or invalid values.
+     *
+     * @param RouteEntry         $route
+     * @param list<RestArgument> $arguments
+     * @return array<string, mixed>|null Null if an argument is invalid or a required one is missing: the permission is denied.
+     */
+    private function preparePermissionArguments(array $route, array $arguments, WP_REST_Request $request): ?array
+    {
+        $url = $request->get_url_params();
+        $prepared = [];
+
+        foreach ($arguments as $argument) {
+            if ($argument['kind'] !== 'url' && $argument['kind'] !== 'param') {
+                continue;
+            }
+
+            $name = $argument['param'];
+            $schema = $route['args'][$name];
+            $isUrl = $argument['kind'] === 'url';
+
+            if (!($isUrl ? array_key_exists($name, $url) : $request->has_param($name))) {
+                if ($schema['required'] ?? false) {
+                    return null;
+                }
+                continue;
+            }
+
+            $value = $isUrl ? $url[$name] : $request->get_param($name);
+            if (is_wp_error(rest_validate_value_from_schema($value, $schema, $name))) {
+                return null;
+            }
+            $prepared[$name] = rest_sanitize_value_from_schema($value, $schema, $name);
+        }
+
+        return $prepared;
+    }
+
+    /**
+     * @template T
+     * @param RouteEntry    $route
+     * @param Closure(): T $call
+     * @return T|WP_Error
+     */
+    private function call(array $route, string $part, Closure $call): mixed
+    {
+        try {
+            return $call();
+        } catch (RestException $exception) {
+            return new WP_Error(
+                $exception->getErrorCode(),
+                $exception->getMessage(),
+                ['status' => $exception->getStatus()] + $exception->getData(),
+            );
+        } catch (Throwable $exception) {
+            error_log(sprintf(
+                'wp-app-framework: REST route %s /%s%s (%s) %s failed: %s: %s in %s:%d',
+                implode(',', $route['methods']),
+                $route['namespace'],
+                $route['route'],
+                $route['class'] . '::' . $route['method'] . '()',
+                $part,
+                $exception::class,
+                $exception->getMessage(),
+                $exception->getFile(),
+                $exception->getLine(),
+            ));
+
+            $data = ['status' => 500];
+            if ($this->debug) {
+                $data['exception'] = [
+                    'class' => $exception::class,
+                    'message' => $exception->getMessage(),
+                    'file' => $exception->getFile(),
+                    'line' => $exception->getLine(),
+                    'trace' => explode("\n", $exception->getTraceAsString()),
+                ];
+            }
+
+            return new WP_Error(self::INTERNAL_ERROR_CODE, 'Internal server error.', $data);
+        }
+    }
+}

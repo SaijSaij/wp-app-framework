@@ -13,23 +13,17 @@ use stdClass;
 
 final class ContainerTest extends TestCase
 {
-    public function testCreatesSharedInstancesLazily(): void
+    public function testCreatesSharedInstancesWithInjectedServices(): void
     {
-        $created = 0;
         $container = new Container([
-            Clock::class => static function () use (&$created): Clock {
-                $created++;
-
-                return new Clock();
-            },
-            Greeter::class => static fn (Container $c): Greeter => new Greeter(clock: $c->get(Clock::class)),
+            Clock::class => [],
+            Greeter::class => ['clock' => Clock::class],
         ]);
 
-        self::assertSame(0, $created);
         $greeter = $container->get(Greeter::class);
         self::assertSame($greeter, $container->get(Greeter::class));
         self::assertSame($container->get(Clock::class), $container->get(Clock::class));
-        self::assertSame(1, $created);
+        self::assertSame('Hello you at noon!', $greeter->greet('you'));
     }
 
     public function testReturnsPredefinedInstances(): void

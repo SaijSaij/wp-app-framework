@@ -46,12 +46,23 @@ final readonly class HookRegistrar
 
     /**
      * @param HookEntry   $hook
-     * @param list<mixed> $args
+     * @param list<mixed> $args The arguments passed by WordPress.
      */
     public function invoke(array $hook, array $args): mixed
     {
         try {
-            return ($hook['callback'])($this->container, $args);
+            $named = [];
+            foreach ($hook['arguments'] as $argument) {
+                if (isset($argument['service'])) {
+                    $named[$argument['param']] = $this->container->get($argument['service']);
+                } elseif (array_key_exists($argument['index'], $args)) {
+                    // Passed only if present, so parameter defaults apply when a hook is fired with fewer
+                    // arguments, and missing required ones fail like with a plain callback.
+                    $named[$argument['param']] = $args[$argument['index']];
+                }
+            }
+
+            return $this->container->get($hook['class'])->{$hook['method']}(...$named);
         } catch (Throwable $exception) {
             if ($this->debug) {
                 throw $exception;
@@ -60,7 +71,7 @@ final readonly class HookRegistrar
             error_log(sprintf(
                 'wp-app-framework: %s %s on hook "%s" failed: %s: %s in %s:%d',
                 $hook['filter'] ? 'filter' : 'action',
-                $hook['source'],
+                $hook['class'] . '::' . $hook['method'] . '()',
                 $hook['name'],
                 $exception::class,
                 $exception->getMessage(),

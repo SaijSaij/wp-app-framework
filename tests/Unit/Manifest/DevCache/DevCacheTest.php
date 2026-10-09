@@ -128,7 +128,50 @@ final class DevCacheTest extends TestCase
         self::assertSame('fresh', $this->probe('check'));
     }
 
-    public function testNewAndDeletedFilesRebuild(): void
+    public function testChangedPermissionCallbackRebuilds(): void
+    {
+        $controller = static fn (string $callback): string => <<<PHP
+            <?php
+
+            declare(strict_types=1);
+
+            namespace DevCacheProbe;
+
+            use Saij\\WpAppFramework\\Rest\\HttpMethod;
+            use Saij\\WpAppFramework\\Rest\\Permission\\Callback;
+            use Saij\\WpAppFramework\\Rest\\RestController;
+            use Saij\\WpAppFramework\\Rest\\RestRoute;
+
+            #[RestController('probe/v1')]
+            final class Controller
+            {
+                #[RestRoute('/check', HttpMethod::Get, new Callback(self::{$callback}(...)))]
+                public function check(): bool
+                {
+                    return true;
+                }
+
+                public static function first(): bool
+                {
+                    return true;
+                }
+
+                public static function second(): bool
+                {
+                    return false;
+                }
+            }
+            PHP;
+
+        $this->writeSource('Controller.php', $controller('first'));
+        $this->probe('load');
+        self::assertSame('fresh', $this->probe('check'));
+
+        $this->writeSource('Controller.php', $controller('second'));
+        self::assertSame('stale', $this->probe('check'));
+    }
+
+        public function testNewAndDeletedFilesRebuild(): void
     {
         $this->probe('load');
         $this->writeSource('Extra.php', "<?php\n\nnamespace DevCacheProbe;\n\nfinal class Extra\n{\n}\n");

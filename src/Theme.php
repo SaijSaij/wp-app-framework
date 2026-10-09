@@ -10,6 +10,7 @@ use Saij\WpAppFramework\Hook\HookRegistrar;
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
+use Saij\WpAppFramework\Rest\RestRegistrar;
 
 /**
  * Boots the framework for the active theme and provides its paths.
@@ -109,7 +110,14 @@ final class Theme
         $manifest = $theme->loadManifest();
 
         $container = new Container($manifest['services'], [self::class => $theme]);
-        new HookRegistrar($container, defined('WP_DEBUG') && WP_DEBUG)->register($manifest['hooks']);
+        $debug = defined('WP_DEBUG') && WP_DEBUG;
+        new HookRegistrar($container, $debug)->register($manifest['hooks']);
+
+        $restRegistrar = new RestRegistrar($container, $debug);
+        $routes = $manifest['routes'];
+        add_action('rest_api_init', static function () use ($restRegistrar, $routes): void {
+            $restRegistrar->register($routes);
+        });
 
         do_action(self::INIT_HOOK);
     }

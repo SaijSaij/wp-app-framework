@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Hook;
 
 use ReflectionClass;
-use ReflectionNamedType;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
+use Saij\WpAppFramework\Manifest\EntryPointInspector;
 use Throwable;
 
 /**
@@ -20,8 +20,11 @@ final class HookCollector
     /** @var list<string> */
     private array $errors = [];
 
+    private readonly EntryPointInspector $inspector;
+
     public function __construct(private readonly ServiceResolver $resolver)
     {
+        $this->inspector = new EntryPointInspector($resolver);
     }
 
     /**
@@ -41,26 +44,14 @@ final class HookCollector
 
                 $location = sprintf('%s::%s()', $name, $method->getName());
 
-                if (!$this->resolver->isCandidate($name)) {
-                    $this->errors[] = sprintf('%s has #[Hook], but %s is %s and therefore not a service.', $location, $name, $this->resolver->exclusion($name));
+                $error = $this->inspector->serviceError($name, $location, '#[Hook]')
+                    ?? $this->inspector->publicInstanceMethodError($method, $location, '#[Hook]')
+                    ?? $this->inspector->returnTypeError($method, $location, '#[Hook]', 'void for an action, the filtered type for a filter');
+                if ($error !== null) {
+                    $this->errors[] = $error;
                     continue;
                 }
-
-                if (!$method->isPublic() || $method->isStatic()) {
-                    $this->errors[] = sprintf('%s has #[Hook] and must be public and non-static.', $location);
-                    continue;
-                }
-
-                $returnType = $method->getReturnType();
-                if ($returnType === null) {
-                    $this->errors[] = sprintf('%s has #[Hook] and needs a declared return type: void for an action, the filtered type for a filter.', $location);
-                    continue;
-                }
-                if ($returnType instanceof ReflectionNamedType && $returnType->getName() === 'never') {
-                    $this->errors[] = sprintf('%s has #[Hook] and must not return never.', $location);
-                    continue;
-                }
-                $filter = !($returnType instanceof ReflectionNamedType && $returnType->getName() === 'void');
+                $filter = !EntryPointInspector::isVoid($method);
 
                 $arguments = [];
                 $services = [];
@@ -69,14 +60,9 @@ final class HookCollector
                 foreach ($method->getParameters() as $parameter) {
                     $parameterLocation = sprintf('parameter $%s of %s', $parameter->getName(), $location);
 
-                    if ($parameter->isVariadic() || $parameter->isPassedByReference()) {
-                        $this->errors[] = sprintf('%s: variadic and by-reference parameters are not supported in hooks.', $parameterLocation);
-                        $valid = false;
-                        continue;
-                    }
-
-                    if ($this->resolver->hasAmbiguousType($parameter)) {
-                        $this->errors[] = sprintf('%s: union and intersection types containing a service are not supported.', $parameterLocation);
+                    $error = $this->inspector->parameterError($parameter, $parameterLocation, 'hooks');
+                    if ($error !== null) {
+                        $this->errors[] = $error;
                         $valid = false;
                         continue;
                     }

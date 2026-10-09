@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Manifest\DevCache;
 
+use Closure;
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionFunction;
 use ReflectionMethod;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use UnitEnum;
 
 /**
  * Hash of everything in a class that can affect the manifest: kind, modifiers,
@@ -94,10 +97,41 @@ final class Signature
     {
         $parts = [];
         foreach ($attributes as $attribute) {
-            $parts[] = $attribute->getName() . var_export($attribute->getArguments(), true);
+            $parts[] = $attribute->getName() . self::describe($attribute->getArguments());
         }
 
         return implode(';', $parts);
+    }
+
+    /**
+     * Describes an attribute argument. var_export() would reduce every closure to
+     * an empty Closure::__set_state(), so new Callback(self::a(...)) and
+     * new Callback(self::b(...)) would not differ.
+     */
+    private static function describe(mixed $value): string
+    {
+        if ($value instanceof Closure) {
+            $function = new ReflectionFunction($value);
+
+            return 'closure(' . ($function->getClosureScopeClass()?->getName() ?? '') . '::' . $function->getName() . ')';
+        }
+        if ($value instanceof UnitEnum) {
+            return $value::class . '::' . $value->name;
+        }
+        if (is_object($value)) {
+            // The array cast includes private and protected properties.
+            return $value::class . self::describe((array) $value);
+        }
+        if (is_array($value)) {
+            $items = [];
+            foreach ($value as $key => $item) {
+                $items[] = var_export($key, true) . '=>' . self::describe($item);
+            }
+
+            return '[' . implode(',', $items) . ']';
+        }
+
+        return var_export($value, true);
     }
 
     /**

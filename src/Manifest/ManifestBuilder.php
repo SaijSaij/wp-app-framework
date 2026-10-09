@@ -11,6 +11,7 @@ use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Hook\HookCollector;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
+use Saij\WpAppFramework\Rest\RestRouteCollector;
 use Saij\WpAppFramework\Theme;
 use Throwable;
 
@@ -111,8 +112,10 @@ final class ManifestBuilder
         $resolver = ServiceResolver::forClasses($classes, $this->predefined);
         $hookCollector = new HookCollector($resolver);
         $hooks = $hookCollector->collect($classes);
+        $routeCollector = new RestRouteCollector($resolver);
+        $routes = $routeCollector->collect($classes);
 
-        $errors = [...$errors, ...$hookCollector->errors(), ...$resolver->errors()];
+        $errors = [...$errors, ...$hookCollector->errors(), ...$routeCollector->errors(), ...$resolver->errors()];
         if ($errors !== []) {
             throw new BuildException($errors);
         }
@@ -124,6 +127,7 @@ final class ManifestBuilder
             $resolver->candidates(),
             $resolver->resolved(),
             $hooks,
+            $routes,
         );
     }
 

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\DependencyInjection;
 
-use Closure;
 use LogicException;
 
 /**
- * Minimal service container driven by the factories of the manifest.
+ * Minimal service container driven by the service data of the manifest:
+ * per class, the services injected into its constructor parameters.
  *
  * @internal Only manifest entries use the container; theme code receives its
  *           dependencies through constructor and hook parameters.
@@ -20,11 +20,11 @@ final class Container
     private array $instances;
 
     /**
-     * @param array<class-string, Closure(self): object> $factories
-     * @param array<class-string, object>                $instances Predefined instances.
+     * @param array<class-string, array<string, class-string>> $services  Class => constructor parameter => injected service.
+     * @param array<class-string, object>                       $instances Predefined instances.
      */
     public function __construct(
-        private readonly array $factories,
+        private readonly array $services,
         array $instances = [],
     ) {
         $this->instances = $instances;
@@ -43,13 +43,18 @@ final class Container
             return $this->instances[$id];
         }
 
-        if (!isset($this->factories[$id])) {
+        if (!isset($this->services[$id])) {
             throw new LogicException(sprintf(
                 'Service %s is not in the manifest. Only services reachable from entry points such as #[Hook] are built; rebuild the manifest after code changes.',
                 $id,
             ));
         }
 
-        return $this->instances[$id] = ($this->factories[$id])($this);
+        $arguments = [];
+        foreach ($this->services[$id] as $parameter => $service) {
+            $arguments[$parameter] = $this->get($service);
+        }
+
+        return $this->instances[$id] = new $id(...$arguments);
     }
 }

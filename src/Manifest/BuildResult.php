@@ -8,6 +8,7 @@ use ReflectionClass;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Hook\HookDefinition;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
+use Saij\WpAppFramework\Rest\RestRouteDefinition;
 
 /**
  * Everything the builder found; input for the manifest generator and the dev cache.
@@ -20,8 +21,9 @@ final readonly class BuildResult
      * @param list<string>                                      $trackedFiles Absolute paths of files whose content affects the build.
      * @param array<class-string, ReflectionClass<object>>      $classes      All scanned classes, interfaces, traits and enums.
      * @param list<class-string>                                $candidates   Service candidates, sorted.
-     * @param array<class-string, array<string, class-string>> $services     Reachable services: constructor parameter => injected service.
+     * @param array<class-string, array<string, class-string>>  $services     Reachable services: constructor parameter => injected service.
      * @param list<HookDefinition>                              $hooks
+     * @param list<RestRouteDefinition>                         $routes
      */
     public function __construct(
         private array $sources,
@@ -30,6 +32,7 @@ final readonly class BuildResult
         private array $candidates,
         private array $services,
         private array $hooks,
+        private array $routes,
     ) {
     }
 
@@ -79,5 +82,13 @@ final readonly class BuildResult
     public function getHooks(): array
     {
         return $this->hooks;
+    }
+
+    /**
+     * @return list<RestRouteDefinition>
+     */
+    public function getRoutes(): array
+    {
+        return $this->routes;
     }
 }
