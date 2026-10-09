@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\DependencyInjection;
 
+use Closure;
 use LogicException;
 
 /**
@@ -22,10 +23,13 @@ final class Container
     /**
      * @param array<class-string, array<string, class-string>> $services  Class => constructor parameter => injected service.
      * @param array<class-string, object>                       $instances Predefined instances.
+     * @param array<class-string, Closure(self): object>        $factories Predefined services that depend on runtime values
+     *                                                                     and are created on first use.
      */
     public function __construct(
         private readonly array $services,
         array $instances = [],
+        private readonly array $factories = [],
     ) {
         $this->instances = $instances;
     }
@@ -41,6 +45,15 @@ final class Container
     {
         if (isset($this->instances[$id])) {
             return $this->instances[$id];
+        }
+
+        if (isset($this->factories[$id])) {
+            $instance = ($this->factories[$id])($this);
+            if (!$instance instanceof $id) {
+                throw new LogicException(sprintf('The factory for %s returned %s.', $id, get_debug_type($instance)));
+            }
+
+            return $this->instances[$id] = $instance;
         }
 
         if (!isset($this->services[$id])) {

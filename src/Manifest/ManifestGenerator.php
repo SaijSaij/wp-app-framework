@@ -56,12 +56,24 @@ final class ManifestGenerator
             ];
         }
 
+        $templateCallables = [];
+        foreach ($result->getTemplateCallables() as $callable) {
+            $templateCallables[] = [
+                'kind' => $callable->getKind()->value,
+                'name' => $callable->getName(),
+                'class' => $callable->getClass(),
+                'method' => $callable->getMethod(),
+                'html' => $callable->isHtml(),
+            ];
+        }
+
         return [
             'format' => Manifest::FORMAT,
             'candidates' => $result->getCandidates(),
             'services' => $result->getServices(),
             'hooks' => $hooks,
             'routes' => $routes,
+            'templateCallables' => $templateCallables,
         ];
     }
 }

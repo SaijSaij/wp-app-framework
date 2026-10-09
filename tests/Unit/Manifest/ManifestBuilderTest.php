@@ -88,11 +88,12 @@ final class ManifestBuilderTest extends TestCase
         self::assertSame(realpath(__DIR__ . '/../../../src'), $source->getDirectory());
     }
 
-    public function testFrameworkClassesAreNotServicesExceptTheTheme(): void
+    public function testFrameworkClassesAreNotServicesExceptThePredefinedOnes(): void
     {
-        $result = new ManifestBuilder([ManifestBuilder::frameworkSource()], [], [\Saij\WpAppFramework\Theme::class])->build();
+        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class];
+        $result = new ManifestBuilder([ManifestBuilder::frameworkSource()], [], $predefined)->build();
 
-        self::assertSame([\Saij\WpAppFramework\Theme::class], $result->getCandidates());
+        self::assertSame($predefined, $result->getCandidates());
         self::assertSame([], $result->getServices());
         self::assertSame([], $result->getHooks());
     }

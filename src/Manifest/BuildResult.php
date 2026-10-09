@@ -9,6 +9,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Hook\HookDefinition;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Rest\RestRouteDefinition;
+use Saij\WpAppFramework\Twig\TemplateCallableDefinition;
 
 /**
  * Everything the builder found; input for the manifest generator and the dev cache.
@@ -24,6 +25,7 @@ final readonly class BuildResult
      * @param array<class-string, array<string, class-string>>  $services     Reachable services: constructor parameter => injected service.
      * @param list<HookDefinition>                              $hooks
      * @param list<RestRouteDefinition>                         $routes
+     * @param list<TemplateCallableDefinition>                  $templateCallables
      */
     public function __construct(
         private array $sources,
@@ -33,6 +35,7 @@ final readonly class BuildResult
         private array $services,
         private array $hooks,
         private array $routes,
+        private array $templateCallables,
     ) {
     }
 
@@ -90,5 +93,13 @@ final readonly class BuildResult
     public function getRoutes(): array
     {
         return $this->routes;
+    }
+
+    /**
+     * @return list<TemplateCallableDefinition>
+     */
+    public function getTemplateCallables(): array
+    {
+        return $this->templateCallables;
     }
 }

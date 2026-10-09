@@ -11,6 +11,7 @@ use Saij\WpAppFramework\Manifest\DevCache\DevCache;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Rest\RestRegistrar;
+use Saij\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * Boots the framework for the active theme and provides its paths.
@@ -107,9 +108,30 @@ final class Theme
             dirname(__DIR__),
         );
 
-        $manifest = $theme->loadManifest();
+        $releaseManifest = $theme->templateDirectory . '/' . self::RELEASE_MANIFEST;
+        $development = !is_file($releaseManifest);
+        // Cache paths use the parent slug, so a child theme keeps the caches of its parent.
+        $cacheDirectory = WP_CONTENT_DIR . '/cache/' . get_template();
+        $manifest = $development
+            ? $theme->loadDevelopmentManifest($cacheDirectory . '/manifest')
+            : Manifest::load($releaseManifest);
 
-        $container = new Container($manifest['services'], [self::class => $theme]);
+        $templateCallables = $manifest['templateCallables'];
+        $container = new Container(
+            $manifest['services'],
+            [self::class => $theme],
+            [
+                TemplateRenderer::class => static fn(Container $container): TemplateRenderer => new TemplateRenderer(
+                    $theme->templateDirectory,
+                    $theme->stylesheetDirectory,
+                    __DIR__,
+                    $cacheDirectory . '/twig',
+                    $development,
+                    $templateCallables,
+                    $container,
+                ),
+            ],
+        );
         $debug = defined('WP_DEBUG') && WP_DEBUG;
         new HookRegistrar($container, $debug)->register($manifest['hooks']);
 
@@ -123,15 +145,12 @@ final class Theme
     }
 
     /**
+     * Builds the manifest by reflection, cached until a source changes.
+     *
      * @return array<string, mixed>
      */
-    private function loadManifest(): array
+    private function loadDevelopmentManifest(string $cacheDirectory): array
     {
-        $releaseManifest = $this->templateDirectory . '/' . self::RELEASE_MANIFEST;
-        if (is_file($releaseManifest)) {
-            return Manifest::load($releaseManifest);
-        }
-
         // Reflection reports real paths (the theme may be a symlink), so the cache bases are real paths too.
         $templateRoot = realpath($this->templateDirectory);
         $frameworkRoot = realpath($this->frameworkDirectory);
@@ -144,7 +163,7 @@ final class Theme
         }
 
         $cache = new DevCache(
-            WP_CONTENT_DIR . '/cache/' . get_template() . '/manifest',
+            $cacheDirectory,
             ['theme' => $templateRoot, 'framework' => $frameworkRoot],
             ManifestBuilder::forTheme($templateRoot),
         );

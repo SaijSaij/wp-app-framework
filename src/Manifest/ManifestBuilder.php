@@ -13,6 +13,8 @@ use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Rest\RestRouteCollector;
 use Saij\WpAppFramework\Theme;
+use Saij\WpAppFramework\Twig\TemplateCallableCollector;
+use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Throwable;
 
 /**
@@ -89,7 +91,7 @@ final class ManifestBuilder
             $trackedFiles[] = $framework->getDirectory() . '/' . $relative;
         }
 
-        return new self($sources, $trackedFiles, [Theme::class]);
+        return new self($sources, $trackedFiles, [Theme::class, TemplateRenderer::class]);
     }
 
     /**
@@ -114,8 +116,16 @@ final class ManifestBuilder
         $hooks = $hookCollector->collect($classes);
         $routeCollector = new RestRouteCollector($resolver);
         $routes = $routeCollector->collect($classes);
+        $templateCallableCollector = new TemplateCallableCollector($resolver, TemplateRenderer::getBuiltInNames());
+        $templateCallables = $templateCallableCollector->collect($classes);
 
-        $errors = [...$errors, ...$hookCollector->errors(), ...$routeCollector->errors(), ...$resolver->errors()];
+        $errors = [
+            ...$errors,
+            ...$hookCollector->errors(),
+            ...$routeCollector->errors(),
+            ...$templateCallableCollector->errors(),
+            ...$resolver->errors(),
+        ];
         if ($errors !== []) {
             throw new BuildException($errors);
         }
@@ -128,6 +138,7 @@ final class ManifestBuilder
             $resolver->resolved(),
             $hooks,
             $routes,
+            $templateCallables,
         );
     }
 

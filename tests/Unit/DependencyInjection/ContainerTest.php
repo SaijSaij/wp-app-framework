@@ -34,6 +34,32 @@ final class ContainerTest extends TestCase
         self::assertSame($instance, $container->get(stdClass::class));
     }
 
+    public function testFactoriesCreateSharedInstancesOnFirstUse(): void
+    {
+        $calls = 0;
+        $container = new Container([Clock::class => []], [], [
+            Greeter::class => static function (Container $container) use (&$calls): Greeter {
+                $calls++;
+
+                return new Greeter($container->get(Clock::class));
+            },
+        ]);
+
+        self::assertSame(0, $calls);
+        self::assertSame($container->get(Greeter::class), $container->get(Greeter::class));
+        self::assertSame(1, $calls);
+    }
+
+    public function testFactoryReturningTheWrongTypeThrows(): void
+    {
+        $container = new Container([], [], [Clock::class => static fn(): object => new stdClass()]);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('The factory for ' . Clock::class . ' returned stdClass.');
+
+        $container->get(Clock::class);
+    }
+
     public function testUnknownServiceThrows(): void
     {
         $this->expectException(LogicException::class);

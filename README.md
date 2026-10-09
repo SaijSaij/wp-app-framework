@@ -10,7 +10,7 @@ The framework is a library that themes include via Composer. It is neither a the
 
 ## Status
 
-Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig, blocks and the editor runtime follow.
+Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig (step 3): `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`; development mode only so far (release mode follows with the release build). Blocks and the editor runtime follow.
 
 ## Usage
 
@@ -42,7 +42,7 @@ Saij\WpAppFramework\Theme::boot();
 
 Every concrete class under the theme's PSR-4 directories (`autoload.psr-4` in its `composer.json`) and under the framework's `src/` is a service candidate. Interfaces, abstract classes, traits, enums, attribute classes and classes marked `#[NoService]` (`Saij\WpAppFramework\DependencyInjection\NoService`) are not. Services are shared and autowired by constructor parameter types; scalar parameters must have a default value.
 
-Only services reachable from entry points (`#[Hook]` and `#[RestRoute]` methods, including permission callbacks) are built and checked, so value objects that are never injected need no marking. Aliases and tags are not supported. The container is internal; theme code receives services through constructor and hook parameters only. `Saij\WpAppFramework\Theme` is a predefined instance: `Theme::boot()` creates it (its constructor is private) and hands it to the container, which never builds it. Services can inject it to read the paths via `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()` and `getFrameworkDirectory()`.
+Only services reachable from entry points (`#[Hook]`, `#[RestRoute]`, `#[TemplateFunction]` and `#[TemplateFilter]` methods, including permission callbacks) are built and checked, so value objects that are never injected need no marking. Aliases and tags are not supported. The container is internal; theme code receives services through constructor and hook parameters only. `Saij\WpAppFramework\Theme` is a predefined instance: `Theme::boot()` creates it (its constructor is private) and hands it to the container, which never builds it. Services can inject it to read the paths via `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()` and `getFrameworkDirectory()`. `Saij\WpAppFramework\Twig\TemplateRenderer` is predefined as well; the framework creates it on first use.
 
 ### Hooks
 
@@ -115,6 +115,56 @@ final class ItemController
 - **Errors:** throw `RestException(code, message, status, data)` (status 400–599) for an error response. Any other exception is logged with `error_log()` and answered with 500 `wp_app_framework_internal_error`; class, message, file, line and stack trace are included only if `WP_DEBUG` is enabled.
 - Services are created when the route is called.
 
+### Twig templates
+
+Templates live in the `src/` directory of each level, next to the code that uses them (`src/Hook/Mail.twig`) or in shared directories (`src/Component/Button.twig`). A template name is always the full path relative to `src/`, including the extension – in PHP and in templates alike; there are no relative names.
+
+```php
+use Saij\WpAppFramework\Hook\Hook;
+use Saij\WpAppFramework\Twig\TemplateFilter;
+use Saij\WpAppFramework\Twig\TemplateFunction;
+use Saij\WpAppFramework\Twig\TemplateRenderer;
+
+final class Mail
+{
+    public function __construct(private readonly TemplateRenderer $renderer)
+    {
+    }
+
+    #[Hook('sections_mail_body')]
+    public function body(string $body, string $name): string
+    {
+        return $this->renderer->render('Hook/Mail.twig', ['body' => $body, 'name' => $name]);
+    }
+}
+
+final class Formatting
+{
+    #[TemplateFunction('price')]
+    public function price(int $cents): string
+    {
+        return number_format($cents / 100, 2, ',', '.') . ' €';
+    }
+
+    #[TemplateFilter('highlight', html: true)]
+    public function highlight(string $value): string
+    {
+        return '<mark>' . $value . '</mark>';
+    }
+}
+```
+
+```twig
+{% include 'Component/Button.twig' %}      {# child → theme → framework #}
+{% include '@framework/Component/Button.twig' %} {# exactly this level #}
+{{ price(total) }} {{ name|highlight }}
+```
+
+- **Lookup:** names without a namespace are searched in the child theme's `src/` (only if a child theme is active and has one), then the theme's, then the framework's. A higher level overrides a template by providing the same path. `@theme/…` and `@framework/…` address exactly one level and cannot be overridden – use them where the exact template matters, e.g. when an override extends the original. `wp-app-framework build` lists theme templates that override framework templates.
+- **Environment:** autoescaping (`html`) and `strict_variables` are always on; undefined variables are errors. In development mode, debug, auto reload and `dump()` are enabled. Compiled templates are cached in `wp-content/cache/{template}/twig/`. Rendering in release mode is not supported yet: without auto reload the cache needs a directory versioned by the release build. Twig exceptions reach the caller, so the error handling of hooks and REST routes applies.
+- **`#[TemplateFunction(name, html: false)]` / `#[TemplateFilter(name, html: false)]`** register public, non-static methods of services; the service is created when a template first calls them. Names must be valid identifiers, unique per kind and must not reuse a function or filter Twig provides (Twig would silently replace it); parameters must not be services (inject them through the constructor), variadic or by reference. A filter receives the filtered value as its first parameter.
+- **Escaping:** results are escaped unless `html: true`; such a method must return `string`. An HTML filter receives the filtered value HTML-escaped unless it is already safe (e.g. `|raw`, like Twig's `nl2br`). Other arguments are passed unescaped: an HTML function or filter must escape every argument it puts into its result.
+
 ### Build
 
 ```sh
@@ -132,11 +182,12 @@ Builds and checks the manifest of the project whose `vendor/autoload.php` the Co
 | `Theme.php` | Boot and paths of the active theme |
 | `Hook/` | `#[Hook]` attribute, collector (build), definition, registrar (runtime) |
 | `Rest/` | `#[RestController]`, `#[RestRoute]`, `#[Param]` attributes, `HttpMethod`/`Format` enums, `Permission/` (`PublicAccess`, `Capability`, `Callback`), `RestException`, collector (build), definition, registrar (runtime) |
+| `Twig/` | `#[TemplateFunction]`, `#[TemplateFilter]` attributes, collector (build), definition, `TemplateRenderer` and runtime loader (runtime), override finder (build) |
 | `DependencyInjection/` | `#[NoService]` attribute, service candidates and resolver (build), container (runtime) |
 | `Manifest/` | Manifest builder, generator and loader, checks shared by entry point collectors; `Discovery/` (PSR-4 class discovery), `DevCache/` (development mode cache) |
 | `Console/` | Command line entry point of `bin/wp-app-framework` |
 
-New areas (Twig, blocks, settings, block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
+New areas (blocks, settings, block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
 
 ## Conventions
 

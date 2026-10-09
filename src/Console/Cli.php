@@ -9,6 +9,9 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
+use Saij\WpAppFramework\Twig\TemplateCallableKind;
+use Saij\WpAppFramework\Twig\TemplateOverrides;
+use Saij\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * Command line entry point: `wp-app-framework build [--output=<file>]`.
@@ -62,14 +65,29 @@ final class Cli
             return 1;
         }
 
+        $functions = count(array_filter(
+            $result->getTemplateCallables(),
+            static fn($callable) => $callable->getKind() === TemplateCallableKind::Function,
+        ));
+
         fwrite($stdout, sprintf(
-            "Manifest OK: %d service candidates, %d services, %d hooks, %d routes.%s\n",
+            "Manifest OK: %d service candidates, %d services, %d hooks, %d routes, %d template functions, %d template filters.%s\n",
             count($result->getCandidates()),
             count($result->getServices()),
             count($result->getHooks()),
             count($result->getRoutes()),
+            $functions,
+            count($result->getTemplateCallables()) - $functions,
             $output !== null ? ' Written to ' . $output . '.' : ' Nothing written (no --output).',
         ));
+
+        $overrides = TemplateOverrides::find(
+            $projectDirectory . '/' . TemplateRenderer::TEMPLATE_DIRECTORY,
+            ManifestBuilder::frameworkSource()->getDirectory(),
+        );
+        foreach ($overrides as $name) {
+            fwrite($stdout, sprintf("Template %s of the theme overrides the framework template.\n", $name));
+        }
 
         return 0;
     }
