@@ -8,7 +8,9 @@ use ArrayObject;
 
 final class OutsideDependent
 {
-    public function __construct(ArrayObject $storage)
-    {
-    }
+    /**
+     * @param ArrayObject<int, mixed> $storage
+     */
+    // @phpstan-ignore constructor.unusedParameter (the parameter only declares a dependency for the container)
+    public function __construct(ArrayObject $storage) {}
 }

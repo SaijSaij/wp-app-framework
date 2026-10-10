@@ -111,7 +111,7 @@ final class EditorBuildTest extends TestCase
         $blocks = self::blocks();
         $container = $blocks['fixture/container'];
 
-        self::assertSame(['fixture/teaser'], $container->getArgs()['allowed_blocks']);
+        self::assertSame(['fixture/teaser'], $container->getArgs()['allowed_blocks'] ?? null);
         self::assertSame(
             ['fields' => [], 'controls' => [], 'innerBlocks' => true, 'editorScript' => 'Container.editor'],
             $container->getEditor(),

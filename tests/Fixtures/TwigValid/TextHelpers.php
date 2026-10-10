@@ -45,6 +45,9 @@ final class TextHelpers
         return '<i>' . $value . '</i>';
     }
 
+    /**
+     * @param list<mixed> $items
+     */
     #[TemplateFunction('count_items')]
     public function countItems(array $items): int
     {

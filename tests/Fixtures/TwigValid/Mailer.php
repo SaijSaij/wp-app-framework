@@ -9,9 +9,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
 
 final class Mailer
 {
-    public function __construct(private readonly TemplateRenderer $renderer)
-    {
-    }
+    public function __construct(private readonly TemplateRenderer $renderer) {}
 
     #[Hook('fixture_mail')]
     public function body(string $body): string

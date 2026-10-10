@@ -7,8 +7,8 @@ namespace Saij\WpAppFramework\Tests\Unit\Manifest;
 use PHPUnit\Framework\TestCase;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
+use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Tests\Fixtures\Valid;
 
 final class ManifestBuilderTest extends TestCase

@@ -11,8 +11,10 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  *
  * @phpstan-type BlockArgument array{param: string, kind: 'attributes', class: class-string}
  *     |array{param: string, kind: 'content'|'block'}
+ * @phpstan-type BlockArgs array{attributes: array<string, array<string, mixed>>, ...<string, mixed>}
+ * @phpstan-type BlockField array{kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true}
  * @phpstan-type BlockEditor array{
- *     fields: array<string, array{kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true}>,
+ *     fields: array<string, BlockField>,
  *     controls: array<string, array<string, mixed>>,
  *     innerBlocks: bool,
  *     editorScript: string|null
@@ -22,7 +24,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 final readonly class BlockDefinition
 {
     /**
-     * @param array<string, mixed> $args      Arguments for register_block_type() without the render callback.
+     * @param BlockArgs            $args      Arguments for register_block_type() without the render callback.
      * @param class-string         $class
      * @param list<BlockArgument>  $arguments Parameters of render() in declaration order.
      * @param BlockEditor          $editor    Data of the editor runtime: inline fields by path (list items as `*`),
@@ -35,8 +37,7 @@ final readonly class BlockDefinition
         private string $class,
         private array $arguments,
         private array $editor,
-    ) {
-    }
+    ) {}
 
     public function getName(): string
     {
@@ -44,7 +45,7 @@ final readonly class BlockDefinition
     }
 
     /**
-     * @return array<string, mixed>
+     * @return BlockArgs
      */
     public function getArgs(): array
     {

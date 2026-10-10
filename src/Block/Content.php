@@ -11,6 +11,4 @@ use Attribute;
  * attribute gets `role: content` and stays editable in contentOnly mode.
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
-final readonly class Content
-{
-}
+final readonly class Content {}

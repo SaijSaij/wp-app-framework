@@ -20,6 +20,7 @@ use Throwable;
  *
  * @phpstan-import-type BlockArgument from BlockDefinition
  * @phpstan-import-type BlockEditor from BlockDefinition
+ * @phpstan-import-type BlockField from BlockDefinition
  * @phpstan-import-type Control from ValueSchemaBuilder
  * @phpstan-import-type EditorField from ValueSchemaBuilder
  */
@@ -190,7 +191,7 @@ final class BlockCollector
      *
      * @return string|null|false Null without editor script, false on error (recorded).
      */
-    private function editorScript(string $classFile, string $class): string|null|false
+    private function editorScript(string $classFile, string $class): string|false|null
     {
         $script = dirname($classFile) . '/' . basename($classFile, '.php') . self::EDITOR_SCRIPT_SUFFIX;
         if (!is_file($script)) {
@@ -295,7 +296,7 @@ final class BlockCollector
      * Checks render() and derives the attribute schemas, inline fields and inspector controls.
      *
      * @param ReflectionClass<object> $class
-     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, array<string, mixed>>, array<string, Control>}|null
+     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, BlockField>, array<string, Control>}|null
      */
     private function render(ReflectionClass $class): ?array
     {
@@ -323,7 +324,7 @@ final class BlockCollector
     }
 
     /**
-     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, array<string, mixed>>, array<string, Control>}|null
+     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, BlockField>, array<string, Control>}|null
      */
     private function renderParameters(ReflectionMethod $method, string $location): ?array
     {
@@ -389,7 +390,7 @@ final class BlockCollector
      * Schemas by attribute name, inline fields by path (e.g. "buttons.*.label") and inspector controls by attribute name.
      *
      * @param class-string $class
-     * @return array{array<string, array<string, mixed>>, array<string, array<string, mixed>>, array<string, Control>}|null
+     * @return array{array<string, array<string, mixed>>, array<string, BlockField>, array<string, Control>}|null
      */
     private function attributeSchemas(string $class, string $location): ?array
     {

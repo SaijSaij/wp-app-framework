@@ -11,6 +11,4 @@ use Attribute;
  * it with sanitize_url() and removes disallowed protocols such as `javascript:`.
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
-final readonly class Url
-{
-}
+final readonly class Url {}

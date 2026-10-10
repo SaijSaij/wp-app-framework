@@ -10,9 +10,10 @@ use Saij\WpAppFramework\Value\Url;
 final readonly class Button
 {
     public function __construct(
-        #[PlainText] public string $label,
-        #[Url] public string $url = '',
+        #[PlainText]
+        public string $label,
+        #[Url]
+        public string $url = '',
         public ?Size $size = null,
-    ) {
-    }
+    ) {}
 }

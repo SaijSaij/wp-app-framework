@@ -2,8 +2,8 @@
  * Inspector controls and panels registered by the consumer's editor scripts
  * (`registerControl`, `registerPanel` of `@saij/wp-app-framework`).
  *
- * @param {Object}   blocks       Block configuration of the instance by name.
- * @param {Function} getBlockType getBlockType() of @wordpress/blocks.
+ * @param {Object}                               blocks       Block configuration of the instance by name.
+ * @param {(name: string) => (Object|undefined)} getBlockType getBlockType() of `@wordpress/blocks`.
  * @return {Object} Registry.
  */
 export function createRegistry( blocks, getBlockType ) {
@@ -25,9 +25,9 @@ export function createRegistry( blocks, getBlockType ) {
 		/**
 		 * Replaces the generated control of a top-level attribute.
 		 *
-		 * @param {string}   name      Block name.
-		 * @param {string}   attribute Attribute name.
-		 * @param {Function} Component Receives {value, onChange, attributes, setAttributes}.
+		 * @param {string}                                name      Block name.
+		 * @param {string}                                attribute Attribute name.
+		 * @param {import('react').ComponentType<Object>} Component Receives {value, onChange, attributes, setAttributes}.
 		 */
 		registerControl( name, attribute, Component ) {
 			if ( ! knownBlock( name, 'registerControl' ) ) {
@@ -48,8 +48,8 @@ export function createRegistry( blocks, getBlockType ) {
 		/**
 		 * Adds a panel to the inspector of a block.
 		 *
-		 * @param {string}   name      Block name.
-		 * @param {Function} Component Receives {attributes, setAttributes}.
+		 * @param {string}                                name      Block name.
+		 * @param {import('react').ComponentType<Object>} Component Receives {attributes, setAttributes}.
 		 */
 		registerPanel( name, Component ) {
 			if ( ! knownBlock( name, 'registerPanel' ) ) {

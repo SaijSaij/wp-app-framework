@@ -24,6 +24,8 @@ use Saij\WpAppFramework\Value\ValueFactory;
  * The instance is created only by boot() and handed to the container as a
  * predefined instance: the container never builds it, but services can inject
  * it to read the paths.
+ *
+ * @phpstan-import-type ManifestData from Manifest
  */
 final class Theme
 {
@@ -51,8 +53,7 @@ final class Theme
         private readonly string $stylesheetDirectory,
         private readonly string $stylesheetDirectoryUri,
         private readonly string $frameworkDirectory,
-    ) {
-    }
+    ) {}
 
     /**
      * Directory of the parent theme, as returned by get_template_directory().
@@ -177,7 +178,7 @@ final class Theme
     /**
      * Builds the manifest by reflection, cached until a source changes.
      *
-     * @return array<string, mixed>
+     * @return ManifestData
      */
     private function loadDevelopmentManifest(string $cacheDirectory): array
     {

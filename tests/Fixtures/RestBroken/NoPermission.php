@@ -12,6 +12,7 @@ use Saij\WpAppFramework\Rest\RestRoute;
 final class NoPermission
 {
     // The permission argument is missing on purpose.
+    // @phpstan-ignore arguments.count (fixture: the missing permission is the error under test)
     #[RestRoute('/a', HttpMethod::Get)]
     public function a(): bool
     {

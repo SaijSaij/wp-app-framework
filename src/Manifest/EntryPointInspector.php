@@ -17,9 +17,7 @@ use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 #[NoService]
 final readonly class EntryPointInspector
 {
-    public function __construct(private ServiceResolver $resolver)
-    {
-    }
+    public function __construct(private ServiceResolver $resolver) {}
 
     /**
      * @param class-string $class

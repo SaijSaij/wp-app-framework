@@ -10,8 +10,8 @@ final readonly class Entry
 {
     public function __construct(
         public string $title,
-        #[Url] public string $link = '',
+        #[Url]
+        public string $link = '',
         public Priority $priority = Priority::Low,
-    ) {
-    }
+    ) {}
 }

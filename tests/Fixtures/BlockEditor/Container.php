@@ -11,9 +11,7 @@ use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
 #[Block('fixture/container', title: 'Container', category: BlockCategory::Design, allowedBlocks: ['fixture/teaser'])]
 final readonly class Container
 {
-    public function __construct(private EditorTemplateFunctions $editor)
-    {
-    }
+    public function __construct(private EditorTemplateFunctions $editor) {}
 
     public function render(string $content): string
     {

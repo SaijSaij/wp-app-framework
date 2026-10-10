@@ -12,9 +12,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 #[NoService]
 final readonly class Capability implements Permission
 {
-    public function __construct(private string $capability)
-    {
-    }
+    public function __construct(private string $capability) {}
 
     public function getCapability(): string
     {

@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Unit\Manifest\DevCache;
 
-use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
+use Saij\WpAppFramework\Tests\Support\Files;
 
 final class DevCacheTest extends TestCase
 {
@@ -30,15 +28,7 @@ final class DevCacheTest extends TestCase
 
     protected function tearDown(): void
     {
-        $root = dirname($this->theme);
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-        foreach ($iterator as $file) {
-            $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
-        }
-        rmdir($root);
+        Files::remove(dirname($this->theme));
     }
 
     private function writeHooks(string $body, string $extraMethod): void
@@ -72,6 +62,9 @@ final class DevCacheTest extends TestCase
         touch($file, time() + 10);
     }
 
+    /**
+     * @phpstan-impure Runs the dev cache in a new process; the result depends on the files.
+     */
     private function probe(string $mode): string
     {
         $command = [PHP_BINARY, __DIR__ . '/../../../bin/dev-cache-probe.php', $mode, $this->cache, $this->theme];
@@ -130,7 +123,7 @@ final class DevCacheTest extends TestCase
 
     public function testChangedPermissionCallbackRebuilds(): void
     {
-        $controller = static fn (string $callback): string => <<<PHP
+        $controller = static fn(string $callback): string => <<<PHP
             <?php
 
             declare(strict_types=1);
@@ -173,8 +166,8 @@ final class DevCacheTest extends TestCase
 
     public function testNewEnumCaseAndChangedDefaultRebuild(): void
     {
-        $enum = static fn (string $cases): string => "<?php\n\nnamespace DevCacheProbe;\n\nenum Level: string\n{\n{$cases}}\n";
-        $attributes = static fn (string $default): string => "<?php\n\nnamespace DevCacheProbe;\n\nfinal readonly class Attributes\n{\n    public function __construct(public Level \$level = Level::{$default})\n    {\n    }\n}\n";
+        $enum = static fn(string $cases): string => "<?php\n\nnamespace DevCacheProbe;\n\nenum Level: string\n{\n{$cases}}\n";
+        $attributes = static fn(string $default): string => "<?php\n\nnamespace DevCacheProbe;\n\nfinal readonly class Attributes\n{\n    public function __construct(public Level \$level = Level::{$default})\n    {\n    }\n}\n";
 
         $this->writeSource('Level.php', $enum("    case Low = 'low';\n"));
         $this->writeSource('Attributes.php', $attributes('Low'));
@@ -192,8 +185,8 @@ final class DevCacheTest extends TestCase
 
     public function testEditorChangesRebuild(): void
     {
-        $enum = static fn (string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Labeled;\n\nenum Tone: string implements Labeled\n{\n    case Light = 'light';\n\n    public function label(): string\n    {\n        return '{$label}';\n    }\n}\n";
-        $attributes = static fn (string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Label;\n\nfinal readonly class Attributes\n{\n    public function __construct(#[Label('{$label}')] public Tone \$tone = Tone::Light)\n    {\n    }\n}\n";
+        $enum = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Labeled;\n\nenum Tone: string implements Labeled\n{\n    case Light = 'light';\n\n    public function label(): string\n    {\n        return '{$label}';\n    }\n}\n";
+        $attributes = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Label;\n\nfinal readonly class Attributes\n{\n    public function __construct(#[Label('{$label}')] public Tone \$tone = Tone::Light)\n    {\n    }\n}\n";
 
         $this->writeSource('Tone.php', $enum('Bright'));
         $this->writeSource('Attributes.php', $attributes('Tone'));

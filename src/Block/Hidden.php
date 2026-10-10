@@ -11,6 +11,4 @@ use Attribute;
  * fields (#[PlainText], #[RichText], #[Image]), which have no inspector control.
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
-final readonly class Hidden
-{
-}
+final readonly class Hidden {}

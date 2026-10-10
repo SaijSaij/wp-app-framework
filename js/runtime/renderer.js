@@ -6,10 +6,10 @@
  * so undo/redo and duplicated blocks need no request. Errors are not cached.
  * A request is aborted once no caller waits for any of its blocks.
  *
- * @param {Object}   options
- * @param {Function} options.fetch     apiFetch.
- * @param {string}   options.path      Path of the render route.
- * @param {number}   options.maxBlocks Maximum blocks per request.
+ * @param {Object}                               options
+ * @param {(options: Object) => Promise<Object>} options.fetch     apiFetch.
+ * @param {string}                               options.path      Path of the render route.
+ * @param {number}                               options.maxBlocks Maximum blocks per request.
  * @return {Object} Renderer with peek() and render().
  */
 export function createRenderer( { fetch, path, maxBlocks } ) {
@@ -114,7 +114,7 @@ export function createRenderer( { fetch, path, maxBlocks } ) {
 		/**
 		 * @param {string} key   Cache key of the entry.
 		 * @param {Object} entry {name, attributes, postId?}.
-		 * @return {{promise: Promise<string>, cancel: Function}} Result.
+		 * @return {{promise: Promise<string>, cancel: () => void}} Result.
 		 */
 		render( key, entry ) {
 			if ( cache.has( key ) ) {

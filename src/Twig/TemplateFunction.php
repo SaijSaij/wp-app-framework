@@ -21,6 +21,5 @@ final readonly class TemplateFunction
     public function __construct(
         public string $name,
         public bool $html = false,
-    ) {
-    }
+    ) {}
 }

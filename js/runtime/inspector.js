@@ -36,11 +36,11 @@ const TYPING_DELAY = 300;
  * typing does not re-render the block on every key. External changes (undo)
  * replace the local text.
  *
- * @param {*}        value    Current attribute value.
- * @param {Function} onChange Applies a value.
- * @param {Function} format   Value → text.
- * @param {Function} parse    Text → value, undefined if invalid.
- * @return {{text: string, change: Function, flush: Function}} Buffered text.
+ * @param {import('./paths').AttributeValue}                               value    Current attribute value.
+ * @param {(value: import('./paths').AttributeValue) => void}              onChange Applies a value.
+ * @param {(value: import('./paths').AttributeValue) => string}            format   Value → text.
+ * @param {(text: string) => (import('./paths').AttributeValue|undefined)} parse    Text → value, undefined if invalid.
+ * @return {{text: string, change: (text: string) => void, flush: () => void}} Buffered text.
  */
 function useBufferedText( value, onChange, format, parse ) {
 	const [ text, setText ] = useState( () => format( value ) );
@@ -146,11 +146,11 @@ function NumberValueControl( { control, value, onChange, label } ) {
  * A #[RichText(inspector: true)] value: a rich text input with the allowed
  * formats of the field.
  *
- * @param {Object}   props
- * @param {Object}   props.control
- * @param {string}   props.value
- * @param {Function} props.onChange
- * @param {string}   [props.label]
+ * @param {Object}                                            props
+ * @param {Object}                                            props.control
+ * @param {string}                                            props.value
+ * @param {(value: import('./paths').AttributeValue) => void} props.onChange
+ * @param {string}                                            [props.label]
  */
 function RichTextValueControl( { control, value, onChange, label } ) {
 	const { text, change } = useBufferedText(
@@ -180,18 +180,24 @@ function RichTextValueControl( { control, value, onChange, label } ) {
  * An #[Image(inspector: true)] value: preview with replace and remove, or a
  * button to select an image.
  *
- * @param {Object}   props
- * @param {Object}   props.control
- * @param {?number}  props.value    Attachment ID.
- * @param {Function} props.onChange
- * @param {string}   [props.label]
+ * @param {Object}                                            props
+ * @param {Object}                                            props.control
+ * @param {?number}                                           props.value    Attachment ID.
+ * @param {(value: import('./paths').AttributeValue) => void} props.onChange
+ * @param {string}                                            [props.label]
  */
 function ImageValueControl( { control, value, onChange, label } ) {
 	const name = label ?? control.label;
 	const id = Number.isInteger( value ) ? value : null;
 	const media = useSelect(
 		( select ) =>
-			id === null ? undefined : select( 'core' ).getMedia( id ),
+			id === null
+				? undefined
+				: select( 'core' ).getEntityRecord(
+						'postType',
+						'attachment',
+						id
+					),
 		[ id ]
 	);
 	const onSelect = ( selected ) => {
@@ -282,11 +288,11 @@ function EnumControl( { control, value, onChange, label } ) {
 /**
  * The values of a value class, each with its control.
  *
- * @param {Object}   props
- * @param {Object}   props.control
- * @param {Object}   props.value
- * @param {Function} props.onChange
- * @param {Object}   props.schema
+ * @param {Object}                                            props
+ * @param {Object}                                            props.control
+ * @param {Object}                                            props.value
+ * @param {(value: import('./paths').AttributeValue) => void} props.onChange
+ * @param {Object}                                            props.schema
  */
 function ObjectFields( { control, value, onChange, schema } ) {
 	return Object.entries( control.fields ).map( ( [ name, field ] ) => (
@@ -361,12 +367,12 @@ function hasItemControls( control ) {
  * remove) and the controls of the item; inline values of items are edited in
  * the canvas. Items are keyed by index, so reordering remounts their controls.
  *
- * @param {Object}   props
- * @param {Object}   props.control
- * @param {Array}    props.value
- * @param {Function} props.onChange
- * @param {Object}   props.schema   JSON schema of the list.
- * @param {string}   props.path     Pattern of the list, e.g. "buttons".
+ * @param {Object}                                            props
+ * @param {Object}                                            props.control
+ * @param {Array}                                             props.value
+ * @param {(value: import('./paths').AttributeValue) => void} props.onChange
+ * @param {Object}                                            props.schema   JSON schema of the list.
+ * @param {string}                                            props.path     Pattern of the list, e.g. "buttons".
  */
 export function ListControl( { control, value, onChange, schema, path } ) {
 	const fields = useContext( BlockDataContext )?.block.fields ?? {};
@@ -482,13 +488,13 @@ export function ListControl( { control, value, onChange, schema, path } ) {
 /**
  * The control of a value, chosen by its manifest description.
  *
- * @param {Object}   props
- * @param {Object}   props.control  Control description from the manifest.
- * @param {Object}   props.schema   JSON schema of the value.
- * @param {*}        props.value
- * @param {Function} props.onChange
- * @param {string}   [props.label]  Overrides the label (list items).
- * @param {string}   [props.path]   Pattern of the value, for list item titles.
+ * @param {Object}                                            props
+ * @param {Object}                                            props.control  Control description from the manifest.
+ * @param {Object}                                            props.schema   JSON schema of the value.
+ * @param {import('./paths').AttributeValue}                  props.value
+ * @param {(value: import('./paths').AttributeValue) => void} props.onChange
+ * @param {string}                                            [props.label]  Overrides the label (list items).
+ * @param {string}                                            [props.path]   Pattern of the value, for list item titles.
  */
 export function ValueControl( props ) {
 	const { control, value, onChange, label } = props;

@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Unit\Twig;
 
-use FilesystemIterator;
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Tests\Fixtures\TwigValid\TextHelpers;
+use Saij\WpAppFramework\Tests\Support\Files;
 use Saij\WpAppFramework\Twig\TemplateOverrides;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 final class TemplateRendererTest extends TestCase
 {
@@ -35,14 +32,7 @@ final class TemplateRendererTest extends TestCase
         if (!is_dir($this->cache)) {
             return;
         }
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->cache, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-        foreach ($iterator as $file) {
-            $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
-        }
-        rmdir($this->cache);
+        Files::remove($this->cache);
     }
 
     private function renderer(string $stylesheet = 'child', bool $development = true): TemplateRenderer
@@ -155,7 +145,7 @@ final class TemplateRendererTest extends TestCase
         $this->renderer()->render('Cached.twig');
 
         $compiled = 0;
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->cache, FilesystemIterator::SKIP_DOTS)) as $file) {
+        foreach (Files::below($this->cache) as $file) {
             $compiled += $file->getExtension() === 'php' ? 1 : 0;
         }
         self::assertGreaterThan(0, $compiled);

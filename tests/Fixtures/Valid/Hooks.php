@@ -30,9 +30,7 @@ final class Hooks
         return true;
     }
 
-    public function notAHook(): void
-    {
-    }
+    public function notAHook(): void {}
 
     /**
      * @return list<string>

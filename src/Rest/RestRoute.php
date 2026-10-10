@@ -30,6 +30,5 @@ final readonly class RestRoute
         public string $path,
         public HttpMethod|array $methods,
         public Permission $permission,
-    ) {
-    }
+    ) {}
 }

@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Tests\Unit\Hook;
 
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Hook\HookCollector;
 use Saij\WpAppFramework\Hook\HookDefinition;
-use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Tests\Fixtures\Valid;
+use Saij\WpAppFramework\Tests\Support\Reflection;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 final class HookCollectorTest extends TestCase
@@ -20,10 +19,7 @@ final class HookCollectorTest extends TestCase
      */
     private static function collectValid(): array
     {
-        $classes = [];
-        foreach (ClassDiscovery::classes(ManifestBuilderTest::fixture('Valid')) as $name) {
-            $classes[$name] = new ReflectionClass($name);
-        }
+        $classes = Reflection::classes(ManifestBuilderTest::fixture('Valid'));
 
         $collector = new HookCollector(ServiceResolver::forClasses($classes, []));
         $hooks = [];

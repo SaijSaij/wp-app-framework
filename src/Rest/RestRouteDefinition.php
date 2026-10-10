@@ -21,6 +21,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 final readonly class RestRouteDefinition
 {
     /**
+     * @param non-falsy-string                    $namespace
+     * @param non-falsy-string                    $route
      * @param list<string>                        $methods   HTTP methods.
      * @param array<string, array<string, mixed>> $args      Argument schemas for register_rest_route().
      * @param RestPermission                      $permission
@@ -37,9 +39,11 @@ final readonly class RestRouteDefinition
         private string $method,
         private array $arguments,
         private bool $void,
-    ) {
-    }
+    ) {}
 
+    /**
+     * @return non-falsy-string
+     */
     public function getNamespace(): string
     {
         return $this->namespace;
@@ -47,6 +51,8 @@ final readonly class RestRouteDefinition
 
     /**
      * The route as regular expression for register_rest_route(), e.g. `/items/(?P<id>\d+)`.
+     *
+     * @return non-falsy-string
      */
     public function getRoute(): string
     {

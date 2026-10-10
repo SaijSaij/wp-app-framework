@@ -6,7 +6,6 @@ namespace Saij\WpAppFramework\Tests\Fixtures\Broken;
 
 final class CycleA
 {
-    public function __construct(CycleB $b)
-    {
-    }
+    // @phpstan-ignore constructor.unusedParameter (the parameter only declares a dependency for the container)
+    public function __construct(CycleB $b) {}
 }

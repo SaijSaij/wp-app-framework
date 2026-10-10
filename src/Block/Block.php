@@ -31,6 +31,5 @@ final readonly class Block
         public array $keywords = [],
         public array $usesContext = [],
         public ?array $allowedBlocks = null,
-    ) {
-    }
+    ) {}
 }

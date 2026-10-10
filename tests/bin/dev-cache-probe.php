@@ -10,11 +10,12 @@ declare(strict_types=1);
  * Prints "fresh"/"stale" (check) or the hook names of the loaded manifest (load).
  */
 
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
+use Saij\WpAppFramework\Manifest\ManifestBuilder;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
+/** @var list<string> $argv Defined by PHP for scripts run from the command line. */
 [, $mode, $cacheDirectory, $themeDirectory] = $argv;
 
 spl_autoload_register(static function (string $class) use ($themeDirectory): void {

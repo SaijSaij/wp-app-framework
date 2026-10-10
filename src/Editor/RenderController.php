@@ -21,6 +21,8 @@ use WP_REST_Response;
  * or `{error: {code, message}}` – so one failing block does not fail the batch.
  *
  * @internal
+ *
+ * @phpstan-type RenderEntry array{name: string, attributes?: array<string, mixed>, postId?: int}
  */
 #[NoService]
 final readonly class RenderController
@@ -39,9 +41,11 @@ final readonly class RenderController
         private array $blocks,
         private RenderContext $context,
         private bool $debug,
-    ) {
-    }
+    ) {}
 
+    /**
+     * @return non-falsy-string
+     */
     public static function route(string $slug): string
     {
         return '/' . $slug . '/render';
@@ -51,7 +55,7 @@ final readonly class RenderController
     {
         register_rest_route(self::NAMESPACE, self::route($this->slug), [
             'methods' => 'POST',
-            'permission_callback' => static fn (): bool => current_user_can('edit_posts'),
+            'permission_callback' => static fn(): bool => current_user_can('edit_posts'),
             'callback' => $this->handle(...),
             'args' => [
                 'blocks' => [
@@ -74,23 +78,25 @@ final readonly class RenderController
 
     public function handle(WP_REST_Request $request): WP_REST_Response
     {
+        /** @var list<RenderEntry> $entries Validated and sanitized by WordPress against the route schema. */
+        $entries = $request->get_param('blocks');
         $results = [];
-        foreach ((array) $request->get_param('blocks') as $entry) {
-            $results[] = $this->renderEntry((array) $entry);
+        foreach ($entries as $entry) {
+            $results[] = $this->renderEntry($entry);
         }
 
         return new WP_REST_Response(['results' => $results]);
     }
 
     /**
-     * @param array<string, mixed> $entry
+     * @param RenderEntry $entry
      * @return array{html: string}|array{error: array{code: string, message: string, data?: array<string, mixed>}}
      */
     private function renderEntry(array $entry): array
     {
-        $name = (string) ($entry['name'] ?? '');
-        $postId = isset($entry['postId']) ? (int) $entry['postId'] : null;
-        $attributes = (array) ($entry['attributes'] ?? []);
+        $name = $entry['name'];
+        $postId = $entry['postId'] ?? null;
+        $attributes = $entry['attributes'] ?? [];
 
         $blockType = in_array($name, $this->blocks, true) ? WP_Block_Type_Registry::get_instance()->get_registered($name) : null;
         if ($blockType === null) {
@@ -124,7 +130,7 @@ final readonly class RenderController
                 setup_postdata($post);
             }
 
-            return ['html' => $this->context->renderForEditor(static fn (): string => render_block([
+            return ['html' => $this->context->renderForEditor(static fn(): string => render_block([
                 'blockName' => $name,
                 'attrs' => $attributes,
                 'innerBlocks' => [],
@@ -155,7 +161,7 @@ final readonly class RenderController
                 } else {
                     unset($GLOBALS['post']);
                 }
-                if ($previousPost !== null) {
+                if (is_object($previousPost)) {
                     setup_postdata($previousPost);
                 }
             }

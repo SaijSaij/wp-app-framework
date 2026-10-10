@@ -8,8 +8,6 @@ use Saij\WpAppFramework\Block\Align;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Supports;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use WP_Block;
 
 #[Block('broken/duplicate-align', title: 'X', category: BlockCategory::Text)]
 #[Supports(align: [Align::Wide, Align::Wide])]

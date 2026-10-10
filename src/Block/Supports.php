@@ -31,6 +31,5 @@ final readonly class Supports
         public bool $lock = true,
         public bool $renaming = true,
         public bool $customCSS = true,
-    ) {
-    }
+    ) {}
 }

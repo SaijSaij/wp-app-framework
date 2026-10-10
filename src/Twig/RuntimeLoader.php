@@ -23,14 +23,14 @@ final readonly class RuntimeLoader implements RuntimeLoaderInterface
     public function __construct(
         private Container $container,
         private array $classes,
-    ) {
-    }
+    ) {}
 
     public function load(string $class): ?object
     {
         if (!isset($this->classes[$class])) {
             return null;
         }
+        /** @var class-string $class A key of $classes. */
 
         return $this->container->get($class);
     }

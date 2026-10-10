@@ -25,7 +25,8 @@ final class ItemController
      */
     #[RestRoute('', HttpMethod::Get, new PublicAccess())]
     public function index(
-        #[Param(description: 'Page size', minimum: 1, maximum: 50)] int $perPage = 10,
+        #[Param(description: 'Page size', minimum: 1, maximum: 50)]
+        int $perPage = 10,
         ?Variant $variant = null,
         bool $flag = false,
         float $ratio = 0.5,
@@ -45,9 +46,11 @@ final class ItemController
     #[RestRoute('/{id}', [HttpMethod::Put, HttpMethod::Patch], new Callback(self::canEdit(...)))]
     public function update(
         int $id,
-        #[Param(maxLength: 20)] string $title,
+        #[Param(maxLength: 20)]
+        string $title,
         WP_REST_Request $request,
-        #[Param(format: Format::Email)] ?string $contact = null,
+        #[Param(format: Format::Email)]
+        ?string $contact = null,
     ): WP_REST_Response {
         return new WP_REST_Response(['id' => $id, 'title' => $title, 'contact' => $contact, 'request' => $request::class], 201);
     }

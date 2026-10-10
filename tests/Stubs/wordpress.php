@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 /*
  * Minimal test doubles of the WordPress classes and functions used by the
- * framework's runtime code. They implement only what the framework calls;
- * WordPress is not loaded in unit tests.
+ * framework's runtime code. They implement only what the framework calls, with
+ * the signatures of WordPress 7.1 (static analysis checks the tests against the
+ * real ones from php-stubs/wordpress-stubs); WordPress is not loaded in unit tests.
+ * Public properties mirror the public properties of the WordPress classes.
  */
 
 final class WP_Error
@@ -14,8 +16,7 @@ final class WP_Error
         private string $code = '',
         private string $message = '',
         private mixed $data = '',
-    ) {
-    }
+    ) {}
 
     public function get_error_code(): string
     {
@@ -38,8 +39,7 @@ final class WP_REST_Response
     public function __construct(
         private mixed $data = null,
         private int $status = 200,
-    ) {
-    }
+    ) {}
 
     public function get_data(): mixed
     {
@@ -53,28 +53,46 @@ final class WP_REST_Response
 }
 
 /**
- * Like WordPress, query/body parameters take precedence over URL parameters in get_param().
+ * Query and URL parameters only; like WordPress (GET before URL), query parameters take
+ * precedence in get_param(), which skips null values (isset).
  */
 final class WP_REST_Request
 {
+    /** @var array<string, mixed> */
+    private array $queryParams = [];
+
+    /** @var array<string, mixed> */
+    private array $urlParams = [];
+
     /**
-     * @param array<string, mixed> $params    Query, body and default parameters.
-     * @param array<string, mixed> $urlParams Parameters matched from the route.
+     * @param array<string, mixed> $attributes
      */
-    public function __construct(
-        private array $params = [],
-        private array $urlParams = [],
-    ) {
+    public function __construct(string $method = '', string $route = '', array $attributes = []) {}
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function set_query_params(array $params): void
+    {
+        $this->queryParams = $params;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function set_url_params(array $params): void
+    {
+        $this->urlParams = $params;
     }
 
     public function has_param(string $key): bool
     {
-        return array_key_exists($key, $this->params) || array_key_exists($key, $this->urlParams);
+        return array_key_exists($key, $this->queryParams) || array_key_exists($key, $this->urlParams);
     }
 
     public function get_param(string $key): mixed
     {
-        return array_key_exists($key, $this->params) ? $this->params[$key] : ($this->urlParams[$key] ?? null);
+        return $this->queryParams[$key] ?? $this->urlParams[$key] ?? null;
     }
 
     /**
@@ -127,30 +145,49 @@ function rest_sanitize_value_from_schema(mixed $value, array $args, string $para
 }
 
 /**
- * Holds only the block name; enough to pass it to render callbacks.
+ * A parsed block; render() calls the render callback of its registered type with the instance, like WordPress.
  */
 final class WP_Block
 {
-    public function __construct(private string $name = '')
+    public string $name;
+
+    /** @var array<string, mixed> */
+    public array $attributes;
+
+    /**
+     * @param array{blockName: string, attrs?: array<string, mixed>} $block
+     * @param array<string, mixed>                                  $available_context
+     */
+    public function __construct(array $block, array $available_context = [], ?WP_Block_Type_Registry $registry = null)
     {
+        $this->name = $block['blockName'];
+        $this->attributes = $block['attrs'] ?? [];
     }
 
-    public function getName(): string
+    /**
+     * @param array<string, mixed> $options
+     */
+    public function render(array $options = []): string
     {
-        return $this->name;
+        $type = WP_Block_Type_Registry::get_instance()->get_registered($this->name);
+        if ($type === null || $type->render_callback === null) {
+            return '';
+        }
+
+        return (string) ($type->render_callback)($this->attributes, '', $this);
     }
 }
 
 /**
- * Records the registered block types in $GLOBALS['wp_app_framework_test_blocks'].
+ * Records the registered block types in $GLOBALS['wp_app_framework_test_blocks'] (not in the registry).
  *
  * @param array<string, mixed> $args
  */
-function register_block_type(string $name, array $args = []): bool
+function register_block_type(string $block_type, array $args = []): WP_Block_Type|false
 {
-    $GLOBALS['wp_app_framework_test_blocks'][$name] = $args;
+    $GLOBALS['wp_app_framework_test_blocks'][$block_type] = $args;
 
-    return true;
+    return new WP_Block_Type($block_type, $args);
 }
 
 /**
@@ -187,54 +224,70 @@ final class WP_Block_Type_Registry
     /**
      * @param array<string, mixed> $args
      */
-    public function register(string $name, array $args): void
+    public function register(string $name, array $args = []): WP_Block_Type|false
     {
-        $this->types[$name] = new WP_Block_Type($name, $args);
+        return $this->types[$name] = new WP_Block_Type($name, $args);
     }
 
-    public function unregister_all(): void
+    public function unregister(string $name): WP_Block_Type|false
     {
-        $this->types = [];
+        $type = $this->types[$name] ?? false;
+        unset($this->types[$name]);
+
+        return $type;
     }
 
     public function get_registered(string $name): ?WP_Block_Type
     {
         return $this->types[$name] ?? null;
     }
+
+    /**
+     * @return array<string, WP_Block_Type>
+     */
+    public function get_all_registered(): array
+    {
+        return $this->types;
+    }
 }
 
 final class WP_Block_Type
 {
+    public string $name;
+
+    /** @var array<string, array<string, mixed>>|null */
+    public ?array $attributes;
+
+    /** @var (callable(array<string, mixed>, string, WP_Block=): string)|null */
+    public $render_callback;
+
     /**
      * @param array<string, mixed> $args
      */
-    public function __construct(private string $name, private array $args)
+    public function __construct(string $block_type, array $args = [])
     {
+        $this->name = $block_type;
+        $this->attributes = $args['attributes'] ?? null;
+        $this->render_callback = $args['render_callback'] ?? null;
     }
 
     /**
+     * With the attributes WordPress adds to every block type (lock, metadata).
+     *
      * @return array<string, array<string, mixed>>
      */
     public function get_attributes(): array
     {
-        return ($this->args['attributes'] ?? []) + ['lock' => ['type' => 'object'], 'metadata' => ['type' => 'object']];
-    }
-
-    /**
-     * @param array<string, mixed> $attributes
-     */
-    public function render(array $attributes): string
-    {
-        return ($this->args['render_callback'])($attributes, '', new WP_Block($this->name));
+        return ($this->attributes ?? []) + ['lock' => ['type' => 'object'], 'metadata' => ['type' => 'object']];
     }
 }
 
 /**
- * @param array{blockName: string, attrs: array<string, mixed>} $block
+ * @param array{blockName: string, attrs: array<string, mixed>} $parsed_block
  */
-function render_block(array $block): string
+function render_block(array $parsed_block, ?WP_Block $parent_block = null): string
 {
-    return WP_Block_Type_Registry::get_instance()->get_registered($block['blockName'])?->render($block['attrs']) ?? '';
+    return new WP_Block($parsed_block)->render();
 }
 
 /**

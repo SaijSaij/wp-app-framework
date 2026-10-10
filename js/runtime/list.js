@@ -2,10 +2,10 @@
  * Title of a list item: its first plain text field, else the text of its
  * first rich text field, else "Item n".
  *
- * @param {*}      item
- * @param {number} index
- * @param {string} path   Pattern of the list, e.g. "buttons".
- * @param {Object} fields Inline fields of the block by pattern.
+ * @param {import('./paths').AttributeValue} item
+ * @param {number}                           index
+ * @param {string}                           path   Pattern of the list, e.g. "buttons".
+ * @param {Object}                           fields Inline fields of the block by pattern.
  * @return {string} Title.
  */
 export function itemTitle( item, index, path, fields ) {

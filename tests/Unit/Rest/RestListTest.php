@@ -12,9 +12,9 @@ use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Rest\RestRegistrar;
 use Saij\WpAppFramework\Tests\Fixtures\RestList;
+use Saij\WpAppFramework\Tests\Support\Requests;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Value\ValueFactory;
-use WP_REST_Request;
 
 /**
  * REST arguments with #[ListOf]: schema derivation and conversion share the
@@ -70,12 +70,12 @@ final class RestListTest extends TestCase
                 'entries' => [new RestList\Entry('First', 'https://example.org', RestList\Priority::High), new RestList\Entry('Second')],
                 'priorities' => [RestList\Priority::High],
             ],
-            $registrar->respond($route, new WP_REST_Request(['entries' => [['title' => 'First', 'link' => 'https://example.org', 'priority' => 2], ['title' => 'Second']]])),
+            $registrar->respond($route, Requests::create(['entries' => [['title' => 'First', 'link' => 'https://example.org', 'priority' => 2], ['title' => 'Second']]])),
         );
 
         $permission = $registrar->permissionCallback($route);
-        self::assertTrue($permission(new WP_REST_Request(['entries' => [], 'priorities' => [2]])));
-        self::assertFalse($permission(new WP_REST_Request(['entries' => [], 'priorities' => [1]])));
+        self::assertTrue($permission(Requests::create(['entries' => [], 'priorities' => [2]])));
+        self::assertFalse($permission(Requests::create(['entries' => [], 'priorities' => [1]])));
     }
 
     public function testReportsListErrors(): void

@@ -9,8 +9,7 @@ final class Greeter
     public function __construct(
         private readonly Clock $clock,
         private readonly string $suffix = '!',
-    ) {
-    }
+    ) {}
 
     public function greet(string $name): string
     {

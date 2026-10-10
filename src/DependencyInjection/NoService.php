@@ -14,6 +14,4 @@ use Attribute;
  * never injected; in hook methods they receive arguments passed by WordPress.
  */
 #[Attribute(Attribute::TARGET_CLASS)]
-final readonly class NoService
-{
-}
+final readonly class NoService {}

@@ -13,6 +13,8 @@ use Throwable;
 /**
  * Collects and validates `#[Hook]` methods during the build and resolves the
  * services they need.
+ *
+ * @phpstan-import-type HookArgument from HookDefinition
  */
 #[NoService]
 final class HookCollector
@@ -53,6 +55,7 @@ final class HookCollector
                 }
                 $filter = !EntryPointInspector::isVoid($method);
 
+                /** @var list<HookArgument> $arguments */
                 $arguments = [];
                 $services = [];
                 $index = 0;

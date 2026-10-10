@@ -7,6 +7,4 @@ namespace Saij\WpAppFramework\Tests\Fixtures\Broken;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 
 #[NoService]
-final class Excluded
-{
-}
+final class Excluded {}

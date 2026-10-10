@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Tests\Unit\Block;
 
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\Block\BlockDefinition;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Tests\Fixtures\BlockValid;
+use Saij\WpAppFramework\Tests\Support\Reflection;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 
@@ -60,7 +59,7 @@ final class BlockCollectorTest extends TestCase
             ['api_version' => 3, 'title' => 'Section', 'category' => 'design', 'supports' => ['html' => false, 'contentRole' => true, 'customCSS' => false], 'attributes' => []],
             $blocks['fixture/section']->getArgs(),
         );
-        self::assertSame(['postId'], $blocks['fixture/post-title']->getArgs()['uses_context']);
+        self::assertSame(['postId'], $blocks['fixture/post-title']->getArgs()['uses_context'] ?? null);
     }
 
     public function testAttributeSchemaIsDerivedFromTheAttributeClass(): void
@@ -149,10 +148,7 @@ final class BlockCollectorTest extends TestCase
     public function testTheFrameworkMayNotDeclareBlocks(): void
     {
         $source = ManifestBuilderTest::fixture('BlockValid');
-        $classes = [];
-        foreach (ClassDiscovery::classes($source) as $name) {
-            $classes[$name] = new ReflectionClass($name);
-        }
+        $classes = Reflection::classes($source);
 
         $collector = new BlockCollector(ServiceResolver::forClasses($classes, []), new ValueSchemaBuilder($classes), $source->getDirectory());
         self::assertSame([], $collector->collect($classes));

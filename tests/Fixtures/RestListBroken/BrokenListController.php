@@ -23,6 +23,9 @@ final class BrokenListController
         return true;
     }
 
+    /**
+     * @param list<Kind> $kinds
+     */
     #[RestRoute('/keyword', HttpMethod::Get, new PublicAccess())]
     public function keyword(#[Param(minLength: 1)] #[ListOf(Kind::class)] array $kinds = []): bool
     {

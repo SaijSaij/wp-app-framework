@@ -14,12 +14,10 @@ use WP_Block;
 #[Supports(anchor: true, align: [Align::Wide, Align::Full], multiple: false)]
 final class Hero
 {
-    public function __construct(private readonly Formatter $formatter)
-    {
-    }
+    public function __construct(private readonly Formatter $formatter) {}
 
     public function render(string $content, HeroAttributes $attrs, WP_Block $block): string
     {
-        return $this->formatter->format(implode('|', [$attrs->topline, $attrs->gradient->value, count($attrs->buttons), $content, $block->getName()]));
+        return $this->formatter->format(implode('|', [$attrs->topline, $attrs->gradient->value, count($attrs->buttons), $content, $block->name]));
     }
 }

@@ -20,9 +20,10 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  *
  * @internal
  *
+ * @phpstan-type ClassValue array{type: 'enum'|'object', class: class-string, nullable: bool}
  * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool', nullable: bool}
- *     |array{type: 'enum'|'object', class: class-string, nullable: bool}
- *     |array{type: 'list', items: array<string, mixed>, nullable: bool}
+ *     |ClassValue
+ *     |array{type: 'list', items: ClassValue, nullable: bool}
  * @phpstan-type ValueField array{value: Value, required: bool}
  */
 #[NoService]
@@ -31,9 +32,7 @@ final readonly class ValueFactory
     /**
      * @param array<class-string, array<string, ValueField>> $classes Value classes: constructor parameter => field.
      */
-    public function __construct(private array $classes)
-    {
-    }
+    public function __construct(private array $classes) {}
 
     /**
      * Creates a block attribute object from the attributes WordPress passes to
@@ -86,7 +85,7 @@ final readonly class ValueFactory
             'object' => is_array($raw) ? $this->createObject($value['class'], $raw, $path) : throw self::mismatch($path, $value, $raw),
             'list' => is_array($raw) && array_is_list($raw)
                 ? array_map(
-                    fn (int $index, mixed $item): mixed => $this->create($value['items'], $item, sprintf('%s[%d]', $path, $index)),
+                    fn(int $index, mixed $item): mixed => $this->create($value['items'], $item, sprintf('%s[%d]', $path, $index)),
                     array_keys($raw),
                     $raw,
                 )

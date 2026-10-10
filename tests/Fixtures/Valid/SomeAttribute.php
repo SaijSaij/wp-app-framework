@@ -7,6 +7,4 @@ namespace Saij\WpAppFramework\Tests\Fixtures\Valid;
 use Attribute;
 
 #[Attribute]
-final class SomeAttribute
-{
-}
+final class SomeAttribute {}

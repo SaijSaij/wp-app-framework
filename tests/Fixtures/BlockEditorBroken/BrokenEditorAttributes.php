@@ -13,15 +13,24 @@ use Saij\WpAppFramework\Block\RichText;
 final readonly class BrokenEditorAttributes
 {
     public function __construct(
-        #[Image] public string $imageOnString = '',
-        #[Image] public int $imageNotNullable = 0,
-        #[PlainText] #[Image] public ?int $plainAndImage = null,
-        #[Hidden] #[RichText] public string $hiddenRich = '',
-        #[Label('  ')] public string $emptyLabel = '',
-        #[RichText(allowedFormats: ['core/bold', ''])] public string $badFormats = '',
+        #[Image]
+        public string $imageOnString = '',
+        #[Image]
+        public int $imageNotNullable = 0,
+        #[PlainText]
+        #[Image]
+        public ?int $plainAndImage = null,
+        #[Hidden]
+        #[RichText]
+        public string $hiddenRich = '',
+        #[Label('  ')]
+        public string $emptyLabel = '',
+        #[RichText(allowedFormats: ['core/bold', ''])]
+        public string $badFormats = '',
         public EmptyLabel $emptyCaseLabel = EmptyLabel::A,
         public LabeledValue $labeledValue = new LabeledValue(),
-        #[Hidden] #[PlainText(inspector: true)] public string $hiddenInspector = '',
-    ) {
-    }
+        #[Hidden]
+        #[PlainText(inspector: true)]
+        public string $hiddenInspector = '',
+    ) {}
 }

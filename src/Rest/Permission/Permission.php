@@ -11,6 +11,4 @@ namespace Saij\WpAppFramework\Rest\Permission;
  * and Callback. The build reports any other implementation as an error, because
  * the manifest cannot represent it.
  */
-interface Permission
-{
-}
+interface Permission {}

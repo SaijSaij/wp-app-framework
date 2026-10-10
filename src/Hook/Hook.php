@@ -19,6 +19,5 @@ final readonly class Hook
     public function __construct(
         public string $name,
         public int $priority = 10,
-    ) {
-    }
+    ) {}
 }

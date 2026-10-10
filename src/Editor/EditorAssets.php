@@ -44,9 +44,11 @@ final readonly class EditorAssets
         private string $buildUri,
         private array $blocks,
         private bool $development,
-    ) {
-    }
+    ) {}
 
+    /**
+     * @return non-empty-string
+     */
     public static function runtimeHandle(string $slug): string
     {
         return $slug . '-wp-app-framework';
@@ -128,6 +130,7 @@ final readonly class EditorAssets
     }
 
     /**
+     * @param non-empty-string $handle
      * @return string The version from the asset file.
      */
     private function register(string $handle, string $script): string
@@ -139,7 +142,7 @@ final readonly class EditorAssets
     }
 
     /**
-     * @return array{dependencies: list<string>, version: string}
+     * @return array{dependencies: list<non-empty-string>, version: string}
      */
     private function asset(string $script): array
     {
@@ -157,7 +160,7 @@ final readonly class EditorAssets
             throw new LogicException(sprintf('%s does not return an array with "dependencies" and "version".', $assetFile));
         }
 
-        /** @var array{dependencies: list<string>, version: string} $asset */
+        /** @var array{dependencies: list<non-empty-string>, version: string} $asset */
         return $asset;
     }
 

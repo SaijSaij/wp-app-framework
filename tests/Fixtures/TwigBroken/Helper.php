@@ -4,6 +4,4 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\TwigBroken;
 
-final class Helper
-{
-}
+final class Helper {}

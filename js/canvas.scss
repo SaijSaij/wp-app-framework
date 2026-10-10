@@ -8,7 +8,8 @@
  * on the innermost hovered block only and "is-selected" on the selected block.
  */
 
-// The admin color scheme of the editor; the editor defines it in the canvas, too.
+// The admin color scheme of the editor; the editor defines it in the canvas,
+// too.
 $field-color: var(--wp-admin-theme-color);
 
 :is(.is-hovered, .is-selected) .wp-app-framework-field {
@@ -16,8 +17,11 @@ $field-color: var(--wp-admin-theme-color);
 	outline-offset: 2px;
 }
 
-// Fields of inner blocks belong to those blocks: not outlined for a hovered or selected container.
-:is(.is-hovered, .is-selected) .wp-block:not(.is-hovered, .is-selected) .wp-app-framework-field {
+// Fields of inner blocks belong to those blocks: not outlined for a hovered or
+// selected container.
+:is(.is-hovered, .is-selected)
+.wp-block:not(.is-hovered, .is-selected)
+.wp-app-framework-field {
 	outline: none;
 }
 

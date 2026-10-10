@@ -20,6 +20,5 @@ final readonly class RestController
     public function __construct(
         public string $namespace,
         public string $base = '',
-    ) {
-    }
+    ) {}
 }

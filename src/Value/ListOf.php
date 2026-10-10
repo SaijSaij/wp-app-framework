@@ -17,7 +17,5 @@ final readonly class ListOf
     /**
      * @param class-string $class A backed enum or a value class.
      */
-    public function __construct(public string $class)
-    {
-    }
+    public function __construct(public string $class) {}
 }

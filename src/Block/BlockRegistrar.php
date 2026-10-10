@@ -33,8 +33,7 @@ final readonly class BlockRegistrar
         private ValueFactory $values,
         private RenderContext $context,
         private bool $debug,
-    ) {
-    }
+    ) {}
 
     /**
      * @param list<BlockEntry> $blocks
@@ -45,8 +44,10 @@ final readonly class BlockRegistrar
             register_block_type($block['name'], [
                 ...$block['args'],
                 // WP_Block_Type::render() calls render callbacks without the block instance.
-                'render_callback' => fn (array $attributes, string $content = '', ?WP_Block $instance = null): string
-                    => $this->render($block, $attributes, $content, $instance),
+                'render_callback' => function (array $attributes, string $content = '', ?WP_Block $instance = null) use ($block): string {
+                    /** @var array<string, mixed> $attributes Prepared by WP_Block_Type::prepare_attributes_for_render(). */
+                    return $this->render($block, $attributes, $content, $instance);
+                },
             ]);
         }
     }
@@ -75,7 +76,9 @@ final readonly class BlockRegistrar
                 $block['name'],
                 $block['editor']['fields'],
                 $block['editor']['innerBlocks'],
-                fn (): string => $this->container->get($block['class'])->render(...$named),
+                // The build checked that the block class has a public render(): string.
+                // @phpstan-ignore method.notFound, return.type
+                fn(): string => $this->container->get($block['class'])->render(...$named),
             );
         } catch (Throwable $exception) {
             if ($this->debug) {

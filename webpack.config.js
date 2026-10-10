@@ -12,14 +12,14 @@
  * Usage in the consumer's webpack.config.js:
  *
  *     module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( {
- *         slug: 'theme-sections',
+ *         slug: 'theme-dev-test',
  *         root: __dirname,
  *     } );
  */
 const fs = require( 'fs' );
 const path = require( 'path' );
 
-/** Major version of @wordpress/scripts the runtime is written for (peer dependency). */
+/** Major version of `@wordpress/scripts` the runtime is written for (peer dependency). */
 const SCRIPTS_MAJOR = 36;
 
 const EDITOR_SCRIPT_SUFFIX = '.editor.js';

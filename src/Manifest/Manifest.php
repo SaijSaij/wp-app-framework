@@ -24,13 +24,14 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * @phpstan-import-type RestArgument from RestRouteDefinition
  * @phpstan-import-type RestPermission from RestRouteDefinition
  * @phpstan-import-type TemplateCallableEntry from TemplateRenderer
+ * @phpstan-import-type BlockArgs from BlockDefinition
  * @phpstan-import-type BlockArgument from BlockDefinition
  * @phpstan-import-type BlockEditor from BlockDefinition
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-type HookEntry array{name: string, priority: int, acceptedArgs: int, filter: bool, class: class-string, method: string, arguments: list<HookArgument>}
  * @phpstan-type RouteEntry array{
- *     namespace: string,
- *     route: string,
+ *     namespace: non-falsy-string,
+ *     route: non-falsy-string,
  *     methods: list<string>,
  *     args: array<string, array<string, mixed>>,
  *     permission: RestPermission,
@@ -41,7 +42,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * }
  * @phpstan-type BlockEntry array{
  *     name: string,
- *     args: array{attributes: array<string, array<string, mixed>>, ...<string, mixed>},
+ *     args: BlockArgs,
  *     class: class-string,
  *     arguments: list<BlockArgument>,
  *     editor: BlockEditor
@@ -81,6 +82,7 @@ final class Manifest
             ));
         }
 
+        /** @var ManifestData $manifest Written by ManifestGenerator in this format version. */
         return $manifest;
     }
 }

@@ -5,7 +5,7 @@
  * its properties).
  *
  * @param {Object} schema JSON schema of the value.
- * @return {*} New value.
+ * @return {import('./paths').AttributeValue} New value.
  */
 export function createValue( schema ) {
 	if ( 'default' in schema ) {

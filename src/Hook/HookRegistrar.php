@@ -26,8 +26,7 @@ final readonly class HookRegistrar
     public function __construct(
         private Container $container,
         private bool $debug,
-    ) {
-    }
+    ) {}
 
     /**
      * @param list<HookEntry> $hooks
@@ -37,7 +36,7 @@ final readonly class HookRegistrar
         foreach ($hooks as $hook) {
             add_filter(
                 $hook['name'],
-                fn (mixed ...$args): mixed => $this->invoke($hook, $args),
+                fn(mixed ...$args): mixed => $this->invoke($hook, array_values($args)),
                 $hook['priority'],
                 $hook['acceptedArgs'],
             );

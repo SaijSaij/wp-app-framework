@@ -9,9 +9,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 #[NoService]
 final readonly class Context
 {
-    public function __construct(private string $label)
-    {
-    }
+    public function __construct(private string $label) {}
 
     public function getLabel(): string
     {

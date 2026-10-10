@@ -6,7 +6,5 @@ namespace Saij\WpAppFramework\Tests\Fixtures\BlockBroken;
 
 final class MutableAttributes
 {
-    public function __construct(public string $title = '')
-    {
-    }
+    public function __construct(public string $title = '') {}
 }

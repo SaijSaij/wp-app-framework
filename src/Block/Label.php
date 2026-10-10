@@ -14,7 +14,5 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
 final readonly class Label
 {
-    public function __construct(public string $label)
-    {
-    }
+    public function __construct(public string $label) {}
 }

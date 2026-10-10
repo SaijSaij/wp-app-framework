@@ -167,7 +167,7 @@ final class RestRouteCollectorTest extends TestCase
                 self::assertContains($message, $errors);
             }
 
-            $patternErrors = array_values(array_filter($errors, static fn (string $error): bool => str_contains($error, 'badPattern()')));
+            $patternErrors = array_values(array_filter($errors, static fn(string $error): bool => str_contains($error, 'badPattern()')));
             self::assertCount(1, $patternErrors);
             self::assertStringStartsWith("#[Param] on parameter \$name of {$c}::badPattern(): pattern \"(\" is not a valid regular expression: preg_match(): Compilation failed: missing closing parenthesis", $patternErrors[0]);
 

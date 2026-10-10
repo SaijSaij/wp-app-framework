@@ -22,6 +22,5 @@ final readonly class TemplateFilter
     public function __construct(
         public string $name,
         public bool $html = false,
-    ) {
-    }
+    ) {}
 }

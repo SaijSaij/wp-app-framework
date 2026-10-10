@@ -19,19 +19,28 @@ final readonly class TeaserAttributes
      * @param list<Cta> $ctas
      */
     public function __construct(
-        #[PlainText] #[Label('Kicker line')] public string $kicker = '',
-        #[RichText(allowedFormats: ['core/bold'])] public string $title = '',
-        #[Image] public ?int $imageId = null,
+        #[PlainText]
+        #[Label('Kicker line')]
+        public string $kicker = '',
+        #[RichText(allowedFormats: ['core/bold'])]
+        public string $title = '',
+        #[Image]
+        public ?int $imageId = null,
         public Tone $tone = Tone::Light,
         public ?Size $size = null,
-        #[ListOf(Cta::class)] public array $ctas = [],
-        #[Hidden] public int $version = 1,
+        #[ListOf(Cta::class)]
+        public array $ctas = [],
+        #[Hidden]
+        public int $version = 1,
         public bool $featured = false,
         public float $ratio = 1.5,
-        #[Url] public string $link = '',
+        #[Url]
+        public string $link = '',
         public Caption $caption = new Caption(),
-        #[Content] #[Label('Source')] public string $source = '',
-        #[RichText(inspector: true)] public string $note = '',
-    ) {
-    }
+        #[Content]
+        #[Label('Source')]
+        public string $source = '',
+        #[RichText(inspector: true)]
+        public string $note = '',
+    ) {}
 }

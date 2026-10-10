@@ -4,6 +4,12 @@
  */
 
 /**
+ * A block attribute value or a part of it, as JSON.
+ *
+ * @typedef {string|number|boolean|null|Object|Array} AttributeValue
+ */
+
+/**
  * @param {string} path
  * @return {string[]} Segments.
  */
@@ -14,7 +20,7 @@ export function splitPath( path ) {
 /**
  * @param {Object} attributes
  * @param {string} path
- * @return {*} The value at the path, undefined if missing.
+ * @return {AttributeValue|undefined} The value at the path, undefined if missing.
  */
 export function getPath( attributes, path ) {
 	let value = attributes;
@@ -30,9 +36,9 @@ export function getPath( attributes, path ) {
 /**
  * Immutably sets the value at a path; lists stay lists.
  *
- * @param {Object} target
- * @param {string} path
- * @param {*}      value
+ * @param {Object}         target
+ * @param {string}         path
+ * @param {AttributeValue} value
  * @return {Object} A copy of the target with the value set.
  */
 export function setPath( target, path, value ) {
@@ -124,7 +130,7 @@ function blank( value, segments ) {
 /**
  * JSON with sorted object keys, so equal values give equal strings.
  *
- * @param {*} value
+ * @param {AttributeValue} value
  * @return {string} Stable JSON.
  */
 export function stableStringify( value ) {

@@ -11,9 +11,7 @@ use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
 #[Block('fixture/wrong-field', title: 'Wrong field', category: BlockCategory::Text)]
 final readonly class WrongField
 {
-    public function __construct(private EditorTemplateFunctions $editor)
-    {
-    }
+    public function __construct(private EditorTemplateFunctions $editor) {}
 
     public function render(): string
     {

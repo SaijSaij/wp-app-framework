@@ -9,6 +9,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\BuildException;
+use SplFileInfo;
 
 /**
  * Lists the PHP files of a PSR-4 directory and derives their class names.
@@ -31,6 +32,7 @@ final class ClassDiscovery
             new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS),
         );
 
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->isFile() && str_ends_with($file->getFilename(), $suffix)) {
                 $files[] = str_replace('\\', '/', substr($file->getPathname(), strlen($directory) + 1));

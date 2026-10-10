@@ -13,6 +13,7 @@ use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Rest\RestException;
 use Saij\WpAppFramework\Rest\RestRegistrar;
 use Saij\WpAppFramework\Tests\Fixtures\RestValid;
+use Saij\WpAppFramework\Tests\Support\Requests;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Value\ValueFactory;
 use WP_Error;
@@ -69,7 +70,7 @@ final class RestRegistrarTest extends TestCase
      */
     private function respond(string $method, array $params = [], array $urlParams = [], bool $debug = false): mixed
     {
-        return new RestRegistrar($this->container, $this->values, $debug)->respond($this->routes[$method], new WP_REST_Request($params, $urlParams));
+        return new RestRegistrar($this->container, $this->values, $debug)->respond($this->routes[$method], Requests::create($params, $urlParams));
     }
 
     public function testMissingOptionalArgumentsUseParameterDefaults(): void
@@ -147,6 +148,7 @@ final class RestRegistrarTest extends TestCase
         $error = $this->respond('fail', debug: true);
 
         self::assertInstanceOf(WP_Error::class, $error);
+        /** @var array{status: int, exception: array{class: string, message: string, file: string, line: int, trace: list<string>}} $data */
         $data = $error->get_error_data();
         self::assertIsArray($data);
         self::assertSame(500, $data['status']);
@@ -160,8 +162,8 @@ final class RestRegistrarTest extends TestCase
     {
         $callback = new RestRegistrar($this->container, $this->values, false)->permissionCallback($this->routes['update']);
 
-        self::assertTrue($callback(new WP_REST_Request([], ['id' => 1])));
-        self::assertFalse($callback(new WP_REST_Request([], ['id' => 13])));
+        self::assertTrue($callback(Requests::create([], ['id' => 1])));
+        self::assertFalse($callback(Requests::create([], ['id' => 13])));
     }
 
     public function testPermissionCallbackArgumentsAreValidatedAndSanitizedAgainstItsOwnRoute(): void
@@ -170,10 +172,10 @@ final class RestRegistrarTest extends TestCase
         // sanitized for another handler, or not at all.
         $callback = new RestRegistrar($this->container, $this->values, false)->permissionCallback($this->routes['update']);
 
-        self::assertTrue($callback(new WP_REST_Request([], ['id' => '1'])));
-        self::assertFalse($callback(new WP_REST_Request([], ['id' => '13'])));
-        self::assertFalse($callback(new WP_REST_Request([], ['id' => 'abc'])));
-        self::assertFalse($callback(new WP_REST_Request()));
+        self::assertTrue($callback(Requests::create([], ['id' => '1'])));
+        self::assertFalse($callback(Requests::create([], ['id' => '13'])));
+        self::assertFalse($callback(Requests::create([], ['id' => 'abc'])));
+        self::assertFalse($callback(Requests::create()));
         self::assertSame('', (string) file_get_contents($this->log));
     }
 

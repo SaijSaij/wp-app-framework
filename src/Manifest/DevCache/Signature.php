@@ -42,7 +42,9 @@ final class Signature
 
         // Enum cases are constants, not methods; they define the values of schemas.
         if ($class->isEnum()) {
-            foreach (new ReflectionEnum($class->getName())->getCases() as $case) {
+            /** @var class-string<\UnitEnum> $enum */
+            $enum = $class->getName();
+            foreach (new ReflectionEnum($enum)->getCases() as $case) {
                 $parts[] = 'case ' . $case->getName() . '=' . self::describe($case instanceof ReflectionEnumBackedCase ? $case->getBackingValue() : null);
                 // The editor labels come from a method body, which the signature otherwise ignores.
                 if ($class->implementsInterface(Labeled::class)) {

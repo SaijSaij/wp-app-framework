@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Saij\WpAppFramework\Editor\EditorAssets;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
+use Saij\WpAppFramework\Tests\Support\Recorded;
 
 final class EditorAssetsTest extends TestCase
 {
@@ -84,7 +85,7 @@ final class EditorAssetsTest extends TestCase
         $this->assets()->enqueueCanvas();
         self::assertSame(
             ['my-theme-wp-app-framework-canvas' => ['src' => 'https://example.test/build/vendor/wp-app-framework/canvas.css', 'deps' => [], 'ver' => 'v1', 'enqueued' => true, 'rtl' => 'replace']],
-            $GLOBALS['wp_app_framework_test_styles'],
+            Recorded::styles(),
         );
     }
 
@@ -122,7 +123,7 @@ final class EditorAssetsTest extends TestCase
         $this->writeAsset('Container.editor', "'my-theme-wp-app-framework'");
 
         $this->assets()->enqueue();
-        $scripts = $GLOBALS['wp_app_framework_test_scripts'];
+        $scripts = Recorded::scripts();
 
         self::assertSame(['my-theme-wp-app-framework', 'my-theme-fixture-container-editor'], array_keys($scripts));
         self::assertSame('https://example.test/build/vendor/wp-app-framework/editor.js', $scripts['my-theme-wp-app-framework']['src']);
@@ -135,12 +136,13 @@ final class EditorAssetsTest extends TestCase
 
         self::assertSame(
             ['my-theme-wp-app-framework' => ['src' => 'https://example.test/build/vendor/wp-app-framework/editor.css', 'deps' => ['wp-components'], 'ver' => 'v1', 'enqueued' => true, 'rtl' => 'replace']],
-            $GLOBALS['wp_app_framework_test_styles'],
+            Recorded::styles(),
         );
 
         [$before] = $scripts['my-theme-wp-app-framework']['before'];
         $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = { config: ';
         self::assertStringStartsWith($prefix, $before);
+        /** @var array{slug: string, renderPath: string, maxBlocks: int, development: bool, blocks: array<string, array{fields: array<string, array<string, mixed>>, controls: array<string, mixed>, innerBlocks: bool}>} $config */
         $config = json_decode(substr($before, strlen($prefix), -strlen(' };')), true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame('my-theme', $config['slug']);

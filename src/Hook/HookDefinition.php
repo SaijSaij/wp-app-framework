@@ -26,8 +26,7 @@ final readonly class HookDefinition
         private string $method,
         private array $arguments,
         private int $acceptedArgs,
-    ) {
-    }
+    ) {}
 
     public function getName(): string
     {

@@ -28,6 +28,7 @@ use Throwable;
  * The meta file stores paths relative to named base directories only (for
  * example ['theme', 'src/Foo.php']), never absolute paths.
  *
+ * @phpstan-import-type ManifestData from Manifest
  * @phpstan-type PathRef array{0: string, 1: string}
  * @phpstan-type Meta array{
  *     format: int,
@@ -49,13 +50,12 @@ final class DevCache
         private readonly string $directory,
         private readonly array $bases,
         private readonly ManifestBuilder $builder,
-    ) {
-    }
+    ) {}
 
     /**
      * Loads the cached manifest, rebuilding it first if it is not fresh.
      *
-     * @return array<string, mixed>
+     * @return ManifestData
      */
     public function load(): array
     {
@@ -75,8 +75,8 @@ final class DevCache
             return false;
         }
 
-        $meta = require $metaFile;
-        if (!is_array($meta) || ($meta['format'] ?? null) !== self::META_FORMAT) {
+        $meta = $this->readMeta($metaFile);
+        if ($meta === null) {
             return false;
         }
 
@@ -125,6 +125,20 @@ final class DevCache
         }
 
         return true;
+    }
+
+    /**
+     * @return Meta|null Null if the file has another format version.
+     */
+    private function readMeta(string $file): ?array
+    {
+        $meta = require $file;
+        if (!is_array($meta) || ($meta['format'] ?? null) !== self::META_FORMAT) {
+            return null;
+        }
+
+        /** @var Meta $meta Written by meta() in this format version. */
+        return $meta;
     }
 
     private function rebuild(): void
@@ -196,7 +210,7 @@ final class DevCache
                 '%s is outside the base directories of the manifest cache (%s); its path cannot be stored relatively.',
                 $path,
                 implode(', ', array_map(
-                    static fn (string $name, string $base): string => $name . ': ' . $base,
+                    static fn(string $name, string $base): string => $name . ': ' . $base,
                     array_keys($this->bases),
                     $this->bases,
                 )),

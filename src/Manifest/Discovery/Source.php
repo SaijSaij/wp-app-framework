@@ -13,14 +13,13 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 final readonly class Source
 {
     /**
-     * @param string $prefix    Namespace prefix with trailing backslash, e.g. `Saij\ThemeSections\`.
+     * @param string $prefix    Namespace prefix with trailing backslash, e.g. `Saij\ThemeDevTest\`.
      * @param string $directory Absolute real path without trailing slash.
      */
     public function __construct(
         private string $prefix,
         private string $directory,
-    ) {
-    }
+    ) {}
 
     public function getPrefix(): string
     {

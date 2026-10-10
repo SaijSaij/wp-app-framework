@@ -9,7 +9,5 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 #[NoService]
 final readonly class Item
 {
-    public function __construct(public string $title = '')
-    {
-    }
+    public function __construct(public string $title = '') {}
 }

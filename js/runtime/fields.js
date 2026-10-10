@@ -30,10 +30,10 @@ const VOID_ELEMENTS = [
 /**
  * Sets the value at a path through setAttributes() of the top-level attribute.
  *
- * @param {Object}   attributes
- * @param {Function} setAttributes
- * @param {string}   path
- * @param {*}        value
+ * @param {Object}                           attributes
+ * @param {(attributes: Object) => void}     setAttributes
+ * @param {string}                           path
+ * @param {import('./paths').AttributeValue} value
  */
 function setValue( attributes, setAttributes, path, value ) {
 	const attribute = attributeOf( path );
@@ -82,12 +82,12 @@ export function TextField( { tagName, elementProps, path, field } ) {
  * An #[Image] field: the server markup of the image, a placeholder without
  * image, and replace/reset in the block toolbar.
  *
- * @param {Object} props
- * @param {string} props.tagName      Tag of the marked element (a wrapper, not the img).
- * @param {Object} props.elementProps Props of the marked element.
- * @param {string} props.path         Concrete path.
- * @param {Object} props.field        Field definition.
- * @param {*}      props.children     Server markup inside the element.
+ * @param {Object}                    props
+ * @param {string}                    props.tagName      Tag of the marked element (a wrapper, not the img).
+ * @param {Object}                    props.elementProps Props of the marked element.
+ * @param {string}                    props.path         Concrete path.
+ * @param {Object}                    props.field        Field definition.
+ * @param {import('react').ReactNode} props.children     Server markup inside the element.
  */
 export function ImageField( {
 	tagName: Tag,
@@ -108,7 +108,11 @@ export function ImageField( {
 		( select ) =>
 			id === null
 				? undefined
-				: select( 'core' ).getMedia( id )?.source_url,
+				: select( 'core' ).getEntityRecord(
+						'postType',
+						'attachment',
+						id
+					)?.source_url,
 		[ id ]
 	);
 	const onSelect = ( media ) => {

@@ -1,0 +1,15 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: max
+    # PHPDoc types of attribute arguments and manifest data are not enforced by PHP;
+    # the build validates them at runtime and must not be reported as redundant.
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - src
+        - tests
+        - bin
+    excludePaths:
+        # Test doubles of WordPress; the analysis uses the real signatures from the stubs.
+        - tests/Stubs/wordpress.php

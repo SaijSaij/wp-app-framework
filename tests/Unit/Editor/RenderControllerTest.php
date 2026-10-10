@@ -14,12 +14,15 @@ use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Editor\RenderController;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
+use Saij\WpAppFramework\Tests\Support\Recorded;
+use Saij\WpAppFramework\Tests\Support\Requests;
 use Saij\WpAppFramework\Value\ValueFactory;
 use WP_Block_Type_Registry;
-use WP_REST_Request;
 
 /**
+ * @phpstan-import-type BlockEntry from Manifest
  * @phpstan-import-type ManifestData from Manifest
+ * @phpstan-type RenderResult array{html?: string, error?: array{code: string, message: string, data?: array{exception: string, file: string, line: int}}}
  */
 final class RenderControllerTest extends TestCase
 {
@@ -52,7 +55,7 @@ final class RenderControllerTest extends TestCase
         ini_set('error_log', (string) $this->previousLog);
         unlink($this->log);
         unlink($this->file);
-        WP_Block_Type_Registry::get_instance()->unregister_all();
+        self::unregisterBlockTypes();
         unset(
             $GLOBALS['wp_app_framework_test_blocks'],
             $GLOBALS['wp_app_framework_test_caps'],
@@ -70,7 +73,8 @@ final class RenderControllerTest extends TestCase
         $container = new Container($this->manifest['services'], [RenderContext::class => $this->context]);
         new BlockRegistrar($container, new ValueFactory($this->manifest['values']), $this->context, $debug)
             ->register($this->manifest['blocks']);
-        foreach ($GLOBALS['wp_app_framework_test_blocks'] as $name => $args) {
+        foreach (Recorded::blocks() as $name => $args) {
+            // @phpstan-ignore argument.type (the arguments the registrar passed to register_block_type())
             WP_Block_Type_Registry::get_instance()->register($name, $args);
         }
 
@@ -79,13 +83,15 @@ final class RenderControllerTest extends TestCase
 
     /**
      * @param list<array<string, mixed>> $blocks
-     * @return list<array<string, mixed>>
+     * @return list<RenderResult>
      */
     private function render(array $blocks, bool $debug = true): array
     {
-        $response = $this->controller($debug)->handle(new WP_REST_Request(['blocks' => $blocks]));
+        $response = $this->controller($debug)->handle(Requests::create(['blocks' => $blocks]));
+        /** @var array{results: list<RenderResult>} $data */
+        $data = $response->get_data();
 
-        return $response->get_data()['results'];
+        return $data['results'];
     }
 
     public function testRendersEachEntryForTheEditorWithFieldMarks(): void
@@ -126,24 +132,24 @@ final class RenderControllerTest extends TestCase
             ['name' => 'fixture/teaser', 'postId' => 7, 'attributes' => ['kicker' => 'Post']],
         ]);
 
-        self::assertSame('wp_app_framework_unknown_block', $results[0]['error']['code']);
-        self::assertSame('Block core/paragraph is not a block of fixture.', $results[1]['error']['message']);
-        self::assertSame(['code' => 'wp_app_framework_invalid_attributes', 'message' => 'nope is not a valid property of Object.'], $results[2]['error']);
-        self::assertSame(['code' => 'wp_app_framework_post_not_found', 'message' => 'Post 99 does not exist.'], $results[3]['error']);
-        self::assertSame(['code' => 'wp_app_framework_forbidden', 'message' => 'You may not edit post 8.'], $results[4]['error']);
-        self::assertStringContainsString('>Post</p>', $results[5]['html']);
+        self::assertSame('wp_app_framework_unknown_block', $results[0]['error']['code'] ?? null);
+        self::assertSame('Block core/paragraph is not a block of fixture.', $results[1]['error']['message'] ?? null);
+        self::assertSame(['code' => 'wp_app_framework_invalid_attributes', 'message' => 'nope is not a valid property of Object.'], $results[2]['error'] ?? null);
+        self::assertSame(['code' => 'wp_app_framework_post_not_found', 'message' => 'Post 99 does not exist.'], $results[3]['error'] ?? null);
+        self::assertSame(['code' => 'wp_app_framework_forbidden', 'message' => 'You may not edit post 8.'], $results[4]['error'] ?? null);
+        self::assertStringContainsString('>Post</p>', $results[5]['html'] ?? '');
         self::assertSame(7, $GLOBALS['wp_app_framework_test_postdata']);
         self::assertArrayNotHasKey('post', $GLOBALS, 'The previous global post is restored.');
     }
 
     public function testRenderErrorsAreLoggedWithDetailsOnlyInDebugMode(): void
     {
-        $debug = $this->render([['name' => 'fixture/wrong-field']])[0]['error'];
-        self::assertSame('wp_app_framework_render_failed', $debug['code']);
-        self::assertSame('field() in block fixture/wrong-field: "missing" is not an inline field of the block (it has none).', $debug['message']);
-        self::assertSame(InvalidArgumentException::class, $debug['data']['exception']);
+        $debug = $this->render([['name' => 'fixture/wrong-field']])[0]['error'] ?? null;
+        self::assertSame('wp_app_framework_render_failed', $debug['code'] ?? null);
+        self::assertSame('field() in block fixture/wrong-field: "missing" is not an inline field of the block (it has none).', $debug['message'] ?? null);
+        self::assertSame(InvalidArgumentException::class, $debug['data']['exception'] ?? null);
 
-        WP_Block_Type_Registry::get_instance()->unregister_all();
+        self::unregisterBlockTypes();
         // Without debugging, the block registrar logs the error and renders nothing, like on the front end.
         self::assertSame([['html' => '']], $this->render([['name' => 'fixture/wrong-field']], false));
         self::assertStringContainsString('"missing" is not an inline field', (string) file_get_contents($this->log));
@@ -153,36 +159,36 @@ final class RenderControllerTest extends TestCase
     public function testTemplateFunctionsCheckTheCurrentBlock(): void
     {
         $functions = new EditorTemplateFunctions($this->context);
-        $teaserFields = $this->manifest['blocks'][array_search('fixture/teaser', array_column($this->manifest['blocks'], 'name'), true)]['editor']['fields'];
+        $teaserFields = $this->block('fixture/teaser')['editor']['fields'];
 
         self::assertSame(' data-field="ctas.3.label"', $this->context->renderForEditor(
-            fn (): string => $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn (): string => $functions->field(['ctas', 3, 'label'])),
+            fn(): string => $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field(['ctas', 3, 'label'])),
         ));
-        self::assertSame('', $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn (): string => $functions->field('caption.text')));
+        self::assertSame('', $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field('caption.text')));
 
         try {
-            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn (): string => $functions->innerBlocks());
+            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->innerBlocks());
             self::fail('Expected an exception.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame('inner_blocks() in block fixture/teaser: the block has no inner blocks; its render() must accept string $content.', $exception->getMessage());
         }
 
         try {
-            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn (): string => $functions->field('ctas.*.label'));
+            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field('ctas.*.label'));
             self::fail('Expected an exception.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame("field() in block fixture/teaser: path segments must be attribute names or list indexes, '*' given.", $exception->getMessage());
         }
 
         try {
-            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn (): string => $functions->field('ctas.0'));
+            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field('ctas.0'));
             self::fail('Expected an exception.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame('field() in block fixture/teaser: "ctas.0" is not an inline field of the block (inline fields: kicker, title, imageId, ctas.*.label, ctas.*.iconId, caption.text, note).', $exception->getMessage());
         }
 
         try {
-            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn (): string => $functions->field(['ctas', 1, 'iconId']));
+            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field(['ctas', 1, 'iconId']));
             self::fail('Expected an exception.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame('field() in block fixture/teaser: "ctas.1.iconId" is edited in the inspector (inspector: true); do not mark it with field().', $exception->getMessage());
@@ -191,5 +197,27 @@ final class RenderControllerTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('field() is only available in templates of blocks rendered by the framework.');
         $functions->field('kicker');
+    }
+
+    /**
+     * @return BlockEntry
+     */
+    private function block(string $name): array
+    {
+        foreach ($this->manifest['blocks'] as $block) {
+            if ($block['name'] === $name) {
+                return $block;
+            }
+        }
+
+        throw new LogicException(sprintf('The manifest has no block %s.', $name));
+    }
+
+    private static function unregisterBlockTypes(): void
+    {
+        $registry = WP_Block_Type_Registry::get_instance();
+        foreach (array_keys($registry->get_all_registered()) as $name) {
+            $registry->unregister($name);
+        }
     }
 }

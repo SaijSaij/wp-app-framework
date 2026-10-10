@@ -80,6 +80,7 @@ final class BrokenRoutes
         return true;
     }
 
+    // @phpstan-ignore missingType.parameter (fixture: the missing parameter type is the error under test)
     #[RestRoute('/untyped', HttpMethod::Get, new PublicAccess())]
     public function untypedParameter($value): bool
     {

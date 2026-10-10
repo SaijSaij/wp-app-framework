@@ -44,6 +44,7 @@ final class Container
     public function get(string $id): object
     {
         if (isset($this->instances[$id])) {
+            /** @var T Instances are stored under their class name. */
             return $this->instances[$id];
         }
 

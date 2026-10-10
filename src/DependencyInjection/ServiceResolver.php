@@ -35,8 +35,7 @@ final class ServiceResolver
         private readonly array $candidates,
         private readonly array $excluded,
         private readonly array $predefined,
-    ) {
-    }
+    ) {}
 
     /**
      * Classifies scanned classes into service candidates and excluded classes.
@@ -117,7 +116,10 @@ final class ServiceResolver
         $type = $parameter->getType();
 
         if ($type instanceof ReflectionNamedType && !$type->isBuiltin() && isset($this->candidates[$type->getName()])) {
-            return $type->getName();
+            /** @var class-string $class A key of the candidates. */
+            $class = $type->getName();
+
+            return $class;
         }
 
         return null;

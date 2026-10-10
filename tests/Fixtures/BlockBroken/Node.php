@@ -13,7 +13,7 @@ final readonly class Node
      */
     public function __construct(
         public string $title = '',
-        #[ListOf(Node::class)] public array $children = [],
-    ) {
-    }
+        #[ListOf(Node::class)]
+        public array $children = [],
+    ) {}
 }

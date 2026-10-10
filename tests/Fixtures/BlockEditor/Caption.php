@@ -8,7 +8,5 @@ use Saij\WpAppFramework\Block\PlainText;
 
 final readonly class Caption
 {
-    public function __construct(#[PlainText] public string $text = '')
-    {
-    }
+    public function __construct(#[PlainText] public string $text = '') {}
 }

@@ -14,9 +14,7 @@ use Saij\WpAppFramework\Twig\TemplateFunction;
  */
 final readonly class EditorTemplateFunctions
 {
-    public function __construct(private RenderContext $context)
-    {
-    }
+    public function __construct(private RenderContext $context) {}
 
     /**
      * Marks the element of an inline field (#[PlainText], #[RichText], #[Image]):

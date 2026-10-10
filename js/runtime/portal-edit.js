@@ -112,13 +112,13 @@ function Message( { status, children } ) {
  * Edit component of every framework block: renders the block on the server
  * and replaces the marked elements with inline editors.
  *
- * @param {Object}   props
- * @param {string}   props.name          Block name.
- * @param {string}   props.clientId      Client ID of the block.
- * @param {Object}   props.attributes    Block attributes.
- * @param {Function} props.setAttributes Updates attributes.
- * @param {Object}   props.context       Block context (postId in query loops).
- * @param {Object}   props.runtime       Renderer, registry and configuration of the instance.
+ * @param {Object}                       props
+ * @param {string}                       props.name          Block name.
+ * @param {string}                       props.clientId      Client ID of the block.
+ * @param {Object}                       props.attributes    Block attributes.
+ * @param {(attributes: Object) => void} props.setAttributes Updates attributes.
+ * @param {Object}                       props.context       Block context (postId in query loops).
+ * @param {Object}                       props.runtime       Renderer, registry and configuration of the instance.
  */
 export function PortalEdit( {
 	name,

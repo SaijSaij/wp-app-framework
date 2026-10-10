@@ -1,5 +1,5 @@
 /**
- * ESLint configuration: the defaults of @wordpress/scripts.
+ * ESLint configuration: the defaults of `@wordpress/scripts`.
  *
  * WordPress provides these packages to the editor at runtime (script handles,
  * mapped by the dependency extraction plugin); they are not installed.

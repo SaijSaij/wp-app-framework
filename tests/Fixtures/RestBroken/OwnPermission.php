@@ -8,6 +8,4 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Rest\Permission\Permission;
 
 #[NoService]
-final class OwnPermission implements Permission
-{
-}
+final class OwnPermission implements Permission {}

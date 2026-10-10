@@ -39,8 +39,7 @@ final class ManifestBuilder
         private readonly array $trackedFiles = [],
         private readonly array $predefined = [],
         private readonly ?string $scriptDirectory = null,
-    ) {
-    }
+    ) {}
 
     /**
      * Builder for a theme: its PSR-4 directories from composer.json plus the framework itself.
@@ -66,7 +65,8 @@ final class ManifestBuilder
             throw new BuildException([sprintf('%s is not valid JSON: %s', $composerFile, $exception->getMessage())]);
         }
 
-        $psr4 = $composer['autoload']['psr-4'] ?? null;
+        $autoload = is_array($composer) && is_array($composer['autoload'] ?? null) ? $composer['autoload'] : [];
+        $psr4 = $autoload['psr-4'] ?? null;
         if (!is_array($psr4) || $psr4 === []) {
             throw new BuildException([sprintf('%s defines no autoload.psr-4 entries.', $composerFile)]);
         }
@@ -75,7 +75,11 @@ final class ManifestBuilder
         $errors = [];
         foreach ($psr4 as $prefix => $directories) {
             foreach ((array) $directories as $directory) {
-                $path = realpath($root . '/' . rtrim((string) $directory, '/'));
+                if (!is_string($directory)) {
+                    $errors[] = sprintf('PSR-4 prefix "%s" in %s has a directory that is not a string.', $prefix, $composerFile);
+                    continue;
+                }
+                $path = realpath($root . '/' . rtrim($directory, '/'));
                 if ($path === false || !is_dir($path)) {
                     $errors[] = sprintf('PSR-4 directory "%s" of prefix "%s" in %s does not exist.', $directory, $prefix, $composerFile);
                     continue;

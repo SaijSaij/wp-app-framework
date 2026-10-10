@@ -13,6 +13,6 @@ final class PostTitle
 {
     public function render(WP_Block $block): string
     {
-        return 'title of ' . $block->getName();
+        return 'title of ' . $block->name;
     }
 }

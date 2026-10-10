@@ -12,7 +12,7 @@ final readonly class RecursiveAttributes
      * @param list<Node> $nodes
      */
     public function __construct(
-        #[ListOf(Node::class)] public array $nodes = [],
-    ) {
-    }
+        #[ListOf(Node::class)]
+        public array $nodes = [],
+    ) {}
 }

@@ -54,8 +54,7 @@ final class TemplateRenderer
         private readonly bool $development,
         private readonly array $callables,
         private readonly Container $container,
-    ) {
-    }
+    ) {}
 
     /**
      * Renders a template.

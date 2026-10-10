@@ -23,6 +23,5 @@ final readonly class Param
         public ?int $maxLength = null,
         public ?string $pattern = null,
         public ?Format $format = null,
-    ) {
-    }
+    ) {}
 }

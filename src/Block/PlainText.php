@@ -17,7 +17,5 @@ final readonly class PlainText
      * @param bool $inspector Edit the field in the block inspector instead of the canvas; the template
      *                        then prints it without field(), and changing it re-renders the block.
      */
-    public function __construct(public bool $inspector = false)
-    {
-    }
+    public function __construct(public bool $inspector = false) {}
 }

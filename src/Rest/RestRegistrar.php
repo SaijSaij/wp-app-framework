@@ -35,8 +35,7 @@ final readonly class RestRegistrar
         private Container $container,
         private ValueFactory $values,
         private bool $debug,
-    ) {
-    }
+    ) {}
 
     /**
      * @param list<RouteEntry> $routes
@@ -48,7 +47,7 @@ final readonly class RestRegistrar
                 'methods' => $route['methods'],
                 'args' => $route['args'],
                 'permission_callback' => $this->permissionCallback($route),
-                'callback' => fn (WP_REST_Request $request): mixed => $this->respond($route, $request),
+                'callback' => fn(WP_REST_Request $request): mixed => $this->respond($route, $request),
             ]);
         }
     }
@@ -61,13 +60,13 @@ final readonly class RestRegistrar
         $permission = $route['permission'];
 
         if ($permission['type'] === 'public') {
-            return static fn (): bool => true;
+            return static fn(): bool => true;
         }
 
         if ($permission['type'] === 'capability') {
             $capability = $permission['capability'];
 
-            return static fn (): bool => current_user_can($capability);
+            return static fn(): bool => current_user_can($capability);
         }
 
         return function (WP_REST_Request $request) use ($route, $permission): bool|WP_Error {
@@ -79,7 +78,8 @@ final readonly class RestRegistrar
             return $this->call(
                 $route,
                 'permission callback',
-                fn (): bool => [$permission['class'], $permission['method']](...$this->arguments($permission['arguments'], $request, $prepared)),
+                // The build checked that the callback is a public static method returning bool.
+                fn(): bool => $permission['class']::{$permission['method']}(...$this->arguments($permission['arguments'], $request, $prepared)) === true,
             );
         };
     }
@@ -92,7 +92,7 @@ final readonly class RestRegistrar
         $result = $this->call(
             $route,
             'callback',
-            fn (): mixed => $this->container->get($route['class'])->{$route['method']}(...$this->arguments($route['arguments'], $request, null)),
+            fn(): mixed => $this->container->get($route['class'])->{$route['method']}(...$this->arguments($route['arguments'], $request, null)),
         );
 
         if ($route['void'] && !$result instanceof WP_Error) {

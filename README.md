@@ -322,7 +322,7 @@ Both warn in the console about unknown blocks and attributes. `@saij/wp-app-fram
 ```js
 // webpack.config.js of the theme
 module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( {
-	slug: 'theme-sections', // get_template()
+	slug: 'theme-dev-test', // get_template()
 	root: __dirname,
 } );
 ```
@@ -373,29 +373,35 @@ The editor runtime lives in `js/` (`editor.js` entry, `editor.scss` styles of th
 ## Conventions
 
 - The theme API must be fully resolvable by IDEs: enums and classes instead of magic strings, first-class callables instead of method names, required information as required attribute arguments.
-- Class properties are never public; access goes through getters with a `get` prefix (`is`/`has` for booleans). Attribute classes such as `#[Hook]` and value classes (block attribute classes) are the exceptions and expose public readonly properties.
+- Class properties are never public; access goes through getters with a `get` prefix (`is`/`has` for booleans). Attribute classes such as `#[Hook]` and value classes (block attribute classes) are the exceptions and expose public readonly properties; test doubles of WordPress classes (`tests/Stubs/`) mirror the public properties of WordPress.
 - Code, comments and documentation are in English.
 
 ## Development
 
-Themes include this repository during development through a Composer `path` repository (symlinked), so changes take effect immediately without a release build. The theme checkout and this checkout must therefore share the same parent directory; see [theme-sections](https://github.com/saijsaij/theme-sections) for an example.
+Themes include this repository during development through a Composer `path` repository (symlinked), so changes take effect immediately without a release build. The theme checkout and this checkout must therefore share the same parent directory; see [theme-dev-test](https://github.com/saijsaij/theme-dev-test), the test theme of the framework, for an example.
 
 A local WordPress for testing is provided by [wp-dev-env](https://github.com/saijsaij/wp-dev-env).
 
-Tests (PHPUnit) run in the `tools` container of [wp-dev-env](https://github.com/saijsaij/wp-dev-env); WordPress is not loaded, minimal test doubles of the WordPress classes and functions live in `tests/Stubs/`:
+All checks run in the `tools` container of [wp-dev-env](https://github.com/saijsaij/wp-dev-env) and must pass without errors or warnings.
+
+PHP: unit tests (PHPUnit), static analysis (PHPStan, level max, with the WordPress stubs of `szepeviktor/phpstan-wordpress`) and code style (PHP-CS-Fixer, PER Coding Style). WordPress is not loaded in unit tests; minimal test doubles of the WordPress classes and functions with the signatures of WordPress live in `tests/Stubs/` and are loaded by the PHPUnit bootstrap only, so the analysis checks the tests against the real signatures. Fixtures that are wrong on purpose (build errors under test) carry `@phpstan-ignore` with the reason.
 
 ```sh
 composer install
 composer test
+composer lint    # PHPStan and PHP-CS-Fixer
+composer fix     # applies the code style
 ```
 
-JavaScript unit tests (Vitest) and linting of the runtime, also in the `tools` container:
+JavaScript and styles of the runtime: unit tests (Vitest), ESLint and Stylelint (configurations of `@wordpress/scripts`):
 
 ```sh
 npm ci
 npm test
-npm run lint
+npm run lint     # lint:js and lint:style
 npm run format
 ```
 
 `package-lock.json` pins these development tools. Themes do not use it: npm ignores the lock files of dependencies, so the theme's own lock file decides which versions it builds with.
+
+Everything that needs WordPress, a browser or a complete theme build – the successful manifest build, REST routes, Twig in WordPress, blocks on the front end and in the editor – is tested in [theme-dev-test](https://github.com/saijsaij/theme-dev-test).

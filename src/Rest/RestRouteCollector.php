@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Rest;
 
 use BackedEnum;
-use LogicException;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -28,16 +27,18 @@ use Throwable;
  * @phpstan-import-type RestArgument from RestRouteDefinition
  * @phpstan-import-type RestPermission from RestRouteDefinition
  * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
- * @phpstan-type Parameter array{
+ * @phpstan-type ServiceParameter array{param: string, kind: 'service', class: class-string}
+ * @phpstan-type RequestParameter array{param: string, kind: 'request'}
+ * @phpstan-type ArgumentParameter array{
  *     param: string,
- *     kind: 'service'|'request'|'param'|'url',
- *     class?: class-string,
- *     value?: Value,
- *     enum?: class-string<BackedEnum>|null,
- *     required?: bool,
- *     type?: string,
- *     schema?: array<string, mixed>
+ *     kind: 'param'|'url',
+ *     value: Value,
+ *     enum: class-string|null,
+ *     required: bool,
+ *     type: string,
+ *     schema: array<string, mixed>
  * }
+ * @phpstan-type Parameter ServiceParameter|RequestParameter|ArgumentParameter
  */
 #[NoService]
 final class RestRouteCollector
@@ -183,6 +184,10 @@ final class RestRouteCollector
                 $controller->namespace,
             );
             $valid = false;
+        } elseif ($controller->namespace === '0') {
+            // register_rest_route() rejects an empty() namespace.
+            $this->errors[] = sprintf('#[RestController] on %s has the namespace "0", which WordPress treats as empty.', $name);
+            $valid = false;
         }
         if ($controller->base !== '' && (!str_starts_with($controller->base, '/') || str_ends_with($controller->base, '/'))) {
             $this->errors[] = sprintf('#[RestController] on %s has the invalid base path "%s": it must be empty or start with "/" and not end with "/".', $name, $controller->base);
@@ -237,7 +242,7 @@ final class RestRouteCollector
     /**
      * An injected service or the request, or null for a request argument.
      *
-     * @return Parameter|null
+     * @return ServiceParameter|RequestParameter|null
      */
     private function kind(ReflectionParameter $parameter): ?array
     {
@@ -255,7 +260,7 @@ final class RestRouteCollector
     }
 
     /**
-     * @return Parameter|null
+     * @return ArgumentParameter|null
      */
     private function argument(ReflectionParameter $parameter, string $parameterLocation): ?array
     {
@@ -296,9 +301,12 @@ final class RestRouteCollector
         $schemaKind = match ($value['type']) {
             'enum' => 'enum',
             'list' => 'array',
-            default => (array) $schema['type'],
+            'int' => 'integer',
+            'float' => 'number',
+            'string' => 'string',
+            'bool' => 'boolean',
         };
-        $keywords = $this->keywords($parameter, $parameterLocation, is_array($schemaKind) ? $schemaKind[0] : $schemaKind);
+        $keywords = $this->keywords($parameter, $parameterLocation, $schemaKind);
         if ($keywords === null) {
             return null;
         }
@@ -347,7 +355,7 @@ final class RestRouteCollector
             'maxLength' => $param->maxLength,
             'pattern' => $param->pattern,
             'format' => $param->format?->value,
-        ], static fn (mixed $value): bool => $value !== null);
+        ], static fn(mixed $value): bool => $value !== null);
 
         $allowed = match ($schemaType) {
             'integer', 'number' => ['description', 'minimum', 'maximum'],
@@ -438,9 +446,14 @@ final class RestRouteCollector
             }
         }
 
+        /** @var non-falsy-string $namespace Checked by controller(): a valid namespace, not "0". */
+        $namespace = $controller->namespace;
+        /** @var non-falsy-string $regex The path is not empty and starts with "/". */
+        $regex = $compiled['regex'];
+
         return new RestRouteDefinition(
-            $controller->namespace,
-            $compiled['regex'],
+            $namespace,
+            $regex,
             $methods,
             $args,
             $permission,
@@ -523,27 +536,28 @@ final class RestRouteCollector
             $placeholders[] = $part;
 
             $index = $byName[$part] ?? null;
-            if ($index === null || $parameters[$index]['kind'] !== 'param') {
+            $parameter = $index === null ? null : $parameters[$index];
+            if ($index === null || $parameter === null || $parameter['kind'] !== 'param') {
                 $this->errors[] = sprintf('#[RestRoute] on %s: placeholder {%s} in route "%s" has no request argument parameter $%s.', $location, $part, $path, $part);
                 $valid = false;
                 continue;
             }
 
-            $parameter = $parameters[$index];
             $parameterLocation = sprintf('parameter $%s of %s', $part, $location);
-            if (!($parameter['required'] ?? false)) {
+            if (!$parameter['required']) {
                 $this->errors[] = sprintf('%s is a path parameter and must be required: no default value and not nullable.', $parameterLocation);
                 $valid = false;
                 continue;
             }
 
+            $enum = $parameter['enum'];
             $pattern = match (true) {
-                ($parameter['enum'] ?? null) !== null => '(?:' . implode('|', array_map(
-                    static fn (BackedEnum $case): string => preg_quote((string) $case->value, '@'),
-                    $parameter['enum']::cases(),
+                $enum !== null && is_subclass_of($enum, BackedEnum::class) => '(?:' . implode('|', array_map(
+                    static fn(BackedEnum $case): string => preg_quote((string) $case->value, '@'),
+                    $enum::cases(),
                 )) . ')',
-                ($parameter['type'] ?? null) === 'int' => '\d+',
-                ($parameter['type'] ?? null) === 'string' => '[^/]+',
+                $parameter['type'] === 'int' => '\d+',
+                $parameter['type'] === 'string' => '[^/]+',
                 default => null,
             };
             if ($pattern === null) {
@@ -553,7 +567,8 @@ final class RestRouteCollector
             }
 
             $regex .= sprintf('(?P<%s>%s)', $part, $pattern);
-            $parameters[$index]['kind'] = 'url';
+            $parameter['kind'] = 'url';
+            $parameters[$index] = $parameter;
         }
 
         return $valid ? ['regex' => $regex, 'parameters' => $parameters] : null;
@@ -685,13 +700,9 @@ final class RestRouteCollector
     private static function runtimeArgument(array $parameter): array
     {
         return match ($parameter['kind']) {
-            'service' => ['param' => $parameter['param'], 'kind' => 'service', 'class' => (string) ($parameter['class'] ?? '')],
+            'service' => ['param' => $parameter['param'], 'kind' => 'service', 'class' => $parameter['class']],
             'request' => ['param' => $parameter['param'], 'kind' => 'request'],
-            default => [
-                'param' => $parameter['param'],
-                'kind' => $parameter['kind'],
-                'value' => $parameter['value'] ?? throw new LogicException(sprintf('Request argument $%s has no value description.', $parameter['param'])),
-            ],
+            default => ['param' => $parameter['param'], 'kind' => $parameter['kind'], 'value' => $parameter['value']],
         };
     }
 
@@ -716,8 +727,10 @@ final class RestRouteCollector
         if ($listOf === null) {
             return $type;
         }
+        // Not instantiated: a broken #[ListOf] on a callback parameter must become a type mismatch, not an exception.
         $arguments = $listOf->getArguments();
+        $class = $arguments[0] ?? $arguments['class'] ?? null;
 
-        return sprintf('%s<%s>', $type, (string) ($arguments[0] ?? $arguments['class'] ?? ''));
+        return sprintf('%s<%s>', $type, is_string($class) ? $class : '');
     }
 }

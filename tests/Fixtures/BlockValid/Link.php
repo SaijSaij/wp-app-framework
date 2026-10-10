@@ -9,8 +9,8 @@ use Saij\WpAppFramework\Value\Url;
 final readonly class Link
 {
     public function __construct(
-        #[Url] public string $href = '',
+        #[Url]
+        public string $href = '',
         public bool $external = false,
-    ) {
-    }
+    ) {}
 }

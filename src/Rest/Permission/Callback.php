@@ -20,9 +20,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 #[NoService]
 final readonly class Callback implements Permission
 {
-    public function __construct(private Closure $callback)
-    {
-    }
+    public function __construct(private Closure $callback) {}
 
     public function getCallback(): Closure
     {

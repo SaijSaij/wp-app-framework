@@ -32,11 +32,13 @@ use Throwable;
  * paths relative to the value, `*` for list items) and the control of the
  * generated inspector (null for inline and hidden values).
  *
+ * @phpstan-import-type ClassValue from ValueFactory
  * @phpstan-import-type Value from ValueFactory
  * @phpstan-import-type ValueField from ValueFactory
  * @phpstan-type EditorField array{path: string, kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true}
  * @phpstan-type Control array<string, mixed>
  * @phpstan-type Field array{schema: array<string, mixed>, value: Value, content: bool, fields: list<EditorField>, control: Control|null}
+ * @phpstan-type ClassField array{schema: array<string, mixed>, value: ClassValue, content: bool, fields: list<EditorField>, control: Control|null}
  * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, label: string, hidden: bool}
  */
 #[NoService]
@@ -58,9 +60,7 @@ final class ValueSchemaBuilder
     /**
      * @param array<class-string, ReflectionClass<object>> $classes All scanned classes.
      */
-    public function __construct(private readonly array $classes)
-    {
-    }
+    public function __construct(private readonly array $classes) {}
 
     /**
      * Schema, runtime description and content flag of a typed parameter.
@@ -339,7 +339,7 @@ final class ValueSchemaBuilder
         try {
             $kindAttribute = ($plainAttributes[0] ?? $richAttributes[0] ?? $imageAttributes[0] ?? null)?->newInstance();
             $allowedFormats = $kindAttribute instanceof RichText ? $kindAttribute->allowedFormats : null;
-            $inspector = $kindAttribute?->inspector ?? false;
+            $inspector = $kindAttribute->inspector ?? false;
             $label = $labelAttributes !== [] ? $labelAttributes[0]->newInstance()->label : self::humanize($parameter->getName());
         } catch (Throwable $exception) {
             $this->errors[] = sprintf('Invalid #[RichText] or #[Label] on %s: %s', $location, $exception->getMessage());
@@ -347,7 +347,7 @@ final class ValueSchemaBuilder
             return null;
         }
 
-        if ($allowedFormats !== null && (!array_is_list($allowedFormats) || array_filter($allowedFormats, static fn (mixed $format): bool => !is_string($format) || $format === '') !== [])) {
+        if ($allowedFormats !== null && (!array_is_list($allowedFormats) || array_filter($allowedFormats, static fn(mixed $format): bool => !is_string($format) || $format === '') !== [])) {
             $this->errors[] = sprintf('%s: allowedFormats of #[RichText] must be a list of format names such as "core/bold", or null for all formats.', $location);
 
             return null;
@@ -390,7 +390,7 @@ final class ValueSchemaBuilder
     private static function prefixFields(string $prefix, array $fields): array
     {
         return array_map(
-            static fn (array $field): array => ['path' => $field['path'] === '' ? $prefix : $prefix . '.' . $field['path']] + $field,
+            static fn(array $field): array => ['path' => $field['path'] === '' ? $prefix : $prefix . '.' . $field['path']] + $field,
             $fields,
         );
     }
@@ -398,7 +398,7 @@ final class ValueSchemaBuilder
     /**
      * @return class-string|null|false The item class, null without #[ListOf], false if #[ListOf] is invalid.
      */
-    private function listOf(ReflectionParameter $parameter, string $location): string|null|false
+    private function listOf(ReflectionParameter $parameter, string $location): string|false|null
     {
         $attributes = $parameter->getAttributes(ListOf::class);
         if ($attributes === []) {
@@ -417,7 +417,7 @@ final class ValueSchemaBuilder
     /**
      * A backed enum or a value class.
      *
-     * @return Field|null
+     * @return ClassField|null
      */
     private function classField(string $class, bool $nullable, string $location): ?array
     {
@@ -433,7 +433,7 @@ final class ValueSchemaBuilder
                 return null;
             }
 
-            $values = array_map(static fn (BackedEnum $case): int|string => $case->value, $class::cases());
+            $values = array_map(static fn(BackedEnum $case): int|string => $case->value, $class::cases());
             $backing = (string) new ReflectionEnum($class)->getBackingType() === 'int' ? 'integer' : 'string';
             $options = $this->enumOptions($class, $location);
             if ($options === null) {

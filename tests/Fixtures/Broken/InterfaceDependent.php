@@ -6,7 +6,6 @@ namespace Saij\WpAppFramework\Tests\Fixtures\Broken;
 
 final class InterfaceDependent
 {
-    public function __construct(LoggerLike $logger)
-    {
-    }
+    // @phpstan-ignore constructor.unusedParameter (the parameter only declares a dependency for the container)
+    public function __construct(LoggerLike $logger) {}
 }

@@ -43,8 +43,7 @@ final readonly class BuildResult
         private array $templateCallables,
         private array $blocks,
         private array $values,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<Source>

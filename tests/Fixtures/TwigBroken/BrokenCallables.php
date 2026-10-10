@@ -45,6 +45,7 @@ final class BrokenCallables
         return '';
     }
 
+    // @phpstan-ignore missingType.return (fixture: the missing return type is the error under test)
     #[TemplateFunction('no_return_type')]
     public function noReturnType()
     {
@@ -52,10 +53,9 @@ final class BrokenCallables
     }
 
     #[TemplateFunction('void_function')]
-    public function voidFunction(): void
-    {
-    }
+    public function voidFunction(): void {}
 
+    // @phpstan-ignore return.unusedType (fixture: the nullable return type is the error under test)
     #[TemplateFunction('nullable_html', html: true)]
     public function nullableHtml(): ?string
     {

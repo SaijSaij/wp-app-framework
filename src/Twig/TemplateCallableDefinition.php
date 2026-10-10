@@ -21,8 +21,7 @@ final readonly class TemplateCallableDefinition
         private string $class,
         private string $method,
         private bool $html,
-    ) {
-    }
+    ) {}
 
     public function getKind(): TemplateCallableKind
     {

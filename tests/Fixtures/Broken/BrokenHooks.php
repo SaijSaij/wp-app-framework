@@ -15,16 +15,12 @@ final class BrokenHooks
         ScalarDependent $c,
         OutsideDependent $d,
         CycleA $e,
-    ): void {
-    }
+    ): void {}
 
+    // @phpstan-ignore missingType.return (fixture: the missing return type is the error under test)
     #[Hook('broken_return')]
-    public function missingReturnType()
-    {
-    }
+    public function missingReturnType() {}
 
     #[Hook('broken_static')]
-    public static function staticHook(): void
-    {
-    }
+    public static function staticHook(): void {}
 }

@@ -7,7 +7,6 @@ namespace Saij\WpAppFramework\Tests\Fixtures\RestList;
 use Saij\WpAppFramework\Rest\HttpMethod;
 use Saij\WpAppFramework\Rest\Param;
 use Saij\WpAppFramework\Rest\Permission\Callback;
-use Saij\WpAppFramework\Rest\Permission\PublicAccess;
 use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestRoute;
 use Saij\WpAppFramework\Value\ListOf;
@@ -22,8 +21,11 @@ final class ListController
      */
     #[RestRoute('/entries', HttpMethod::Post, new Callback(self::canPost(...)))]
     public function entries(
-        #[ListOf(Entry::class)] array $entries,
-        #[Param(description: 'Filter')] #[ListOf(Priority::class)] array $priorities = [Priority::High],
+        #[ListOf(Entry::class)]
+        array $entries,
+        #[Param(description: 'Filter')]
+        #[ListOf(Priority::class)]
+        array $priorities = [Priority::High],
     ): array {
         return ['entries' => $entries, 'priorities' => $priorities];
     }
