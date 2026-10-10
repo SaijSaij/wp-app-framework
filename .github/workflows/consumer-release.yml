@@ -161,6 +161,7 @@ jobs:
           if-no-files-found: error
 
       - name: Install the release and run the browser tests
+        id: e2e
         if: inputs.e2e
         working-directory: workspace/wp-dev-env
         env:
@@ -176,8 +177,9 @@ jobs:
             -e E2E_TARGET=release \
             e2e npm --prefix "/workspace/${SLUG}" run test:e2e
 
+      # Only if the browser tests failed; an earlier failure leaves nothing to inspect.
       - name: Keep the test results
-        if: failure() && inputs.e2e
+        if: failure() && steps.e2e.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.project.outputs.slug }}-e2e-results
@@ -185,7 +187,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Log of the release site
-        if: failure() && inputs.e2e
+        if: failure() && steps.e2e.outcome == 'failure'
         working-directory: workspace/wp-dev-env
         run: docker compose --profile release logs --no-color wordpress-release
 
