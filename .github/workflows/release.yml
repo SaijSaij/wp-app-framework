@@ -1,0 +1,61 @@
+# Release of the framework for a tag v<version>: tests and lint, then the release
+# gate – the test theme theme-dev-test is built with the framework of the tag,
+# installed into a plain WordPress and tested in the browser – and only then the
+# GitHub release with the package ZIP (distribution files, see .gitattributes).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  gate:
+    needs: checks
+    uses: ./.github/workflows/consumer-release.yml
+    permissions:
+      contents: write
+    with:
+      repository: SaijSaij/theme-dev-test
+      ref: main
+      framework-ref: ${{ github.ref }}
+      publish: false
+
+  publish:
+    needs: gate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Check the tag
+        id: tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "${TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.+-]+)?)$ ]]; then
+            echo "::error::Releases are built from tags v<semantic version>, got ${TAG}."
+            exit 1
+          fi
+          echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out wp-app-framework
+        uses: actions/checkout@v5
+
+      - name: Build the package ZIP and attach it to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          zip="wp-app-framework-${VERSION}.zip"
+          git archive --format=zip --prefix=wp-app-framework/ --output="${zip}" "${TAG}"
+          if gh release view "${TAG}" > /dev/null 2>&1; then
+            gh release upload "${TAG}" "${zip}" --clobber
+          else
+            gh release create "${TAG}" "${zip}" --verify-tag --title "${TAG}" --generate-notes
+          fi

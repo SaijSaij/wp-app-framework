@@ -101,6 +101,8 @@ final class Theme
      * Release mode applies if the theme contains generated/manifest.php (created
      * only by the release build). Otherwise development mode builds the manifest
      * by reflection and caches it in wp-content/cache/{template}/manifest.
+     * Compiled Twig templates are cached in wp-content/cache/{template}/twig, in
+     * release mode below the template version of the release.
      */
     public static function boot(): void
     {
@@ -129,6 +131,9 @@ final class Theme
         $slug = get_template();
         $renderContext = new RenderContext();
         $templateCallables = $manifest['templateCallables'];
+        $twigCache = $development
+            ? $cacheDirectory . '/twig'
+            : $cacheDirectory . '/twig/' . self::releaseTemplateVersion($manifest['templateVersion'], $releaseManifest);
         $container = new Container(
             $manifest['services'],
             [self::class => $theme, RenderContext::class => $renderContext],
@@ -137,7 +142,7 @@ final class Theme
                     $theme->templateDirectory,
                     $theme->stylesheetDirectory,
                     __DIR__,
-                    $cacheDirectory . '/twig',
+                    $twigCache,
                     $development,
                     $templateCallables,
                     $container,
@@ -173,6 +178,25 @@ final class Theme
         add_action('enqueue_block_assets', $editorAssets->enqueueCanvas(...));
 
         do_action(self::INIT_HOOK);
+    }
+
+    /**
+     * Release mode compiles templates without auto reload, so each release needs
+     * its own cache directory; the release build names it after its templates.
+     *
+     * @param non-empty-string|null $templateVersion From the release manifest.
+     * @return non-empty-string
+     */
+    private static function releaseTemplateVersion(?string $templateVersion, string $releaseManifest): string
+    {
+        if ($templateVersion === null) {
+            throw new LogicException(sprintf(
+                'The release manifest %s has no template version; build it with `wp-app-framework build --output=…` (done by `wp-app-framework release`).',
+                $releaseManifest,
+            ));
+        }
+
+        return $templateVersion;
     }
 
     /**

@@ -1,0 +1,48 @@
+# Tests and lint of the framework (PHPUnit, Vitest, PHPStan, PHP-CS-Fixer, ESLint,
+# Stylelint) in the tools container of wp-dev-env. Also run by release.yml.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out wp-app-framework
+        uses: actions/checkout@v5
+        with:
+          path: workspace/wp-app-framework
+
+      - name: Check out wp-dev-env
+        uses: actions/checkout@v5
+        with:
+          repository: SaijSaij/wp-dev-env
+          path: workspace/wp-dev-env
+
+      - name: Configure wp-dev-env
+        working-directory: workspace/wp-dev-env
+        run: |
+          cp .env.example .env
+          sed -i "s|^HOST_UID=.*|HOST_UID=$(id -u)|; s|^HOST_GID=.*|HOST_GID=$(id -g)|" .env
+          docker compose build tools
+
+      - name: Install, test and lint
+        working-directory: workspace/wp-dev-env
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
+        run: |
+          docker compose run --rm -e COMPOSER_AUTH -w /workspace/wp-app-framework tools sh -euc "
+            composer install --no-interaction --no-progress
+            composer test
+            composer lint
+            npm ci --no-audit --no-fund
+            npm test
+            npm run lint
+          "

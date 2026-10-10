@@ -10,7 +10,7 @@ The framework is a library that themes include via Composer. It is neither a the
 
 ## Status
 
-Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig (step 3): `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`; development mode only so far (release mode follows with the release build). Server-side blocks (step 4): `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments. Editor runtime (step 5): inline editing in the canvas, generated inspector, batch render route, webpack helper.
+Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig (step 3): `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`. Server-side blocks (step 4): `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments. Editor runtime (step 5): inline editing in the canvas, generated inspector, batch render route, webpack helper. Release (step 6): `wp-app-framework release` (prefixed ZIP), release mode with a versioned Twig cache, GitHub workflows.
 
 ## Usage
 
@@ -35,7 +35,7 @@ Saij\WpAppFramework\Theme::boot();
 
 ### Modes
 
-- **Release mode:** the theme contains `generated/manifest.php`, which only the release build creates. The manifest is loaded as is: no reflection, no file checks, no writes.
+- **Release mode:** the theme contains `generated/manifest.php`, which only the release build creates. The manifest is loaded as is: no reflection, no file checks, no writes to the theme. Compiled Twig templates go to a cache directory named after the template version of the release (see Twig).
 - **Development mode:** otherwise. The manifest is built by reflection and cached in `wp-content/cache/{template}/manifest/` (never in the theme). Like Symfony's container cache in debug mode, a meta file records the resources the build depended on, using relative paths only. Each request compares modification times; only for newer files the class signature (attributes, parents, interfaces, traits and the signatures of the constructor and public methods, not method bodies) or file content is recomputed, and only a difference triggers a rebuild.
 
 ### Services
@@ -161,7 +161,7 @@ final class Formatting
 ```
 
 - **Lookup:** names without a namespace are searched in the child theme's `src/` (only if a child theme is active and has one), then the theme's, then the framework's. A higher level overrides a template by providing the same path. `@theme/…` and `@framework/…` address exactly one level and cannot be overridden – use them where the exact template matters, e.g. when an override extends the original. `wp-app-framework build` lists theme templates that override framework templates.
-- **Environment:** autoescaping (`html`) and `strict_variables` are always on; undefined variables are errors. In development mode, debug, auto reload and `dump()` are enabled. Compiled templates are cached in `wp-content/cache/{template}/twig/`. Rendering in release mode is not supported yet: without auto reload the cache needs a directory versioned by the release build. Twig exceptions reach the caller, so the error handling of hooks and REST routes applies.
+- **Environment:** autoescaping (`html`) and `strict_variables` are always on; undefined variables are errors. In development mode, debug, auto reload and `dump()` are enabled. Compiled templates are cached in `wp-content/cache/{template}/twig/`. Release mode compiles without auto reload, so each release uses its own directory `wp-content/cache/{template}/twig/{templateVersion}/`; the version is a hash over the names and contents of all templates of the theme and the framework, written into the release manifest by `build --output`. Directories of older releases are not removed yet. Twig exceptions reach the caller, so the error handling of hooks and REST routes applies.
 - **`#[TemplateFunction(name, html: false)]` / `#[TemplateFilter(name, html: false)]`** register public, non-static methods of services; the service is created when a template first calls them. Names must be valid identifiers, unique per kind and must not reuse a function or filter Twig provides (Twig would silently replace it); parameters must not be services (inject them through the constructor), variadic or by reference. A filter receives the filtered value as its first parameter.
 - **Escaping:** results are escaped unless `html: true`; such a method must return `string`. An HTML filter receives the filtered value HTML-escaped unless it is already safe (e.g. `|raw`, like Twig's `nl2br`). Other arguments are passed unescaped: an HTML function or filter must escape every argument it puts into its result.
 
@@ -349,7 +349,49 @@ Block attribute classes, nested value classes and `#[ListOf]` REST arguments sha
 vendor/bin/wp-app-framework build [--output=<file>]
 ```
 
-Builds and checks the manifest of the project whose `vendor/autoload.php` the Composer bin proxy loads; problems are listed with class and parameter names, and the exit code is 1. Without `--output` nothing is written. Do not write `generated/manifest.php` into a theme source checkout: its presence selects release mode. The release build writes it.
+Builds and checks the manifest of the project whose `vendor/autoload.php` the Composer bin proxy loads; problems are listed with class and parameter names, and the exit code is 1. Without `--output` nothing is written; a written manifest is a release manifest and carries the template version. Do not write `generated/manifest.php` into a theme source checkout: its presence selects release mode. The release build writes it.
+
+### Release
+
+```sh
+vendor/bin/wp-app-framework release [--output=<zip>] [--expect-version=<version>] [--package-source=<package>=<directory>]...
+```
+
+Builds the release ZIP of a theme – plain WordPress needs no Composer: all dependencies, including this framework and Twig, ship prefixed in `vendor-prefixed/`, so several consumers with different framework versions coexist. The command works on a copy in the system's temporary directory and never changes the checkout:
+
+1. Copies the files git does not ignore (`git ls-files --cached --others --exclude-standard`, so uncommitted changes are included). `generated/manifest.php` must not exist in the checkout.
+2. `composer install --no-dev --classmap-authoritative` from the lock file. `--package-source=saij/wp-app-framework=../wp-app-framework` replaces a package by a copy of a local checkout (its files without `export-ignore`, like a distribution archive), e.g. to test unreleased framework changes; the output says that the build is not from the lock file. Path repositories are not supported: the copy has no sibling checkouts.
+3. Runs [Strauss](https://github.com/BrianHenryIE/strauss) (`strauss` in the PATH; the tools image of wp-dev-env provides it) with the call sites of the theme, then patches Twig: Twig's compiler writes class names such as `use Twig\Environment;` as plain strings into every compiled template, which no prefixing tool rewrites. `Release\TwigPatcher` rewrites exactly these places and requires each pattern as often as expected, so a Twig update that changes them fails the build.
+4. Builds `generated/manifest.php` with the prefixed classes (`bin/wp-app-framework-prefixed.php` in the prefixed copy, written with the template version), then compiles all templates of the theme and the framework as release mode would and checks the compiled code for unprefixed names.
+5. `npm ci && npm run build` (if there is a `package.json`), which builds the editor runtime from `vendor/`.
+6. Removes `node_modules/`, `vendor/`, `composer.json`, `composer.lock`, `package.json`, `package-lock.json` and every path the theme marks `export-ignore` in `.gitattributes` (use `dir/**` for directories), then checks all PHP files for names of dependencies that were not prefixed (string literals too, except inside `vendor-prefixed/`, where dependencies mention their own class names in messages).
+7. Writes `dist/<slug>-<version>.zip` (or `--output`) with the theme directory as root; slug = directory name, version = `Version:` of `style.css`, which `--expect-version` must match.
+
+Every step fails with the file, command or setting at fault; on failure the build directory is kept and its path printed. The theme declares the Strauss settings in its `composer.json` – `extra` is part of the lock file's content hash, so the build cannot add them – and the command checks the values it relies on:
+
+```json
+"extra": {
+    "strauss": {
+        "target_directory": "vendor-prefixed",
+        "namespace_prefix": "Vendor\\Theme\\Vendor\\",
+        "classmap_prefix": "Vendor_Theme_Vendor_",
+        "include_root_autoload": true,
+        "update_call_sites": ["src", "functions.php"],
+        "delete_vendor_packages": false
+    }
+}
+```
+
+The prefix must not be the theme's own namespace (Strauss' default). Leave `constant_prefix` unset: it would rename the constants the Symfony polyfills define for PHP itself (e.g. `MB_CASE_UPPER`); Twig defines none.
+
+### Releases and CI
+
+Repositories are released by tags `v<semantic version>`; GitHub Actions run the release pipeline and attach the artifact to the GitHub release of the tag, only after it passed its tests.
+
+- **Themes** call the reusable workflow `.github/workflows/consumer-release.yml` of this repository from a workflow on `push: tags: ['v*']` with `permissions: contents: write` (see [theme-dev-test](https://github.com/saijsaij/theme-dev-test)). It checks out the theme and [wp-dev-env](https://github.com/saijsaij/wp-dev-env), runs `composer lint` and `npm run lint` (if defined) and `wp-app-framework build`, builds the release with `--expect-version` of the tag, installs the ZIP into a plain WordPress (`scripts/release-test`) and runs the theme's browser tests (`npm run test:e2e`, with `E2E_TARGET=release`; input `e2e: false` skips them). Inputs: `repository`, `ref`, `e2e`, `publish`, `framework-ref`, `wp-dev-env-ref`. Themes pin the workflow to a framework tag.
+- **The framework:** `ci.yml` runs PHPUnit, Vitest and all linters on pushes and pull requests. `release.yml` runs them for a tag, then the release gate – theme-dev-test built with the framework of the tag (`framework-ref`) and tested in the browser, without publishing – and finally attaches `wp-app-framework-<version>.zip` (`git archive`, without the `export-ignore` development files) to the GitHub release.
+
+Themes require the framework from this repository (`"repositories": [{"type": "vcs", "url": "https://github.com/saijsaij/wp-app-framework"}]`) by version; the lock file pins the commit.
 
 ## Source layout
 
@@ -366,7 +408,8 @@ Builds and checks the manifest of the project whose `vendor/autoload.php` the Co
 | `Value/` | `#[ListOf]`, `#[Url]` attributes, schema derivation of typed values (build), value factory (runtime) |
 | `DependencyInjection/` | `#[NoService]` attribute, service candidates and resolver (build), container (runtime) |
 | `Manifest/` | Manifest builder, generator and loader, checks shared by entry point collectors; `Discovery/` (PSR-4 class discovery), `DevCache/` (development mode cache) |
-| `Console/` | Command line entry point of `bin/wp-app-framework` |
+| `Console/` | Command line entry point of `bin/wp-app-framework` (and `bin/wp-app-framework-prefixed.php`) |
+| `Release/` | Release build: project copy, Strauss settings, Twig patch, prefix check, archive (build only) |
 
 New areas (settings, block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
 
@@ -380,7 +423,7 @@ The editor runtime lives in `js/` (`editor.js` entry, `editor.scss` styles of th
 
 ## Development
 
-Themes include this repository during development through a Composer `path` repository (symlinked), so changes take effect immediately without a release build. The theme checkout and this checkout must therefore share the same parent directory; see [theme-dev-test](https://github.com/saijsaij/theme-dev-test), the test theme of the framework, for an example.
+Themes require this repository by version (see Releases and CI). During development, [wp-dev-env](https://github.com/saijsaij/wp-dev-env) replaces the installed package by a symlink to this checkout (`.env`: `WP_PACKAGE_LINKS=saij/wp-app-framework=wp-app-framework`), so changes take effect immediately without a release build; lock file and `composer.json` of the theme stay unchanged. The theme checkout and this checkout share the same parent directory; see [theme-dev-test](https://github.com/saijsaij/theme-dev-test), the test theme of the framework, for an example. To test a release with unreleased framework changes: `composer release -- --package-source=saij/wp-app-framework=../wp-app-framework` in the theme.
 
 A local WordPress for testing is provided by [wp-dev-env](https://github.com/saijsaij/wp-dev-env).
 

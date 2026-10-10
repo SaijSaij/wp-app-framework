@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Twig;
 
-use LogicException;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Twig\Cache\FilesystemCache;
 use Twig\Environment;
@@ -42,7 +41,9 @@ final class TemplateRenderer
      * @param string                      $stylesheetDirectory Root of the active theme (get_stylesheet_directory()); differs from
      *                                                         $templateDirectory if a child theme is active.
      * @param string                      $frameworkTemplates Template directory of the framework (its `src/`).
-     * @param string                      $cacheDirectory     Directory of the compiled templates.
+     * @param string                      $cacheDirectory     Directory of the compiled templates. In release mode it must be
+     *                                                        specific to the release (see TemplateVersion): templates are
+     *                                                        never recompiled there.
      * @param bool                        $development        Development mode: debug, auto reload and dump().
      * @param list<TemplateCallableEntry> $callables          Template functions and filters from the manifest.
      */
@@ -91,16 +92,20 @@ final class TemplateRenderer
         return $names;
     }
 
+    /**
+     * Compiles a template into the cache directory without rendering it.
+     *
+     * @internal Used by the release build to check the compiled code.
+     */
+    public function compile(string $name): void
+    {
+        $this->getEnvironment()->load($name);
+    }
+
     private function getEnvironment(): Environment
     {
         if ($this->environment !== null) {
             return $this->environment;
-        }
-
-        if (!$this->development) {
-            // Without auto reload, Twig never recompiles a cached template; after a theme update the
-            // cache directory must change. The release build will provide a template version for that.
-            throw new LogicException('Twig templates cannot be rendered in release mode yet: the release build does not provide a template cache version.');
         }
 
         $themeTemplates = $this->templateDirectory . '/' . self::TEMPLATE_DIRECTORY;

@@ -57,13 +57,14 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     routes: list<RouteEntry>,
  *     templateCallables: list<TemplateCallableEntry>,
  *     blocks: list<BlockEntry>,
- *     values: array<class-string, array<string, ValueField>>
+ *     values: array<class-string, array<string, ValueField>>,
+ *     templateVersion: non-empty-string|null
  * }
  */
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 7;
+    public const int FORMAT = 8;
 
     /**
      * @return ManifestData

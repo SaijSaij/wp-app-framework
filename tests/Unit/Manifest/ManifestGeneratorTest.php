@@ -42,6 +42,8 @@ final class ManifestGeneratorTest extends TestCase
             $manifest['services'],
         );
         self::assertSame([], $manifest['routes']);
+        // Only a release manifest carries a template version (the development cache is not rebuilt for templates).
+        self::assertNull($manifest['templateVersion']);
 
         self::assertSame(
             [
@@ -59,6 +61,13 @@ final class ManifestGeneratorTest extends TestCase
             ],
             $manifest['hooks'][0],
         );
+    }
+
+    public function testReleaseManifestCarriesTheTemplateVersion(): void
+    {
+        file_put_contents($this->file, new ManifestGenerator()->generate(ManifestBuilderTest::buildValid(), '0123456789abcdef'));
+
+        self::assertSame('0123456789abcdef', Manifest::load($this->file)['templateVersion']);
     }
 
     public function testManifestWithOtherFormatIsRejected(): void

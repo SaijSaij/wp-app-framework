@@ -1,0 +1,203 @@
+# Release pipeline of a consumer of the framework (a theme), reusable by its own workflow:
+#
+#   on:
+#     push:
+#       tags: ['v*']
+#   permissions:
+#     contents: write
+#   jobs:
+#     release:
+#       uses: SaijSaij/wp-app-framework/.github/workflows/consumer-release.yml@<framework tag>
+#
+# Builds the release ZIP in the tools container of wp-dev-env, installs it into a
+# plain WordPress (scripts/release-test) and runs the consumer's browser tests
+# against it. Only if everything passes, the GitHub release of the tag gets the ZIP.
+# The repository name is the slug of the theme.
+name: Consumer release
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository of the consumer (default: the calling repository).'
+        type: string
+        default: ''
+      ref:
+        description: 'Ref to build (default: the calling ref, i.e. the tag).'
+        type: string
+        default: ''
+      e2e:
+        description: Run the consumer's browser tests (npm script test:e2e) against the release.
+        type: boolean
+        default: true
+      publish:
+        description: Attach the ZIP to the GitHub release of the tag; the tag must equal v<version from style.css>.
+        type: boolean
+        default: true
+      framework-ref:
+        description: Build with this ref of wp-app-framework instead of the locked version (release gate of the framework).
+        type: string
+        default: ''
+      wp-dev-env-ref:
+        description: Ref of SaijSaij/wp-dev-env that provides the tools and the release test.
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      REPOSITORY: ${{ inputs.repository || github.repository }}
+      REF: ${{ inputs.ref || github.ref }}
+      # Composer reads GitHub repositories through the API; authenticated to avoid its rate limit.
+      COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
+    steps:
+      - name: Determine slug and version
+        id: project
+        env:
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          slug="${REPOSITORY##*/}"
+          echo "slug=${slug}" >> "$GITHUB_OUTPUT"
+          if [[ "${PUBLISH}" == "true" ]]; then
+            tag="${REF#refs/tags/}"
+            if [[ ! "${tag}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.+-]+)?)$ ]]; then
+              echo "::error::Releases are built from tags v<semantic version>, got ${REF}."
+              exit 1
+            fi
+            echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+            echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out the project
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.REPOSITORY }}
+          ref: ${{ env.REF }}
+          path: workspace/${{ steps.project.outputs.slug }}
+
+      - name: Check out wp-dev-env
+        uses: actions/checkout@v5
+        with:
+          repository: SaijSaij/wp-dev-env
+          ref: ${{ inputs.wp-dev-env-ref }}
+          path: workspace/wp-dev-env
+
+      - name: Check out wp-app-framework
+        if: inputs.framework-ref != ''
+        uses: actions/checkout@v5
+        with:
+          repository: SaijSaij/wp-app-framework
+          ref: ${{ inputs.framework-ref }}
+          path: workspace/wp-app-framework
+
+      - name: Configure wp-dev-env
+        working-directory: workspace/wp-dev-env
+        env:
+          SLUG: ${{ steps.project.outputs.slug }}
+        run: |
+          cp .env.example .env
+          set_env() {
+            grep -q "^$1=" .env || { echo "::error::$1 is missing in .env.example of wp-dev-env."; exit 1; }
+            sed -i "s|^$1=.*|$1=$2|" .env
+          }
+          set_env HOST_UID "$(id -u)"
+          set_env HOST_GID "$(id -g)"
+          set_env WP_THEMES "${SLUG}"
+          set_env WP_ACTIVE_THEME "${SLUG}"
+          mkdir -p data/db data/uploads data/e2e data/release
+          docker compose build tools
+
+      - name: Install, lint and check the manifest
+        working-directory: workspace/wp-dev-env
+        env:
+          SLUG: ${{ steps.project.outputs.slug }}
+          FRAMEWORK: ${{ inputs.framework-ref != '' }}
+        run: |
+          # With framework-ref the checked out framework also provides the build tools and the
+          # editor runtime of the checkout (like WP_PACKAGE_LINKS of wp-dev-env).
+          docker compose run --rm -e COMPOSER_AUTH -e FRAMEWORK tools sh -euc "
+            cd /workspace/${SLUG}
+            composer install --no-interaction --no-progress
+            if [ \"\${FRAMEWORK}\" = true ]; then
+              rm -r vendor/saij/wp-app-framework
+              ln -s ../../../wp-app-framework vendor/saij/wp-app-framework
+            fi
+            if composer run-script --list | grep -q '^  lint '; then composer lint; else echo 'No composer lint script.'; fi
+            npm ci --no-audit --no-fund
+            npm run lint --if-present
+            vendor/bin/wp-app-framework build
+          "
+
+      - name: Build the release
+        id: build
+        working-directory: workspace/wp-dev-env
+        env:
+          SLUG: ${{ steps.project.outputs.slug }}
+          VERSION: ${{ steps.project.outputs.version }}
+          FRAMEWORK: ${{ inputs.framework-ref != '' }}
+        run: |
+          arguments=()
+          if [[ -n "${VERSION}" ]]; then
+            arguments+=("--expect-version=${VERSION}")
+          fi
+          if [[ "${FRAMEWORK}" == "true" ]]; then
+            arguments+=("--package-source=saij/wp-app-framework=../wp-app-framework")
+          fi
+          docker compose run --rm -e COMPOSER_AUTH -w "/workspace/${SLUG}" tools vendor/bin/wp-app-framework release "${arguments[@]}"
+          zip="$(find "../${SLUG}/dist" -maxdepth 1 -name "${SLUG}-*.zip" -print -quit)"
+          echo "zip=$(realpath "${zip}")" >> "$GITHUB_OUTPUT"
+
+      - name: Keep the release ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.project.outputs.slug }}-release
+          path: ${{ steps.build.outputs.zip }}
+          if-no-files-found: error
+
+      - name: Install the release and run the browser tests
+        if: inputs.e2e
+        working-directory: workspace/wp-dev-env
+        env:
+          SLUG: ${{ steps.project.outputs.slug }}
+          ZIP: ${{ steps.build.outputs.zip }}
+        run: |
+          set -a; source .env; set +a
+          docker compose up -d --wait traefik
+          scripts/release-test "${ZIP}"
+          docker compose run --rm --no-deps \
+            -e WP_BASE_URL="${WP_RELEASE_URL}" \
+            -e E2E_BROWSER_HOST_RULES="MAP ${WP_RELEASE_HOST} traefik" \
+            -e E2E_TARGET=release \
+            e2e npm --prefix "/workspace/${SLUG}" run test:e2e
+
+      - name: Keep the test results
+        if: failure() && inputs.e2e
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.project.outputs.slug }}-e2e-results
+          path: workspace/wp-dev-env/data/e2e
+          if-no-files-found: ignore
+
+      - name: Log of the release site
+        if: failure() && inputs.e2e
+        working-directory: workspace/wp-dev-env
+        run: docker compose --profile release logs --no-color wordpress-release
+
+      - name: Attach the ZIP to the GitHub release
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.project.outputs.tag }}
+          ZIP: ${{ steps.build.outputs.zip }}
+        run: |
+          if gh release view "${TAG}" --repo "${REPOSITORY}" > /dev/null 2>&1; then
+            gh release upload "${TAG}" "${ZIP}" --repo "${REPOSITORY}" --clobber
+          else
+            gh release create "${TAG}" "${ZIP}" --repo "${REPOSITORY}" --verify-tag --title "${TAG}" --generate-notes
+          fi

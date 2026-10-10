@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Twig;
 
-use FilesystemIterator;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use Saij\WpAppFramework\DependencyInjection\NoService;
-use SplFileInfo;
 
 /**
  * Finds templates of one level that override templates of a lower level, so
@@ -32,20 +28,6 @@ final class TemplateOverrides
      */
     private static function templates(string $directory): array
     {
-        if (!is_dir($directory)) {
-            return [];
-        }
-
-        $names = [];
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
-        /** @var SplFileInfo $file */
-        foreach ($iterator as $file) {
-            if ($file->isFile() && $file->getExtension() === 'twig') {
-                $names[] = substr($file->getPathname(), strlen($directory) + 1);
-            }
-        }
-        sort($names);
-
-        return $names;
+        return is_dir($directory) ? TemplateFiles::names($directory) : [];
     }
 }

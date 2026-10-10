@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Unit\Twig;
 
-use LogicException;
 use PHPUnit\Framework\TestCase;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\Manifest\Manifest;
@@ -15,6 +14,7 @@ use Saij\WpAppFramework\Twig\TemplateOverrides;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 final class TemplateRendererTest extends TestCase
 {
@@ -151,12 +151,23 @@ final class TemplateRendererTest extends TestCase
         self::assertGreaterThan(0, $compiled);
     }
 
-    public function testReleaseModeIsNotSupportedYet(): void
+    public function testReleaseModeRendersIntoTheGivenCacheDirectory(): void
     {
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('release mode');
+        self::assertSame('plain &lt;x&gt;', $this->renderer('theme', false)->render('Plain.twig', ['value' => '<x>']));
 
-        $this->renderer('theme', false)->render('Plain.twig', ['value' => 'x']);
+        $compiled = 0;
+        foreach (Files::below($this->cache) as $file) {
+            $compiled += $file->getExtension() === 'php' ? 1 : 0;
+        }
+        self::assertGreaterThan(0, $compiled);
+    }
+
+    public function testDumpIsNotAvailableInReleaseMode(): void
+    {
+        $this->expectException(SyntaxError::class);
+        $this->expectExceptionMessage('Unknown "dump" function');
+
+        $this->renderer('theme', false)->render('Dump.twig', ['value' => 'dumped']);
     }
 
     public function testOverridesBetweenLevelsAreFound(): void

@@ -1,0 +1,14 @@
+# Development files of the framework: excluded from distribution archives (Composer dist
+# downloads, the release package ZIP) and from the prefixed copy in a consumer's release.
+# Consumers need package.json, js/, webpack.config.js and bin/ – they stay.
+# Directories are matched as dir/** so the attribute applies to the files inside.
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/.github/** export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/eslint.config.cjs export-ignore
+/js/runtime/test/** export-ignore
+/package-lock.json export-ignore
+/phpstan.dist.neon export-ignore
+/phpunit.xml.dist export-ignore
+/tests/** export-ignore
