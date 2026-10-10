@@ -321,3 +321,11 @@ function wp_style_add_data(string $handle, string $key, mixed $value): bool
 
     return true;
 }
+
+/**
+ * True if $GLOBALS['wp_app_framework_test_admin'] is set.
+ */
+function is_admin(): bool
+{
+    return $GLOBALS['wp_app_framework_test_admin'] ?? false;
+}

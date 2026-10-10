@@ -12,9 +12,9 @@ import { blankInlineText, stableStringify } from './paths';
 /** Root props while new markup loads: the old markup stays, dimmed, without layout change. */
 const LOADING_PROPS = {
 	'aria-busy': true,
-	style: { opacity: 0.6, transition: 'opacity 0.2s' },
+	className: 'wp-app-framework-is-loading',
 };
-const IDLE_PROPS = { style: {} };
+const IDLE_PROPS = {};
 
 /**
  * The numeric ID of the post the block belongs to: the postId context (query
@@ -92,7 +92,7 @@ function Placeholder() {
 		<div
 			{ ...useBlockProps( {
 				'aria-busy': true,
-				style: { minHeight: '2em' },
+				className: 'wp-app-framework-placeholder',
 			} ) }
 		/>
 	);

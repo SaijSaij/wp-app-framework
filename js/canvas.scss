@@ -1,0 +1,43 @@
+/**
+ * Styles of the editor runtime inside the editor canvas (iframe). Built by
+ * the theme's build into build/vendor/wp-app-framework/canvas.css and loaded
+ * only in the block editor, never on the front end.
+ *
+ * Fields edited in the canvas are outlined while their block is hovered or
+ * selected; outlines do not change the layout. The editor sets "is-hovered"
+ * on the innermost hovered block only and "is-selected" on the selected block.
+ */
+
+// The admin color scheme of the editor; the editor defines it in the canvas, too.
+$field-color: var(--wp-admin-theme-color);
+
+:is(.is-hovered, .is-selected) .wp-app-framework-field {
+	outline: 1px dashed color-mix(in srgb, #{$field-color} 50%, transparent);
+	outline-offset: 2px;
+}
+
+// Fields of inner blocks belong to those blocks: not outlined for a hovered or selected container.
+:is(.is-hovered, .is-selected) .wp-block:not(.is-hovered, .is-selected) .wp-app-framework-field {
+	outline: none;
+}
+
+.wp-app-framework-field:focus,
+.wp-app-framework-field:focus-within {
+	outline: 1px solid #{$field-color};
+	outline-offset: 2px;
+}
+
+// New markup is loading: the old markup stays, dimmed, without layout change.
+.wp-app-framework-is-loading {
+	opacity: 0.6;
+	transition: opacity 0.2s;
+}
+
+// Before the first markup of a block arrives.
+.wp-app-framework-placeholder {
+	min-height: 2em;
+}
+
+.wp-app-framework-field-error {
+	color: #cc1818;
+}

@@ -169,6 +169,7 @@ final class Theme
             $development,
         );
         add_action('enqueue_block_editor_assets', $editorAssets->enqueue(...));
+        add_action('enqueue_block_assets', $editorAssets->enqueueCanvas(...));
 
         do_action(self::INIT_HOOK);
     }

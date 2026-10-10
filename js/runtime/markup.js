@@ -15,6 +15,25 @@ function elementProps( node ) {
 	return attributesToProps( attribs, node.name );
 }
 
+/** Class of the elements edited in the canvas; canvas.scss outlines them on hovered and selected blocks. */
+const FIELD_CLASS = 'wp-app-framework-field';
+
+/**
+ * Joins class names, skipping empty ones.
+ *
+ * @param {...(string|undefined)} names
+ * @return {string|undefined} Class attribute.
+ */
+function classNames( ...names ) {
+	const joined = names.filter( Boolean ).join( ' ' );
+	return joined === '' ? undefined : joined;
+}
+
+function fieldProps( node ) {
+	const props = elementProps( node );
+	return { ...props, className: classNames( props.className, FIELD_CLASS ) };
+}
+
 function InnerBlocksElement( { tagName: Tag, props } ) {
 	return <Tag { ...useInnerBlocksProps( props ) } />;
 }
@@ -49,7 +68,7 @@ function createOptions( fields ) {
 				<FieldBoundary label={ `Field ${ path }` }>
 					<FieldComponent
 						tagName={ node.name }
-						elementProps={ elementProps( node ) }
+						elementProps={ fieldProps( node ) }
 						path={ path }
 						field={ field }
 					>
@@ -69,7 +88,7 @@ function rootProps( node, extraProps ) {
 	return {
 		...props,
 		...extraProps,
-		style: { ...props.style, ...extraProps.style },
+		className: classNames( props.className, extraProps.className ),
 	};
 }
 

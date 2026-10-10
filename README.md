@@ -284,6 +284,7 @@ The editor runtime renders every block of the theme in the block editor on the s
 - `{{ inner_blocks() }}` on the element that contains the inner blocks (blocks whose `render()` accepts `string $content`). It may be the root element.
 - `is_editor()` for a structure that does not depend on inline values: render inline fields in the editor even when they are empty, `{% if attrs.topline or is_editor() %}`. In development mode the runtime warns about fields the markup does not mark.
 - The template renders exactly one root element with `block_wrapper_attributes()`; the runtime adds the editor's block props to it (no extra wrapper).
+- In the canvas, the fields edited there are outlined while their block is hovered or selected (dashed, in the admin color; solid while focused). Fields of inner blocks are outlined only for their own block. Outlines do not change the layout.
 
 **Rendering.** All blocks render through the batch route of the instance, `POST /wp-app-framework/v1/{slug}/render` (`edit_posts`, and `edit_post` for a block's `postId`), like WordPress' block renderer (`render_block()` with empty inner blocks, block supports apply). Each block gets its own result, so one failing block shows an error and the others render. Requests of the same moment are sent together, including the framework blocks inside a container. Text values edited in the canvas are blanked in the request: typing in the canvas never re-renders, every other change does – images, enums, list items and fields with `inspector: true` (applied after a short pause). Results are cached for the editor session by block name, attributes and post, so undo/redo and duplicates need no request. While new markup loads, the old markup stays (dimmed).
 
@@ -326,7 +327,7 @@ module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( 
 } );
 ```
 
-The output goes to `build/`: the runtime to `build/vendor/wp-app-framework/editor.js` with its styles (`editor.css`, `editor-rtl.css`), editor scripts mirrored from `src/` (`build/Block/Hero/Hero.editor.js`), each with its `.asset.php`. Without a build the editor fails with an exception naming the missing file; a theme without blocks loads no runtime and needs no build. Run `composer install` before `npm install`: the `file:` dependency points into `vendor/`.
+The output goes to `build/`: the runtime to `build/vendor/wp-app-framework/editor.js` with the styles of its inspector controls (`editor.css`, `editor-rtl.css`), the styles of the editor canvas to `build/vendor/wp-app-framework/canvas.css` (loaded on `enqueue_block_assets` in the editor only, so they reach the canvas iframe but never the front end), editor scripts mirrored from `src/` (`build/Block/Hero/Hero.editor.js`), each with its `.asset.php`. Without a build the editor fails with an exception naming the missing file; a theme without blocks loads no runtime and needs no build. Run `composer install` before `npm install`: the `file:` dependency points into `vendor/`.
 
 **Instances.** Everything global is derived from the slug of the instance (`get_template()`): the render route, the script handles (`{slug}-wp-app-framework`, `{slug}-{block}-editor`) and the JS global `window.wpAppFramework[slug]`, so several framework instances in different versions can run side by side.
 
@@ -367,7 +368,7 @@ Builds and checks the manifest of the project whose `vendor/autoload.php` the Co
 
 New areas (settings, block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
 
-The editor runtime lives in `js/` (`editor.js` entry, `editor.scss` styles of the inspector controls, `runtime/` modules, tests in `runtime/test/`); `webpack.config.js` is the helper for the theme's build.
+The editor runtime lives in `js/` (`editor.js` entry, `editor.scss` styles of the inspector controls, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`); `webpack.config.js` is the helper for the theme's build.
 
 ## Conventions
 

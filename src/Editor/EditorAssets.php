@@ -28,6 +28,9 @@ final readonly class EditorAssets
     /** The runtime below the build directory, without extension. */
     public const string RUNTIME = 'vendor/wp-app-framework/editor';
 
+    /** Styles of the editor canvas below the build directory, without extension. */
+    public const string CANVAS = 'vendor/wp-app-framework/canvas';
+
     /**
      * @param string           $slug           Slug of the framework instance; names the script handles and the JS global.
      * @param string           $buildDirectory Filesystem path of the consumer's build directory.
@@ -64,16 +67,7 @@ final readonly class EditorAssets
         wp_add_inline_script($handle, $this->configScript(), 'before');
         wp_enqueue_script($handle);
 
-        $styles = $this->buildDirectory . '/' . self::RUNTIME . '.css';
-        if (!is_file($styles)) {
-            throw new LogicException(sprintf(
-                'The styles of the editor runtime are not built: %s is missing. Run "npm run build" (or "npm run start") in the theme.',
-                $styles,
-            ));
-        }
-        wp_register_style($handle, $this->buildUri . '/' . self::RUNTIME . '.css', ['wp-components'], $version);
-        // The build writes editor-rtl.css next to it; WordPress swaps it in for right-to-left languages.
-        wp_style_add_data($handle, 'rtl', 'replace');
+        $this->registerStyle($handle, self::RUNTIME, ['wp-components'], $version);
         wp_enqueue_style($handle);
 
         foreach ($this->blocks as $block) {
@@ -85,6 +79,23 @@ final readonly class EditorAssets
             $this->register($blockHandle, $script);
             wp_enqueue_script($blockHandle);
         }
+    }
+
+    /**
+     * Loads the styles of the editor canvas (outlines of the fields edited in
+     * the canvas, loading state) on enqueue_block_assets, which WordPress also
+     * runs to collect the assets of the canvas iframe. Only in the editor,
+     * never on the front end; not for an instance without blocks.
+     */
+    public function enqueueCanvas(): void
+    {
+        if (!is_admin() || $this->blocks === []) {
+            return;
+        }
+
+        $handle = self::runtimeHandle($this->slug) . '-canvas';
+        $this->registerStyle($handle, self::CANVAS, [], $this->asset(self::CANVAS)['version']);
+        wp_enqueue_style($handle);
     }
 
     /**
@@ -121,6 +132,17 @@ final readonly class EditorAssets
      */
     private function register(string $handle, string $script): string
     {
+        $asset = $this->asset($script);
+        wp_register_script($handle, $this->buildUri . '/' . $script . '.js', $asset['dependencies'], $asset['version'], ['in_footer' => false]);
+
+        return $asset['version'];
+    }
+
+    /**
+     * @return array{dependencies: list<string>, version: string}
+     */
+    private function asset(string $script): array
+    {
         $assetFile = $this->buildDirectory . '/' . $script . '.asset.php';
         if (!is_file($assetFile)) {
             throw new LogicException(sprintf(
@@ -135,8 +157,27 @@ final readonly class EditorAssets
             throw new LogicException(sprintf('%s does not return an array with "dependencies" and "version".', $assetFile));
         }
 
-        wp_register_script($handle, $this->buildUri . '/' . $script . '.js', $asset['dependencies'], $asset['version'], ['in_footer' => false]);
+        /** @var array{dependencies: list<string>, version: string} $asset */
+        return $asset;
+    }
 
-        return $asset['version'];
+    /**
+     * Registers the built styles {name}.css; the build writes {name}-rtl.css
+     * next to it, which WordPress swaps in for right-to-left languages.
+     *
+     * @param list<string> $dependencies
+     */
+    private function registerStyle(string $handle, string $name, array $dependencies, string $version): void
+    {
+        $file = $this->buildDirectory . '/' . $name . '.css';
+        if (!is_file($file)) {
+            throw new LogicException(sprintf(
+                'The styles %s are not built: %s is missing. Run "npm run build" (or "npm run start") in the theme.',
+                $name,
+                $file,
+            ));
+        }
+        wp_register_style($handle, $this->buildUri . '/' . $name . '.css', $dependencies, $version);
+        wp_style_add_data($handle, 'rtl', 'replace');
     }
 }

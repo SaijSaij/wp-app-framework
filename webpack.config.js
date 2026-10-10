@@ -24,6 +24,7 @@ const SCRIPTS_MAJOR = 36;
 
 const EDITOR_SCRIPT_SUFFIX = '.editor.js';
 const RUNTIME_ENTRY = 'vendor/wp-app-framework/editor';
+const CANVAS_ENTRY = 'vendor/wp-app-framework/canvas';
 const IMPORT_NAME = '@saij/wp-app-framework';
 
 /**
@@ -97,6 +98,8 @@ module.exports = function createConfig( { slug, root } = {} ) {
 		// A function, so a new editor script is picked up when the watcher rebuilds.
 		entry: () => ( {
 			[ RUNTIME_ENTRY ]: path.join( __dirname, 'js', 'editor.js' ),
+			// Styles of the editor canvas (iframe), loaded separately from the runtime.
+			[ CANVAS_ENTRY ]: path.join( __dirname, 'js', 'canvas.scss' ),
 			...editorScripts( path.join( root, 'src' ) ),
 		} ),
 		output: {
