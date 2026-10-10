@@ -1,5 +1,7 @@
 {
-	"latest": null,
+	"latest": "0.3",
 	"next": true,
-	"versions": []
+	"versions": [
+		"0.3"
+	]
 }
