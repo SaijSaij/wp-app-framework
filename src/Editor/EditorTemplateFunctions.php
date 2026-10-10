@@ -21,8 +21,9 @@ final readonly class EditorTemplateFunctions
     /**
      * Marks the element of an inline field (#[PlainText], #[RichText], #[Image]):
      * `<h1{{ field('headline') }}>` or, in a list, `field(['buttons', loop.index0, 'label'])`.
-     * The path must name an inline field of the rendered block; otherwise an
-     * exception is thrown, in the editor and on the front end alike.
+     * The path must name an inline field of the rendered block that is edited
+     * in the canvas (not with inspector: true); otherwise an exception is
+     * thrown, in the editor and on the front end alike.
      *
      * @param string|list<string|int> $path
      */
@@ -47,7 +48,15 @@ final readonly class EditorTemplateFunctions
         }
 
         $name = implode('.', array_map(strval(...), $segments));
-        if (!isset($block['fields'][implode('.', $pattern)])) {
+        $field = $block['fields'][implode('.', $pattern)] ?? null;
+        if ($field !== null && ($field['inspector'] ?? false)) {
+            throw new InvalidArgumentException(sprintf(
+                'field() in block %s: "%s" is edited in the inspector (inspector: true); do not mark it with field().',
+                $block['name'],
+                $name,
+            ));
+        }
+        if ($field === null) {
             throw new InvalidArgumentException(sprintf(
                 'field() in block %s: "%s" is not an inline field of the block (%s).',
                 $block['name'],

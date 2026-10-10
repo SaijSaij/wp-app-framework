@@ -14,6 +14,7 @@ const fields = {
 	imageId: { kind: 'image' },
 	'buttons.*.label': { kind: 'plain' },
 	'caption.text': { kind: 'plain' },
+	note: { kind: 'rich', inspector: true },
 };
 
 describe( 'paths', () => {
@@ -87,6 +88,7 @@ describe( 'paths', () => {
 		const key = ( attributes ) =>
 			stableStringify( blankInlineText( attributes, fields ) );
 		const base = {
+			note: 'n',
 			topline: 'a',
 			imageId: 1,
 			buttons: [ { label: 'A', url: 'x' } ],
@@ -96,6 +98,8 @@ describe( 'paths', () => {
 			key( { ...base, buttons: [ { label: 'B', url: 'x' } ] } )
 		).toBe( key( base ) );
 		expect( key( { ...base, imageId: 2 } ) ).not.toBe( key( base ) );
+		// Edited in the inspector: the server prints it.
+		expect( key( { ...base, note: 'm' } ) ).not.toBe( key( base ) );
 		expect(
 			key( { ...base, buttons: [ { label: 'A', url: 'z' } ] } )
 		).not.toBe( key( base ) );

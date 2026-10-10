@@ -5,4 +5,6 @@
 /* global WP_APP_FRAMEWORK_SLUG */
 import { startRuntime } from './runtime';
 
+import './editor.scss';
+
 startRuntime( WP_APP_FRAMEWORK_SLUG );

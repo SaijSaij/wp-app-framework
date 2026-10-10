@@ -78,9 +78,10 @@ export function matchesPattern( path, pattern ) {
 }
 
 /**
- * Replaces the values of text fields (plain and rich) with empty strings, also
- * in list items. These values are edited inline and never need new server
- * markup; blanking keeps required properties present.
+ * Replaces the values of text fields (plain and rich) edited in the canvas
+ * with empty strings, also in list items. These values never need new server
+ * markup; blanking keeps required properties present. Fields edited in the
+ * inspector (inspector: true) keep their values: the server prints them.
  *
  * @param {Object}                         attributes
  * @param {Object<string, {kind: string}>} fields     Inline fields by pattern.
@@ -89,7 +90,10 @@ export function matchesPattern( path, pattern ) {
 export function blankInlineText( attributes, fields ) {
 	let result = attributes;
 	for ( const [ pattern, field ] of Object.entries( fields ) ) {
-		if ( field.kind === 'plain' || field.kind === 'rich' ) {
+		if (
+			! field.inspector &&
+			( field.kind === 'plain' || field.kind === 'rich' )
+		) {
 			result = blank( result, splitPath( pattern ) );
 		}
 	}

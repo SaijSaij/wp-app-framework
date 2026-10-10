@@ -62,8 +62,9 @@ export function analyzeMarkup( html, fields ) {
 		const path = node.attribs[ FIELD ];
 		if ( path !== undefined ) {
 			if (
-				! Object.keys( fields ).some( ( pattern ) =>
-					matchesPattern( path, pattern )
+				! Object.entries( fields ).some(
+					( [ pattern, field ] ) =>
+						! field.inspector && matchesPattern( path, pattern )
 				)
 			) {
 				return {
@@ -89,7 +90,12 @@ export function analyzeMarkup( html, fields ) {
  * @return {string[]} Missing field paths.
  */
 export function missingFields( fields, paths ) {
-	return Object.keys( fields ).filter(
-		( pattern ) => ! pattern.includes( '*' ) && ! paths.includes( pattern )
-	);
+	return Object.entries( fields )
+		.filter(
+			( [ pattern, field ] ) =>
+				! field.inspector &&
+				! pattern.includes( '*' ) &&
+				! paths.includes( pattern )
+		)
+		.map( ( [ pattern ] ) => pattern );
 }

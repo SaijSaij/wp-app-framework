@@ -1,19 +1,32 @@
 import {
 	InspectorControls,
+	MediaUpload,
+	MediaUploadCheck,
+	RichText,
 	useBlockEditingMode,
 } from '@wordpress/block-editor';
 import { getBlockType } from '@wordpress/blocks';
 import {
+	BaseControl,
 	Button,
+	Card,
+	CardBody,
+	CardHeader,
+	DropdownMenu,
+	Flex,
+	FlexBlock,
+	FlexItem,
 	PanelBody,
 	SelectControl,
 	TextControl,
 	ToggleControl,
 } from '@wordpress/components';
-import { useEffect, useRef, useState } from '@wordpress/element';
+import { useSelect } from '@wordpress/data';
+import { useContext, useEffect, useRef, useState } from '@wordpress/element';
 
-import { useBlockData } from './context';
+import { BlockDataContext, useBlockData } from './context';
 import { createValue } from './defaults';
+import { itemTitle } from './list';
 
 /** Delay before a typed inspector value is applied (and the block re-rendered). */
 const TYPING_DELAY = 300;
@@ -33,8 +46,8 @@ function useBufferedText( value, onChange, format, parse ) {
 	const [ text, setText ] = useState( () => format( value ) );
 	const applied = useRef( value );
 	const timer = useRef( null );
-	const latest = useRef( { text, onChange } );
-	latest.current = { text, onChange };
+	const latest = useRef( { text, onChange, parse } );
+	latest.current = { text, onChange, parse };
 
 	useEffect( () => {
 		if ( value !== applied.current ) {
@@ -47,7 +60,7 @@ function useBufferedText( value, onChange, format, parse ) {
 	function apply() {
 		clearTimeout( timer.current );
 		timer.current = null;
-		const parsed = parse( latest.current.text );
+		const parsed = latest.current.parse( latest.current.text );
 		if ( parsed !== undefined && parsed !== applied.current ) {
 			applied.current = parsed;
 			latest.current.onChange( parsed );
@@ -74,7 +87,7 @@ const formatText = ( value ) => value ?? '';
 const formatNumber = ( value ) =>
 	value === null || value === undefined ? '' : String( value );
 
-function TextValueControl( { control, value, onChange } ) {
+function TextValueControl( { control, value, onChange, label } ) {
 	const parse = ( text ) => ( text === '' && control.nullable ? null : text );
 	const { text, change, flush } = useBufferedText(
 		value,
@@ -85,7 +98,8 @@ function TextValueControl( { control, value, onChange } ) {
 	return (
 		<TextControl
 			__next40pxDefaultSize
-			label={ control.label }
+			__nextHasNoMarginBottom
+			label={ label ?? control.label }
 			type={ control.url ? 'url' : 'text' }
 			value={ text }
 			onChange={ change }
@@ -94,7 +108,7 @@ function TextValueControl( { control, value, onChange } ) {
 	);
 }
 
-function NumberValueControl( { control, value, onChange } ) {
+function NumberValueControl( { control, value, onChange, label } ) {
 	const parse = ( text ) => {
 		if ( text.trim() === '' ) {
 			return control.nullable ? null : undefined;
@@ -117,13 +131,120 @@ function NumberValueControl( { control, value, onChange } ) {
 	return (
 		<TextControl
 			__next40pxDefaultSize
-			label={ control.label }
+			__nextHasNoMarginBottom
+			label={ label ?? control.label }
 			type="number"
 			step={ control.type === 'int' ? 1 : 'any' }
 			value={ text }
 			onChange={ change }
 			onBlur={ flush }
 		/>
+	);
+}
+
+/**
+ * A #[RichText(inspector: true)] value: a rich text input with the allowed
+ * formats of the field.
+ *
+ * @param {Object}   props
+ * @param {Object}   props.control
+ * @param {string}   props.value
+ * @param {Function} props.onChange
+ * @param {string}   [props.label]
+ */
+function RichTextValueControl( { control, value, onChange, label } ) {
+	const { text, change } = useBufferedText(
+		value,
+		onChange,
+		formatText,
+		( html ) => html
+	);
+	return (
+		<div className="wp-app-framework-control">
+			<BaseControl.VisualLabel>
+				{ label ?? control.label }
+			</BaseControl.VisualLabel>
+			<RichText
+				tagName="div"
+				className="wp-app-framework-rich-input"
+				aria-label={ label ?? control.label }
+				value={ text }
+				onChange={ change }
+				allowedFormats={ control.allowedFormats }
+			/>
+		</div>
+	);
+}
+
+/**
+ * An #[Image(inspector: true)] value: preview with replace and remove, or a
+ * button to select an image.
+ *
+ * @param {Object}   props
+ * @param {Object}   props.control
+ * @param {?number}  props.value    Attachment ID.
+ * @param {Function} props.onChange
+ * @param {string}   [props.label]
+ */
+function ImageValueControl( { control, value, onChange, label } ) {
+	const name = label ?? control.label;
+	const id = Number.isInteger( value ) ? value : null;
+	const media = useSelect(
+		( select ) =>
+			id === null ? undefined : select( 'core' ).getMedia( id ),
+		[ id ]
+	);
+	const onSelect = ( selected ) => {
+		if ( Number.isInteger( selected?.id ) ) {
+			onChange( selected.id );
+		}
+	};
+
+	return (
+		<div className="wp-app-framework-control">
+			<BaseControl.VisualLabel>{ name }</BaseControl.VisualLabel>
+			<MediaUploadCheck>
+				<MediaUpload
+					allowedTypes={ [ 'image' ] }
+					value={ id ?? undefined }
+					onSelect={ onSelect }
+					render={ ( { open } ) =>
+						id === null ? (
+							<Button variant="secondary" onClick={ open }>
+								{ `Select ${ name }` }
+							</Button>
+						) : (
+							<div className="wp-app-framework-image">
+								{ media?.source_url && (
+									<img
+										className="wp-app-framework-image__preview"
+										src={ media.source_url }
+										alt={ media.alt_text ?? '' }
+									/>
+								) }
+								<Flex justify="flex-start">
+									<Button
+										variant="secondary"
+										aria-label={ `Replace ${ name }` }
+										onClick={ open }
+									>
+										Replace
+									</Button>
+									<Button
+										variant="tertiary"
+										isDestructive
+										aria-label={ `Remove ${ name }` }
+										onClick={ () => onChange( null ) }
+									>
+										Remove
+									</Button>
+								</Flex>
+							</div>
+						)
+					}
+				/>
+			</MediaUploadCheck>
+		</div>
 	);
 }
 
@@ -138,6 +259,7 @@ function EnumControl( { control, value, onChange, label } ) {
 	return (
 		<SelectControl
 			__next40pxDefaultSize
+			__nextHasNoMarginBottom
 			label={ label ?? control.label }
 			value={
 				value === null || value === undefined ? '' : String( value )
@@ -157,19 +279,43 @@ function EnumControl( { control, value, onChange, label } ) {
 	);
 }
 
+/**
+ * The values of a value class, each with its control.
+ *
+ * @param {Object}   props
+ * @param {Object}   props.control
+ * @param {Object}   props.value
+ * @param {Function} props.onChange
+ * @param {Object}   props.schema
+ */
+function ObjectFields( { control, value, onChange, schema } ) {
+	return Object.entries( control.fields ).map( ( [ name, field ] ) => (
+		<ValueControl
+			key={ name }
+			control={ field }
+			schema={ schema.properties[ name ] }
+			value={ value[ name ] }
+			onChange={ ( next ) => onChange( { ...value, [ name ]: next } ) }
+		/>
+	) );
+}
+
 function ObjectControl( { control, value, onChange, schema, label } ) {
+	const name = label ?? control.label;
 	const objectSchema = {
 		...schema,
 		type: Array.isArray( schema.type )
 			? schema.type.find( ( type ) => type !== 'null' )
 			: schema.type,
 	};
-	if ( value === null || value === undefined ) {
-		return (
-			<fieldset className="wp-app-framework-object-control">
-				<legend>{ label ?? control.label }</legend>
+
+	return (
+		<div className="wp-app-framework-group">
+			<BaseControl.VisualLabel>{ name }</BaseControl.VisualLabel>
+			{ value === null || value === undefined ? (
 				<Button
 					variant="secondary"
+					icon="plus"
 					onClick={ () =>
 						onChange(
 							createValue( {
@@ -179,117 +325,148 @@ function ObjectControl( { control, value, onChange, schema, label } ) {
 						)
 					}
 				>
-					{ `Add ${ label ?? control.label }` }
+					{ `Add ${ name }` }
 				</Button>
-			</fieldset>
-		);
-	}
+			) : (
+				<>
+					<ObjectFields
+						control={ control }
+						value={ value }
+						onChange={ onChange }
+						schema={ schema }
+					/>
+					{ control.nullable && (
+						<Button
+							variant="tertiary"
+							isDestructive
+							onClick={ () => onChange( null ) }
+						>
+							{ `Remove ${ name }` }
+						</Button>
+					) }
+				</>
+			) }
+		</div>
+	);
+}
+
+function hasItemControls( control ) {
 	return (
-		<fieldset className="wp-app-framework-object-control">
-			{ ( label ?? control.label ) && (
-				<legend>{ label ?? control.label }</legend>
-			) }
-			{ Object.entries( control.fields ).map( ( [ name, field ] ) => (
-				<ValueControl
-					key={ name }
-					control={ field }
-					schema={ schema.properties[ name ] }
-					value={ value[ name ] }
-					onChange={ ( next ) =>
-						onChange( { ...value, [ name ]: next } )
-					}
-				/>
-			) ) }
-			{ control.nullable && (
-				<Button
-					variant="link"
-					isDestructive
-					onClick={ () => onChange( null ) }
-				>
-					{ `Remove ${ label ?? control.label }` }
-				</Button>
-			) }
-		</fieldset>
+		control.type !== 'object' || Object.keys( control.fields ).length > 0
 	);
 }
 
 /**
- * Editor of a list: add, remove and reorder items; each item with the
- * controls of its values. Inline values of items are edited in the canvas.
- *
- * Items are keyed by index, so reordering remounts their controls.
+ * Editor of a list: one card per item with its title, an actions menu (move,
+ * remove) and the controls of the item; inline values of items are edited in
+ * the canvas. Items are keyed by index, so reordering remounts their controls.
  *
  * @param {Object}   props
  * @param {Object}   props.control
  * @param {Array}    props.value
  * @param {Function} props.onChange
  * @param {Object}   props.schema   JSON schema of the list.
+ * @param {string}   props.path     Pattern of the list, e.g. "buttons".
  */
-export function ListControl( { control, value, onChange, schema } ) {
+export function ListControl( { control, value, onChange, schema, path } ) {
+	const fields = useContext( BlockDataContext )?.block.fields ?? {};
 	const items = value ?? [];
 	const move = ( from, to ) => {
 		const next = [ ...items ];
 		next.splice( to, 0, next.splice( from, 1 )[ 0 ] );
 		onChange( next );
 	};
+	const replace = ( index, next ) =>
+		onChange(
+			items.map( ( other, otherIndex ) =>
+				otherIndex === index ? next : other
+			)
+		);
 
 	return (
-		<fieldset className="wp-app-framework-list-control">
-			<legend>{ control.label }</legend>
+		<div className="wp-app-framework-list">
+			<BaseControl.VisualLabel>{ control.label }</BaseControl.VisualLabel>
+			{ items.map( ( item, index ) => (
+				<Card
+					size="small"
+					className="wp-app-framework-list__item"
+					key={ index }
+				>
+					<CardHeader size="xSmall">
+						<Flex>
+							<FlexBlock className="wp-app-framework-list__title">
+								{ itemTitle( item, index, path, fields ) }
+							</FlexBlock>
+							<FlexItem>
+								<DropdownMenu
+									icon="ellipsis"
+									label={ `Actions for item ${ index + 1 }` }
+									controls={ [
+										{
+											title: 'Move up',
+											icon: 'arrow-up-alt2',
+											isDisabled: index === 0,
+											onClick: () =>
+												move( index, index - 1 ),
+										},
+										{
+											title: 'Move down',
+											icon: 'arrow-down-alt2',
+											isDisabled:
+												index === items.length - 1,
+											onClick: () =>
+												move( index, index + 1 ),
+										},
+										{
+											title: 'Remove',
+											icon: 'trash',
+											onClick: () =>
+												onChange(
+													items.filter(
+														( _, other ) =>
+															other !== index
+													)
+												),
+										},
+									] }
+								/>
+							</FlexItem>
+						</Flex>
+					</CardHeader>
+					{ hasItemControls( control.item ) && (
+						<CardBody
+							size="small"
+							className="wp-app-framework-list__body"
+						>
+							{ control.item.type === 'object' ? (
+								<ObjectFields
+									control={ control.item }
+									value={ item }
+									onChange={ ( next ) =>
+										replace( index, next )
+									}
+									schema={ schema.items }
+								/>
+							) : (
+								<ValueControl
+									control={ control.item }
+									schema={ schema.items }
+									value={ item }
+									path={ `${ path }.*` }
+									label={ `Item ${ index + 1 }` }
+									onChange={ ( next ) =>
+										replace( index, next )
+									}
+								/>
+							) }
+						</CardBody>
+					) }
+				</Card>
+			) ) }
 			<div>
-				{ items.map( ( item, index ) => (
-					<div className="wp-app-framework-list-item" key={ index }>
-						<div className="wp-app-framework-list-item__header">
-							<span>{ `Item ${ index + 1 }` }</span>
-							<Button
-								size="small"
-								icon="arrow-up-alt2"
-								label={ `Move item ${ index + 1 } up` }
-								disabled={ index === 0 }
-								onClick={ () => move( index, index - 1 ) }
-							/>
-							<Button
-								size="small"
-								icon="arrow-down-alt2"
-								label={ `Move item ${ index + 1 } down` }
-								disabled={ index === items.length - 1 }
-								onClick={ () => move( index, index + 1 ) }
-							/>
-							<Button
-								size="small"
-								icon="trash"
-								label={ `Remove item ${ index + 1 }` }
-								isDestructive
-								onClick={ () =>
-									onChange(
-										items.filter(
-											( _, other ) => other !== index
-										)
-									)
-								}
-							/>
-						</div>
-						<ValueControl
-							control={ control.item }
-							schema={ schema.items }
-							value={ item }
-							label={
-								control.item.type === 'object'
-									? ''
-									: `Item ${ index + 1 }`
-							}
-							onChange={ ( next ) =>
-								onChange(
-									items.map( ( other, otherIndex ) =>
-										otherIndex === index ? next : other
-									)
-								)
-							}
-						/>
-					</div>
-				) ) }
 				<Button
 					variant="secondary"
+					icon="plus"
 					aria-label={ `Add item to ${ control.label }` }
 					onClick={ () =>
 						onChange( [ ...items, createValue( schema.items ) ] )
@@ -298,7 +475,7 @@ export function ListControl( { control, value, onChange, schema } ) {
 					Add item
 				</Button>
 			</div>
-		</fieldset>
+		</div>
 	);
 }
 
@@ -311,6 +488,7 @@ export function ListControl( { control, value, onChange, schema } ) {
  * @param {*}        props.value
  * @param {Function} props.onChange
  * @param {string}   [props.label]  Overrides the label (list items).
+ * @param {string}   [props.path]   Pattern of the value, for list item titles.
  */
 export function ValueControl( props ) {
 	const { control, value, onChange, label } = props;
@@ -330,7 +508,12 @@ export function ValueControl( props ) {
 		case 'float':
 			return <NumberValueControl { ...props } />;
 		case 'string':
+		case 'plain':
 			return <TextValueControl { ...props } />;
+		case 'rich':
+			return <RichTextValueControl { ...props } />;
+		case 'image':
+			return <ImageValueControl { ...props } />;
 		case 'object':
 			return <ObjectControl { ...props } />;
 		case 'list':
@@ -372,6 +555,7 @@ export function Inspector( { registry } ) {
 					control={ control }
 					schema={ schemas[ attribute ] }
 					value={ attributes[ attribute ] }
+					path={ attribute }
 					onChange={ ( value ) =>
 						setAttributes( { [ attribute ]: value } )
 					}
@@ -409,7 +593,9 @@ export function Inspector( { registry } ) {
 			{ content.length > 0 && (
 				<InspectorControls group="content">
 					<PanelBody title="Content">
-						{ content.map( ( entry ) => entry.element ) }
+						<div className="wp-app-framework-controls">
+							{ content.map( ( entry ) => entry.element ) }
+						</div>
 					</PanelBody>
 				</InspectorControls>
 			) }
@@ -417,7 +603,9 @@ export function Inspector( { registry } ) {
 				<InspectorControls>
 					{ settings.length > 0 && (
 						<PanelBody title="Settings">
-							{ settings.map( ( entry ) => entry.element ) }
+							<div className="wp-app-framework-controls">
+								{ settings.map( ( entry ) => entry.element ) }
+							</div>
 						</PanelBody>
 					) }
 					{ panels.map( ( Panel, index ) => (

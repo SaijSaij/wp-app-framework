@@ -34,10 +34,10 @@ use Throwable;
  *
  * @phpstan-import-type Value from ValueFactory
  * @phpstan-import-type ValueField from ValueFactory
- * @phpstan-type EditorField array{path: string, kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>}
+ * @phpstan-type EditorField array{path: string, kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true}
  * @phpstan-type Control array<string, mixed>
  * @phpstan-type Field array{schema: array<string, mixed>, value: Value, content: bool, fields: list<EditorField>, control: Control|null}
- * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, label: string, hidden: bool}
+ * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, label: string, hidden: bool}
  */
 #[NoService]
 final class ValueSchemaBuilder
@@ -134,14 +134,19 @@ final class ValueSchemaBuilder
             }
 
             $fields = [];
+            $control = ['type' => $name, 'label' => $markers['label'], 'nullable' => $nullable];
             if ($markers['kind'] !== null) {
                 $field = ['path' => '', 'kind' => $markers['kind'], 'label' => $markers['label']];
+                $control['type'] = $markers['kind'];
                 if ($markers['allowedFormats'] !== null) {
                     $field['allowedFormats'] = $markers['allowedFormats'];
+                    $control['allowedFormats'] = $markers['allowedFormats'];
+                }
+                if ($markers['inspector']) {
+                    $field['inspector'] = true;
                 }
                 $fields[] = $field;
             }
-            $control = ['type' => $name, 'label' => $markers['label'], 'nullable' => $nullable];
             if ($markers['url']) {
                 $control['url'] = true;
             }
@@ -151,7 +156,8 @@ final class ValueSchemaBuilder
                 'value' => ['type' => $name, 'nullable' => $nullable],
                 'content' => $markers['content'],
                 'fields' => $fields,
-                'control' => $markers['kind'] !== null || $markers['hidden'] ? null : $control,
+                // Canvas fields have no inspector control; fields with inspector: true have one instead.
+                'control' => ($markers['kind'] !== null && !$markers['inspector']) || $markers['hidden'] ? null : $control,
             ];
         }
 
@@ -300,10 +306,12 @@ final class ValueSchemaBuilder
      */
     private function markers(ReflectionParameter $parameter, ReflectionNamedType $type, string $location): ?array
     {
-        $plain = $parameter->getAttributes(PlainText::class) !== [];
+        $plainAttributes = $parameter->getAttributes(PlainText::class);
+        $plain = $plainAttributes !== [];
         $richAttributes = $parameter->getAttributes(RichText::class);
         $rich = $richAttributes !== [];
-        $image = $parameter->getAttributes(Image::class) !== [];
+        $imageAttributes = $parameter->getAttributes(Image::class);
+        $image = $imageAttributes !== [];
         $content = $parameter->getAttributes(Content::class) !== [];
         $url = $parameter->getAttributes(Url::class) !== [];
         $hidden = $parameter->getAttributes(Hidden::class) !== [];
@@ -319,7 +327,7 @@ final class ValueSchemaBuilder
             $image && ($type->getName() !== 'int' || !$type->allowsNull()) => 'has #[Image], which is only allowed on ?int (the attachment ID, null without image)',
             $url && !$isString => 'has #[Url], which is only allowed on strings',
             $url && ($plain || $rich) => sprintf('has #[Url] and #[%s]; a URL is not inline text, mark it with #[Content] instead', $kind),
-            $hidden && $kind !== null => sprintf('has #[Hidden] and #[%s]; inline fields have no inspector control to hide', $kind),
+            $hidden && $kind !== null => sprintf('has #[Hidden] and #[%s]; the field is edited in the canvas or, with inspector: true, in the inspector, so it cannot be hidden', $kind),
             default => null,
         };
         if ($error !== null) {
@@ -329,7 +337,9 @@ final class ValueSchemaBuilder
         }
 
         try {
-            $allowedFormats = $rich ? $richAttributes[0]->newInstance()->allowedFormats : null;
+            $kindAttribute = ($plainAttributes[0] ?? $richAttributes[0] ?? $imageAttributes[0] ?? null)?->newInstance();
+            $allowedFormats = $kindAttribute instanceof RichText ? $kindAttribute->allowedFormats : null;
+            $inspector = $kindAttribute?->inspector ?? false;
             $label = $labelAttributes !== [] ? $labelAttributes[0]->newInstance()->label : self::humanize($parameter->getName());
         } catch (Throwable $exception) {
             $this->errors[] = sprintf('Invalid #[RichText] or #[Label] on %s: %s', $location, $exception->getMessage());
@@ -359,6 +369,7 @@ final class ValueSchemaBuilder
                 default => null,
             },
             'allowedFormats' => $allowedFormats,
+            'inspector' => $inspector,
             'label' => $label,
             'hidden' => $hidden,
         ];

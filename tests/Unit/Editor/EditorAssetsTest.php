@@ -22,7 +22,7 @@ final class EditorAssetsTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (['vendor/wp-app-framework/editor.asset.php', 'Container.editor.asset.php'] as $file) {
+        foreach (['vendor/wp-app-framework/editor.asset.php', 'vendor/wp-app-framework/editor.css', 'Container.editor.asset.php'] as $file) {
             if (is_file($this->build . '/' . $file)) {
                 unlink($this->build . '/' . $file);
             }
@@ -30,7 +30,7 @@ final class EditorAssetsTest extends TestCase
         rmdir($this->build . '/vendor/wp-app-framework');
         rmdir($this->build . '/vendor');
         rmdir($this->build);
-        unset($GLOBALS['wp_app_framework_test_scripts']);
+        unset($GLOBALS['wp_app_framework_test_scripts'], $GLOBALS['wp_app_framework_test_styles']);
     }
 
     private function assets(): EditorAssets
@@ -69,9 +69,23 @@ final class EditorAssetsTest extends TestCase
         $this->assets()->enqueue();
     }
 
+    public function testMissingStylesAreAnError(): void
+    {
+        $this->writeAsset('vendor/wp-app-framework/editor', '');
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage(sprintf(
+            'The styles of the editor runtime are not built: %s/vendor/wp-app-framework/editor.css is missing.',
+            $this->build,
+        ));
+
+        $this->assets()->enqueue();
+    }
+
     public function testEnqueuesTheRuntimeWithItsConfigurationAndTheBlockEditorScripts(): void
     {
         $this->writeAsset('vendor/wp-app-framework/editor', "'wp-blocks', 'react-jsx-runtime'");
+        file_put_contents($this->build . '/vendor/wp-app-framework/editor.css', '');
         $this->writeAsset('Container.editor', "'my-theme-wp-app-framework'");
 
         $this->assets()->enqueue();
@@ -85,6 +99,11 @@ final class EditorAssetsTest extends TestCase
         self::assertSame('https://example.test/build/Container.editor.js', $scripts['my-theme-fixture-container-editor']['src']);
         self::assertSame(['my-theme-wp-app-framework'], $scripts['my-theme-fixture-container-editor']['deps']);
         self::assertTrue($scripts['my-theme-fixture-container-editor']['enqueued']);
+
+        self::assertSame(
+            ['my-theme-wp-app-framework' => ['src' => 'https://example.test/build/vendor/wp-app-framework/editor.css', 'deps' => ['wp-components'], 'ver' => 'v1', 'enqueued' => true, 'rtl' => 'replace']],
+            $GLOBALS['wp_app_framework_test_styles'],
+        );
 
         [$before] = $scripts['my-theme-wp-app-framework']['before'];
         $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = { config: ';

@@ -297,3 +297,27 @@ function wp_enqueue_script(string $handle): void
 {
     $GLOBALS['wp_app_framework_test_scripts'][$handle]['enqueued'] = true;
 }
+
+/**
+ * Records registered styles in $GLOBALS['wp_app_framework_test_styles'].
+ *
+ * @param list<string> $deps
+ */
+function wp_register_style(string $handle, string $src, array $deps = [], string|bool|null $ver = false): bool
+{
+    $GLOBALS['wp_app_framework_test_styles'][$handle] = ['src' => $src, 'deps' => $deps, 'ver' => $ver, 'enqueued' => false];
+
+    return true;
+}
+
+function wp_enqueue_style(string $handle): void
+{
+    $GLOBALS['wp_app_framework_test_styles'][$handle]['enqueued'] = true;
+}
+
+function wp_style_add_data(string $handle, string $key, mixed $value): bool
+{
+    $GLOBALS['wp_app_framework_test_styles'][$handle][$key] = $value;
+
+    return true;
+}

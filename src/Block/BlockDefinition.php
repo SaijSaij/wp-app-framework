@@ -12,7 +12,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  * @phpstan-type BlockArgument array{param: string, kind: 'attributes', class: class-string}
  *     |array{param: string, kind: 'content'|'block'}
  * @phpstan-type BlockEditor array{
- *     fields: array<string, array{kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>}>,
+ *     fields: array<string, array{kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true}>,
  *     controls: array<string, array<string, mixed>>,
  *     innerBlocks: bool,
  *     editorScript: string|null

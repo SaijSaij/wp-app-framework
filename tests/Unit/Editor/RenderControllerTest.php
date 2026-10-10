@@ -178,7 +178,14 @@ final class RenderControllerTest extends TestCase
             $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn (): string => $functions->field('ctas.0'));
             self::fail('Expected an exception.');
         } catch (InvalidArgumentException $exception) {
-            self::assertSame('field() in block fixture/teaser: "ctas.0" is not an inline field of the block (inline fields: kicker, title, imageId, ctas.*.label, caption.text).', $exception->getMessage());
+            self::assertSame('field() in block fixture/teaser: "ctas.0" is not an inline field of the block (inline fields: kicker, title, imageId, ctas.*.label, ctas.*.iconId, caption.text, note).', $exception->getMessage());
+        }
+
+        try {
+            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn (): string => $functions->field(['ctas', 1, 'iconId']));
+            self::fail('Expected an exception.');
+        } catch (InvalidArgumentException $exception) {
+            self::assertSame('field() in block fixture/teaser: "ctas.1.iconId" is edited in the inspector (inspector: true); do not mark it with field().', $exception->getMessage());
         }
 
         $this->expectException(LogicException::class);

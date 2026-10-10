@@ -21,6 +21,7 @@ final readonly class BrokenEditorAttributes
         #[RichText(allowedFormats: ['core/bold', ''])] public string $badFormats = '',
         public EmptyLabel $emptyCaseLabel = EmptyLabel::A,
         public LabeledValue $labeledValue = new LabeledValue(),
+        #[Hidden] #[PlainText(inspector: true)] public string $hiddenInspector = '',
     ) {
     }
 }

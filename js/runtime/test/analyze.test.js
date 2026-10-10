@@ -5,6 +5,7 @@ import { analyzeMarkup, missingFields } from '../analyze';
 const fields = {
 	topline: { kind: 'plain' },
 	'buttons.*.label': { kind: 'plain' },
+	note: { kind: 'rich', inspector: true },
 };
 
 describe( 'analyzeMarkup', () => {
@@ -35,6 +36,11 @@ describe( 'analyzeMarkup', () => {
 			analyzeMarkup( '<div><p data-field="other"></p></div>', fields )
 				.error
 		).toBe( 'field( "other" ) is not an inline field of the block.' );
+		// Edited in the inspector, not in the canvas.
+		expect(
+			analyzeMarkup( '<div><p data-field="note"></p></div>', fields )
+				.error
+		).toBe( 'field( "note" ) is not an inline field of the block.' );
 	} );
 
 	it( 'lists fields without wildcard that the markup hides', () => {

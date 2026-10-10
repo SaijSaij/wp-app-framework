@@ -31,6 +31,7 @@ final readonly class TeaserAttributes
         #[Url] public string $link = '',
         public Caption $caption = new Caption(),
         #[Content] #[Label('Source')] public string $source = '',
+        #[RichText(inspector: true)] public string $note = '',
     ) {
     }
 }

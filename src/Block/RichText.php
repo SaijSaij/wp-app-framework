@@ -18,8 +18,10 @@ final readonly class RichText
     /**
      * @param list<string>|null $allowedFormats Formats the editor offers, e.g. ["core/bold", "core/italic"];
      *                                          null allows all registered formats, [] none.
+     * @param bool              $inspector Edit the field in the block inspector instead of the canvas; the template
+     *                                          then prints it without field(), and changing it re-renders the block.
      */
-    public function __construct(public ?array $allowedFormats = null)
+    public function __construct(public ?array $allowedFormats = null, public bool $inspector = false)
     {
     }
 }

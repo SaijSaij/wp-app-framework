@@ -50,7 +50,9 @@ final class EditorBuildTest extends TestCase
                 'title' => ['kind' => 'rich', 'label' => 'Title', 'allowedFormats' => ['core/bold']],
                 'imageId' => ['kind' => 'image', 'label' => 'Image id'],
                 'ctas.*.label' => ['kind' => 'plain', 'label' => 'Label'],
+                'ctas.*.iconId' => ['kind' => 'image', 'label' => 'Icon id', 'inspector' => true],
                 'caption.text' => ['kind' => 'plain', 'label' => 'Text'],
+                'note' => ['kind' => 'rich', 'label' => 'Note', 'inspector' => true],
             ],
             self::blocks()['fixture/teaser']->getEditor()['fields'],
         );
@@ -80,6 +82,7 @@ final class EditorBuildTest extends TestCase
                         'fields' => [
                             'url' => ['type' => 'string', 'label' => 'Url', 'nullable' => false, 'url' => true],
                             'size' => ['type' => 'enum', 'label' => 'Size', 'nullable' => true, 'options' => $sizeOptions],
+                            'iconId' => ['type' => 'image', 'label' => 'Icon id', 'nullable' => true],
                         ],
                     ],
                     'content' => true,
@@ -88,6 +91,7 @@ final class EditorBuildTest extends TestCase
                 'ratio' => ['type' => 'float', 'label' => 'Ratio', 'nullable' => false, 'content' => false],
                 'link' => ['type' => 'string', 'label' => 'Link', 'nullable' => false, 'url' => true, 'content' => false],
                 'source' => ['type' => 'string', 'label' => 'Source', 'nullable' => false, 'content' => true],
+                'note' => ['type' => 'rich', 'label' => 'Note', 'nullable' => false, 'content' => true],
             ],
             self::blocks()['fixture/teaser']->getEditor()['controls'],
         );
@@ -131,7 +135,8 @@ final class EditorBuildTest extends TestCase
             sprintf($a, 'imageOnString') . ' has #[Image], which is only allowed on ?int (the attachment ID, null without image).',
             sprintf($a, 'imageNotNullable') . ' has #[Image], which is only allowed on ?int (the attachment ID, null without image).',
             sprintf($a, 'plainAndImage') . ' has #[PlainText] and #[Image]; use only one of #[PlainText], #[RichText] and #[Image].',
-            sprintf($a, 'hiddenRich') . ' has #[Hidden] and #[RichText]; inline fields have no inspector control to hide.',
+            sprintf($a, 'hiddenRich') . ' has #[Hidden] and #[RichText]; the field is edited in the canvas or, with inspector: true, in the inspector, so it cannot be hidden.',
+            sprintf($a, 'hiddenInspector') . ' has #[Hidden] and #[PlainText]; the field is edited in the canvas or, with inspector: true, in the inspector, so it cannot be hidden.',
             sprintf($a, 'emptyLabel') . ' has an empty #[Label].',
             sprintf($a, 'badFormats') . ': allowedFormats of #[RichText] must be a list of format names such as "core/bold", or null for all formats.',
             sprintf($a, 'emptyCaseLabel') . ': ' . BlockEditorBroken\EmptyLabel::class . '::A->label() returned an empty label.',

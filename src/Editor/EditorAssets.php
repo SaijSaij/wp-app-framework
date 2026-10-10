@@ -13,7 +13,8 @@ use Saij\WpAppFramework\Manifest\Manifest;
  * instance (on enqueue_block_editor_assets).
  *
  * The consumer's build compiles both with the framework's webpack helper into
- * its `build/` directory: the runtime to build/vendor/wp-app-framework/editor.js,
+ * its `build/` directory: the runtime to build/vendor/wp-app-framework/editor.js
+ * with its styles (editor.css, for the inspector controls of the framework),
  * block scripts mirrored from `src/` (src/Block/Hero/Hero.editor.js →
  * build/Block/Hero/Hero.editor.js), each with an .asset.php file.
  *
@@ -59,9 +60,21 @@ final readonly class EditorAssets
         }
 
         $handle = self::runtimeHandle($this->slug);
-        $this->register($handle, self::RUNTIME);
+        $version = $this->register($handle, self::RUNTIME);
         wp_add_inline_script($handle, $this->configScript(), 'before');
         wp_enqueue_script($handle);
+
+        $styles = $this->buildDirectory . '/' . self::RUNTIME . '.css';
+        if (!is_file($styles)) {
+            throw new LogicException(sprintf(
+                'The styles of the editor runtime are not built: %s is missing. Run "npm run build" (or "npm run start") in the theme.',
+                $styles,
+            ));
+        }
+        wp_register_style($handle, $this->buildUri . '/' . self::RUNTIME . '.css', ['wp-components'], $version);
+        // The build writes editor-rtl.css next to it; WordPress swaps it in for right-to-left languages.
+        wp_style_add_data($handle, 'rtl', 'replace');
+        wp_enqueue_style($handle);
 
         foreach ($this->blocks as $block) {
             $script = $block['editor']['editorScript'];
@@ -103,7 +116,10 @@ final readonly class EditorAssets
         );
     }
 
-    private function register(string $handle, string $script): void
+    /**
+     * @return string The version from the asset file.
+     */
+    private function register(string $handle, string $script): string
     {
         $assetFile = $this->buildDirectory . '/' . $script . '.asset.php';
         if (!is_file($assetFile)) {
@@ -120,5 +136,7 @@ final readonly class EditorAssets
         }
 
         wp_register_script($handle, $this->buildUri . '/' . $script . '.js', $asset['dependencies'], $asset['version'], ['in_footer' => false]);
+
+        return $asset['version'];
     }
 }
