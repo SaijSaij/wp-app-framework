@@ -111,6 +111,7 @@ final readonly class EditorAssets
                 'fields' => (object) $block['editor']['fields'],
                 'controls' => (object) $block['editor']['controls'],
                 'innerBlocks' => $block['editor']['innerBlocks'],
+                'postContentField' => $block['editor']['postContentField'],
             ];
         }
 

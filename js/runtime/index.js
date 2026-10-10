@@ -1,6 +1,7 @@
 import apiFetch from '@wordpress/api-fetch';
 import { InnerBlocks } from '@wordpress/block-editor';
 import { getBlockType, registerBlockType } from '@wordpress/blocks';
+import { RawHTML } from '@wordpress/element';
 
 import { PortalEdit } from './portal-edit';
 import { createRegistry } from './registry';
@@ -35,13 +36,32 @@ export function startRuntime( slug ) {
 	for ( const [ name, block ] of Object.entries( config.blocks ) ) {
 		registerBlockType( name, {
 			edit: ( props ) => <PortalEdit { ...props } runtime={ runtime } />,
-			// Only block comments are stored; inner blocks are serialized without a wrapper.
-			save: block.innerBlocks
-				? () => <InnerBlocks.Content />
-				: () => null,
+			save: saveFunction( block ),
 		} );
 	}
 
 	instance.registerControl = runtime.registry.registerControl;
 	instance.registerPanel = runtime.registry.registerPanel;
+}
+
+/**
+ * What a block stores besides the block comment: inner blocks without a
+ * wrapper, the value of #[RichText(postContent: true)] as bare inline HTML
+ * (the attribute is sourced from the whole inner HTML), otherwise nothing.
+ *
+ * @param {Object} block Block configuration.
+ * @return {(props: {attributes: Object}) => import('react').ReactNode} save() of the block type.
+ */
+function saveFunction( block ) {
+	if ( block.innerBlocks ) {
+		return () => <InnerBlocks.Content />;
+	}
+	const field = block.postContentField;
+	if ( field ) {
+		// RawHTML without other props serializes without a wrapper element.
+		return ( { attributes } ) => (
+			<RawHTML>{ attributes[ field ] ?? '' }</RawHTML>
+		);
+	}
+	return () => null;
 }

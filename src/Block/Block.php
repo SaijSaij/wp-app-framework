@@ -21,6 +21,9 @@ final readonly class Block
      * @param list<string> $usesContext Context values the block reads from WP_Block::$context, e.g. "postId".
      * @param list<string>|null $allowedBlocks Blocks that may be inserted as inner blocks, e.g. ["sections/hero"];
      *                                         null allows all. Requires render() to accept string $content.
+     * @param bool              $excerptWrapper Add the block to `excerpt_allowed_wrapper_blocks`: automatic excerpts
+     *                                          include its allowed inner blocks, as for core/group. Requires
+     *                                          render() to accept string $content.
      */
     public function __construct(
         public string $name,
@@ -31,5 +34,6 @@ final readonly class Block
         public array $keywords = [],
         public array $usesContext = [],
         public ?array $allowedBlocks = null,
+        public bool $excerptWrapper = false,
     ) {}
 }

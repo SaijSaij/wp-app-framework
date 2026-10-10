@@ -35,11 +35,11 @@ use Throwable;
  * @phpstan-import-type ClassValue from ValueFactory
  * @phpstan-import-type Value from ValueFactory
  * @phpstan-import-type ValueField from ValueFactory
- * @phpstan-type EditorField array{path: string, kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true}
+ * @phpstan-type EditorField array{path: string, kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true, postContent?: true, excerpt?: true}
  * @phpstan-type Control array<string, mixed>
  * @phpstan-type Field array{schema: array<string, mixed>, value: Value, content: bool, fields: list<EditorField>, control: Control|null}
  * @phpstan-type ClassField array{schema: array<string, mixed>, value: ClassValue, content: bool, fields: list<EditorField>, control: Control|null}
- * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, label: string, hidden: bool}
+ * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, label: string, hidden: bool}
  */
 #[NoService]
 final class ValueSchemaBuilder
@@ -132,6 +132,10 @@ final class ValueSchemaBuilder
             if ($markers['url']) {
                 $schema['format'] = 'uri';
             }
+            if ($markers['postContent']) {
+                // Without selector, WordPress parses the whole inner HTML of the block into the value.
+                $schema['source'] = 'html';
+            }
 
             $fields = [];
             $control = ['type' => $name, 'label' => $markers['label'], 'nullable' => $nullable];
@@ -144,6 +148,12 @@ final class ValueSchemaBuilder
                 }
                 if ($markers['inspector']) {
                     $field['inspector'] = true;
+                }
+                if ($markers['postContent']) {
+                    $field['postContent'] = true;
+                }
+                if ($markers['excerpt']) {
+                    $field['excerpt'] = true;
                 }
                 $fields[] = $field;
             }
@@ -340,6 +350,8 @@ final class ValueSchemaBuilder
             $kindAttribute = ($plainAttributes[0] ?? $richAttributes[0] ?? $imageAttributes[0] ?? null)?->newInstance();
             $allowedFormats = $kindAttribute instanceof RichText ? $kindAttribute->allowedFormats : null;
             $inspector = $kindAttribute->inspector ?? false;
+            $postContent = $kindAttribute instanceof RichText && $kindAttribute->postContent;
+            $excerpt = ($kindAttribute instanceof RichText || $kindAttribute instanceof PlainText) && $kindAttribute->excerpt;
             $label = $labelAttributes !== [] ? $labelAttributes[0]->newInstance()->label : self::humanize($parameter->getName());
         } catch (Throwable $exception) {
             $this->errors[] = sprintf('Invalid #[RichText] or #[Label] on %s: %s', $location, $exception->getMessage());
@@ -370,6 +382,8 @@ final class ValueSchemaBuilder
             },
             'allowedFormats' => $allowedFormats,
             'inspector' => $inspector,
+            'postContent' => $postContent,
+            'excerpt' => $excerpt,
             'label' => $label,
             'hidden' => $hidden,
         ];
@@ -472,6 +486,16 @@ final class ValueSchemaBuilder
         $controls = [];
         foreach ($this->classes[$class]->getConstructor()?->getParameters() ?? [] as $parameter) {
             $field = $fields[$parameter->getName()];
+            if (array_filter($field['fields'], static fn(array $editorField): bool => $editorField['path'] === '' && ($editorField['postContent'] ?? false)) !== []) {
+                $this->errors[] = sprintf(
+                    '%s: parameter $%s of %s::__construct() has #[RichText(postContent: true)], which is only allowed on a parameter of the block attribute class itself, not in value classes or list items.',
+                    $location,
+                    $parameter->getName(),
+                    $class,
+                );
+
+                return null;
+            }
             $schema = $field['schema'];
             if (!$parameter->isDefaultValueAvailable()) {
                 $schema['required'] = true;

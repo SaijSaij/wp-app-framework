@@ -105,6 +105,35 @@ function RootElement( { node, fields, extraProps } ) {
 	);
 }
 
+/**
+ * A root element that is itself a text field: RichText with the block props, like core/paragraph.
+ *
+ * @param {Object} props
+ * @param {Object} props.node       Root node.
+ * @param {Object} props.fields     Inline fields by pattern.
+ * @param {Object} props.extraProps Additional props of the root element (loading state).
+ */
+function RootTextElement( { node, fields, extraProps } ) {
+	const path = node.attribs[ FIELD ];
+	const pattern = Object.keys( fields ).find( ( candidate ) =>
+		matchesPattern( path, candidate )
+	);
+	const blockProps = useBlockProps( rootProps( node, extraProps ) );
+	return (
+		<FieldBoundary label={ `Field ${ path }` }>
+			<TextField
+				tagName={ node.name }
+				elementProps={ {
+					...blockProps,
+					className: classNames( blockProps.className, FIELD_CLASS ),
+				} }
+				path={ path }
+				field={ fields[ pattern ] }
+			/>
+		</FieldBoundary>
+	);
+}
+
 function RootInnerBlocksElement( { node, extraProps } ) {
 	const Tag = node.name;
 	return (
@@ -118,7 +147,7 @@ function RootInnerBlocksElement( { node, extraProps } ) {
 
 /**
  * The block's root element (from analyzeMarkup()) with the block props of the editor; marked
- * descendants are replaced by inline editors.
+ * descendants are replaced by inline editors, a marked root element by a text field.
  *
  * @param {Object} props
  * @param {Object} props.node       Root node from analyzeMarkup().
@@ -126,6 +155,15 @@ function RootInnerBlocksElement( { node, extraProps } ) {
  * @param {Object} props.extraProps Additional props of the root element (loading state).
  */
 export function BlockMarkup( { node, fields, extraProps } ) {
+	if ( FIELD in node.attribs ) {
+		return (
+			<RootTextElement
+				node={ node }
+				fields={ fields }
+				extraProps={ extraProps }
+			/>
+		);
+	}
 	return INNER_BLOCKS in node.attribs ? (
 		<RootInnerBlocksElement node={ node } extraProps={ extraProps } />
 	) : (

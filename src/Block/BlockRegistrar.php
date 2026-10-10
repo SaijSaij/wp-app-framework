@@ -21,6 +21,18 @@ use WP_Block;
  * block of the render context (for field() and inner_blocks()). Errors are rethrown when debugging is
  * enabled; otherwise they are logged and the block renders nothing.
  *
+ * A value marked with #[RichText(postContent: true)] is the block's inner HTML;
+ * WordPress never parses sourced attributes on the server, so it is taken from
+ * the block content before the attributes are created.
+ *
+ * Blocks with text fields marked excerpt: true are added to
+ * `excerpt_allowed_blocks`, blocks with `excerptWrapper` to
+ * `excerpt_allowed_wrapper_blocks`. WordPress renders allowed blocks for
+ * excerpts while the `get_the_excerpt` filter runs (wp_trim_excerpt(),
+ * excerpt_remove_blocks()) and offers no other signal; during that filter the
+ * block renders only its excerpt fields, one paragraph each, without running
+ * render() or its template.
+ *
  * @internal
  *
  * @phpstan-import-type BlockEntry from Manifest
@@ -40,6 +52,23 @@ final readonly class BlockRegistrar
      */
     public function register(array $blocks): void
     {
+        $excerptBlocks = [];
+        $excerptWrappers = [];
+        foreach ($blocks as $block) {
+            if ($block['excerpt']['fields'] !== []) {
+                $excerptBlocks[] = $block['name'];
+            }
+            if ($block['excerpt']['wrapper']) {
+                $excerptWrappers[] = $block['name'];
+            }
+        }
+        if ($excerptBlocks !== []) {
+            add_filter('excerpt_allowed_blocks', static fn(array $allowed): array => [...$allowed, ...$excerptBlocks]);
+        }
+        if ($excerptWrappers !== []) {
+            add_filter('excerpt_allowed_wrapper_blocks', static fn(array $allowed): array => [...$allowed, ...$excerptWrappers]);
+        }
+
         foreach ($blocks as $block) {
             register_block_type($block['name'], [
                 ...$block['args'],
@@ -59,6 +88,16 @@ final readonly class BlockRegistrar
     public function render(array $block, array $attributes, string $content, ?WP_Block $instance): string
     {
         try {
+            $postContentField = $block['editor']['postContentField'];
+            if ($postContentField !== null) {
+                // The JS serializer wraps the inner HTML in line breaks.
+                $attributes[$postContentField] = trim($content);
+            }
+
+            if ($block['excerpt']['fields'] !== [] && doing_filter('get_the_excerpt')) {
+                return $this->renderExcerpt($block, $attributes);
+            }
+
             $named = [];
             foreach ($block['arguments'] as $argument) {
                 $named[$argument['param']] = match ($argument['kind']) {
@@ -97,5 +136,59 @@ final readonly class BlockRegistrar
 
             return '';
         }
+    }
+
+    /**
+     * The excerpt fields as paragraphs; rich text as stored, plain text escaped. wp_trim_excerpt() strips the tags.
+     *
+     * @param BlockEntry           $block
+     * @param array<string, mixed> $attributes
+     */
+    private function renderExcerpt(array $block, array $attributes): string
+    {
+        $class = null;
+        foreach ($block['arguments'] as $argument) {
+            if ($argument['kind'] === 'attributes') {
+                $class = $argument['class'];
+            }
+        }
+        if ($class === null) {
+            throw new LogicException(sprintf('Block %s has excerpt fields, but %s::render() accepts no attribute class.', $block['name'], $block['class']));
+        }
+        $values = $this->values->createAttributes($class, $attributes, $block['args']['attributes']);
+
+        $html = '';
+        foreach ($block['excerpt']['fields'] as $path => $kind) {
+            foreach (self::valuesAt($values, explode('.', $path)) as $value) {
+                if (!is_string($value) || trim($value) === '') {
+                    continue;
+                }
+                $html .= '<p>' . ($kind === 'rich' ? $value : esc_html($value)) . "</p>\n";
+            }
+        }
+
+        return $html;
+    }
+
+    /**
+     * The values at a field path; "*" matches every item of a list.
+     *
+     * @param list<string> $segments
+     * @return list<mixed>
+     */
+    private static function valuesAt(mixed $value, array $segments): array
+    {
+        if ($segments === []) {
+            return [$value];
+        }
+        $segment = array_shift($segments);
+        if ($segment === '*') {
+            return is_array($value) ? array_merge(...array_map(static fn(mixed $item): array => self::valuesAt($item, $segments), array_values($value))) : [];
+        }
+        if (!is_object($value) || !property_exists($value, $segment)) {
+            return [];
+        }
+
+        return self::valuesAt($value->{$segment}, $segments);
     }
 }

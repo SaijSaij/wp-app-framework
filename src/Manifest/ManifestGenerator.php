@@ -75,6 +75,7 @@ final class ManifestGenerator
                 'class' => $block->getClass(),
                 'arguments' => $block->getArguments(),
                 'editor' => $block->getEditor(),
+                'excerpt' => $block->getExcerpt(),
             ];
         }
 

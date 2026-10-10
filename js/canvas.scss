@@ -17,11 +17,19 @@ $field-color: var(--wp-admin-theme-color);
 	outline-offset: 2px;
 }
 
+// The root element of a block can be the field itself (e.g. a paragraph).
+.wp-app-framework-field:is(.is-hovered, .is-selected) {
+	outline: 1px dashed color-mix(in srgb, #{$field-color} 50%, transparent);
+	outline-offset: 2px;
+}
+
 // Fields of inner blocks belong to those blocks: not outlined for a hovered or
-// selected container.
+// selected container, also when the inner block's root is the field.
 :is(.is-hovered, .is-selected)
 .wp-block:not(.is-hovered, .is-selected)
-.wp-app-framework-field {
+.wp-app-framework-field,
+:is(.is-hovered, .is-selected)
+.wp-block.wp-app-framework-field:not(.is-hovered, .is-selected) {
 	outline: none;
 }
 

@@ -154,14 +154,17 @@ final class WP_Block
     /** @var array<string, mixed> */
     public array $attributes;
 
+    public string $inner_html;
+
     /**
-     * @param array{blockName: string, attrs?: array<string, mixed>} $block
-     * @param array<string, mixed>                                  $available_context
+     * @param array{blockName: string, attrs?: array<string, mixed>, innerHTML?: string} $block
+     * @param array<string, mixed>                                                      $available_context
      */
     public function __construct(array $block, array $available_context = [], ?WP_Block_Type_Registry $registry = null)
     {
         $this->name = $block['blockName'];
         $this->attributes = $block['attrs'] ?? [];
+        $this->inner_html = $block['innerHTML'] ?? '';
     }
 
     /**
@@ -174,7 +177,8 @@ final class WP_Block
             return '';
         }
 
-        return (string) ($type->render_callback)($this->attributes, '', $this);
+        // Like WordPress for a block without inner blocks: the block content is the inner HTML.
+        return (string) ($type->render_callback)($this->attributes, $this->inner_html, $this);
     }
 }
 
@@ -283,7 +287,7 @@ final class WP_Block_Type
 }
 
 /**
- * @param array{blockName: string, attrs: array<string, mixed>} $parsed_block
+ * @param array{blockName: string, attrs: array<string, mixed>, innerHTML?: string} $parsed_block
  */
 function render_block(array $parsed_block, ?WP_Block $parent_block = null): string
 {
@@ -381,4 +385,27 @@ function wp_style_add_data(string $handle, string $key, mixed $value): bool
 function is_admin(): bool
 {
     return $GLOBALS['wp_app_framework_test_admin'] ?? false;
+}
+
+/**
+ * Records filters in $GLOBALS['wp_app_framework_test_filters'][$hook_name] (they are never applied).
+ */
+function add_filter(string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1): true
+{
+    $GLOBALS['wp_app_framework_test_filters'][$hook_name][] = $callback;
+
+    return true;
+}
+
+/**
+ * Whether $GLOBALS['wp_app_framework_test_doing_filter'] names the filter.
+ */
+function doing_filter(?string $hook_name = null): bool
+{
+    return ($GLOBALS['wp_app_framework_test_doing_filter'] ?? null) === $hook_name;
+}
+
+function esc_html(string $text): string
+{
+    return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }

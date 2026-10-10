@@ -122,6 +122,16 @@ final readonly class RenderController
         /** @var array<string, mixed> $attributes */
         $attributes = rest_sanitize_value_from_schema($attributes, $schema, 'attributes');
 
+        // A value stored in the post content (#[RichText(postContent: true)]) is the block's inner HTML,
+        // as on the front end.
+        $innerHtml = '';
+        foreach ($blockType->get_attributes() as $attribute => $attributeSchema) {
+            if (is_array($attributeSchema) && ($attributeSchema['source'] ?? null) === 'html' && array_key_exists($attribute, $attributes)) {
+                $innerHtml = is_string($attributes[$attribute]) ? $attributes[$attribute] : '';
+                unset($attributes[$attribute]);
+            }
+        }
+
         $hadPost = array_key_exists('post', $GLOBALS);
         $previousPost = $GLOBALS['post'] ?? null;
         try {
@@ -134,8 +144,8 @@ final readonly class RenderController
                 'blockName' => $name,
                 'attrs' => $attributes,
                 'innerBlocks' => [],
-                'innerHTML' => '',
-                'innerContent' => [],
+                'innerHTML' => $innerHtml,
+                'innerContent' => $innerHtml === '' ? [] : [$innerHtml],
             ]))];
         } catch (Throwable $exception) {
             error_log(sprintf(

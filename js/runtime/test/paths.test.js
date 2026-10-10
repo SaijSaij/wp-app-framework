@@ -75,6 +75,19 @@ describe( 'paths', () => {
 		expect( attributes.topline ).toBe( 'Top' );
 	} );
 
+	it( 'blanks a value stored in the post content like other inline text, but not with inspector: true', () => {
+		const postContent = { text: { kind: 'rich', postContent: true } };
+		expect(
+			blankInlineText( { text: 'Hi <b>x</b>', lead: true }, postContent )
+		).toEqual( { text: '', lead: true } );
+		expect(
+			blankInlineText(
+				{ text: 'Hi' },
+				{ text: { ...postContent.text, inspector: true } }
+			)
+		).toEqual( { text: 'Hi' } );
+	} );
+
 	it( 'gives the same key for equal values regardless of key order', () => {
 		expect( stableStringify( { b: 1, a: [ { y: 2, x: 1 } ] } ) ).toBe(
 			stableStringify( { a: [ { x: 1, y: 2 } ], b: 1 } )

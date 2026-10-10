@@ -142,10 +142,28 @@ final class BlockCollector
             return null;
         }
 
-        [$arguments, $attributeSchemas, $fields, $controls] = $render;
+        [$arguments, $attributeSchemas, $fields, $controls, $postContentField] = $render;
         $innerBlocks = in_array('content', array_column($arguments, 'kind'), true);
-        if ($block->allowedBlocks !== null && !$innerBlocks) {
-            $this->errors[] = sprintf('#[Block] on %s has allowedBlocks, but %s::render() accepts no string $content, so the block has no inner blocks.', $name, $name);
+        $excerptFields = self::excerptFields($fields);
+        $error = match (true) {
+            $block->allowedBlocks !== null && !$innerBlocks => sprintf('#[Block] on %s has allowedBlocks, but %s::render() accepts no string $content, so the block has no inner blocks.', $name, $name),
+            $block->excerptWrapper && !$innerBlocks => sprintf('#[Block] on %s has excerptWrapper, but %s::render() accepts no string $content, so the block has no inner blocks to include in excerpts.', $name, $name),
+            $postContentField !== null && $innerBlocks => sprintf(
+                'Attribute "%s" of block %s has #[RichText(postContent: true)], but %s::render() accepts string $content, so the block has inner blocks; inner blocks and a value stored in the post content cannot share the block content.',
+                $postContentField,
+                $name,
+                $name,
+            ),
+            $excerptFields !== [] && $innerBlocks => sprintf(
+                'Block %s has inner blocks (%s::render() accepts string $content), but marks %s with excerpt: true; WordPress never renders blocks with inner blocks for excerpts, use #[Block(excerptWrapper: true)] to include the inner blocks instead.',
+                $name,
+                $name,
+                implode(', ', array_keys($excerptFields)),
+            ),
+            default => null,
+        };
+        if ($error !== null) {
+            $this->errors[] = $error;
 
             return null;
         }
@@ -182,8 +200,30 @@ final class BlockCollector
             'fields' => $fields,
             'controls' => $controls,
             'innerBlocks' => $innerBlocks,
+            'postContentField' => $postContentField,
             'editorScript' => $editorScript,
+        ], [
+            'fields' => $excerptFields,
+            'wrapper' => $block->excerptWrapper,
         ]);
+    }
+
+    /**
+     * Kinds of the text fields marked with excerpt: true, by path in declaration order.
+     *
+     * @param array<string, BlockField> $fields
+     * @return array<string, 'plain'|'rich'>
+     */
+    private static function excerptFields(array $fields): array
+    {
+        $excerpt = [];
+        foreach ($fields as $path => $field) {
+            if (($field['excerpt'] ?? false) && $field['kind'] !== 'image') {
+                $excerpt[$path] = $field['kind'];
+            }
+        }
+
+        return $excerpt;
     }
 
     /**
@@ -293,10 +333,10 @@ final class BlockCollector
     }
 
     /**
-     * Checks render() and derives the attribute schemas, inline fields and inspector controls.
+     * Checks render() and derives the attribute schemas, inline fields, inspector controls and the attribute stored in the post content.
      *
      * @param ReflectionClass<object> $class
-     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, BlockField>, array<string, Control>}|null
+     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, BlockField>, array<string, Control>, string|null}|null
      */
     private function render(ReflectionClass $class): ?array
     {
@@ -324,7 +364,7 @@ final class BlockCollector
     }
 
     /**
-     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, BlockField>, array<string, Control>}|null
+     * @return array{list<BlockArgument>, array<string, array<string, mixed>>, array<string, BlockField>, array<string, Control>, string|null}|null
      */
     private function renderParameters(ReflectionMethod $method, string $location): ?array
     {
@@ -332,6 +372,7 @@ final class BlockCollector
         $schemas = [];
         $fields = [];
         $controls = [];
+        $postContentField = null;
         $kinds = [];
         $valid = true;
 
@@ -379,18 +420,19 @@ final class BlockCollector
                 $valid = false;
                 continue;
             }
-            [$schemas, $fields, $controls] = $attributeSchemas;
+            [$schemas, $fields, $controls, $postContentField] = $attributeSchemas;
             $arguments[] = ['param' => $parameter->getName(), 'kind' => 'attributes', 'class' => $attributesClass];
         }
 
-        return $valid ? [$arguments, $schemas, $fields, $controls] : null;
+        return $valid ? [$arguments, $schemas, $fields, $controls, $postContentField] : null;
     }
 
     /**
-     * Schemas by attribute name, inline fields by path (e.g. "buttons.*.label") and inspector controls by attribute name.
+     * Schemas by attribute name, inline fields by path (e.g. "buttons.*.label"), inspector controls by attribute name
+     * and the attribute stored in the post content (#[RichText(postContent: true)]).
      *
      * @param class-string $class
-     * @return array{array<string, array<string, mixed>>, array<string, BlockField>, array<string, Control>}|null
+     * @return array{array<string, array<string, mixed>>, array<string, BlockField>, array<string, Control>, string|null}|null
      */
     private function attributeSchemas(string $class, string $location): ?array
     {
@@ -401,6 +443,7 @@ final class BlockCollector
         $schemas = [];
         $editorFields = [];
         $controls = [];
+        $postContentField = null;
         $valid = $fields !== null;
         foreach ($parameters as $parameter) {
             $name = $parameter->getName();
@@ -432,6 +475,27 @@ final class BlockCollector
             $schemas[$name] = $schema;
 
             foreach ($field['fields'] as $editorField) {
+                // ValueSchemaBuilder rejects postContent in value classes and list items, so this is the attribute itself.
+                if ($editorField['postContent'] ?? false) {
+                    $error = match (true) {
+                        $postContentField !== null => sprintf(
+                            '%s has #[RichText(postContent: true)], but the attribute "%s" already does; a block stores at most one value in the post content.',
+                            $attributeLocation,
+                            $postContentField,
+                        ),
+                        $default !== '' => sprintf(
+                            "%s has #[RichText(postContent: true)] and must default to '': the editor stores an empty value as empty block content, which WordPress parses as ''.",
+                            $attributeLocation,
+                        ),
+                        default => null,
+                    };
+                    if ($error !== null) {
+                        $this->errors[] = $error;
+                        $valid = false;
+                        continue;
+                    }
+                    $postContentField = $name;
+                }
                 $path = $editorField['path'] === '' ? $name : $name . '.' . $editorField['path'];
                 unset($editorField['path']);
                 $editorFields[$path] = $editorField;
@@ -442,6 +506,6 @@ final class BlockCollector
             }
         }
 
-        return $valid ? [$schemas, $editorFields, $controls] : null;
+        return $valid ? [$schemas, $editorFields, $controls, $postContentField] : null;
     }
 }

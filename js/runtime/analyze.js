@@ -23,7 +23,9 @@ export function isElement( node ) {
 
 /**
  * Checks the server markup of a block: exactly one root element, marked
- * fields that exist. Returns the root node and the marked paths.
+ * fields that exist. The root element may itself be a text field (e.g. the
+ * <p> of a paragraph block), but not an image field. Returns the root node and
+ * the marked paths.
  *
  * @param {string} html
  * @param {Object} fields Inline fields by pattern.
@@ -44,10 +46,17 @@ export function analyzeMarkup( html, fields ) {
 	}
 
 	const root = nodes[ 0 ];
-	if ( FIELD in root.attribs ) {
+	const rootPath = root.attribs[ FIELD ];
+	if (
+		rootPath !== undefined &&
+		Object.entries( fields ).some(
+			( [ pattern, field ] ) =>
+				field.kind === 'image' && matchesPattern( rootPath, pattern )
+		)
+	) {
 		return {
 			root: null,
-			error: 'The root element cannot be an inline field; mark an element inside it.',
+			error: 'The root element cannot be an image field; mark an element inside it.',
 			paths: [],
 		};
 	}

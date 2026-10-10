@@ -12,13 +12,15 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  * @phpstan-type BlockArgument array{param: string, kind: 'attributes', class: class-string}
  *     |array{param: string, kind: 'content'|'block'}
  * @phpstan-type BlockArgs array{attributes: array<string, array<string, mixed>>, ...<string, mixed>}
- * @phpstan-type BlockField array{kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true}
+ * @phpstan-type BlockField array{kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true, postContent?: true, excerpt?: true}
  * @phpstan-type BlockEditor array{
  *     fields: array<string, BlockField>,
  *     controls: array<string, array<string, mixed>>,
  *     innerBlocks: bool,
+ *     postContentField: string|null,
  *     editorScript: string|null
  * }
+ * @phpstan-type BlockExcerpt array{fields: array<string, 'plain'|'rich'>, wrapper: bool}
  */
 #[NoService]
 final readonly class BlockDefinition
@@ -28,8 +30,11 @@ final readonly class BlockDefinition
      * @param class-string         $class
      * @param list<BlockArgument>  $arguments Parameters of render() in declaration order.
      * @param BlockEditor          $editor    Data of the editor runtime: inline fields by path (list items as `*`),
-     *                                        inspector controls by attribute, whether the block has inner blocks
-     *                                        and its editor script below the script directory, without extension.
+     *                                        inspector controls by attribute, whether the block has inner blocks,
+     *                                        the attribute stored in the post content and its editor script below
+     *                                        the script directory, without extension.
+     * @param BlockExcerpt         $excerpt   Text fields included in automatic excerpts (kind by path, list items as
+     *                                        `*`) and whether the block is an excerpt wrapper.
      */
     public function __construct(
         private string $name,
@@ -37,6 +42,7 @@ final readonly class BlockDefinition
         private string $class,
         private array $arguments,
         private array $editor,
+        private array $excerpt,
     ) {}
 
     public function getName(): string
@@ -74,5 +80,13 @@ final readonly class BlockDefinition
     public function getEditor(): array
     {
         return $this->editor;
+    }
+
+    /**
+     * @return BlockExcerpt
+     */
+    public function getExcerpt(): array
+    {
+        return $this->excerpt;
     }
 }

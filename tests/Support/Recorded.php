@@ -36,6 +36,17 @@ final class Recorded
     }
 
     /**
+     * @return list<callable(list<string>): list<string>> Callbacks add_filter() recorded for a filter on lists of names.
+     */
+    public static function listFilters(string $name): array
+    {
+        /** @var array<string, list<callable(list<string>): list<string>>> $filters */
+        $filters = $GLOBALS['wp_app_framework_test_filters'] ?? [];
+
+        return $filters[$name] ?? [];
+    }
+
+    /**
      * @return array<string, array{src: string, deps: list<string>, ver: string|bool|null, enqueued: bool, before: list<string>}> By handle.
      */
     public static function scripts(): array

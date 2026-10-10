@@ -27,6 +27,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * @phpstan-import-type BlockArgs from BlockDefinition
  * @phpstan-import-type BlockArgument from BlockDefinition
  * @phpstan-import-type BlockEditor from BlockDefinition
+ * @phpstan-import-type BlockExcerpt from BlockDefinition
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-type HookEntry array{name: string, priority: int, acceptedArgs: int, filter: bool, class: class-string, method: string, arguments: list<HookArgument>}
  * @phpstan-type RouteEntry array{
@@ -45,7 +46,8 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     args: BlockArgs,
  *     class: class-string,
  *     arguments: list<BlockArgument>,
- *     editor: BlockEditor
+ *     editor: BlockEditor,
+ *     excerpt: BlockExcerpt
  * }
  * @phpstan-type ManifestData array{
  *     format: int,
@@ -61,7 +63,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 6;
+    public const int FORMAT = 7;
 
     /**
      * @return ManifestData
