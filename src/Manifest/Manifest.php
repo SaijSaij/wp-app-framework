@@ -29,6 +29,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * @phpstan-import-type BlockEditor from BlockDefinition
  * @phpstan-import-type BlockExcerpt from BlockDefinition
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
  * @phpstan-type HookEntry array{name: string, priority: int, acceptedArgs: int, filter: bool, class: class-string, method: string, arguments: list<HookArgument>}
  * @phpstan-type RouteEntry array{
  *     namespace: non-falsy-string,
@@ -51,20 +52,24 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * }
  * @phpstan-type ManifestData array{
  *     format: int,
+ *     kind: value-of<\Saij\WpAppFramework\Project\ProjectKind>,
+ *     slug: non-empty-string|null,
  *     candidates: list<class-string>,
- *     services: array<class-string, array<string, class-string>>,
+ *     services: array<class-string, array<string, ServiceArgument>>,
  *     hooks: list<HookEntry>,
  *     routes: list<RouteEntry>,
  *     templateCallables: list<TemplateCallableEntry>,
  *     blocks: list<BlockEntry>,
  *     values: array<class-string, array<string, ValueField>>,
+ *     publicApis: list<class-string>,
+ *     templatePlugins: array<non-empty-string, non-empty-string>,
  *     templateVersion: non-empty-string|null
  * }
  */
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 8;
+    public const int FORMAT = 9;
 
     /**
      * @return ManifestData

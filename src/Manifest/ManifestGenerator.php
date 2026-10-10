@@ -70,6 +70,7 @@ final class ManifestGenerator
                 'class' => $callable->getClass(),
                 'method' => $callable->getMethod(),
                 'html' => $callable->isHtml(),
+                'public' => $callable->isPublic(),
             ];
         }
 
@@ -87,6 +88,8 @@ final class ManifestGenerator
 
         return [
             'format' => Manifest::FORMAT,
+            'kind' => $result->getKind()->value,
+            'slug' => $result->getSlug(),
             'candidates' => $result->getCandidates(),
             'services' => $result->getServices(),
             'hooks' => $hooks,
@@ -94,6 +97,8 @@ final class ManifestGenerator
             'templateCallables' => $templateCallables,
             'blocks' => $blocks,
             'values' => $result->getValues(),
+            'publicApis' => $result->getPublicApis(),
+            'templatePlugins' => $result->getTemplatePlugins(),
             'templateVersion' => $templateVersion,
         ];
     }

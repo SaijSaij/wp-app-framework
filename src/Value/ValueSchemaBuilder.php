@@ -211,7 +211,7 @@ final class ValueSchemaBuilder
 
         $reflection = $this->classes[$class] ?? null;
         if ($reflection === null) {
-            $this->errors[] = sprintf('%s: %s is outside the scanned PSR-4 directories of the theme and the framework.', $location, $class);
+            $this->errors[] = sprintf('%s: %s is outside the scanned PSR-4 directories of the project and the framework.', $location, $class);
 
             return $this->objects[$class] = null;
         }
@@ -442,7 +442,7 @@ final class ValueSchemaBuilder
                 return null;
             }
             if (!isset($this->classes[$class])) {
-                $this->errors[] = sprintf('%s: enum %s is outside the scanned PSR-4 directories of the theme and the framework.', $location, $class);
+                $this->errors[] = sprintf('%s: enum %s is outside the scanned PSR-4 directories of the project and the framework.', $location, $class);
 
                 return null;
             }

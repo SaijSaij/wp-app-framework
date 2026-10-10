@@ -150,9 +150,10 @@ final readonly class EditorAssets
         $assetFile = $this->buildDirectory . '/' . $script . '.asset.php';
         if (!is_file($assetFile)) {
             throw new LogicException(sprintf(
-                'The editor script %s is not built: %s is missing. Run "npm run build" (or "npm run start") in the theme.',
+                'The editor script %s is not built: %s is missing. Run "npm run build" (or "npm run start") in the theme or plugin %s.',
                 $script,
                 $assetFile,
+                $this->slug,
             ));
         }
 
@@ -176,9 +177,10 @@ final readonly class EditorAssets
         $file = $this->buildDirectory . '/' . $name . '.css';
         if (!is_file($file)) {
             throw new LogicException(sprintf(
-                'The styles %s are not built: %s is missing. Run "npm run build" (or "npm run start") in the theme.',
+                'The styles %s are not built: %s is missing. Run "npm run build" (or "npm run start") in the theme or plugin %s.',
                 $name,
                 $file,
+                $this->slug,
             ));
         }
         wp_register_style($handle, $this->buildUri . '/' . $name . '.css', $dependencies, $version);

@@ -120,7 +120,7 @@ final class BlockCollector
 
         $file = (string) realpath((string) $class->getFileName());
         if (str_starts_with($file, $this->frameworkDirectory . '/')) {
-            $this->errors[] = sprintf('%s has #[Block], but the framework registers no blocks; blocks belong to the theme.', $name);
+            $this->errors[] = sprintf('%s has #[Block], but the framework registers no blocks; blocks belong to the theme or plugin.', $name);
 
             return null;
         }
@@ -239,7 +239,7 @@ final class BlockCollector
         }
         if ($this->scriptDirectory === null || !str_starts_with($script, $this->scriptDirectory . '/')) {
             $this->errors[] = sprintf(
-                'The editor script %s of %s is outside the script directory %s, which the build of the theme compiles.',
+                'The editor script %s of %s is outside the script directory %s, which the build of the project compiles.',
                 $script,
                 $class,
                 $this->scriptDirectory ?? '(none)',

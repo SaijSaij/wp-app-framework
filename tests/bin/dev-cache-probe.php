@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 /*
- * Runs the dev cache against a temporary theme in a fresh PHP process, because
+ * Runs the dev cache against a temporary project in a fresh PHP process, because
  * classes changed by a test cannot be reloaded in the PHPUnit process.
  *
- * Usage: php dev-cache-probe.php <check|load|load-without-theme-base> <cache dir> <theme dir>
+ * Usage: php dev-cache-probe.php <check|load|load-without-project-base> <cache dir> <project dir>
  * Prints "fresh"/"stale" (check) or the hook names of the loaded manifest (load).
  */
 
@@ -28,12 +28,12 @@ spl_autoload_register(static function (string $class) use ($themeDirectory): voi
     }
 });
 
-$bases = ['theme' => $themeDirectory, 'framework' => (string) realpath(__DIR__ . '/../..')];
-if ($mode === 'load-without-theme-base') {
-    unset($bases['theme']);
+$bases = ['project' => $themeDirectory, 'framework' => (string) realpath(__DIR__ . '/../..')];
+if ($mode === 'load-without-project-base') {
+    unset($bases['project']);
 }
 
-$cache = new DevCache($cacheDirectory, $bases, ManifestBuilder::forTheme($themeDirectory));
+$cache = new DevCache($cacheDirectory, $bases, ManifestBuilder::forProject($themeDirectory));
 
 try {
     if ($mode === 'check') {

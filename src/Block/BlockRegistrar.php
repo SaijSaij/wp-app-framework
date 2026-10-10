@@ -12,6 +12,7 @@ use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Throwable;
 use WP_Block;
+use WP_Block_Type_Registry;
 
 /**
  * Registers the blocks of the manifest with WordPress (on init).
@@ -33,6 +34,10 @@ use WP_Block;
  * block renders only its excerpt fields, one paragraph each, without running
  * render() or its template.
  *
+ * A block name another framework instance or plugin already registered is an
+ * error (WordPress itself only reports it as "doing it wrong"): with WP_DEBUG
+ * it is thrown, otherwise logged and the block is skipped.
+ *
  * @internal
  *
  * @phpstan-import-type BlockEntry from Manifest
@@ -45,6 +50,7 @@ final readonly class BlockRegistrar
         private ValueFactory $values,
         private RenderContext $context,
         private bool $debug,
+        private string $slug,
     ) {}
 
     /**
@@ -52,9 +58,36 @@ final readonly class BlockRegistrar
      */
     public function register(array $blocks): void
     {
+        $registry = WP_Block_Type_Registry::get_instance();
+        $registered = [];
+        foreach ($blocks as $block) {
+            if ($registry->is_registered($block['name'])) {
+                $message = sprintf(
+                    'Block %s of %s cannot be registered: a block with this name is already registered (by another plugin, theme or framework instance). Block names must be unique; use the namespace of the theme or plugin.',
+                    $block['name'],
+                    $this->slug,
+                );
+                if ($this->debug) {
+                    throw new LogicException($message);
+                }
+                error_log('wp-app-framework: ' . $message);
+                continue;
+            }
+
+            register_block_type($block['name'], [
+                ...$block['args'],
+                // WP_Block_Type::render() calls render callbacks without the block instance.
+                'render_callback' => function (array $attributes, string $content = '', ?WP_Block $instance = null) use ($block): string {
+                    /** @var array<string, mixed> $attributes Prepared by WP_Block_Type::prepare_attributes_for_render(). */
+                    return $this->render($block, $attributes, $content, $instance);
+                },
+            ]);
+            $registered[] = $block;
+        }
+
         $excerptBlocks = [];
         $excerptWrappers = [];
-        foreach ($blocks as $block) {
+        foreach ($registered as $block) {
             if ($block['excerpt']['fields'] !== []) {
                 $excerptBlocks[] = $block['name'];
             }
@@ -67,17 +100,6 @@ final readonly class BlockRegistrar
         }
         if ($excerptWrappers !== []) {
             add_filter('excerpt_allowed_wrapper_blocks', static fn(array $allowed): array => [...$allowed, ...$excerptWrappers]);
-        }
-
-        foreach ($blocks as $block) {
-            register_block_type($block['name'], [
-                ...$block['args'],
-                // WP_Block_Type::render() calls render callbacks without the block instance.
-                'render_callback' => function (array $attributes, string $content = '', ?WP_Block $instance = null) use ($block): string {
-                    /** @var array<string, mixed> $attributes Prepared by WP_Block_Type::prepare_attributes_for_render(). */
-                    return $this->render($block, $attributes, $content, $instance);
-                },
-            ]);
         }
     }
 

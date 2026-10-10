@@ -144,7 +144,7 @@ final class EditorBuildTest extends TestCase
             '#[Block] on ' . BlockEditorBroken\AllowedWithoutContent::class . ' has allowedBlocks, but ' . BlockEditorBroken\AllowedWithoutContent::class . '::render() accepts no string $content, so the block has no inner blocks.',
             '#[Block] on ' . BlockEditorBroken\AllowedInvalid::class . ': allowedBlocks must contain non-empty strings only.',
             sprintf(
-                'The editor script %s/ScriptOutside.editor.js of %s is outside the script directory (none), which the build of the theme compiles.',
+                'The editor script %s/ScriptOutside.editor.js of %s is outside the script directory (none), which the build of the project compiles.',
                 ManifestBuilderTest::fixture('BlockEditorBroken')->getDirectory(),
                 BlockEditorBroken\ScriptOutside::class,
             ),

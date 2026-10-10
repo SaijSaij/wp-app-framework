@@ -15,6 +15,7 @@ use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Tests\Support\Recorded;
 use Saij\WpAppFramework\Value\ValueFactory;
 use WP_Block;
+use WP_Block_Type_Registry;
 
 /**
  * Registers the blocks of a generated manifest with the register_block_type()
@@ -48,6 +49,7 @@ final class BlockRegistrarTest extends TestCase
         unlink($this->log);
         unlink($this->file);
         unset($GLOBALS['wp_app_framework_test_blocks']);
+        WP_Block_Type_Registry::get_instance()->unregister('fixture/hero');
     }
 
     /**
@@ -55,7 +57,7 @@ final class BlockRegistrarTest extends TestCase
      */
     private function register(bool $debug): array
     {
-        new BlockRegistrar(new Container($this->manifest['services']), new ValueFactory($this->manifest['values']), new RenderContext(), $debug)
+        new BlockRegistrar(new Container($this->manifest['services']), new ValueFactory($this->manifest['values']), new RenderContext(), $debug, 'my-theme')
             ->register($this->manifest['blocks']);
 
         return Recorded::blocks();
@@ -119,5 +121,28 @@ final class BlockRegistrarTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Block fixture/post-title was rendered without a WP_Block instance, but Saij\\WpAppFramework\\Tests\\Fixtures\\BlockValid\\PostTitle::render() needs one.');
         Recorded::renderCallback('fixture/post-title')([]);
+    }
+
+    public function testBlockNamesRegisteredElsewhereAreSkippedAndLoggedWithoutDebug(): void
+    {
+        WP_Block_Type_Registry::get_instance()->register('fixture/hero');
+
+        $registered = $this->register(false);
+
+        self::assertSame(['fixture/failing', 'fixture/post-title', 'fixture/section'], array_keys($registered));
+        self::assertStringContainsString(
+            'wp-app-framework: Block fixture/hero of my-theme cannot be registered: a block with this name is already registered (by another plugin, theme or framework instance).',
+            (string) file_get_contents($this->log),
+        );
+    }
+
+    public function testBlockNamesRegisteredElsewhereAreAnErrorInDebugMode(): void
+    {
+        WP_Block_Type_Registry::get_instance()->register('fixture/hero');
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Block fixture/hero of my-theme cannot be registered: a block with this name is already registered');
+
+        $this->register(true);
     }
 }

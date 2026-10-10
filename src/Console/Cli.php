@@ -21,7 +21,7 @@ use Saij\WpAppFramework\Twig\TemplateVersion;
  * Command line entry point.
  *
  * - `build [--output=<file>]` builds and checks the manifest. Without --output
- *   nothing is written. A theme source checkout must not contain
+ *   nothing is written. A source checkout of a theme or plugin must not contain
  *   generated/manifest.php: the framework treats its presence as a release build.
  * - `release [...]` builds the release ZIP (see ReleaseCommand).
  * - `compile-templates --manifest=<file> --output=<directory>` compiles all
@@ -113,7 +113,7 @@ final class Cli
         }
 
         try {
-            $result = ManifestBuilder::forTheme($projectDirectory)->build();
+            $result = ManifestBuilder::forProject($projectDirectory)->build();
 
             if ($output !== null) {
                 // A written manifest is a release manifest: its Twig cache directory is named after the templates.
@@ -130,8 +130,11 @@ final class Cli
             static fn($callable) => $callable->getKind() === TemplateCallableKind::Function,
         ));
 
+        $public = count(array_filter($result->getTemplateCallables(), static fn($callable) => $callable->isPublic()));
         fwrite($stdout, sprintf(
-            "Manifest OK: %d service candidates, %d services, %d hooks, %d routes, %d template functions, %d template filters, %d blocks.%s\n",
+            "Manifest OK (%s %s): %d service candidates, %d services, %d hooks, %d routes, %d template functions, %d template filters, %d blocks.%s\n",
+            $result->getKind()->getLabel(),
+            $result->getSlug() ?? '',
             count($result->getCandidates()),
             count($result->getServices()),
             count($result->getHooks()),
@@ -141,13 +144,19 @@ final class Cli
             count($result->getBlocks()),
             $output !== null ? ' Written to ' . $output . '.' : ' Nothing written (no --output).',
         ));
+        if ($result->getPublicApis() !== [] || $public > 0) {
+            fwrite($stdout, sprintf("Public: %d APIs, %d template functions and filters.\n", count($result->getPublicApis()), $public));
+        }
+        if ($result->getTemplatePlugins() !== []) {
+            fwrite($stdout, sprintf("Templates use the public template callables of: %s.\n", implode(', ', $result->getTemplatePlugins())));
+        }
 
         $overrides = TemplateOverrides::find(
             $projectDirectory . '/' . TemplateRenderer::TEMPLATE_DIRECTORY,
             ManifestBuilder::frameworkSource()->getDirectory(),
         );
         foreach ($overrides as $name) {
-            fwrite($stdout, sprintf("Template %s of the theme overrides the framework template.\n", $name));
+            fwrite($stdout, sprintf("Template %s of the %s overrides the framework template.\n", $name, $result->getKind()->getLabel()));
         }
 
         return 0;
@@ -159,10 +168,10 @@ final class Cli
     private static function templateVersion(string $projectDirectory): string
     {
         $directories = [];
-        $themeTemplates = $projectDirectory . '/' . TemplateRenderer::TEMPLATE_DIRECTORY;
-        // A theme without src/ has no templates of its own; the framework's templates are versioned anyway.
-        if (is_dir($themeTemplates)) {
-            $directories[] = $themeTemplates;
+        $projectTemplates = $projectDirectory . '/' . TemplateRenderer::TEMPLATE_DIRECTORY;
+        // A project without src/ has no templates of its own; the framework's templates are versioned anyway.
+        if (is_dir($projectTemplates)) {
+            $directories[] = $projectTemplates;
         }
         $directories[] = ManifestBuilder::frameworkSource()->getDirectory();
 

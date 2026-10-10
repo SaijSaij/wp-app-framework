@@ -10,6 +10,7 @@ use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Tests\Fixtures\TwigValid\TextHelpers;
 use Saij\WpAppFramework\Tests\Support\Files;
+use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateOverrides;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Twig\Error\LoaderError;
@@ -45,12 +46,16 @@ final class TemplateRendererTest extends TestCase
         $templates = (string) realpath(self::TEMPLATES);
 
         return new TemplateRenderer(
+            'theme',
             $templates . '/theme',
-            $templates . '/' . $stylesheet,
+            Theme::templateOverrides($templates . '/theme', $templates . '/' . $stylesheet),
+            $templates . '/theme/src',
+            'theme',
             $templates . '/framework/src',
             $this->cache,
             $development,
             $manifest['templateCallables'],
+            [],
             new Container($manifest['services']),
         );
     }

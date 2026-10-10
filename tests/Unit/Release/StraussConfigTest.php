@@ -36,7 +36,7 @@ final class StraussConfigTest extends ReleaseTestCase
 
     public function testValidSettingsProvideThePrefix(): void
     {
-        self::assertSame('Vendor\\Theme\\Vendor\\', StraussConfig::fromComposerFile($this->composer(self::valid()))->getNamespacePrefix());
+        self::assertSame('Vendor\\Theme\\Vendor\\', StraussConfig::fromComposerFile($this->composer(self::valid()), 'functions.php')->getNamespacePrefix());
     }
 
     public function testEveryWrongSettingIsReported(): void
@@ -49,7 +49,7 @@ final class StraussConfigTest extends ReleaseTestCase
         ]);
 
         try {
-            StraussConfig::fromComposerFile($file);
+            StraussConfig::fromComposerFile($file, 'functions.php');
             self::fail('Expected a ReleaseException.');
         } catch (ReleaseException $exception) {
             $message = $exception->getMessage();
@@ -67,7 +67,7 @@ final class StraussConfigTest extends ReleaseTestCase
         $this->expectException(ReleaseException::class);
         $this->expectExceptionMessage('extra.strauss.namespace_prefix must be a namespace with a trailing backslash');
 
-        StraussConfig::fromComposerFile($this->composer(['namespace_prefix' => 'Vendor\\Theme\\Vendor'] + self::valid()));
+        StraussConfig::fromComposerFile($this->composer(['namespace_prefix' => 'Vendor\\Theme\\Vendor'] + self::valid()), 'functions.php');
     }
 
     public function testMissingSettingsAreAnError(): void
@@ -75,6 +75,14 @@ final class StraussConfigTest extends ReleaseTestCase
         $this->expectException(ReleaseException::class);
         $this->expectExceptionMessage('has no extra.strauss settings');
 
-        StraussConfig::fromComposerFile($this->write('composer.json', '{}'));
+        StraussConfig::fromComposerFile($this->write('composer.json', '{}'), 'functions.php');
+    }
+
+    public function testTheBootFileMustBeRewritten(): void
+    {
+        $this->expectException(ReleaseException::class);
+        $this->expectExceptionMessage('extra.strauss.update_call_sites must contain "my-plugin.php", which boots the framework, found ["src","functions.php"].');
+
+        StraussConfig::fromComposerFile($this->composer(self::valid()), 'my-plugin.php');
     }
 }

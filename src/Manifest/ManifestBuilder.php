@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Manifest;
 
-use JsonException;
 use ReflectionClass;
+use Saij\WpAppFramework\Api\PublicApiCollector;
+use Saij\WpAppFramework\Api\PublicSignatureInspector;
 use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
@@ -13,6 +14,9 @@ use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Hook\HookCollector;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
+use Saij\WpAppFramework\Plugin;
+use Saij\WpAppFramework\Project\ComposerProject;
+use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRouteCollector;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableCollector;
@@ -33,69 +37,39 @@ final class ManifestBuilder
      * @param list<string>       $trackedFiles Absolute paths of files whose content affects the build.
      * @param list<class-string> $predefined   Candidates provided at runtime instead of built.
      * @param string|null        $scriptDirectory Directory the consumer's build compiles scripts from (its `src/`).
+     * @param non-empty-string|null  $slug              Slug of the project; null for builds of fixtures.
+     * @param list<non-empty-string> $templatePlugins   Plugins whose public template callables the templates use.
+     * @param list<string>           $foreignNamespaces Namespaces of dependencies, prefixed in a release.
      */
     public function __construct(
         private readonly array $sources,
         private readonly array $trackedFiles = [],
         private readonly array $predefined = [],
         private readonly ?string $scriptDirectory = null,
+        private readonly ProjectKind $kind = ProjectKind::Theme,
+        private readonly ?string $slug = null,
+        private readonly array $templatePlugins = [],
+        private readonly array $foreignNamespaces = [],
     ) {}
 
     /**
-     * Builder for a theme: its PSR-4 directories from composer.json plus the framework itself.
+     * Builder for a theme or plugin: its PSR-4 directories and settings from
+     * composer.json plus the framework itself.
      */
-    public static function forTheme(string $themeDirectory): self
+    public static function forProject(string $projectDirectory): self
     {
-        $root = realpath($themeDirectory);
-        if ($root === false) {
-            throw new BuildException([sprintf('Theme directory %s does not exist.', $themeDirectory)]);
-        }
-
-        $composerFile = $root . '/composer.json';
-        if (!is_file($composerFile)) {
-            throw new BuildException([sprintf(
-                '%s not found; the build reads the PSR-4 directories of the theme from it.',
-                $composerFile,
-            )]);
-        }
-
-        try {
-            $composer = json_decode((string) file_get_contents($composerFile), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $exception) {
-            throw new BuildException([sprintf('%s is not valid JSON: %s', $composerFile, $exception->getMessage())]);
-        }
-
-        $autoload = is_array($composer) && is_array($composer['autoload'] ?? null) ? $composer['autoload'] : [];
-        $psr4 = $autoload['psr-4'] ?? null;
-        if (!is_array($psr4) || $psr4 === []) {
-            throw new BuildException([sprintf('%s defines no autoload.psr-4 entries.', $composerFile)]);
-        }
-
-        $sources = [];
-        $errors = [];
-        foreach ($psr4 as $prefix => $directories) {
-            foreach ((array) $directories as $directory) {
-                if (!is_string($directory)) {
-                    $errors[] = sprintf('PSR-4 prefix "%s" in %s has a directory that is not a string.', $prefix, $composerFile);
-                    continue;
-                }
-                $path = realpath($root . '/' . rtrim($directory, '/'));
-                if ($path === false || !is_dir($path)) {
-                    $errors[] = sprintf('PSR-4 directory "%s" of prefix "%s" in %s does not exist.', $directory, $prefix, $composerFile);
-                    continue;
-                }
-                $sources[] = new Source(rtrim((string) $prefix, '\\') . '\\', $path);
-            }
-        }
-
-        if ($errors !== []) {
-            throw new BuildException($errors);
-        }
+        $project = ComposerProject::load($projectDirectory);
+        $root = $project->getDirectory();
 
         $framework = self::frameworkSource();
-        $sources[] = $framework;
+        $sources = [...$project->getSources(), $framework];
 
-        $trackedFiles = [$composerFile];
+        $trackedFiles = [$project->getComposerFile()];
+        // Installed dependencies decide which namespaces a public signature must not use.
+        $installed = $root . '/vendor/composer/installed.json';
+        if (is_file($installed)) {
+            $trackedFiles[] = $installed;
+        }
         foreach (ClassDiscovery::files($framework->getDirectory()) as $relative) {
             $trackedFiles[] = $framework->getDirectory() . '/' . $relative;
         }
@@ -105,8 +79,16 @@ final class ManifestBuilder
         return new self(
             $sources,
             $trackedFiles,
-            [Theme::class, TemplateRenderer::class, RenderContext::class],
+            [
+                $project->getKind() === ProjectKind::Plugin ? Plugin::class : Theme::class,
+                TemplateRenderer::class,
+                RenderContext::class,
+            ],
             $scriptDirectory === false ? null : $scriptDirectory,
+            $project->getKind(),
+            $project->getSlug(),
+            $project->getTemplatePlugins(),
+            $project->getForeignNamespaces(),
         );
     }
 
@@ -135,14 +117,30 @@ final class ManifestBuilder
         $routes = $routeCollector->collect($classes);
         $blockCollector = new BlockCollector($resolver, $values, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
         $blocks = $blockCollector->collect($classes);
-        $templateCallableCollector = new TemplateCallableCollector($resolver, TemplateRenderer::getBuiltInNames());
+        // The framework's namespace is prefixed in a release as well; also listed for builds without vendor/.
+        $framework = self::frameworkSource();
+        $signatures = new PublicSignatureInspector($classes, [...$this->foreignNamespaces, $framework->getPrefix()], $framework->getDirectory());
+        $templatePlugins = [];
+        foreach ($this->templatePlugins as $plugin) {
+            $templatePlugins[ComposerProject::templatePrefix($plugin)] = $plugin;
+        }
+        $templateCallableCollector = new TemplateCallableCollector(
+            $resolver,
+            TemplateRenderer::getBuiltInNames(),
+            $this->kind === ProjectKind::Plugin && $this->slug !== null ? ComposerProject::templatePrefix($this->slug) : null,
+            $templatePlugins,
+            $signatures,
+        );
         $templateCallables = $templateCallableCollector->collect($classes);
+        $publicApiCollector = new PublicApiCollector($resolver, $signatures, $this->kind);
+        $publicApis = $publicApiCollector->collect($classes);
 
         $errors = [
             ...$errors,
             ...$hookCollector->errors(),
             ...$routeCollector->errors(),
             ...$templateCallableCollector->errors(),
+            ...$publicApiCollector->errors(),
             ...$blockCollector->errors(),
             ...$values->errors(),
             ...$resolver->errors(),
@@ -162,6 +160,10 @@ final class ManifestBuilder
             $templateCallables,
             $blocks,
             $values->values(),
+            $this->kind,
+            $this->slug,
+            $publicApis,
+            $templatePlugins,
         );
     }
 

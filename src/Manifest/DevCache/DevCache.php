@@ -26,7 +26,7 @@ use Throwable;
  * Method bodies do not affect the signature.
  *
  * The meta file stores paths relative to named base directories only (for
- * example ['theme', 'src/Foo.php']), never absolute paths.
+ * example ['project', 'src/Foo.php']), never absolute paths.
  *
  * @phpstan-import-type ManifestData from Manifest
  * @phpstan-type PathRef array{0: string, 1: string}
@@ -43,7 +43,7 @@ final class DevCache
     private const int META_FORMAT = 1;
 
     /**
-     * @param string                $directory Cache directory, outside the theme.
+     * @param string                $directory Cache directory, outside the project.
      * @param array<string, string> $bases     Base directories by name, used to make paths relative.
      */
     public function __construct(

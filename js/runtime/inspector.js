@@ -534,7 +534,7 @@ export function ValueControl( props ) {
 /**
  * Generated inspector of a block: content controls in the "content" group
  * (which stays visible in contentOnly mode), all others in the default group,
- * plus the controls and panels the theme registered.
+ * plus the controls and panels the theme or plugin registered.
  *
  * @param {Object} props
  * @param {Object} props.registry Registered controls and panels.

@@ -620,7 +620,7 @@ final class RestRouteCollector
         $callbackLocation = sprintf('%s::%s()', $callbackClass, $callback->getName());
 
         if (!isset($classes[$callbackClass])) {
-            $this->errors[] = sprintf('Permission callback %s of %s is outside the scanned PSR-4 directories of the theme and the framework.', $callbackLocation, $location);
+            $this->errors[] = sprintf('Permission callback %s of %s is outside the scanned PSR-4 directories of the project and the framework.', $callbackLocation, $location);
 
             return null;
         }

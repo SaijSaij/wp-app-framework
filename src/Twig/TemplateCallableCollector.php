@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Twig;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
+use Saij\WpAppFramework\Api\PublicSignatureInspector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Manifest\EntryPointInspector;
@@ -30,11 +31,18 @@ final class TemplateCallableCollector
     private readonly EntryPointInspector $inspector;
 
     /**
-     * @param array{function: list<string>, filter: list<string>} $builtInNames Names Twig provides itself.
+     * @param array{function: list<string>, filter: list<string>} $builtInNames    Names Twig provides itself.
+     * @param non-empty-string|null                              $publicPrefix    Template prefix of a plugin for its public
+     *                                                                            callables; null for a theme, which has none.
+     * @param array<non-empty-string, non-empty-string>          $pluginPrefixes  Template prefix => slug of the plugins whose
+     *                                                                            public callables the templates use; reserved.
      */
     public function __construct(
         private readonly ServiceResolver $resolver,
         private readonly array $builtInNames,
+        private readonly ?string $publicPrefix = null,
+        private readonly array $pluginPrefixes = [],
+        private readonly ?PublicSignatureInspector $signatures = null,
     ) {
         $this->inspector = new EntryPointInspector($resolver);
     }
@@ -101,6 +109,7 @@ final class TemplateCallableCollector
         $error = $this->inspector->serviceError($class, $location, $attributeName)
             ?? $this->inspector->publicInstanceMethodError($method, $location, $attributeName)
             ?? $this->nameError($attribute->name, $kind, $location)
+            ?? $this->publicError($attribute->name, $attribute->public, $location, $attributeName)
             ?? $this->returnTypeError($method, $attribute->html, $location, $attributeName)
             ?? $this->parametersError($method, $kind, $location, $attributeName);
         if ($error !== null) {
@@ -109,10 +118,19 @@ final class TemplateCallableCollector
             return null;
         }
 
+        if ($attribute->public && $this->signatures !== null) {
+            $signatureErrors = $this->signatures->methodErrors($method, sprintf('public template %s "%s"', $kind->value, $attribute->name));
+            if ($signatureErrors !== []) {
+                array_push($this->errors, ...$signatureErrors);
+
+                return null;
+            }
+        }
+
         $this->declared[$kind->value][$attribute->name] = $location;
         $this->resolver->resolve($class);
 
-        return new TemplateCallableDefinition($kind, $attribute->name, $class, $method->getName(), $attribute->html);
+        return new TemplateCallableDefinition($kind, $attribute->name, $class, $method->getName(), $attribute->html, $attribute->public);
     }
 
     private function nameError(string $name, TemplateCallableKind $kind, string $location): ?string
@@ -130,6 +148,27 @@ final class TemplateCallableCollector
         $first = $this->declared[$kind->value][$name] ?? null;
         if ($first !== null) {
             return sprintf('%s on %s uses the name "%s", which %s already declares.', $attributeName, $location, $name, $first);
+        }
+
+        return null;
+    }
+
+    private function publicError(string $name, bool $public, string $location, string $attributeName): ?string
+    {
+        foreach ($this->pluginPrefixes as $prefix => $plugin) {
+            if (str_starts_with($name, $prefix)) {
+                return sprintf('%s on %s uses the name "%s"; names starting with "%s" are reserved for the public template callables of plugin %s (extra.wp-app-framework.template-plugins).', $attributeName, $location, $name, $prefix, $plugin);
+            }
+        }
+
+        if (!$public) {
+            return null;
+        }
+        if ($this->publicPrefix === null) {
+            return sprintf('%s on %s has public: true, but only plugins offer template callables to other consumers.', $attributeName, $location);
+        }
+        if (!str_starts_with($name, $this->publicPrefix) || $name === $this->publicPrefix) {
+            return sprintf('%s on %s has public: true, so its name "%s" must start with the template prefix "%s" of the plugin.', $attributeName, $location, $name, $this->publicPrefix);
         }
 
         return null;

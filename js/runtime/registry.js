@@ -14,7 +14,7 @@ export function createRegistry( blocks, getBlockType ) {
 		if ( ! ( name in blocks ) ) {
 			// eslint-disable-next-line no-console
 			console.warn(
-				`wp-app-framework: ${ caller }( "${ name }" ): no block of this theme has that name.`
+				`wp-app-framework: ${ caller }( "${ name }" ): no block of this theme or plugin has that name.`
 			);
 			return false;
 		}

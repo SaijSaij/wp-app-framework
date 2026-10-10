@@ -9,10 +9,14 @@ use JsonException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Manifest\BuildException;
+use Saij\WpAppFramework\Project\ComposerProject;
 use SplFileInfo;
 
 /**
- * `wp-app-framework release`: builds the release ZIP of a theme.
+ * `wp-app-framework release`: builds the release ZIP of a theme or plugin (the
+ * `type` in composer.json). The version is read from the theme's style.css or
+ * the plugin's main file {slug}.php.
  *
  * Works on a copy of the project, never on the checkout:
  * 1. copy the files git does not ignore,
@@ -97,12 +101,19 @@ final class ReleaseCommand
         if ($project === false) {
             throw new ReleaseException(sprintf('Project directory %s does not exist.', $this->projectDirectory));
         }
-        $slug = basename($project);
-        $version = ThemeHeader::version($project . '/style.css');
-        if ($this->expectedVersion !== null && $this->expectedVersion !== $version) {
-            throw new ReleaseException(sprintf('%s/style.css declares version %s, but version %s is being released (e.g. by the tag).', $project, $version, $this->expectedVersion));
+        try {
+            $composerProject = ComposerProject::load($project);
+        } catch (BuildException $exception) {
+            throw new ReleaseException($exception->getMessage(), 0, $exception);
         }
-        $strauss = StraussConfig::fromComposerFile($project . '/composer.json');
+        $slug = $composerProject->getSlug();
+        $kind = $composerProject->getKind();
+        $headerFile = $kind->getHeaderFile($slug);
+        $version = FileHeader::version($project . '/' . $headerFile);
+        if ($this->expectedVersion !== null && $this->expectedVersion !== $version) {
+            throw new ReleaseException(sprintf('%s/%s declares version %s, but version %s is being released (e.g. by the tag).', $project, $headerFile, $version, $this->expectedVersion));
+        }
+        $strauss = StraussConfig::fromComposerFile($project . '/composer.json', $kind->getBootFile($slug));
         self::checkRepositories($project . '/composer.json');
         if (!is_file($project . '/composer.lock')) {
             throw new ReleaseException(sprintf('%s/composer.lock not found; a release installs the locked versions.', $project));
@@ -115,7 +126,7 @@ final class ReleaseCommand
             }
             $packageSources[$package] = $path;
         }
-        $this->print(sprintf('%s %s, Strauss prefix %s', $slug, $version, $strauss->getNamespacePrefix()));
+        $this->print(sprintf('%s %s %s, Strauss prefix %s', $kind->getLabel(), $slug, $version, $strauss->getNamespacePrefix()));
         $this->process->run(['strauss', '--version'], $project);
 
         $this->step('Copying the project');
@@ -169,7 +180,7 @@ final class ReleaseCommand
             self::remove($build . '/' . $path);
         }
         self::removeEmptyDirectories($build);
-        foreach (['style.css', 'generated/manifest.php', StraussConfig::TARGET_DIRECTORY . '/autoload.php'] as $required) {
+        foreach (array_unique([$headerFile, $kind->getBootFile($slug), 'generated/manifest.php', StraussConfig::TARGET_DIRECTORY . '/autoload.php']) as $required) {
             if (!is_file($build . '/' . $required)) {
                 throw new ReleaseException(sprintf('%s is missing in the release; it must not be marked export-ignore.', $required));
             }

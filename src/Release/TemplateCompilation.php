@@ -8,6 +8,7 @@ use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
+use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Twig\TemplateFiles;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Throwable;
@@ -34,21 +35,28 @@ final class TemplateCompilation
         }
 
         $manifest = Manifest::load($manifestFile);
+        $kind = ProjectKind::from($manifest['kind']);
+        $slug = $manifest['slug'] ?? throw new ReleaseException(sprintf('The manifest %s names no project slug.', $manifestFile));
         $frameworkTemplates = ManifestBuilder::frameworkSource()->getDirectory();
+        $projectTemplates = $projectDirectory . '/' . TemplateRenderer::TEMPLATE_DIRECTORY;
+        // Overrides of plugin templates in a theme are compiled by the plugin at runtime, with its functions.
         $renderer = new TemplateRenderer(
+            $slug,
             $projectDirectory,
-            $projectDirectory,
+            [],
+            $projectTemplates,
+            $kind->getTemplateNamespace(),
             $frameworkTemplates,
             $outputDirectory,
             false,
             $manifest['templateCallables'],
+            $manifest['templatePlugins'],
             new Container($manifest['services']),
         );
 
         $names = [];
-        $themeTemplates = $projectDirectory . '/' . TemplateRenderer::TEMPLATE_DIRECTORY;
-        if (is_dir($themeTemplates)) {
-            $names = TemplateFiles::names($themeTemplates);
+        if (is_dir($projectTemplates)) {
+            $names = TemplateFiles::names($projectTemplates);
         }
         // Framework templates by their exact name, also where the theme overrides them.
         foreach (TemplateFiles::names($frameworkTemplates) as $name) {

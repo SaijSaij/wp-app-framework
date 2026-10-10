@@ -1,7 +1,9 @@
 # Release of the framework for a tag v<version>: tests and lint, then the release
-# gate – the test theme theme-dev-test is built with the framework of the tag,
-# installed into a plain WordPress and tested in the browser – and only then the
-# GitHub release with the package ZIP (distribution files, see .gitattributes).
+# gates – the test theme theme-dev-test and the test plugin plugin-dev-test are
+# built with the framework of the tag, installed into a plain WordPress and tested
+# in the browser; the plugin next to an older theme release, so two framework
+# versions run side by side – and only then the GitHub release with the package
+# ZIP (distribution files, see .gitattributes).
 name: Release
 
 on:
@@ -26,8 +28,20 @@ jobs:
       framework-ref: ${{ github.ref }}
       publish: false
 
+  gate-plugin:
+    needs: checks
+    uses: ./.github/workflows/consumer-release.yml
+    permissions:
+      contents: write
+    with:
+      repository: SaijSaij/plugin-dev-test
+      ref: main
+      framework-ref: ${{ github.ref }}
+      with-theme: SaijSaij/theme-dev-test@v0.1.0
+      publish: false
+
   publish:
-    needs: gate
+    needs: [gate, gate-plugin]
     runs-on: ubuntu-24.04
     permissions:
       contents: write

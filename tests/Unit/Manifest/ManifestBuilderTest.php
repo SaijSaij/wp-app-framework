@@ -57,7 +57,7 @@ final class ManifestBuilderTest extends TestCase
                 "Cannot autowire parameter \$logger of {$ns}InterfaceDependent::__construct(): {$ns}LoggerLike is an interface and cannot be injected (aliases are not supported).",
                 "Cannot autowire parameter \$excluded of {$ns}ExcludedDependent::__construct(): {$ns}Excluded is marked #[NoService] and cannot be injected.",
                 "Cannot autowire parameter \$name of {$ns}ScalarDependent::__construct(): type string is not a service and the parameter has no default value.",
-                "Cannot autowire parameter \$storage of {$ns}OutsideDependent::__construct(): ArrayObject is outside the scanned PSR-4 directories of the theme and the framework and cannot be injected.",
+                "Cannot autowire parameter \$storage of {$ns}OutsideDependent::__construct(): ArrayObject is outside the scanned PSR-4 directories of the project and the framework and cannot be injected.",
                 "Circular dependency: {$ns}CycleA -> {$ns}CycleB -> {$ns}CycleA",
                 "{$ns}ExcludedWithHook::run() has #[Hook], but {$ns}ExcludedWithHook is marked #[NoService] and therefore not a service.",
                 "{$ns}BrokenHooks::missingReturnType() has #[Hook] and needs a declared return type: void for an action, the filtered type for a filter.",
@@ -95,6 +95,7 @@ final class ManifestBuilderTest extends TestCase
 
         self::assertSame(
             [
+                \Saij\WpAppFramework\Api\PluginTemplateFunctions::class,
                 \Saij\WpAppFramework\Block\BlockTemplateFunctions::class,
                 \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class,
                 \Saij\WpAppFramework\Editor\RenderContext::class,
@@ -105,6 +106,7 @@ final class ManifestBuilderTest extends TestCase
         );
         self::assertSame(
             [
+                \Saij\WpAppFramework\Api\PluginTemplateFunctions::class => [],
                 \Saij\WpAppFramework\Block\BlockTemplateFunctions::class => [],
                 \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class => ['context' => \Saij\WpAppFramework\Editor\RenderContext::class],
             ],

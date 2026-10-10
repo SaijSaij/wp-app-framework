@@ -10,17 +10,29 @@ use ReflectionIntersectionType;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
+use Saij\WpAppFramework\Api\PluginApi;
+use Saij\WpAppFramework\Plugin;
+use Saij\WpAppFramework\Project\ComposerProject;
+use Saij\WpAppFramework\Theme;
 
 /**
  * Resolves constructor dependencies of reachable services.
  *
  * Only services reached from entry points are resolved, so classes that are
  * never injected (DTOs, attribute classes) never produce errors.
+ *
+ * @phpstan-import-type ServiceArgument from Container
  */
 #[NoService]
 final class ServiceResolver
 {
-    /** @var array<class-string, array<string, class-string>> */
+    /** Descriptions of the consumer: injectable only where the framework provides them (predefined). */
+    private const array CONSUMER_CLASSES = [
+        Theme::class => 'available in themes only',
+        Plugin::class => 'available in plugins only',
+    ];
+
+    /** @var array<class-string, array<string, ServiceArgument>> */
     private array $resolved = [];
 
     /** @var list<string> */
@@ -48,7 +60,7 @@ final class ServiceResolver
         $candidates = [];
         $excluded = [];
         foreach ($classes as $name => $class) {
-            $reason = in_array($name, $predefined, true) ? null : self::exclusionReason($class);
+            $reason = in_array($name, $predefined, true) ? null : self::CONSUMER_CLASSES[$name] ?? self::exclusionReason($class);
             if ($reason === null) {
                 $candidates[$name] = $class;
             } else {
@@ -183,6 +195,15 @@ final class ServiceResolver
                 continue;
             }
 
+            $pluginApi = $parameter->getAttributes(PluginApi::class);
+            if ($pluginApi !== []) {
+                $argument = $this->pluginApiArgument($parameter, $pluginApi[0]->newInstance(), $location);
+                if ($argument !== null) {
+                    $arguments[$parameter->getName()] = $argument;
+                }
+                continue;
+            }
+
             $service = $this->injectedType($parameter);
 
             if ($service !== null) {
@@ -199,6 +220,43 @@ final class ServiceResolver
         }
 
         $this->resolved[$class] = $arguments;
+    }
+
+    /**
+     * Validates a `#[PluginApi]` parameter; the class is not loaded, because the plugin may be missing.
+     *
+     * @return array{plugin: non-empty-string, class: class-string}|null
+     */
+    private function pluginApiArgument(ReflectionParameter $parameter, PluginApi $attribute, string $location): ?array
+    {
+        $plugin = $attribute->plugin;
+        if ($plugin === '' || preg_match(ComposerProject::SLUG_PATTERN, $plugin) !== 1) {
+            $this->errors[] = sprintf('#[PluginApi] on %s names "%s", which is not a plugin slug (lowercase letters, digits, "-", "_").', $location, $plugin);
+
+            return null;
+        }
+
+        $type = $parameter->getType();
+        if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
+            $this->errors[] = sprintf('#[PluginApi] on %s needs the class of the public API as type.', $location);
+
+            return null;
+        }
+        if (!$type->allowsNull() || !$parameter->isDefaultValueAvailable() || $parameter->getDefaultValue() !== null) {
+            $this->errors[] = sprintf('#[PluginApi] on %s must be nullable with the default null (?%s $%s = null): it is null if the plugin is not active.', $location, $type->getName(), $parameter->getName());
+
+            return null;
+        }
+
+        /** @var class-string $class Not loaded: the plugin may be missing. */
+        $class = $type->getName();
+        if (isset($this->candidates[$class]) || isset($this->excluded[$class])) {
+            $this->errors[] = sprintf('#[PluginApi] on %s: %s belongs to this project or the framework, not to plugin %s.', $location, $class, $plugin);
+
+            return null;
+        }
+
+        return ['plugin' => $plugin, 'class' => $class];
     }
 
     /**
@@ -232,13 +290,13 @@ final class ServiceResolver
         }
 
         return sprintf(
-            '%s is outside the scanned PSR-4 directories of the theme and the framework and cannot be injected.',
+            '%s is outside the scanned PSR-4 directories of the project and the framework and cannot be injected.',
             $name,
         );
     }
 
     /**
-     * @return array<class-string, array<string, class-string>>
+     * @return array<class-string, array<string, ServiceArgument>>
      */
     public function resolved(): array
     {

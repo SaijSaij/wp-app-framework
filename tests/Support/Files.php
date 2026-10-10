@@ -30,12 +30,12 @@ final class Files
     }
 
     /**
-     * Deletes the directory with its contents.
+     * Deletes the directory with its contents; symbolic links are removed, never followed.
      */
     public static function remove(string $directory): void
     {
         foreach (self::below($directory) as $entry) {
-            $entry->isDir() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
+            $entry->isDir() && !$entry->isLink() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
         }
         rmdir($directory);
     }

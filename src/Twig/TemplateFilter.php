@@ -15,6 +15,13 @@ use Attribute;
  * printed as is and the method must return a string. An HTML filter receives
  * the filtered value HTML-escaped unless it is already safe (e.g. `|raw`);
  * further arguments are passed unescaped and must be escaped by the method.
+ *
+ * With `public: true`, a plugin offers the filter to the templates of other
+ * consumers (the theme, other plugins). Its name must start with the template
+ * prefix of the plugin (the slug with underscores, e.g. `my_plugin_`) and its
+ * signature must not use classes of the framework or of other dependencies.
+ * Consumers declare the plugin in `extra.wp-app-framework.template-plugins`
+ * of their composer.json and call the filter by its name.
  */
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class TemplateFilter
@@ -22,5 +29,6 @@ final readonly class TemplateFilter
     public function __construct(
         public string $name,
         public bool $html = false,
+        public bool $public = false,
     ) {}
 }

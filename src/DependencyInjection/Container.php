@@ -6,13 +6,17 @@ namespace Saij\WpAppFramework\DependencyInjection;
 
 use Closure;
 use LogicException;
+use Saij\WpAppFramework\Api\PluginBridge;
 
 /**
  * Minimal service container driven by the service data of the manifest:
  * per class, the services injected into its constructor parameters.
  *
- * @internal Only manifest entries use the container; theme code receives its
+ * @internal Only manifest entries use the container; consumer code receives its
  *           dependencies through constructor and hook parameters.
+ *
+ * @phpstan-type ServiceArgument class-string|array{plugin: non-empty-string, class: class-string}
+ *               A service, or the public API of a plugin (`#[PluginApi]`).
  */
 #[NoService]
 final class Container
@@ -21,7 +25,7 @@ final class Container
     private array $instances;
 
     /**
-     * @param array<class-string, array<string, class-string>> $services  Class => constructor parameter => injected service.
+     * @param array<class-string, array<string, ServiceArgument>> $services Class => constructor parameter => injected service.
      * @param array<class-string, object>                       $instances Predefined instances.
      * @param array<class-string, Closure(self): object>        $factories Predefined services that depend on runtime values
      *                                                                     and are created on first use.
@@ -66,7 +70,9 @@ final class Container
 
         $arguments = [];
         foreach ($this->services[$id] as $parameter => $service) {
-            $arguments[$parameter] = $this->get($service);
+            $arguments[$parameter] = is_array($service)
+                ? PluginBridge::api($service['plugin'], $service['class'])
+                : $this->get($service);
         }
 
         return $this->instances[$id] = new $id(...$arguments);

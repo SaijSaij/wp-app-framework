@@ -26,7 +26,10 @@ final class StraussConfig
         private readonly string $namespacePrefix,
     ) {}
 
-    public static function fromComposerFile(string $composerFile): self
+    /**
+     * @param string $bootFile File that boots the framework (functions.php, {slug}.php); its call must be rewritten.
+     */
+    public static function fromComposerFile(string $composerFile, string $bootFile): self
     {
         if (!is_file($composerFile)) {
             throw new ReleaseException(sprintf('%s not found.', $composerFile));
@@ -65,7 +68,14 @@ final class StraussConfig
         $callSites = $strauss['update_call_sites'] ?? null;
         if (!is_array($callSites) || $callSites === [] || !array_is_list($callSites) || array_filter($callSites, 'is_string') !== $callSites) {
             $errors[] = sprintf(
-                'extra.strauss.update_call_sites must list the directories and files whose references to dependencies are rewritten (e.g. ["src", "functions.php"]), found %s.',
+                'extra.strauss.update_call_sites must list the directories and files whose references to dependencies are rewritten (e.g. ["src", "%s"]), found %s.',
+                $bootFile,
+                json_encode($callSites),
+            );
+        } elseif (!in_array($bootFile, $callSites, true)) {
+            $errors[] = sprintf(
+                'extra.strauss.update_call_sites must contain "%s", which boots the framework, found %s.',
+                $bootFile,
                 json_encode($callSites),
             );
         }

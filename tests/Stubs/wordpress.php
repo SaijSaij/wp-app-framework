@@ -233,6 +233,11 @@ final class WP_Block_Type_Registry
         return $this->types[$name] = new WP_Block_Type($name, $args);
     }
 
+    public function is_registered(string $name): bool
+    {
+        return isset($this->types[$name]);
+    }
+
     public function unregister(string $name): WP_Block_Type|false
     {
         $type = $this->types[$name] ?? false;
@@ -388,13 +393,47 @@ function is_admin(): bool
 }
 
 /**
- * Records filters in $GLOBALS['wp_app_framework_test_filters'][$hook_name] (they are never applied).
+ * Records filters and actions in $GLOBALS['wp_app_framework_test_filters'][$hook_name]; apply_filters() and
+ * do_action() call them in the order added (priorities are ignored).
  */
 function add_filter(string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1): true
 {
     $GLOBALS['wp_app_framework_test_filters'][$hook_name][] = $callback;
+    $GLOBALS['wp_app_framework_test_filter_args'][$hook_name][] = $accepted_args;
 
     return true;
+}
+
+function add_action(string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1): true
+{
+    return add_filter($hook_name, $callback, $priority, $accepted_args);
+}
+
+function apply_filters(string $hook_name, mixed $value, mixed ...$args): mixed
+{
+    foreach ($GLOBALS['wp_app_framework_test_filters'][$hook_name] ?? [] as $index => $callback) {
+        $accepted = $GLOBALS['wp_app_framework_test_filter_args'][$hook_name][$index] ?? 1;
+        $value = $callback(...array_slice([$value, ...$args], 0, $accepted));
+    }
+
+    return $value;
+}
+
+/**
+ * Counts actions in $GLOBALS['wp_app_framework_test_actions'][$hook_name] and calls their callbacks.
+ */
+function do_action(string $hook_name, mixed ...$arg): void
+{
+    $GLOBALS['wp_app_framework_test_actions'][$hook_name] = ($GLOBALS['wp_app_framework_test_actions'][$hook_name] ?? 0) + 1;
+    foreach ($GLOBALS['wp_app_framework_test_filters'][$hook_name] ?? [] as $index => $callback) {
+        $accepted = $GLOBALS['wp_app_framework_test_filter_args'][$hook_name][$index] ?? 1;
+        $callback(...array_slice($arg, 0, $accepted));
+    }
+}
+
+function did_action(string $hook_name): int
+{
+    return $GLOBALS['wp_app_framework_test_actions'][$hook_name] ?? 0;
 }
 
 /**
@@ -409,3 +448,6 @@ function esc_html(string $text): string
 {
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
+
+// The content directory of the unit tests; caches of booted instances go below it.
+define('WP_CONTENT_DIR', sys_get_temp_dir() . '/wpaf-wp-content');

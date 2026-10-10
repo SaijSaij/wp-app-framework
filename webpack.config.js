@@ -1,5 +1,5 @@
 /**
- * Webpack configuration helper for consumers of the framework (themes).
+ * Webpack configuration helper for consumers of the framework (themes and plugins).
  *
  * Builds, into the consumer's `build/` directory:
  * - the editor runtime of this framework instance (build/vendor/wp-app-framework/editor.js),
@@ -52,14 +52,14 @@ function editorScripts( directory ) {
 
 /**
  * @param {Object} options
- * @param {string} options.slug Slug of the framework instance: the theme's directory name (get_template()).
+ * @param {string} options.slug Slug of the framework instance: the directory name of the theme (get_template()) or plugin.
  * @param {string} options.root Root directory of the consumer.
  * @return {Object} Webpack configuration.
  */
 module.exports = function createConfig( { slug, root } = {} ) {
 	if ( typeof slug !== 'string' || ! /^[a-z0-9_-]+$/.test( slug ) ) {
 		throw new Error(
-			`wp-app-framework: "slug" must be the theme's directory name (get_template()), got ${ JSON.stringify( slug ) }.`
+			`wp-app-framework: "slug" must be the directory name of the theme (get_template()) or plugin, got ${ JSON.stringify( slug ) }.`
 		);
 	}
 	if (

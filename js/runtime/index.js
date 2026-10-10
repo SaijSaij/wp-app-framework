@@ -9,7 +9,7 @@ import { createRenderer } from './renderer';
 
 /**
  * Starts the runtime of one framework instance: registers its blocks with the
- * editor and adds the theme API to the instance global wpAppFramework[slug],
+ * editor and adds the API for its editor scripts to the instance global wpAppFramework[slug],
  * which the server prefilled with the configuration.
  *
  * @param {string} slug Slug of the instance.

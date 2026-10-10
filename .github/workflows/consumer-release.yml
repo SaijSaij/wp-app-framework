@@ -1,4 +1,4 @@
-# Release pipeline of a consumer of the framework (a theme), reusable by its own workflow:
+# Release pipeline of a consumer of the framework (a theme or plugin), reusable by its own workflow:
 #
 #   on:
 #     push:
@@ -8,11 +8,15 @@
 #   jobs:
 #     release:
 #       uses: SaijSaij/wp-app-framework/.github/workflows/consumer-release.yml@<framework tag>
+#       with:
+#         with-theme: SaijSaij/theme-dev-test@v1.0.0   # plugins only
 #
 # Builds the release ZIP in the tools container of wp-dev-env, installs it into a
 # plain WordPress (scripts/release-test) and runs the consumer's browser tests
 # against it. Only if everything passes, the GitHub release of the tag gets the ZIP.
-# The repository name is the slug of the theme.
+# The repository name is the slug of the theme or plugin; the type in its
+# composer.json (wordpress-theme, wordpress-plugin) decides how it is installed.
+# A plugin is tested with the release ZIP of a theme (input with-theme).
 name: Consumer release
 
 on:
@@ -31,7 +35,7 @@ on:
         type: boolean
         default: true
       publish:
-        description: Attach the ZIP to the GitHub release of the tag; the tag must equal v<version from style.css>.
+        description: Attach the ZIP to the GitHub release of the tag; the tag must equal v<version> of style.css (theme) or of the main file <slug>.php (plugin).
         type: boolean
         default: true
       framework-ref:
@@ -42,6 +46,10 @@ on:
         description: Ref of SaijSaij/wp-dev-env that provides the tools and the release test.
         type: string
         default: main
+      with-theme:
+        description: 'Plugins only (required there): theme release whose ZIP the release test installs, as <owner>/<repository>@<tag>.'
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -96,10 +104,57 @@ jobs:
           ref: ${{ inputs.framework-ref }}
           path: workspace/wp-app-framework
 
+      - name: Determine the kind of the project
+        id: kind
+        env:
+          SLUG: ${{ steps.project.outputs.slug }}
+          WITH_THEME: ${{ inputs.with-theme }}
+        run: |
+          type="$(jq -r '.type // ""' "workspace/${SLUG}/composer.json")"
+          case "${type}" in
+            wordpress-theme)
+              if [[ -n "${WITH_THEME}" ]]; then
+                echo "::error::with-theme is only for plugins; ${SLUG} is a theme."
+                exit 1
+              fi
+              echo "kind=theme" >> "$GITHUB_OUTPUT"
+              ;;
+            wordpress-plugin)
+              if [[ ! "${WITH_THEME}" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[^@[:space:]]+$ ]]; then
+                echo "::error::Plugin ${SLUG} needs with-theme: <owner>/<repository>@<tag> of a theme release, got '${WITH_THEME}'."
+                exit 1
+              fi
+              echo "kind=plugin" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::composer.json of ${SLUG} must declare the type wordpress-theme or wordpress-plugin, found '${type}'."
+              exit 1
+              ;;
+          esac
+
+      - name: Download the theme release
+        id: theme
+        if: steps.kind.outputs.kind == 'plugin'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WITH_THEME: ${{ inputs.with-theme }}
+        run: |
+          repository="${WITH_THEME%@*}"
+          tag="${WITH_THEME##*@}"
+          mkdir theme-release
+          gh release download "${tag}" --repo "${repository}" --pattern '*.zip' --dir theme-release
+          zips=(theme-release/*.zip)
+          if [[ ${#zips[@]} -ne 1 || ! -f "${zips[0]}" ]]; then
+            echo "::error::The release ${tag} of ${repository} must have exactly one ZIP, found ${#zips[@]}."
+            exit 1
+          fi
+          echo "zip=$(realpath "${zips[0]}")" >> "$GITHUB_OUTPUT"
+
       - name: Configure wp-dev-env
         working-directory: workspace/wp-dev-env
         env:
           SLUG: ${{ steps.project.outputs.slug }}
+          KIND: ${{ steps.kind.outputs.kind }}
         run: |
           cp .env.example .env
           set_env() {
@@ -108,8 +163,12 @@ jobs:
           }
           set_env HOST_UID "$(id -u)"
           set_env HOST_GID "$(id -g)"
-          set_env WP_THEMES "${SLUG}"
-          set_env WP_ACTIVE_THEME "${SLUG}"
+          if [[ "${KIND}" == "theme" ]]; then
+            set_env WP_THEMES "${SLUG}"
+            set_env WP_ACTIVE_THEME "${SLUG}"
+          else
+            set_env WP_PLUGINS "${SLUG}"
+          fi
           mkdir -p data/db data/uploads data/e2e data/release
           docker compose build tools
 
@@ -167,10 +226,15 @@ jobs:
         env:
           SLUG: ${{ steps.project.outputs.slug }}
           ZIP: ${{ steps.build.outputs.zip }}
+          THEME_ZIP: ${{ steps.theme.outputs.zip }}
         run: |
           set -a; source .env; set +a
           docker compose up -d --wait traefik
-          scripts/release-test "${ZIP}"
+          if [[ -n "${THEME_ZIP}" ]]; then
+            scripts/release-test --theme "${THEME_ZIP}" --plugin "${ZIP}"
+          else
+            scripts/release-test --theme "${ZIP}"
+          fi
           docker compose run --rm --no-deps \
             -e WP_BASE_URL="${WP_RELEASE_URL}" \
             -e E2E_BROWSER_HOST_RULES="MAP ${WP_RELEASE_HOST} traefik" \

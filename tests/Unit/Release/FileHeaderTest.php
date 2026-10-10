@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Unit\Release;
 
+use Saij\WpAppFramework\Release\FileHeader;
 use Saij\WpAppFramework\Release\ReleaseException;
-use Saij\WpAppFramework\Release\ThemeHeader;
 
-final class ThemeHeaderTest extends ReleaseTestCase
+final class FileHeaderTest extends ReleaseTestCase
 {
     public function testReadsTheVersionLikeWordPress(): void
     {
         $file = $this->write('style.css', "/*\nTheme Name: Test\n * Version: 1.2.3-beta.1 */\nRequires PHP: 8.5\n*/");
 
-        self::assertSame('1.2.3-beta.1', ThemeHeader::version($file));
+        self::assertSame('1.2.3-beta.1', FileHeader::version($file));
     }
 
     public function testMissingVersionIsAnError(): void
@@ -21,7 +21,7 @@ final class ThemeHeaderTest extends ReleaseTestCase
         $this->expectException(ReleaseException::class);
         $this->expectExceptionMessage('has no "Version:" header');
 
-        ThemeHeader::version($this->write('style.css', "/*\nTheme Name: Test\n*/"));
+        FileHeader::version($this->write('style.css', "/*\nTheme Name: Test\n*/"));
     }
 
     public function testVersionMustBeSemantic(): void
@@ -29,6 +29,6 @@ final class ThemeHeaderTest extends ReleaseTestCase
         $this->expectException(ReleaseException::class);
         $this->expectExceptionMessage('The version "1.2" in');
 
-        ThemeHeader::version($this->write('style.css', "/*\nVersion: 1.2\n*/"));
+        FileHeader::version($this->write('style.css', "/*\nVersion: 1.2\n*/"));
     }
 }

@@ -152,7 +152,7 @@ final class BlockCollectorTest extends TestCase
 
         $collector = new BlockCollector(ServiceResolver::forClasses($classes, []), new ValueSchemaBuilder($classes), $source->getDirectory());
         self::assertSame([], $collector->collect($classes));
-        self::assertContains(BlockValid\Hero::class . ' has #[Block], but the framework registers no blocks; blocks belong to the theme.', $collector->errors());
+        self::assertContains(BlockValid\Hero::class . ' has #[Block], but the framework registers no blocks; blocks belong to the theme or plugin.', $collector->errors());
         self::assertCount(4, $collector->errors());
     }
 
@@ -189,7 +189,7 @@ final class BlockCollectorTest extends TestCase
                 sprintf($a, 'plainArray') . ' is an array and needs #[ListOf(Item::class)] with a backed enum or a value class.',
                 sprintf($a, 'listOnString') . ' has #[ListOf], but is not an array.',
                 sprintf($a, 'unitList') . ": #[ListOf]: enum {$ns}Unit is not backed; use a backed enum so its values can be stored.",
-                sprintf($a, 'outside') . ': #[ListOf]: DateTimeImmutable is outside the scanned PSR-4 directories of the theme and the framework.',
+                sprintf($a, 'outside') . ': #[ListOf]: DateTimeImmutable is outside the scanned PSR-4 directories of the project and the framework.',
                 sprintf($a, 'union') . ": type string|int is not supported; {$supported}, optionally nullable.",
                 sprintf($a, 'anything') . ": type mixed is not supported; {$supported}, optionally nullable.",
                 "parameter \$noDefault of block attribute class {$ns}BrokenAttributes::__construct() needs a default value: a block attribute can always be missing in the content.",

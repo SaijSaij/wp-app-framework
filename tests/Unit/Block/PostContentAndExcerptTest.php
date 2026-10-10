@@ -92,7 +92,7 @@ final class PostContentAndExcerptTest extends TestCase
     private function registrar(RenderContext $context = new RenderContext()): void
     {
         $container = new Container($this->manifest['services'], [RenderContext::class => $context]);
-        new BlockRegistrar($container, new ValueFactory($this->manifest['values']), $context, true)
+        new BlockRegistrar($container, new ValueFactory($this->manifest['values']), $context, true, 'my-theme')
             ->register($this->manifest['blocks']);
         foreach (Recorded::blocks() as $name => $args) {
             // @phpstan-ignore argument.type (the arguments the registrar passed to register_block_type())

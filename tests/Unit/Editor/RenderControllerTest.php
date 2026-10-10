@@ -71,7 +71,7 @@ final class RenderControllerTest extends TestCase
     private function controller(bool $debug): RenderController
     {
         $container = new Container($this->manifest['services'], [RenderContext::class => $this->context]);
-        new BlockRegistrar($container, new ValueFactory($this->manifest['values']), $this->context, $debug)
+        new BlockRegistrar($container, new ValueFactory($this->manifest['values']), $this->context, $debug, 'my-theme')
             ->register($this->manifest['blocks']);
         foreach (Recorded::blocks() as $name => $args) {
             // @phpstan-ignore argument.type (the arguments the registrar passed to register_block_type())

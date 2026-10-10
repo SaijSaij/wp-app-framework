@@ -20,7 +20,7 @@ final class DevCacheTest extends TestCase
         $this->cache = $root . '/cache';
 
         file_put_contents($this->theme . '/composer.json', json_encode(
-            ['autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src/']]],
+            ['type' => 'wordpress-theme', 'autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src/']]],
             JSON_THROW_ON_ERROR,
         ));
         $this->writeHooks("return 'first';", '');
@@ -92,7 +92,7 @@ final class DevCacheTest extends TestCase
 
         self::assertStringNotContainsString($this->theme, $meta);
         self::assertStringNotContainsString((string) realpath(__DIR__ . '/../../../..'), $meta);
-        self::assertStringContainsString("'theme',", $meta);
+        self::assertStringContainsString("'project',", $meta);
         self::assertStringContainsString("'src/Hooks.php',", $meta);
         self::assertStringContainsString("'framework',", $meta);
     }
@@ -226,7 +226,7 @@ final class DevCacheTest extends TestCase
     {
         $this->probe('load');
         file_put_contents($this->theme . '/composer.json', json_encode(
-            ['autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src']]],
+            ['type' => 'wordpress-theme', 'autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src']]],
             JSON_THROW_ON_ERROR,
         ));
         touch($this->theme . '/composer.json', time() + 10);
@@ -238,7 +238,7 @@ final class DevCacheTest extends TestCase
     {
         self::assertStringContainsString(
             $this->theme . '/src is outside the base directories of the manifest cache (framework: ',
-            $this->probe('load-without-theme-base'),
+            $this->probe('load-without-project-base'),
         );
     }
 }

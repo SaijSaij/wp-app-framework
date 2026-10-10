@@ -21,7 +21,16 @@ final readonly class TemplateCallableDefinition
         private string $class,
         private string $method,
         private bool $html,
+        private bool $public,
     ) {}
+
+    /**
+     * True if a plugin offers it to the templates of other consumers.
+     */
+    public function isPublic(): bool
+    {
+        return $this->public;
+    }
 
     public function getKind(): TemplateCallableKind
     {
