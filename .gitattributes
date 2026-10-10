@@ -6,6 +6,7 @@
 /.gitignore export-ignore
 /.github/** export-ignore
 /.php-cs-fixer.dist.php export-ignore
+/CLAUDE.md export-ignore
 /eslint.config.cjs export-ignore
 /js/runtime/test/** export-ignore
 /package-lock.json export-ignore
