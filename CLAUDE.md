@@ -49,7 +49,7 @@ docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs ci
 docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs run build  # documentation; fails on broken links and anchors
 ```
 
-`npm run lint` and `npm run format` include the scripts and styles in `docs/`.
+`npm run lint` and `npm run format` include the scripts and styles in `docs/`; ESLint resolves their imports in `docs/node_modules`, so install `docs/` first.
 
 ## Tests
 

@@ -45,6 +45,7 @@ jobs:
             composer lint
             npm ci --no-audit --no-fund
             npm test
+            npm --prefix docs ci --no-audit --no-fund
             npm run lint
           "
 
