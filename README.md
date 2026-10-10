@@ -391,8 +391,10 @@ composer test
 JavaScript unit tests (Vitest) and linting of the runtime, also in the `tools` container:
 
 ```sh
-npm install
+npm ci
 npm test
 npm run lint
 npm run format
 ```
+
+`package-lock.json` pins these development tools. Themes do not use it: npm ignores the lock files of dependencies, so the theme's own lock file decides which versions it builds with.
