@@ -4,7 +4,7 @@
 # installed into a plain WordPress and tested in the browser; the plugin and the
 # child theme with a theme release, so two framework versions run side by side –
 # and only then the GitHub release with the package ZIP (distribution files, see
-# .gitattributes).
+# .gitattributes) and the documentation of the tag's minor version on gh-pages.
 name: Release
 
 on:
@@ -86,3 +86,54 @@ jobs:
           else
             gh release create "${TAG}" "${zip}" --verify-tag --title "${TAG}" --generate-notes
           fi
+
+  docs:
+    needs: publish
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    # Shared with docs.yml: one push to gh-pages at a time.
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - name: Determine the documentation version
+        id: docs
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ "${TAG}" =~ ^v([0-9]+)\.([0-9]+)\.[0-9]+$ ]]; then
+            echo "version=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::${TAG} is a pre-release; its documentation is not published."
+          fi
+
+      - name: Check out wp-app-framework
+        if: steps.docs.outputs.version != ''
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        if: steps.docs.outputs.version != ''
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Build the documentation
+        if: steps.docs.outputs.version != ''
+        working-directory: docs
+        env:
+          DOCS_BASE: /wp-app-framework/${{ steps.docs.outputs.version }}/
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Publish to gh-pages
+        if: steps.docs.outputs.version != ''
+        working-directory: docs
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          VERSION: ${{ steps.docs.outputs.version }}
+        run: node scripts/publish.mjs build "${VERSION}"

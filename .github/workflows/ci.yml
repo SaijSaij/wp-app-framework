@@ -1,5 +1,6 @@
 # Tests and lint of the framework (PHPUnit, Vitest, PHPStan, PHP-CS-Fixer, ESLint,
-# Stylelint) in the tools container of wp-dev-env. Also run by release.yml.
+# Stylelint) in the tools container of wp-dev-env, and the build of the documentation
+# (docs/). Also run by release.yml.
 name: CI
 
 on:
@@ -46,3 +47,22 @@ jobs:
             npm test
             npm run lint
           "
+
+  docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out wp-app-framework
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Build the documentation (fails on broken links and anchors)
+        working-directory: docs
+        env:
+          DOCS_BASE: /wp-app-framework/next/
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build

@@ -10,9 +10,9 @@
 	"scripts": {
 		"test": "wp-scripts test-unit-js --dir js",
 		"lint": "npm run lint:js && npm run lint:style",
-		"lint:js": "wp-scripts lint-js js webpack.config.js eslint.config.cjs",
-		"lint:style": "wp-scripts lint-style 'js/**/*.scss'",
-		"format": "wp-scripts format js webpack.config.js"
+		"lint:js": "wp-scripts lint-js js webpack.config.js eslint.config.cjs docs/theme docs/scripts docs/rspress.config.mjs",
+		"lint:style": "wp-scripts lint-style 'js/**/*.scss' 'docs/theme/**/*.css'",
+		"format": "wp-scripts format js webpack.config.js docs/theme docs/scripts docs/rspress.config.mjs"
 	},
 	"dependencies": {
 		"html-react-parser": "^6.1.8"

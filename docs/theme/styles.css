@@ -1,0 +1,23 @@
+.version-switcher {
+	margin-left: 12px;
+	padding: 2px 6px;
+	border: 1px solid var(--rp-c-divider);
+	border-radius: 6px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: 14px;
+}
+
+.version-banner {
+	margin-bottom: 24px;
+	padding: 12px 16px;
+	border-left: 4px solid var(--rp-c-brand);
+	border-radius: 4px;
+	background: var(--rp-c-bg-soft);
+}
+
+.version-banner a {
+	color: var(--rp-c-link);
+	text-decoration: underline;
+}

@@ -2,3 +2,5 @@
 /composer.lock
 /node_modules/
 /.phpunit.result.cache
+/docs/node_modules/
+/docs/build/

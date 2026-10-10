@@ -1,0 +1,19 @@
+{
+	"name": "wp-app-framework-docs",
+	"private": true,
+	"description": "Documentation website of saij/wp-app-framework, published on GitHub Pages.",
+	"license": "GPL-2.0-or-later",
+	"type": "module",
+	"engines": {
+		"node": ">=24"
+	},
+	"scripts": {
+		"dev": "rspress dev",
+		"build": "RSPRESS_PERSISTENT_CACHE=false rspress build && node scripts/check-links.mjs build",
+		"preview": "rspress preview"
+	},
+	"dependencies": {
+		"@rspress/core": "2.0.23",
+		"react": "19.3.0"
+	}
+}

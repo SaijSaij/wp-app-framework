@@ -22,4 +22,11 @@ module.exports = [
 			'import/core-modules': PROVIDED_BY_WORDPRESS,
 		},
 	},
+	{
+		// Command line scripts of the documentation report on the console.
+		files: [ 'docs/scripts/**' ],
+		rules: {
+			'no-console': 'off',
+		},
+	},
 ];

@@ -1,8 +1,8 @@
 # CLAUDE.md – wp-app-framework
 
-PHP/JS library (Composer `saij/wp-app-framework`, namespace `Saij\WpAppFramework`, JS `@saij/wp-app-framework`) for building standalone full site editing themes, child themes and plugins for WordPress 7 (latest stable, never beta) on PHP 8.5. It is neither a theme nor a plugin and registers no blocks itself. The README is the user documentation; this file lists what matters when changing the framework.
+PHP/JS library (Composer `saij/wp-app-framework`, namespace `Saij\WpAppFramework`, JS `@saij/wp-app-framework`) for building standalone full site editing themes, child themes and plugins for WordPress 7 (latest stable, never beta) on PHP 8.5. It is neither a theme nor a plugin and registers no blocks itself. The user documentation is the website built from `docs/` (https://saijsaij.github.io/wp-app-framework/); the README covers development of the framework; this file lists what matters when changing the framework.
 
-<!-- Maintainers: keep this file under 200 lines; describe behavior in the README and link to it from here. -->
+<!-- Maintainers: keep this file under 200 lines; describe behavior in the documentation (docs/content/) and link to it from here. -->
 
 ## Principles
 
@@ -31,7 +31,7 @@ Fixed design decisions:
 - Class properties are never `public`; access through getters (`get…`, booleans `is…`/`has…`). Exceptions: PHP attribute classes, block attribute classes and their value classes (`readonly`, public promoted properties), test doubles of WordPress classes (mirror WordPress' public properties).
 - The consumer-facing API must be fully resolvable by IDEs: enums and classes instead of magic strings, first-class callables instead of method names, required information as required attribute arguments.
 - Everything in this repository is English: code, identifiers, comments, README, commit messages.
-- READMEs link to the other repositories by GitHub URL (`https://github.com/saijsaij/<repo>`), never by relative path.
+- READMEs link to the other repositories by GitHub URL (`https://github.com/saijsaij/<repo>`), never by relative path. Pages in `docs/content/` link to each other by relative `.md` paths.
 
 ## Commands
 
@@ -45,7 +45,11 @@ docker compose run --rm tools npm --prefix /workspace/wp-app-framework ci
 docker compose run --rm tools npm --prefix /workspace/wp-app-framework test             # Vitest
 docker compose run --rm tools npm --prefix /workspace/wp-app-framework run lint         # ESLint + Stylelint; fix: npm run format
 docker run --rm -v "$PWD/../wp-app-framework:/repo" -w /repo rhysd/actionlint:1.7.12   # after changing .github/workflows/
+docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs ci
+docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs run build  # documentation; fails on broken links and anchors
 ```
+
+`npm run lint` and `npm run format` include the scripts and styles in `docs/`.
 
 ## Tests
 
@@ -61,12 +65,13 @@ docker run --rm -v "$PWD/../wp-app-framework:/repo" -w /repo rhysd/actionlint:1.
 - `generated/manifest.php` in a consumer selects release mode; never write it into a source checkout.
 - Twig does not recompile a template class already loaded in the same process – check template changes per request in WordPress, not within one PHPUnit process.
 - OPcache in the WordPress image revalidates every 2 seconds (`revalidate_freq=2`): changes may need a moment to show up.
+- The documentation is published per minor version from the tag (`release.yml`, job `docs`) and as `next` from `main` (`docs.yml`) into directories of the `gh-pages` branch (`docs/scripts/publish.mjs`); never push to `gh-pages` by hand. Each build needs its own `DOCS_BASE` (`/wp-app-framework/<version>/`); the build script disables Rspress' persistent cache, whose key ignores the base.
 - `Release\TwigPatcher` expects exact match counts in Twig's compiler; a Twig update that changes them fails the release build on purpose – check the patch list against the new Twig source.
 - The development cache rebuilds only when signatures (attributes, signatures of constructor and public methods) or relevant file contents change; a new kind of input to the build must be part of the signature or the listing hash.
 
 ## Compatibility and releases
 
-- Within a major version the consumer API only grows: nothing is renamed, removed or changed in behavior. Consumer API: attributes and their parameters, boot methods, Twig functions, JS exports of `@saij/wp-app-framework`, the webpack helper and its conventions, the `release` command and its options, the inputs of `.github/workflows/consumer-release.yml`. Breaking changes before 1.0 are announced in the README status.
+- Within a major version the consumer API only grows: nothing is renamed, removed or changed in behavior. Consumer API: attributes and their parameters, boot methods, Twig functions, JS exports of `@saij/wp-app-framework`, the webpack helper and its conventions, the `release` command and its options, the inputs of `.github/workflows/consumer-release.yml`. Breaking changes before 1.0 are listed in `docs/content/reference/upgrading.md`.
 - The filters `wp_app_framework/api/{slug}` and `wp_app_framework/template/{slug}`, the init action `wp_app_framework/init/{slug}` and the shape of their values are a contract between framework versions: they may only be extended, also across major versions. Internals such as the manifest format are excluded.
 - Tags `v<semver>`. `release.yml` gates a tag with theme-dev-test, plugin-dev-test and theme-dev-test-child built with the framework of the tag. Order when releasing changes that consumers depend on: wp-dev-env → framework (`main`) → consumers update their lock file and tag their releases → framework tag. The child and plugin gates use a released theme (`with-theme`), so that theme release must exist first.
-- Every change of the consumer API or of observable behavior updates the README in the same change.
+- Every change of the consumer API or of observable behavior updates the documentation pages in `docs/content/` in the same change.

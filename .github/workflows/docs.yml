@@ -1,0 +1,46 @@
+# Publishes the documentation of main as "next" to the gh-pages branch, which GitHub
+# Pages serves as https://saijsaij.github.io/wp-app-framework/ (see docs/scripts/publish.mjs).
+# Release tags publish their minor version (release.yml).
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  next:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    # Shared with the docs job of release.yml: one push to gh-pages at a time.
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - name: Check out wp-app-framework
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Build the documentation
+        working-directory: docs
+        env:
+          DOCS_BASE: /wp-app-framework/next/
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Publish to gh-pages
+        working-directory: docs
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: node scripts/publish.mjs build next
