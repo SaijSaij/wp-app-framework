@@ -154,7 +154,7 @@ jobs:
           echo "zip=$(realpath "${zip}")" >> "$GITHUB_OUTPUT"
 
       - name: Keep the release ZIP
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.project.outputs.slug }}-release
           path: ${{ steps.build.outputs.zip }}
@@ -178,7 +178,7 @@ jobs:
 
       - name: Keep the test results
         if: failure() && inputs.e2e
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.project.outputs.slug }}-e2e-results
           path: workspace/wp-dev-env/data/e2e
