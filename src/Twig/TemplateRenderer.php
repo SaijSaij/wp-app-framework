@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Twig;
 
-use Saij\WpAppFramework\Api\PluginBridge;
+use Saij\WpAppFramework\Api\InstanceBridge;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Stringable;
 use Twig\Cache\FilesystemCache;
@@ -18,20 +18,21 @@ use Twig\TwigFilter;
 use Twig\TwigFunction;
 
 /**
- * Renders the Twig templates of a framework instance (theme or plugin).
+ * Renders the Twig templates of a framework instance (theme, child theme or plugin).
  *
  * Template names are paths relative to the `src/` directory of each level,
  * including the extension (e.g. `Component/Button.twig`). Names without a
  * namespace are looked up in the search paths of the instance, then in the
  * framework, so a higher level overrides a template by providing the same path:
- * - theme: child theme `src/` → theme `src/` → framework,
+ * - theme: child theme `overrides/{slug}/` → theme `src/` → framework,
+ * - child theme: child theme `src/` → framework,
  * - plugin: child theme `overrides/{slug}/` → theme `overrides/{slug}/` → plugin `src/` → framework.
- * `@theme/…` (themes), `@plugin/…` (plugins) and `@framework/…` address exactly
- * one level and cannot be overridden.
+ * `@theme/…` (themes, child themes), `@plugin/…` (plugins) and `@framework/…`
+ * address exactly one level and cannot be overridden.
  *
  * Names starting with the template prefix of a plugin declared in
- * `extra.wp-app-framework.template-plugins` call the public template functions
- * and filters of that plugin.
+ * `extra.wp-app-framework.template-plugins`, or in a child theme of its parent
+ * theme, call the public template functions and filters of that plugin or theme.
  *
  * Provided by the framework at runtime; services receive it through their
  * constructor. The Twig environment is created on the first render.
@@ -43,20 +44,20 @@ final class TemplateRenderer
     /** Directory of the templates inside each level, relative to its root. */
     public const string TEMPLATE_DIRECTORY = 'src';
 
-    /** Directory of a theme with overrides of plugin templates, one subdirectory per plugin slug. */
+    /** Directory of a theme or child theme with overrides of templates of other instances, one subdirectory per slug. */
     public const string OVERRIDE_DIRECTORY = 'overrides';
 
     private ?Environment $environment = null;
 
-    /** @var array<string, TwigFunction|TwigFilter> Public callables of plugins by kind and name. */
-    private array $pluginCallables = [];
+    /** @var array<string, TwigFunction|TwigFilter> Public callables of other instances by kind and name. */
+    private array $providerCallables = [];
 
     /**
      * @param non-empty-string                          $slug               Slug of the instance; part of the template cache keys.
      * @param string                                    $rootPath           Root of the project; cache keys are relative to it.
      * @param list<string>                              $overridePaths      Existing directories searched before the project's templates
-     *                                                                      (child theme `src/`; for plugins the `overrides/{slug}/`
-     *                                                                      directories of child theme and theme).
+     *                                                                      (the `overrides/{slug}/` directories of child theme and,
+     *                                                                      for plugins, theme).
      * @param string                                    $projectTemplates   The project's `src/`.
      * @param string                                    $exactNamespace     Namespace of the project's own templates (`theme`, `plugin`).
      * @param string                                    $frameworkTemplates Template directory of the framework (its `src/`).
@@ -65,8 +66,8 @@ final class TemplateRenderer
      *                                                                      never recompiled there.
      * @param bool                                      $development        Development mode: debug, auto reload and dump().
      * @param list<TemplateCallableEntry>               $callables          Template functions and filters from the manifest.
-     * @param array<non-empty-string, non-empty-string> $templatePlugins    Template prefix => slug of the plugins whose public
-     *                                                                      template callables the templates use.
+     * @param array<non-empty-string, non-empty-string> $templateProviders  Template prefix => slug of the plugins and the parent
+     *                                                                      theme whose public template callables the templates use.
      */
     public function __construct(
         private readonly string $slug,
@@ -78,7 +79,7 @@ final class TemplateRenderer
         private readonly string $cacheDirectory,
         private readonly bool $development,
         private readonly array $callables,
-        private readonly array $templatePlugins,
+        private readonly array $templateProviders,
         private readonly Container $container,
     ) {}
 
@@ -160,26 +161,26 @@ final class TemplateRenderer
         }
         $environment->addRuntimeLoader(new RuntimeLoader($this->container, $classes));
 
-        if ($this->templatePlugins !== []) {
-            // Twig resolves names while compiling, also when the plugin is missing; the plugin is asked on each call.
-            $environment->registerUndefinedFunctionCallback(fn(string $name): TwigFunction|false => $this->pluginFunction($name));
-            $environment->registerUndefinedFilterCallback(fn(string $name): TwigFilter|false => $this->pluginFilter($name));
+        if ($this->templateProviders !== []) {
+            // Twig resolves names while compiling, also when the provider is missing; the provider is asked on each call.
+            $environment->registerUndefinedFunctionCallback(fn(string $name): TwigFunction|false => $this->providerFunction($name));
+            $environment->registerUndefinedFilterCallback(fn(string $name): TwigFilter|false => $this->providerFilter($name));
         }
 
         return $this->environment = $environment;
     }
 
-    private function pluginFunction(string $name): TwigFunction|false
+    private function providerFunction(string $name): TwigFunction|false
     {
-        $plugin = $this->pluginOf($name);
-        if ($plugin === null) {
+        $provider = $this->providerOf($name);
+        if ($provider === null) {
             return false;
         }
 
-        $function = $this->pluginCallables['function:' . $name] ??= new TwigFunction(
+        $function = $this->providerCallables['function:' . $name] ??= new TwigFunction(
             $name,
-            static function (mixed ...$arguments) use ($plugin, $name): mixed {
-                $entry = PluginBridge::templateCallable($plugin, TemplateCallableKind::Function, $name);
+            static function (mixed ...$arguments) use ($provider, $name): mixed {
+                $entry = InstanceBridge::templateCallable($provider, TemplateCallableKind::Function, $name);
                 $result = ($entry['callable'])(...self::plainArguments($arguments));
 
                 return $entry['html'] && is_string($result) ? new Markup($result, 'UTF-8') : $result;
@@ -190,17 +191,17 @@ final class TemplateRenderer
         return $function instanceof TwigFunction ? $function : false;
     }
 
-    private function pluginFilter(string $name): TwigFilter|false
+    private function providerFilter(string $name): TwigFilter|false
     {
-        $plugin = $this->pluginOf($name);
-        if ($plugin === null) {
+        $provider = $this->providerOf($name);
+        if ($provider === null) {
             return false;
         }
 
-        $filter = $this->pluginCallables['filter:' . $name] ??= new TwigFilter(
+        $filter = $this->providerCallables['filter:' . $name] ??= new TwigFilter(
             $name,
-            static function (Environment $environment, mixed $value, mixed ...$arguments) use ($plugin, $name): mixed {
-                $entry = PluginBridge::templateCallable($plugin, TemplateCallableKind::Filter, $name);
+            static function (Environment $environment, mixed $value, mixed ...$arguments) use ($provider, $name): mixed {
+                $entry = InstanceBridge::templateCallable($provider, TemplateCallableKind::Filter, $name);
                 // The HTML flag is known only now, so the value is escaped here instead of by Twig's pre_escape.
                 if ($entry['html'] && !$value instanceof Markup && (is_string($value) || $value instanceof Stringable)) {
                     $value = $environment->getRuntime(EscaperRuntime::class)->escape($value, 'html', 'UTF-8');
@@ -216,7 +217,7 @@ final class TemplateRenderer
     }
 
     /**
-     * Safe strings of this instance (`Markup`) as plain strings: the plugin may
+     * Safe strings of this instance (`Markup`) as plain strings: the provider may
      * run another, differently prefixed Twig, so no Twig object crosses over.
      *
      * @param array<mixed> $arguments
@@ -228,13 +229,13 @@ final class TemplateRenderer
     }
 
     /**
-     * The slug of the plugin whose template prefix the name starts with.
+     * The slug of the plugin or theme whose template prefix the name starts with.
      */
-    private function pluginOf(string $name): ?string
+    private function providerOf(string $name): ?string
     {
-        foreach ($this->templatePlugins as $prefix => $plugin) {
+        foreach ($this->templateProviders as $prefix => $provider) {
             if (str_starts_with($name, $prefix)) {
-                return $plugin;
+                return $provider;
             }
         }
 

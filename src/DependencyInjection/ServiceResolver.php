@@ -11,6 +11,8 @@ use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
 use Saij\WpAppFramework\Api\PluginApi;
+use Saij\WpAppFramework\Api\ThemeApi;
+use Saij\WpAppFramework\ChildTheme;
 use Saij\WpAppFramework\Plugin;
 use Saij\WpAppFramework\Project\ComposerProject;
 use Saij\WpAppFramework\Theme;
@@ -29,6 +31,7 @@ final class ServiceResolver
     /** Descriptions of the consumer: injectable only where the framework provides them (predefined). */
     private const array CONSUMER_CLASSES = [
         Theme::class => 'available in themes only',
+        ChildTheme::class => 'available in child themes only',
         Plugin::class => 'available in plugins only',
     ];
 
@@ -42,11 +45,13 @@ final class ServiceResolver
      * @param array<class-string, ReflectionClass<object>> $candidates
      * @param array<class-string, string>                  $excluded   Scanned non-candidates and the reason, e.g. "an interface".
      * @param list<class-string>                           $predefined Candidates provided at runtime instead of built.
+     * @param non-empty-string|null                        $parentTheme Slug of the parent theme of a child theme (`#[ThemeApi]`).
      */
     public function __construct(
         private readonly array $candidates,
         private readonly array $excluded,
         private readonly array $predefined,
+        private readonly ?string $parentTheme = null,
     ) {}
 
     /**
@@ -54,8 +59,9 @@ final class ServiceResolver
      *
      * @param array<class-string, ReflectionClass<object>> $classes
      * @param list<class-string>                           $predefined Candidates provided at runtime instead of built.
+     * @param non-empty-string|null                        $parentTheme Slug of the parent theme of a child theme.
      */
-    public static function forClasses(array $classes, array $predefined): self
+    public static function forClasses(array $classes, array $predefined, ?string $parentTheme = null): self
     {
         $candidates = [];
         $excluded = [];
@@ -68,7 +74,7 @@ final class ServiceResolver
             }
         }
 
-        return new self($candidates, $excluded, $predefined);
+        return new self($candidates, $excluded, $predefined, $parentTheme);
     }
 
     /**
@@ -196,8 +202,15 @@ final class ServiceResolver
             }
 
             $pluginApi = $parameter->getAttributes(PluginApi::class);
-            if ($pluginApi !== []) {
-                $argument = $this->pluginApiArgument($parameter, $pluginApi[0]->newInstance(), $location);
+            $themeApi = $parameter->getAttributes(ThemeApi::class);
+            if ($pluginApi !== [] && $themeApi !== []) {
+                $this->errors[] = sprintf('%s has both #[PluginApi] and #[ThemeApi]; use one.', ucfirst($location));
+                continue;
+            }
+            if ($pluginApi !== [] || $themeApi !== []) {
+                $argument = $pluginApi !== []
+                    ? $this->apiArgument($parameter, 'plugin', $pluginApi[0]->newInstance()->plugin, $location)
+                    : $this->themeApiArgument($parameter, $location);
                 if ($argument !== null) {
                     $arguments[$parameter->getName()] = $argument;
                 }
@@ -223,40 +236,59 @@ final class ServiceResolver
     }
 
     /**
-     * Validates a `#[PluginApi]` parameter; the class is not loaded, because the plugin may be missing.
+     * Validates a `#[ThemeApi]` parameter: only child themes have a parent theme.
      *
-     * @return array{plugin: non-empty-string, class: class-string}|null
+     * @return array{provider: non-empty-string, kind: 'theme', class: class-string}|null
      */
-    private function pluginApiArgument(ReflectionParameter $parameter, PluginApi $attribute, string $location): ?array
+    private function themeApiArgument(ReflectionParameter $parameter, string $location): ?array
     {
-        $plugin = $attribute->plugin;
-        if ($plugin === '' || preg_match(ComposerProject::SLUG_PATTERN, $plugin) !== 1) {
-            $this->errors[] = sprintf('#[PluginApi] on %s names "%s", which is not a plugin slug (lowercase letters, digits, "-", "_").', $location, $plugin);
+        if ($this->parentTheme === null) {
+            $this->errors[] = sprintf('#[ThemeApi] on %s: only child themes receive the public API of their parent theme; this project is no child theme (no "Template:" header in style.css).', $location);
+
+            return null;
+        }
+
+        return $this->apiArgument($parameter, 'theme', $this->parentTheme, $location);
+    }
+
+    /**
+     * Validates a `#[PluginApi]` or `#[ThemeApi]` parameter; the class is not
+     * loaded, because the provider may be missing.
+     *
+     * @template K of 'plugin'|'theme'
+     * @param K $kind
+     * @return array{provider: non-empty-string, kind: K, class: class-string}|null
+     */
+    private function apiArgument(ReflectionParameter $parameter, string $kind, string $provider, string $location): ?array
+    {
+        $attribute = $kind === 'plugin' ? '#[PluginApi]' : '#[ThemeApi]';
+        if ($provider === '' || preg_match(ComposerProject::SLUG_PATTERN, $provider) !== 1) {
+            $this->errors[] = sprintf('%s on %s names "%s", which is not a %s slug (lowercase letters, digits, "-", "_").', $attribute, $location, $provider, $kind);
 
             return null;
         }
 
         $type = $parameter->getType();
         if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
-            $this->errors[] = sprintf('#[PluginApi] on %s needs the class of the public API as type.', $location);
+            $this->errors[] = sprintf('%s on %s needs the class of the public API as type.', $attribute, $location);
 
             return null;
         }
         if (!$type->allowsNull() || !$parameter->isDefaultValueAvailable() || $parameter->getDefaultValue() !== null) {
-            $this->errors[] = sprintf('#[PluginApi] on %s must be nullable with the default null (?%s $%s = null): it is null if the plugin is not active.', $location, $type->getName(), $parameter->getName());
+            $this->errors[] = sprintf('%s on %s must be nullable with the default null (?%s $%s = null): it is null if the %s is not active.', $attribute, $location, $type->getName(), $parameter->getName(), $kind);
 
             return null;
         }
 
-        /** @var class-string $class Not loaded: the plugin may be missing. */
+        /** @var class-string $class Not loaded: the provider may be missing. */
         $class = $type->getName();
         if (isset($this->candidates[$class]) || isset($this->excluded[$class])) {
-            $this->errors[] = sprintf('#[PluginApi] on %s: %s belongs to this project or the framework, not to plugin %s.', $location, $class, $plugin);
+            $this->errors[] = sprintf('%s on %s: %s belongs to this project or the framework, not to %s %s.', $attribute, $location, $class, $kind, $provider);
 
             return null;
         }
 
-        return ['plugin' => $plugin, 'class' => $class];
+        return ['provider' => $provider, 'kind' => $kind, 'class' => $class];
     }
 
     /**

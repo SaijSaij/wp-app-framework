@@ -10,7 +10,7 @@ use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\Plugin;
 use Saij\WpAppFramework\Tests\Support\Files;
 use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Unit\Api\PluginBridgeTest;
+use Saij\WpAppFramework\Tests\Unit\Api\InstanceBridgeTest;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Twig\Error\RuntimeError;
@@ -135,12 +135,12 @@ final class InstanceTemplatesTest extends TestCase
     public function testWithoutOverridesThePluginTemplatesApply(): void
     {
         self::assertSame([], Plugin::templateOverrides('other-plugin', $this->templates . '/theme', $this->templates . '/child'));
-        self::assertSame([], Theme::templateOverrides($this->templates . '/theme', $this->templates . '/theme'));
+        self::assertSame([], Theme::templateOverrides('theme', $this->templates . '/theme', $this->templates . '/theme'));
     }
 
     public function testCallsPublicTemplateCallablesOfAPlugin(): void
     {
-        PluginBridgeTest::bootPlugin();
+        InstanceBridgeTest::bootPlugin();
 
         self::assertSame(
             '2 notes|<ul><li>first</li><li>&lt;second&gt;</li></ul>|<mark>&lt;b&gt;x&lt;/b&gt;</mark>|<em>&lt;b&gt;x&lt;/b&gt;</em>|<mark><ul><li>first</li><li>&lt;second&gt;</li></ul></mark>|yes',
@@ -159,7 +159,7 @@ final class InstanceTemplatesTest extends TestCase
     public function testCallingAMissingPluginIsAnError(): void
     {
         $this->expectException(RuntimeError::class);
-        $this->expectExceptionMessage('Template function "my_plugin_note_count" belongs to plugin my-plugin, which is not active');
+        $this->expectExceptionMessage('Template function "my_plugin_note_count" belongs to my-plugin, which is not active');
 
         $this->consumer()->render('PluginCalls.twig');
     }

@@ -1,4 +1,4 @@
-# Release pipeline of a consumer of the framework (a theme or plugin), reusable by its own workflow:
+# Release pipeline of a consumer of the framework (a theme, child theme or plugin), reusable by its own workflow:
 #
 #   on:
 #     push:
@@ -9,14 +9,16 @@
 #     release:
 #       uses: SaijSaij/wp-app-framework/.github/workflows/consumer-release.yml@<framework tag>
 #       with:
-#         with-theme: SaijSaij/theme-dev-test@v1.0.0   # plugins only
+#         with-theme: SaijSaij/theme-dev-test@v1.0.0   # plugins and child themes only
 #
 # Builds the release ZIP in the tools container of wp-dev-env, installs it into a
 # plain WordPress (scripts/release-test) and runs the consumer's browser tests
 # against it. Only if everything passes, the GitHub release of the tag gets the ZIP.
 # The repository name is the slug of the theme or plugin; the type in its
-# composer.json (wordpress-theme, wordpress-plugin) decides how it is installed.
-# A plugin is tested with the release ZIP of a theme (input with-theme).
+# composer.json (wordpress-theme, wordpress-plugin) and the Template: header of
+# style.css (child themes) decide how it is installed. A plugin is tested next to
+# the release ZIP of a theme, a child theme on top of the release ZIP of its
+# parent theme (input with-theme).
 name: Consumer release
 
 on:
@@ -35,7 +37,7 @@ on:
         type: boolean
         default: true
       publish:
-        description: Attach the ZIP to the GitHub release of the tag; the tag must equal v<version> of style.css (theme) or of the main file <slug>.php (plugin).
+        description: Attach the ZIP to the GitHub release of the tag; the tag must equal v<version> of style.css (theme, child theme) or of the main file <slug>.php (plugin).
         type: boolean
         default: true
       framework-ref:
@@ -47,7 +49,7 @@ on:
         type: string
         default: main
       with-theme:
-        description: 'Plugins only (required there): theme release whose ZIP the release test installs, as <owner>/<repository>@<tag>.'
+        description: 'Plugins and child themes only (required there): theme release whose ZIP the release test installs, as <owner>/<repository>@<tag>; for a child theme its parent theme.'
         type: string
         default: ''
 
@@ -111,19 +113,28 @@ jobs:
           WITH_THEME: ${{ inputs.with-theme }}
         run: |
           type="$(jq -r '.type // ""' "workspace/${SLUG}/composer.json")"
+          needs_theme() {
+            if [[ ! "${WITH_THEME}" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[^@[:space:]]+$ ]]; then
+              echo "::error::$1 ${SLUG} needs with-theme: <owner>/<repository>@<tag> of a theme release, got '${WITH_THEME}'."
+              exit 1
+            fi
+          }
           case "${type}" in
             wordpress-theme)
-              if [[ -n "${WITH_THEME}" ]]; then
-                echo "::error::with-theme is only for plugins; ${SLUG} is a theme."
-                exit 1
+              # Like get_file_data() of WordPress: a "Template:" header line in the first 8 KiB of style.css.
+              if head -c 8192 "workspace/${SLUG}/style.css" | tr '\r' '\n' | grep -qiE '^([[:space:]]*<\?php)?[[:space:]/*#@]*Template:[[:space:]]*[^[:space:]*]'; then
+                needs_theme 'Child theme'
+                echo "kind=child-theme" >> "$GITHUB_OUTPUT"
+              else
+                if [[ -n "${WITH_THEME}" ]]; then
+                  echo "::error::with-theme is only for plugins and child themes; ${SLUG} is a theme."
+                  exit 1
+                fi
+                echo "kind=theme" >> "$GITHUB_OUTPUT"
               fi
-              echo "kind=theme" >> "$GITHUB_OUTPUT"
               ;;
             wordpress-plugin)
-              if [[ ! "${WITH_THEME}" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[^@[:space:]]+$ ]]; then
-                echo "::error::Plugin ${SLUG} needs with-theme: <owner>/<repository>@<tag> of a theme release, got '${WITH_THEME}'."
-                exit 1
-              fi
+              needs_theme 'Plugin'
               echo "kind=plugin" >> "$GITHUB_OUTPUT"
               ;;
             *)
@@ -134,7 +145,7 @@ jobs:
 
       - name: Download the theme release
         id: theme
-        if: steps.kind.outputs.kind == 'plugin'
+        if: steps.kind.outputs.kind != 'theme'
         env:
           GH_TOKEN: ${{ github.token }}
           WITH_THEME: ${{ inputs.with-theme }}
@@ -163,7 +174,7 @@ jobs:
           }
           set_env HOST_UID "$(id -u)"
           set_env HOST_GID "$(id -g)"
-          if [[ "${KIND}" == "theme" ]]; then
+          if [[ "${KIND}" != "plugin" ]]; then
             set_env WP_THEMES "${SLUG}"
             set_env WP_ACTIVE_THEME "${SLUG}"
           else
@@ -227,14 +238,15 @@ jobs:
           SLUG: ${{ steps.project.outputs.slug }}
           ZIP: ${{ steps.build.outputs.zip }}
           THEME_ZIP: ${{ steps.theme.outputs.zip }}
+          KIND: ${{ steps.kind.outputs.kind }}
         run: |
           set -a; source .env; set +a
           docker compose up -d --wait traefik
-          if [[ -n "${THEME_ZIP}" ]]; then
-            scripts/release-test --theme "${THEME_ZIP}" --plugin "${ZIP}"
-          else
-            scripts/release-test --theme "${ZIP}"
-          fi
+          case "${KIND}" in
+            plugin) scripts/release-test --theme "${THEME_ZIP}" --plugin "${ZIP}" ;;
+            child-theme) scripts/release-test --theme "${THEME_ZIP}" --child-theme "${ZIP}" ;;
+            *) scripts/release-test --theme "${ZIP}" ;;
+          esac
           docker compose run --rm --no-deps \
             -e WP_BASE_URL="${WP_RELEASE_URL}" \
             -e E2E_BROWSER_HOST_RULES="MAP ${WP_RELEASE_HOST} traefik" \

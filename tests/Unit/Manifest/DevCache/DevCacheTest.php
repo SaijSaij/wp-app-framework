@@ -23,6 +23,7 @@ final class DevCacheTest extends TestCase
             ['type' => 'wordpress-theme', 'autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src/']]],
             JSON_THROW_ON_ERROR,
         ));
+        file_put_contents($this->theme . '/style.css', "/*\nTheme Name: Probe\n*/\n");
         $this->writeHooks("return 'first';", '');
     }
 

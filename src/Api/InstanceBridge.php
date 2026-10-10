@@ -8,6 +8,7 @@ use Closure;
 use LogicException;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Twig\TemplateCallableKind;
 
 /**
@@ -18,9 +19,9 @@ use Saij\WpAppFramework\Twig\TemplateCallableKind;
  *
  * - `wp_app_framework/init/{slug}` (action): fired once at the end of the boot.
  * - `wp_app_framework/api/{slug}` (filter, `null, class-string`): the public
- *   API object of a plugin, or null.
+ *   API object of a plugin or theme, or null.
  * - `wp_app_framework/template/{slug}` (filter, `null, 'function'|'filter', name`):
- *   a public template callable of a plugin as `['callable' => Closure, 'html' => bool]`, or null.
+ *   a public template callable of a plugin or theme as `['callable' => Closure, 'html' => bool]`, or null.
  *
  * @internal
  *
@@ -28,7 +29,7 @@ use Saij\WpAppFramework\Twig\TemplateCallableKind;
  * @phpstan-import-type TemplateCallableEntry from \Saij\WpAppFramework\Twig\TemplateRenderer
  */
 #[NoService]
-final class PluginBridge
+final class InstanceBridge
 {
     private const string INIT_ACTION = 'wp_app_framework/init/';
     private const string API_FILTER = 'wp_app_framework/api/';
@@ -53,7 +54,7 @@ final class PluginBridge
     }
 
     /**
-     * Provides the public APIs of a plugin to other consumers; each service is
+     * Provides the public APIs of a plugin or theme to other consumers; each service is
      * created when it is first requested.
      *
      * @param list<class-string> $classes
@@ -74,43 +75,53 @@ final class PluginBridge
     }
 
     /**
-     * The public API of a plugin, or null if the plugin is not active.
+     * The public API of a plugin or theme, or null if it is not active.
+     *
+     * Plugins have all booted at `plugins_loaded`; a theme boots after its child
+     * theme, so its API is available from `after_setup_theme` on.
      *
      * @template T of object
-     * @param class-string<T> $class
+     * @param ProjectKind::Plugin|ProjectKind::Theme $kind     Kind of the provider.
+     * @param non-empty-string                       $provider Slug of the plugin or theme.
+     * @param class-string<T>                        $class
      * @return T|null
      */
-    public static function api(string $plugin, string $class): ?object
+    public static function api(ProjectKind $kind, string $provider, string $class): ?object
     {
-        if (did_action('plugins_loaded') === 0) {
+        $ready = $kind === ProjectKind::Plugin ? 'plugins_loaded' : 'after_setup_theme';
+        if (did_action($ready) === 0) {
             throw new LogicException(sprintf(
-                'The public API %s of plugin %s was requested before all plugins were loaded (plugins_loaded); resolve the service later, e.g. in a hook.',
+                'The public API %s of %s %s was requested before %s; resolve the service later, e.g. in a hook.',
                 $class,
-                $plugin,
+                $kind->getLabel(),
+                $provider,
+                $kind === ProjectKind::Plugin ? 'all plugins were loaded (plugins_loaded)' : 'the theme was loaded (after_setup_theme)',
             ));
         }
 
-        $api = apply_filters(self::API_FILTER . $plugin, null, $class);
+        $api = apply_filters(self::API_FILTER . $provider, null, $class);
         if ($api === null) {
-            if (self::isBooted($plugin)) {
+            if (self::isBooted($provider)) {
                 throw new LogicException(sprintf(
-                    'Plugin %s is active but provides no public API %s; is the class marked #[PublicApi] in the installed version of the plugin?',
-                    $plugin,
+                    'The %s %s is active but provides no public API %s; is the class marked #[PublicApi] in the installed version of the %s?',
+                    $kind->getLabel(),
+                    $provider,
                     $class,
+                    $kind->getLabel(),
                 ));
             }
 
             return null;
         }
         if (!$api instanceof $class) {
-            throw new LogicException(sprintf('Plugin %s returned %s for its public API %s.', $plugin, get_debug_type($api), $class));
+            throw new LogicException(sprintf('The %s %s returned %s for its public API %s.', $kind->getLabel(), $provider, get_debug_type($api), $class));
         }
 
         return $api;
     }
 
     /**
-     * Provides the public template functions and filters of a plugin to the
+     * Provides the public template functions and filters of a plugin or theme to the
      * templates of other consumers; the service is resolved on the first call.
      *
      * @param list<TemplateCallableEntry> $callables Public entries only.
@@ -142,28 +153,28 @@ final class PluginBridge
     }
 
     /**
-     * A public template function or filter of a plugin.
+     * A public template function or filter of a plugin or theme.
      *
      * @return PublicTemplateCallable
      */
-    public static function templateCallable(string $plugin, TemplateCallableKind $kind, string $name): array
+    public static function templateCallable(string $provider, TemplateCallableKind $kind, string $name): array
     {
-        if (!self::isBooted($plugin)) {
+        if (!self::isBooted($provider)) {
             throw new LogicException(sprintf(
-                'Template %s "%s" belongs to plugin %s, which is not active; check with has_plugin(\'%s\') before using it.',
+                'Template %s "%s" belongs to %s, which is not active; for a plugin, check with has_plugin(\'%s\') before using it.',
                 $kind->value,
                 $name,
-                $plugin,
-                $plugin,
+                $provider,
+                $provider,
             ));
         }
 
-        $entry = apply_filters(self::TEMPLATE_FILTER . $plugin, null, $kind->value, $name);
+        $entry = apply_filters(self::TEMPLATE_FILTER . $provider, null, $kind->value, $name);
         if ($entry === null) {
-            throw new LogicException(sprintf('Plugin %s provides no public template %s "%s".', $plugin, $kind->value, $name));
+            throw new LogicException(sprintf('%s provides no public template %s "%s".', $provider, $kind->value, $name));
         }
         if (!is_array($entry) || !($entry['callable'] ?? null) instanceof Closure || !is_bool($entry['html'] ?? null)) {
-            throw new LogicException(sprintf('Plugin %s returned an invalid entry for its template %s "%s".', $plugin, $kind->value, $name));
+            throw new LogicException(sprintf('%s returned an invalid entry for its template %s "%s".', $provider, $kind->value, $name));
         }
 
         return ['callable' => $entry['callable'], 'html' => $entry['html']];

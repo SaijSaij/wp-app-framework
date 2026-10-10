@@ -6,7 +6,7 @@ namespace Saij\WpAppFramework;
 
 use Closure;
 use LogicException;
-use Saij\WpAppFramework\Api\PluginBridge;
+use Saij\WpAppFramework\Api\InstanceBridge;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -49,28 +49,51 @@ final readonly class Instance
      * @param non-empty-string            $slug
      * @param string                      $directory     WordPress' path of the project (may be a symlink).
      * @param string                      $directoryUri  URL of the project directory.
-     * @param Theme|Plugin                $consumer      Injectable description of the project.
+     * @param Theme|ChildTheme|Plugin     $consumer      Injectable description of the project.
      * @param Closure(): TemplateSetup    $templateSetup Template directories searched before the project's `src/`, and a
      *                                                   key that separates the release cache of compiled templates by
      *                                                   them (null if they cannot change independently of the release).
      *                                                   Called on the first render, when the active theme is final.
+     * @param non-empty-string|null       $parent        The active parent theme of a child theme; its manifest must name it.
      */
     public function __construct(
         private ProjectKind $kind,
         private string $slug,
         private string $directory,
         private string $directoryUri,
-        private Theme|Plugin $consumer,
+        private Theme|ChildTheme|Plugin $consumer,
         private Closure $templateSetup,
+        private ?string $parent = null,
     ) {}
+
+    /**
+     * Separates the release cache of compiled templates that the active theme
+     * and child theme override: a new theme version gets a new cache.
+     *
+     * @return non-empty-string
+     */
+    public static function themeVersionKey(): string
+    {
+        $themes = [
+            get_template(),
+            (string) wp_get_theme(get_template())->get('Version'),
+            get_stylesheet(),
+            (string) wp_get_theme()->get('Version'),
+        ];
+
+        return substr(hash('sha256', implode("\n", $themes)), 0, 16);
+    }
 
     public function boot(): void
     {
-        if (PluginBridge::isBooted($this->slug)) {
+        if (InstanceBridge::isBooted($this->slug)) {
             throw new LogicException(sprintf(
-                'A framework instance with the slug "%s" has already booted; the slugs of the theme and of all plugins using the framework must differ, and each boots only once (%s).',
+                'A framework instance with the slug "%s" has already booted; the slugs of the theme and of all plugins using the framework must differ, and each boots only once (%s).%s',
                 $this->slug,
                 $this->kind->getLabel(),
+                $this->kind === ProjectKind::Theme && get_stylesheet() !== get_template()
+                    ? sprintf(' The child theme %s is active: if its functions.php calls Theme::boot(), it boots the parent theme; a child theme boots with ChildTheme::boot().', get_stylesheet())
+                    : '',
             ));
         }
 
@@ -88,7 +111,7 @@ final readonly class Instance
 
         $renderContext = new RenderContext();
         $templateCallables = $manifest['templateCallables'];
-        $templatePlugins = $manifest['templatePlugins'];
+        $templateProviders = $manifest['templateProviders'];
         $twigCache = $development
             ? $cacheDirectory . '/twig'
             : $cacheDirectory . '/twig/' . self::releaseTemplateVersion($manifest['templateVersion'], $releaseManifest);
@@ -111,7 +134,7 @@ final readonly class Instance
                     $twigCache,
                     $development,
                     $templateCallables,
-                    $templatePlugins,
+                    $templateProviders,
                 ): TemplateRenderer {
                     $setup = $templateSetup();
 
@@ -125,7 +148,7 @@ final readonly class Instance
                         $development || $setup['cacheKey'] === null ? $twigCache : $twigCache . '/' . $setup['cacheKey'],
                         $development,
                         $templateCallables,
-                        $templatePlugins,
+                        $templateProviders,
                         $container,
                     );
                 },
@@ -159,14 +182,14 @@ final readonly class Instance
         add_action('enqueue_block_editor_assets', $editorAssets->enqueue(...));
         add_action('enqueue_block_assets', $editorAssets->enqueueCanvas(...));
 
-        PluginBridge::provideApis($this->slug, $manifest['publicApis'], $container);
-        PluginBridge::provideTemplateCallables(
+        InstanceBridge::provideApis($this->slug, $manifest['publicApis'], $container);
+        InstanceBridge::provideTemplateCallables(
             $this->slug,
             array_values(array_filter($templateCallables, static fn(array $callable): bool => $callable['public'])),
             $container,
         );
 
-        do_action(PluginBridge::initAction($this->slug));
+        do_action(InstanceBridge::initAction($this->slug));
     }
 
     /**
@@ -215,12 +238,21 @@ final readonly class Instance
     {
         if ($manifest['kind'] !== $this->kind->value || $manifest['slug'] !== $this->slug) {
             throw new LogicException(sprintf(
-                'The manifest %s was built for the %s "%s", but the %s "%s" boots with it. Check the "type" in composer.json and the directory name.',
+                'The manifest %s was built for the %s "%s", but the %s "%s" boots with it. Check the "type" in composer.json, the "Template:" header in style.css and the directory name.',
                 $source,
                 ProjectKind::from($manifest['kind'])->getLabel(),
                 $manifest['slug'] ?? '',
                 $this->kind->getLabel(),
                 $this->slug,
+            ));
+        }
+        if ($manifest['parent'] !== $this->parent) {
+            throw new LogicException(sprintf(
+                'The manifest %s was built for the child theme "%s" of the parent theme "%s", but the active parent theme is "%s". The "Template:" header in style.css names the parent theme.',
+                $source,
+                $this->slug,
+                $manifest['parent'] ?? '',
+                $this->parent ?? '',
             ));
         }
     }

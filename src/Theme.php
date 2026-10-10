@@ -84,6 +84,10 @@ final class Theme
      * Compiled Twig templates are cached in wp-content/cache/{template}/twig, in
      * release mode below the template version of the release. At its end, boot()
      * fires the action `wp_app_framework/init/{template}`.
+     *
+     * Templates are looked up in `overrides/{template}/` of the active child
+     * theme, then in the theme's `src/`, then in the framework. A child theme
+     * with code of its own boots with ChildTheme::boot() instead.
      */
     public static function boot(): void
     {
@@ -106,26 +110,28 @@ final class Theme
             $theme->templateDirectory,
             $theme->templateDirectoryUri,
             $theme,
-            static fn(): array => [
-                'overrides' => self::templateOverrides($theme->templateDirectory, $theme->stylesheetDirectory),
-                'cacheKey' => null,
-            ],
+            static function () use ($slug, $theme): array {
+                $overrides = self::templateOverrides($slug, $theme->templateDirectory, $theme->stylesheetDirectory);
+
+                // Compiled overrides are never reloaded in release mode: a new child theme version gets a new cache.
+                return ['overrides' => $overrides, 'cacheKey' => $overrides === [] ? null : Instance::themeVersionKey()];
+            },
         )->boot();
     }
 
     /**
      * Template directories searched before the theme's own `src/`: the child
-     * theme's `src/`, if a child theme is active and has one.
+     * theme's `overrides/{slug}/`, if a child theme is active and has one.
      *
      * @internal
      *
      * @return list<string>
      */
-    public static function templateOverrides(string $templateDirectory, string $stylesheetDirectory): array
+    public static function templateOverrides(string $slug, string $templateDirectory, string $stylesheetDirectory): array
     {
-        // A child theme is optional and needs no templates of its own.
-        $childTemplates = $stylesheetDirectory . '/' . TemplateRenderer::TEMPLATE_DIRECTORY;
+        // A child theme is optional and needs no overrides.
+        $childOverrides = $stylesheetDirectory . '/' . TemplateRenderer::OVERRIDE_DIRECTORY . '/' . $slug;
 
-        return $stylesheetDirectory !== $templateDirectory && is_dir($childTemplates) ? [$childTemplates] : [];
+        return $stylesheetDirectory !== $templateDirectory && is_dir($childOverrides) ? [$childOverrides] : [];
     }
 }

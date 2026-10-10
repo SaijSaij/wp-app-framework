@@ -18,6 +18,6 @@ final class PluginTemplateFunctions
     #[TemplateFunction('has_plugin')]
     public function hasPlugin(string $slug): bool
     {
-        return PluginBridge::isBooted($slug);
+        return InstanceBridge::isBooted($slug);
     }
 }

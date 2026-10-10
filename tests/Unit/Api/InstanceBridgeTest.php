@@ -6,10 +6,11 @@ namespace Saij\WpAppFramework\Tests\Unit\Api;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Api\PluginBridge;
+use Saij\WpAppFramework\Api\InstanceBridge;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
+use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Tests\Fixtures\ApiValid\Note;
 use Saij\WpAppFramework\Tests\Fixtures\ApiValid\NoteApi;
 use Saij\WpAppFramework\Tests\Support\Hooks;
@@ -22,7 +23,7 @@ use stdClass;
  *
  * @phpstan-import-type ManifestData from Manifest
  */
-final class PluginBridgeTest extends TestCase
+final class InstanceBridgeTest extends TestCase
 {
     protected function tearDown(): void
     {
@@ -67,13 +68,13 @@ final class PluginBridgeTest extends TestCase
     public static function bootPlugin(): void
     {
         [$container, $manifest] = self::plugin();
-        PluginBridge::provideApis('my-plugin', $manifest['publicApis'], $container);
-        PluginBridge::provideTemplateCallables(
+        InstanceBridge::provideApis('my-plugin', $manifest['publicApis'], $container);
+        InstanceBridge::provideTemplateCallables(
             'my-plugin',
             array_values(array_filter($manifest['templateCallables'], static fn(array $callable): bool => $callable['public'])),
             $container,
         );
-        do_action(PluginBridge::initAction('my-plugin'));
+        do_action(InstanceBridge::initAction('my-plugin'));
     }
 
     public function testApiIsAnErrorBeforeAllPluginsAreLoaded(): void
@@ -81,15 +82,15 @@ final class PluginBridgeTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('The public API ' . NoteApi::class . ' of plugin my-plugin was requested before all plugins were loaded (plugins_loaded)');
 
-        PluginBridge::api('my-plugin', NoteApi::class);
+        InstanceBridge::api(ProjectKind::Plugin, 'my-plugin', NoteApi::class);
     }
 
     public function testApiIsNullWithoutThePlugin(): void
     {
         do_action('plugins_loaded');
 
-        self::assertFalse(PluginBridge::isBooted('my-plugin'));
-        self::assertNull(PluginBridge::api('my-plugin', NoteApi::class));
+        self::assertFalse(InstanceBridge::isBooted('my-plugin'));
+        self::assertNull(InstanceBridge::api(ProjectKind::Plugin, 'my-plugin', NoteApi::class));
     }
 
     public function testApiOfABootedPluginIsTheSharedService(): void
@@ -97,23 +98,23 @@ final class PluginBridgeTest extends TestCase
         self::bootPlugin();
         do_action('plugins_loaded');
 
-        $api = PluginBridge::api('my-plugin', NoteApi::class);
+        $api = InstanceBridge::api(ProjectKind::Plugin, 'my-plugin', NoteApi::class);
 
-        self::assertTrue(PluginBridge::isBooted('my-plugin'));
+        self::assertTrue(InstanceBridge::isBooted('my-plugin'));
         self::assertInstanceOf(NoteApi::class, $api);
-        self::assertSame($api, PluginBridge::api('my-plugin', NoteApi::class));
+        self::assertSame($api, InstanceBridge::api(ProjectKind::Plugin, 'my-plugin', NoteApi::class));
         self::assertEquals([new Note('first'), new Note('<second>')], $api->getNotes());
     }
 
     public function testActivePluginWithoutTheApiIsAnError(): void
     {
-        do_action(PluginBridge::initAction('my-plugin'));
+        do_action(InstanceBridge::initAction('my-plugin'));
         do_action('plugins_loaded');
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Plugin my-plugin is active but provides no public API ' . NoteApi::class . '; is the class marked #[PublicApi] in the installed version of the plugin?');
+        $this->expectExceptionMessage('The plugin my-plugin is active but provides no public API ' . NoteApi::class . '; is the class marked #[PublicApi] in the installed version of the plugin?');
 
-        PluginBridge::api('my-plugin', NoteApi::class);
+        InstanceBridge::api(ProjectKind::Plugin, 'my-plugin', NoteApi::class);
     }
 
     public function testApiOfTheWrongClassIsAnError(): void
@@ -122,17 +123,17 @@ final class PluginBridgeTest extends TestCase
         do_action('plugins_loaded');
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Plugin my-plugin returned stdClass for its public API ' . NoteApi::class . '.');
+        $this->expectExceptionMessage('The plugin my-plugin returned stdClass for its public API ' . NoteApi::class . '.');
 
-        PluginBridge::api('my-plugin', NoteApi::class);
+        InstanceBridge::api(ProjectKind::Plugin, 'my-plugin', NoteApi::class);
     }
 
     public function testTemplateCallablesOfABootedPlugin(): void
     {
         self::bootPlugin();
 
-        $count = PluginBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'my_plugin_note_count');
-        $highlight = PluginBridge::templateCallable('my-plugin', TemplateCallableKind::Filter, 'my_plugin_highlight');
+        $count = InstanceBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'my_plugin_note_count');
+        $highlight = InstanceBridge::templateCallable('my-plugin', TemplateCallableKind::Filter, 'my_plugin_highlight');
 
         self::assertFalse($count['html']);
         self::assertSame('2!', ($count['callable'])('!'));
@@ -145,16 +146,16 @@ final class PluginBridgeTest extends TestCase
         self::bootPlugin();
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Plugin my-plugin provides no public template function "internal_only".');
+        $this->expectExceptionMessage('my-plugin provides no public template function "internal_only".');
 
-        PluginBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'internal_only');
+        InstanceBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'internal_only');
     }
 
     public function testTemplateCallableOfAMissingPluginIsAnError(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Template function "my_plugin_note_count" belongs to plugin my-plugin, which is not active; check with has_plugin(\'my-plugin\') before using it.');
+        $this->expectExceptionMessage('Template function "my_plugin_note_count" belongs to my-plugin, which is not active; for a plugin, check with has_plugin(\'my-plugin\') before using it.');
 
-        PluginBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'my_plugin_note_count');
+        InstanceBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'my_plugin_note_count');
     }
 }

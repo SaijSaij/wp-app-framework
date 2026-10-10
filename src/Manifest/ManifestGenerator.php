@@ -97,8 +97,9 @@ final class ManifestGenerator
             'templateCallables' => $templateCallables,
             'blocks' => $blocks,
             'values' => $result->getValues(),
+            'parent' => $result->getParent(),
             'publicApis' => $result->getPublicApis(),
-            'templatePlugins' => $result->getTemplatePlugins(),
+            'templateProviders' => $result->getTemplateProviders(),
             'templateVersion' => $templateVersion,
         ];
     }

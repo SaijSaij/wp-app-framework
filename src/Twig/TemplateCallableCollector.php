@@ -32,16 +32,17 @@ final class TemplateCallableCollector
 
     /**
      * @param array{function: list<string>, filter: list<string>} $builtInNames    Names Twig provides itself.
-     * @param non-empty-string|null                              $publicPrefix    Template prefix of a plugin for its public
-     *                                                                            callables; null for a theme, which has none.
-     * @param array<non-empty-string, non-empty-string>          $pluginPrefixes  Template prefix => slug of the plugins whose
-     *                                                                            public callables the templates use; reserved.
+     * @param non-empty-string|null                              $publicPrefix    Template prefix of a plugin or theme for its
+     *                                                                            public callables; null for a child theme, which has none.
+     * @param array<non-empty-string, non-empty-string>          $providerPrefixes Template prefix => slug of the plugins and the
+     *                                                                            parent theme whose public callables the templates
+     *                                                                            use; reserved.
      */
     public function __construct(
         private readonly ServiceResolver $resolver,
         private readonly array $builtInNames,
         private readonly ?string $publicPrefix = null,
-        private readonly array $pluginPrefixes = [],
+        private readonly array $providerPrefixes = [],
         private readonly ?PublicSignatureInspector $signatures = null,
     ) {
         $this->inspector = new EntryPointInspector($resolver);
@@ -155,9 +156,9 @@ final class TemplateCallableCollector
 
     private function publicError(string $name, bool $public, string $location, string $attributeName): ?string
     {
-        foreach ($this->pluginPrefixes as $prefix => $plugin) {
+        foreach ($this->providerPrefixes as $prefix => $provider) {
             if (str_starts_with($name, $prefix)) {
-                return sprintf('%s on %s uses the name "%s"; names starting with "%s" are reserved for the public template callables of plugin %s (extra.wp-app-framework.template-plugins).', $attributeName, $location, $name, $prefix, $plugin);
+                return sprintf('%s on %s uses the name "%s"; names starting with "%s" are reserved for the public template callables of %s (template-plugins or parent theme).', $attributeName, $location, $name, $prefix, $provider);
             }
         }
 
@@ -165,10 +166,10 @@ final class TemplateCallableCollector
             return null;
         }
         if ($this->publicPrefix === null) {
-            return sprintf('%s on %s has public: true, but only plugins offer template callables to other consumers.', $attributeName, $location);
+            return sprintf('%s on %s has public: true, but only plugins and themes offer template callables to other consumers.', $attributeName, $location);
         }
         if (!str_starts_with($name, $this->publicPrefix) || $name === $this->publicPrefix) {
-            return sprintf('%s on %s has public: true, so its name "%s" must start with the template prefix "%s" of the plugin.', $attributeName, $location, $name, $this->publicPrefix);
+            return sprintf('%s on %s has public: true, so its name "%s" must start with the template prefix "%s" of the project.', $attributeName, $location, $name, $this->publicPrefix);
         }
 
         return null;

@@ -6,7 +6,8 @@ namespace Saij\WpAppFramework\DependencyInjection;
 
 use Closure;
 use LogicException;
-use Saij\WpAppFramework\Api\PluginBridge;
+use Saij\WpAppFramework\Api\InstanceBridge;
+use Saij\WpAppFramework\Project\ProjectKind;
 
 /**
  * Minimal service container driven by the service data of the manifest:
@@ -15,8 +16,8 @@ use Saij\WpAppFramework\Api\PluginBridge;
  * @internal Only manifest entries use the container; consumer code receives its
  *           dependencies through constructor and hook parameters.
  *
- * @phpstan-type ServiceArgument class-string|array{plugin: non-empty-string, class: class-string}
- *               A service, or the public API of a plugin (`#[PluginApi]`).
+ * @phpstan-type ServiceArgument class-string|array{provider: non-empty-string, kind: 'plugin'|'theme', class: class-string}
+ *               A service, or the public API of a plugin (`#[PluginApi]`) or of the parent theme (`#[ThemeApi]`).
  */
 #[NoService]
 final class Container
@@ -71,7 +72,7 @@ final class Container
         $arguments = [];
         foreach ($this->services[$id] as $parameter => $service) {
             $arguments[$parameter] = is_array($service)
-                ? PluginBridge::api($service['plugin'], $service['class'])
+                ? InstanceBridge::api($service['kind'] === 'plugin' ? ProjectKind::Plugin : ProjectKind::Theme, $service['provider'], $service['class'])
                 : $this->get($service);
         }
 

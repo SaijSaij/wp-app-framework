@@ -8,6 +8,7 @@ use ReflectionClass;
 use Saij\WpAppFramework\Api\PublicApiCollector;
 use Saij\WpAppFramework\Api\PublicSignatureInspector;
 use Saij\WpAppFramework\Block\BlockCollector;
+use Saij\WpAppFramework\ChildTheme;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Editor\RenderContext;
@@ -38,7 +39,8 @@ final class ManifestBuilder
      * @param list<class-string> $predefined   Candidates provided at runtime instead of built.
      * @param string|null        $scriptDirectory Directory the consumer's build compiles scripts from (its `src/`).
      * @param non-empty-string|null  $slug              Slug of the project; null for builds of fixtures.
-     * @param list<non-empty-string> $templatePlugins   Plugins whose public template callables the templates use.
+     * @param list<non-empty-string> $templateProviders Plugins and parent theme whose public template callables the templates use.
+     * @param non-empty-string|null  $parent            Parent theme of a child theme.
      * @param list<string>           $foreignNamespaces Namespaces of dependencies, prefixed in a release.
      */
     public function __construct(
@@ -48,12 +50,13 @@ final class ManifestBuilder
         private readonly ?string $scriptDirectory = null,
         private readonly ProjectKind $kind = ProjectKind::Theme,
         private readonly ?string $slug = null,
-        private readonly array $templatePlugins = [],
+        private readonly array $templateProviders = [],
         private readonly array $foreignNamespaces = [],
+        private readonly ?string $parent = null,
     ) {}
 
     /**
-     * Builder for a theme or plugin: its PSR-4 directories and settings from
+     * Builder for a theme, child theme or plugin: its PSR-4 directories and settings from
      * composer.json plus the framework itself.
      */
     public static function forProject(string $projectDirectory): self
@@ -80,15 +83,20 @@ final class ManifestBuilder
             $sources,
             $trackedFiles,
             [
-                $project->getKind() === ProjectKind::Plugin ? Plugin::class : Theme::class,
+                match ($project->getKind()) {
+                    ProjectKind::Theme => Theme::class,
+                    ProjectKind::ChildTheme => ChildTheme::class,
+                    ProjectKind::Plugin => Plugin::class,
+                },
                 TemplateRenderer::class,
                 RenderContext::class,
             ],
             $scriptDirectory === false ? null : $scriptDirectory,
             $project->getKind(),
             $project->getSlug(),
-            $project->getTemplatePlugins(),
+            $project->getTemplateProviders(),
             $project->getForeignNamespaces(),
+            $project->getParent(),
         );
     }
 
@@ -109,7 +117,7 @@ final class ManifestBuilder
         $errors = [];
         $classes = $this->loadClasses($errors);
 
-        $resolver = ServiceResolver::forClasses($classes, $this->predefined);
+        $resolver = ServiceResolver::forClasses($classes, $this->predefined, $this->parent);
         $values = new ValueSchemaBuilder($classes);
         $hookCollector = new HookCollector($resolver);
         $hooks = $hookCollector->collect($classes);
@@ -120,15 +128,15 @@ final class ManifestBuilder
         // The framework's namespace is prefixed in a release as well; also listed for builds without vendor/.
         $framework = self::frameworkSource();
         $signatures = new PublicSignatureInspector($classes, [...$this->foreignNamespaces, $framework->getPrefix()], $framework->getDirectory());
-        $templatePlugins = [];
-        foreach ($this->templatePlugins as $plugin) {
-            $templatePlugins[ComposerProject::templatePrefix($plugin)] = $plugin;
+        $templateProviders = [];
+        foreach ($this->templateProviders as $provider) {
+            $templateProviders[ComposerProject::templatePrefix($provider)] = $provider;
         }
         $templateCallableCollector = new TemplateCallableCollector(
             $resolver,
             TemplateRenderer::getBuiltInNames(),
-            $this->kind === ProjectKind::Plugin && $this->slug !== null ? ComposerProject::templatePrefix($this->slug) : null,
-            $templatePlugins,
+            $this->kind->isProvider() && $this->slug !== null ? ComposerProject::templatePrefix($this->slug) : null,
+            $templateProviders,
             $signatures,
         );
         $templateCallables = $templateCallableCollector->collect($classes);
@@ -163,7 +171,8 @@ final class ManifestBuilder
             $this->kind,
             $this->slug,
             $publicApis,
-            $templatePlugins,
+            $templateProviders,
+            $this->parent,
         );
     }
 

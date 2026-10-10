@@ -39,7 +39,7 @@ final class TemplateCompilation
         $slug = $manifest['slug'] ?? throw new ReleaseException(sprintf('The manifest %s names no project slug.', $manifestFile));
         $frameworkTemplates = ManifestBuilder::frameworkSource()->getDirectory();
         $projectTemplates = $projectDirectory . '/' . TemplateRenderer::TEMPLATE_DIRECTORY;
-        // Overrides of plugin templates in a theme are compiled by the plugin at runtime, with its functions.
+        // Overrides of templates of other instances are compiled by those instances at runtime, with their functions.
         $renderer = new TemplateRenderer(
             $slug,
             $projectDirectory,
@@ -50,7 +50,7 @@ final class TemplateCompilation
             $outputDirectory,
             false,
             $manifest['templateCallables'],
-            $manifest['templatePlugins'],
+            $manifest['templateProviders'],
             new Container($manifest['services']),
         );
 

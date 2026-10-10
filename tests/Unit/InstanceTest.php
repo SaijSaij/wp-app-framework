@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Unit;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use Saij\WpAppFramework\Api\PluginBridge;
+use Saij\WpAppFramework\Api\InstanceBridge;
 use Saij\WpAppFramework\Instance;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Plugin;
@@ -80,8 +80,8 @@ final class InstanceTest extends TestCase
         do_action('plugins_loaded');
 
         self::assertSame(1, did_action('wp_app_framework/init/my-plugin'));
-        self::assertInstanceOf(NoteApi::class, PluginBridge::api('my-plugin', NoteApi::class));
-        self::assertSame('2', (PluginBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'my_plugin_note_count')['callable'])());
+        self::assertInstanceOf(NoteApi::class, InstanceBridge::api(ProjectKind::Plugin, 'my-plugin', NoteApi::class));
+        self::assertSame('2', (InstanceBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'my_plugin_note_count')['callable'])());
     }
 
     public function testManifestOfAnotherKindIsAnError(): void

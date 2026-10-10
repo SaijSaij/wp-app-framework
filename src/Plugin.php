@@ -127,14 +127,7 @@ final class Plugin
                 }
 
                 // Compiled overrides are never reloaded in release mode: a new theme version gets a new cache.
-                $themes = [
-                    get_template(),
-                    (string) wp_get_theme(get_template())->get('Version'),
-                    get_stylesheet(),
-                    (string) wp_get_theme()->get('Version'),
-                ];
-
-                return ['overrides' => $overrides, 'cacheKey' => substr(hash('sha256', implode("\n", $themes)), 0, 16)];
+                return ['overrides' => $overrides, 'cacheKey' => Instance::themeVersionKey()];
             },
         )->boot();
     }

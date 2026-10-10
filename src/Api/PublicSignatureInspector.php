@@ -15,10 +15,10 @@ use ReflectionUnionType;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 
 /**
- * Checks the signatures a plugin offers to other consumers (public APIs and
+ * Checks the signatures a plugin or theme offers to other consumers (public APIs and
  * public template callables): they must not use classes of the framework or of
  * other dependencies, because a release prefixes them and their names differ
- * in every consumer. Own classes of the plugin used in a signature are checked
+ * in every consumer. Own classes of the project used in a signature are checked
  * the same way (public methods and properties, without constructors).
  */
 #[NoService]
@@ -130,7 +130,7 @@ final class PublicSignatureInspector
         foreach ($this->prefixed as $namespace) {
             if (str_starts_with($name, $namespace)) {
                 return [sprintf(
-                    '%s of %s uses %s; a release prefixes the namespace %s, so the class has a different name in every consumer. Use PHP, WordPress or own classes of the plugin.',
+                    '%s of %s uses %s; a release prefixes the namespace %s, so the class has a different name in every consumer. Use PHP, WordPress or own classes of the project.',
                     ucfirst($location),
                     $context,
                     $name,

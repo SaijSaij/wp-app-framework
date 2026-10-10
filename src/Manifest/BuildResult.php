@@ -34,9 +34,11 @@ final readonly class BuildResult
      * @param list<BlockDefinition>                             $blocks
      * @param array<class-string, array<string, ValueField>>    $values       Value classes used by blocks and REST arguments.
      * @param non-empty-string|null                             $slug         Slug of the project; null for builds of fixtures.
-     * @param list<class-string>                                $publicApis   `#[PublicApi]` services of a plugin.
-     * @param array<non-empty-string, non-empty-string>         $templatePlugins Template prefix => slug of the plugins whose
-     *                                                                         public template callables the templates use.
+     * @param list<class-string>                                $publicApis   `#[PublicApi]` services of a plugin or theme.
+     * @param array<non-empty-string, non-empty-string>         $templateProviders Template prefix => slug of the plugins and
+     *                                                                         the parent theme whose public template callables
+     *                                                                         the templates use.
+     * @param non-empty-string|null                             $parent       Parent theme of a child theme.
      */
     public function __construct(
         private array $sources,
@@ -52,7 +54,8 @@ final readonly class BuildResult
         private ProjectKind $kind,
         private ?string $slug,
         private array $publicApis,
-        private array $templatePlugins,
+        private array $templateProviders,
+        private ?string $parent = null,
     ) {}
 
     public function getKind(): ProjectKind
@@ -77,11 +80,19 @@ final readonly class BuildResult
     }
 
     /**
-     * @return array<non-empty-string, non-empty-string> Template prefix => plugin slug.
+     * @return array<non-empty-string, non-empty-string> Template prefix => slug of a plugin or the parent theme.
      */
-    public function getTemplatePlugins(): array
+    public function getTemplateProviders(): array
     {
-        return $this->templatePlugins;
+        return $this->templateProviders;
+    }
+
+    /**
+     * @return non-empty-string|null
+     */
+    public function getParent(): ?string
+    {
+        return $this->parent;
     }
 
     /**

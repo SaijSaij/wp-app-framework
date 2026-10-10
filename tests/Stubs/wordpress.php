@@ -449,5 +449,68 @@ function esc_html(string $text): string
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * The active themes from $GLOBALS['wp_app_framework_test_themes']:
+ * `['template' => slug, 'stylesheet' => slug, 'root' => theme root, 'versions' => [slug => version]]`.
+ *
+ * @return array{template: string, stylesheet: string, root: string, versions: array<string, string>}
+ */
+function wp_app_framework_test_themes(): array
+{
+    return $GLOBALS['wp_app_framework_test_themes'] ?? throw new LogicException('The test sets no active themes.');
+}
+
+function get_template(): string
+{
+    return wp_app_framework_test_themes()['template'];
+}
+
+function get_stylesheet(): string
+{
+    return wp_app_framework_test_themes()['stylesheet'];
+}
+
+function get_template_directory(): string
+{
+    return wp_app_framework_test_themes()['root'] . '/' . get_template();
+}
+
+function get_stylesheet_directory(): string
+{
+    return wp_app_framework_test_themes()['root'] . '/' . get_stylesheet();
+}
+
+function get_template_directory_uri(): string
+{
+    return 'https://example.test/wp-content/themes/' . get_template();
+}
+
+function get_stylesheet_directory_uri(): string
+{
+    return 'https://example.test/wp-content/themes/' . get_stylesheet();
+}
+
+final class WP_Theme
+{
+    public function __construct(
+        private readonly string $stylesheet,
+    ) {}
+
+    /**
+     * Only the header "Version" is known.
+     *
+     * @return string|array<string>|false
+     */
+    public function get(string $header): string|array|false
+    {
+        return $header === 'Version' ? wp_app_framework_test_themes()['versions'][$this->stylesheet] ?? false : false;
+    }
+}
+
+function wp_get_theme(string $stylesheet = '', string $theme_root = ''): WP_Theme
+{
+    return new WP_Theme($stylesheet === '' ? get_stylesheet() : $stylesheet);
+}
+
 // The content directory of the unit tests; caches of booted instances go below it.
 define('WP_CONTENT_DIR', sys_get_temp_dir() . '/wpaf-wp-content');

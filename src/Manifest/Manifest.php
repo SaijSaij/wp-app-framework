@@ -54,6 +54,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     format: int,
  *     kind: value-of<\Saij\WpAppFramework\Project\ProjectKind>,
  *     slug: non-empty-string|null,
+ *     parent: non-empty-string|null,
  *     candidates: list<class-string>,
  *     services: array<class-string, array<string, ServiceArgument>>,
  *     hooks: list<HookEntry>,
@@ -62,14 +63,14 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     blocks: list<BlockEntry>,
  *     values: array<class-string, array<string, ValueField>>,
  *     publicApis: list<class-string>,
- *     templatePlugins: array<non-empty-string, non-empty-string>,
+ *     templateProviders: array<non-empty-string, non-empty-string>,
  *     templateVersion: non-empty-string|null
  * }
  */
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 9;
+    public const int FORMAT = 10;
 
     /**
      * @return ManifestData

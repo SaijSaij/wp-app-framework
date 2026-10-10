@@ -8,6 +8,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use Saij\WpAppFramework\Api\PluginApi;
+use Saij\WpAppFramework\Api\ThemeApi;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 
@@ -71,8 +72,10 @@ final readonly class EntryPointInspector
             return sprintf('%s: union and intersection types containing a service are not supported.', $parameterLocation);
         }
 
-        if ($parameter->getAttributes(PluginApi::class) !== []) {
-            return sprintf('%s: #[PluginApi] is only supported on constructor parameters of services, not in %s.', $parameterLocation, $context);
+        foreach ([PluginApi::class => '#[PluginApi]', ThemeApi::class => '#[ThemeApi]'] as $class => $attribute) {
+            if ($parameter->getAttributes($class) !== []) {
+                return sprintf('%s: %s is only supported on constructor parameters of services, not in %s.', $parameterLocation, $attribute, $context);
+            }
         }
 
         return null;

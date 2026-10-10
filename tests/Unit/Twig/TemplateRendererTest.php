@@ -48,7 +48,7 @@ final class TemplateRendererTest extends TestCase
         return new TemplateRenderer(
             'theme',
             $templates . '/theme',
-            Theme::templateOverrides($templates . '/theme', $templates . '/' . $stylesheet),
+            Theme::templateOverrides('theme', $templates . '/theme', $templates . '/' . $stylesheet),
             $templates . '/theme/src',
             'theme',
             $templates . '/framework/src',
@@ -70,9 +70,19 @@ final class TemplateRendererTest extends TestCase
         self::assertSame('theme|theme|framework|framework-only', $this->renderer('theme')->render('Chain.twig'));
     }
 
-    public function testChildWithoutTemplateDirectoryIsSkipped(): void
+    public function testChildWithoutOverridesIsSkipped(): void
     {
         self::assertSame('theme', $this->renderer('childWithoutTemplates')->render('Shared/Level.twig'));
+    }
+
+    public function testChildOverridesLiveInOverridesOfTheThemeNotInItsSource(): void
+    {
+        $templates = (string) realpath(self::TEMPLATES);
+
+        // child/src belongs to the child theme's own framework instance.
+        self::assertSame([$templates . '/child/overrides/theme'], Theme::templateOverrides('theme', $templates . '/theme', $templates . '/child'));
+        self::assertSame([], Theme::templateOverrides('other-theme', $templates . '/theme', $templates . '/child'));
+        self::assertSame('child', $this->renderer()->render('Shared/Level.twig'));
     }
 
     public function testNamespacesAddressExactlyOneLevel(): void
@@ -89,7 +99,7 @@ final class TemplateRendererTest extends TestCase
 
         $this->expectException(LoaderError::class);
         $this->expectExceptionMessage(sprintf(
-            'Unable to find template "Missing.twig" (looked into: %s/child/src, %s/theme/src, %s/framework/src).',
+            'Unable to find template "Missing.twig" (looked into: %s/child/overrides/theme, %s/theme/src, %s/framework/src).',
             $templates,
             $templates,
             $templates,

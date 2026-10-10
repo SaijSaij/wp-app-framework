@@ -8,11 +8,14 @@ use JsonException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
+use Saij\WpAppFramework\Release\FileHeader;
 
 /**
- * What the build reads from a consumer's composer.json: its kind (`type`), its
- * PSR-4 directories and the plugins whose public template functions and filters
- * its templates call (`extra.wp-app-framework.template-plugins`).
+ * What the build reads from a consumer's composer.json: its kind (`type`; for
+ * themes also the `Template:` header of style.css, which makes a child theme),
+ * its PSR-4 directories and the plugins whose public template functions and
+ * filters its templates call (`extra.wp-app-framework.template-plugins`). A child
+ * theme uses those of its parent theme without declaring them.
  *
  * The slug is the name of the project directory, as WordPress names themes and
  * plugins after their directory.
@@ -27,7 +30,9 @@ final readonly class ComposerProject
      * @param non-empty-string      $directory       Real path of the project.
      * @param non-empty-string      $slug
      * @param list<Source>          $sources         PSR-4 directories.
-     * @param list<non-empty-string> $templatePlugins Slugs of plugins whose public template callables the templates use.
+     * @param non-empty-string|null  $parent          Slug of the parent theme of a child theme.
+     * @param list<non-empty-string> $templateProviders Slugs of the plugins and the parent theme whose public template callables
+     *                                                  the templates use.
      * @param list<non-empty-string> $foreignNamespaces Namespaces prefixed in a release (dependencies), with a trailing backslash.
      */
     private function __construct(
@@ -35,8 +40,9 @@ final readonly class ComposerProject
         private string $composerFile,
         private string $slug,
         private ProjectKind $kind,
+        private ?string $parent,
         private array $sources,
-        private array $templatePlugins,
+        private array $templateProviders,
         private array $foreignNamespaces,
     ) {}
 
@@ -71,26 +77,15 @@ final readonly class ComposerProject
         }
 
         $errors = [];
-        $type = $composer['type'] ?? null;
-        $kind = is_string($type) ? ProjectKind::tryFrom($type) : null;
-        if ($kind === null) {
-            $errors[] = sprintf(
-                '%s must declare "type": "%s" or "%s", found %s.',
-                $composerFile,
-                ProjectKind::Theme->value,
-                ProjectKind::Plugin->value,
-                json_encode($type),
-            );
-        }
-
+        [$kind, $parent] = self::kind($root, $composerFile, $composer, $slug, $errors);
         $sources = self::sources($root, $composerFile, $composer, $errors);
-        $templatePlugins = self::templatePlugins($composerFile, $composer, $slug, $errors);
+        $templateProviders = self::templateProviders($composerFile, $composer, $slug, $parent, $errors);
 
         if ($errors !== [] || $kind === null) {
             throw new BuildException($errors === [] ? [sprintf('%s is invalid.', $composerFile)] : $errors);
         }
 
-        return new self($root, $composerFile, $slug, $kind, $sources, $templatePlugins, self::foreignNamespaces($root, $composer));
+        return new self($root, $composerFile, $slug, $kind, $parent, $sources, $templateProviders, self::foreignNamespaces($root, $composer));
     }
 
     /**
@@ -120,6 +115,16 @@ final readonly class ComposerProject
     }
 
     /**
+     * Slug of the parent theme (`Template:` header), for child themes only.
+     *
+     * @return non-empty-string|null
+     */
+    public function getParent(): ?string
+    {
+        return $this->parent;
+    }
+
+    /**
      * @return list<Source>
      */
     public function getSources(): array
@@ -128,11 +133,14 @@ final readonly class ComposerProject
     }
 
     /**
+     * Slugs of the plugins (`extra.wp-app-framework.template-plugins`) and of the
+     * parent theme of a child theme, whose public template callables the templates use.
+     *
      * @return list<non-empty-string>
      */
-    public function getTemplatePlugins(): array
+    public function getTemplateProviders(): array
     {
-        return $this->templatePlugins;
+        return $this->templateProviders;
     }
 
     /**
@@ -144,7 +152,7 @@ final readonly class ComposerProject
     }
 
     /**
-     * Prefix of the public template functions and filters of a plugin: the slug
+     * Prefix of the public template functions and filters of a plugin or theme: the slug
      * with underscores instead of hyphens, followed by an underscore
      * (`plugin-dev-test` → `plugin_dev_test_`).
      *
@@ -154,6 +162,57 @@ final readonly class ComposerProject
     public static function templatePrefix(string $slug): string
     {
         return str_replace('-', '_', $slug) . '_';
+    }
+
+    /**
+     * The kind from the composer.json `type`; a theme whose style.css declares a
+     * parent (`Template:`) is a child theme.
+     *
+     * @param array<mixed>     $composer
+     * @param non-empty-string $slug
+     * @param list<string>     $errors
+     * @return array{ProjectKind|null, non-empty-string|null}
+     */
+    private static function kind(string $root, string $composerFile, array $composer, string $slug, array &$errors): array
+    {
+        $type = $composer['type'] ?? null;
+        if ($type === ProjectKind::Plugin->getComposerType()) {
+            return [ProjectKind::Plugin, null];
+        }
+        if ($type !== ProjectKind::Theme->getComposerType()) {
+            $errors[] = sprintf(
+                '%s must declare "type": "%s" or "%s", found %s.',
+                $composerFile,
+                ProjectKind::Theme->getComposerType(),
+                ProjectKind::Plugin->getComposerType(),
+                json_encode($type),
+            );
+
+            return [null, null];
+        }
+
+        $styleFile = $root . '/style.css';
+        if (!is_file($styleFile)) {
+            $errors[] = sprintf('%s not found; %s declares "type": "%s", and a theme needs a style.css.', $styleFile, $composerFile, $type);
+
+            return [null, null];
+        }
+
+        $parent = FileHeader::value($styleFile, 'Template');
+        if ($parent === null) {
+            return [ProjectKind::Theme, null];
+        }
+        if (preg_match(self::SLUG_PATTERN, $parent) !== 1 || $parent === $slug) {
+            $errors[] = sprintf(
+                'The "Template:" header of %s names "%s", which is not the directory name of another theme; a child theme names its parent theme there.',
+                $styleFile,
+                $parent,
+            );
+
+            return [null, null];
+        }
+
+        return [ProjectKind::ChildTheme, $parent];
     }
 
     /**
@@ -191,11 +250,12 @@ final readonly class ComposerProject
     }
 
     /**
-     * @param array<mixed> $composer
-     * @param list<string> $errors
+     * @param array<mixed>          $composer
+     * @param non-empty-string|null $parent   The parent theme of a child theme: its public callables need no declaration.
+     * @param list<string>          $errors
      * @return list<non-empty-string>
      */
-    private static function templatePlugins(string $composerFile, array $composer, string $slug, array &$errors): array
+    private static function templateProviders(string $composerFile, array $composer, string $slug, ?string $parent, array &$errors): array
     {
         $extra = is_array($composer['extra'] ?? null) ? $composer['extra'] : [];
         $settings = $extra['wp-app-framework'] ?? [];
@@ -214,6 +274,10 @@ final readonly class ComposerProject
 
         $valid = [];
         $prefixes = [];
+        if ($parent !== null) {
+            $valid[] = $parent;
+            $prefixes[$parent] = self::templatePrefix($parent);
+        }
         foreach ($plugins as $plugin) {
             if (!is_string($plugin) || $plugin === '' || preg_match(self::SLUG_PATTERN, $plugin) !== 1) {
                 $errors[] = sprintf('extra.wp-app-framework.template-plugins in %s contains %s, which is not a plugin slug.', $composerFile, json_encode($plugin));
@@ -223,16 +287,21 @@ final readonly class ComposerProject
                 $errors[] = sprintf('extra.wp-app-framework.template-plugins in %s lists the project itself (%s).', $composerFile, $plugin);
                 continue;
             }
+            if ($plugin === $parent) {
+                $errors[] = sprintf('extra.wp-app-framework.template-plugins in %s lists the parent theme %s; a child theme uses its public template callables without declaring them.', $composerFile, $plugin);
+                continue;
+            }
             $prefix = self::templatePrefix($plugin);
             foreach ($prefixes as $otherPlugin => $otherPrefix) {
                 if (str_starts_with($prefix, $otherPrefix) || str_starts_with($otherPrefix, $prefix)) {
                     $errors[] = sprintf(
-                        'extra.wp-app-framework.template-plugins in %s lists %s and %s, whose template prefixes %s and %s overlap; a template name could not be assigned to one plugin.',
+                        'extra.wp-app-framework.template-plugins in %s: the template prefixes %s of %s and %s of %s%s overlap; a template name could not be assigned to one plugin or theme.',
                         $composerFile,
-                        $otherPlugin,
+                        $prefix,
                         $plugin,
                         $otherPrefix,
-                        $prefix,
+                        $otherPlugin === $parent ? 'the parent theme ' : '',
+                        $otherPlugin,
                     );
                     continue 2;
                 }

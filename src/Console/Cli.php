@@ -147,8 +147,8 @@ final class Cli
         if ($result->getPublicApis() !== [] || $public > 0) {
             fwrite($stdout, sprintf("Public: %d APIs, %d template functions and filters.\n", count($result->getPublicApis()), $public));
         }
-        if ($result->getTemplatePlugins() !== []) {
-            fwrite($stdout, sprintf("Templates use the public template callables of: %s.\n", implode(', ', $result->getTemplatePlugins())));
+        if ($result->getTemplateProviders() !== []) {
+            fwrite($stdout, sprintf("Templates use the public template callables of: %s.\n", implode(', ', $result->getTemplateProviders())));
         }
 
         $overrides = TemplateOverrides::find(

@@ -11,7 +11,7 @@ use Saij\WpAppFramework\Manifest\EntryPointInspector;
 use Saij\WpAppFramework\Project\ProjectKind;
 
 /**
- * Collects the `#[PublicApi]` services of a plugin during the build.
+ * Collects the `#[PublicApi]` services of a plugin or theme during the build.
  */
 #[NoService]
 final class PublicApiCollector
@@ -39,8 +39,8 @@ final class PublicApiCollector
                 continue;
             }
 
-            if ($this->kind !== ProjectKind::Plugin) {
-                $this->errors[] = sprintf('%s has #[PublicApi], but only plugins provide public APIs; this project is a %s.', $name, $this->kind->getLabel());
+            if (!$this->kind->isProvider()) {
+                $this->errors[] = sprintf('%s has #[PublicApi], but only plugins and themes provide public APIs; this project is a %s.', $name, $this->kind->getLabel());
                 continue;
             }
 

@@ -6,11 +6,11 @@ PHP/JS framework for building standalone full site editing themes and plugins fo
 - PHP namespace: `Saij\WpAppFramework`
 - JS import name: `@saij/wp-app-framework`, runtime global: `window.wpAppFramework[slug]` (one per framework instance)
 
-The framework is a library that themes and plugins (its *consumers*) include via Composer. It is neither a theme nor a plugin and registers no blocks itself. Each consumer runs its own framework instance; everything global – REST route, script handles, JS global, cache directory, init action – is named after the consumer's slug (its directory name), so a theme and several plugins with different framework versions run side by side.
+The framework is a library that themes, child themes and plugins (its *consumers*) include via Composer. It is neither a theme nor a plugin and registers no blocks itself. Each consumer runs its own framework instance; everything global – REST route, script handles, JS global, cache directory, init action – is named after the consumer's slug (its directory name), so a theme and several plugins with different framework versions run side by side.
 
 ## Status
 
-Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig (step 3): `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`. Server-side blocks (step 4): `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments. Editor runtime (step 5): inline editing in the canvas, generated inspector, batch render route, webpack helper. Release (step 6): `wp-app-framework release` (prefixed ZIP), release mode with a versioned Twig cache, GitHub workflows. Plugins (step 7): `Plugin::boot()`, theme overrides of plugin templates, public APIs and public template callables of plugins.
+Framework core (step 1): boot, container, manifest build, development mode and `#[Hook]`. REST routes (step 2): `#[RestController]`, `#[RestRoute]`, `#[Param]`. Twig (step 3): `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`. Server-side blocks (step 4): `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments. Editor runtime (step 5): inline editing in the canvas, generated inspector, batch render route, webpack helper. Release (step 6): `wp-app-framework release` (prefixed ZIP), release mode with a versioned Twig cache, GitHub workflows. Plugins (step 7): `Plugin::boot()`, theme overrides of plugin templates, public APIs and public template callables of plugins. Child themes (step 8): `ChildTheme::boot()`, overrides of theme templates in `overrides/{theme}/`, public APIs and template callables of themes, `#[ThemeApi]`. **Breaking change in 0.3.0:** child themes override theme templates in `overrides/{theme}/` instead of `src/`.
 
 ## Usage
 
@@ -50,9 +50,11 @@ require is_file(__DIR__ . '/vendor-prefixed/autoload.php')
 Saij\WpAppFramework\Plugin::boot(__FILE__);
 ```
 
-The slug of a theme is `get_template()`, the slug of a plugin its directory name; its asset URLs come from `plugin_dir_url()`. Each slug boots once: a second boot with the same slug – from the same consumer, or a theme and a plugin with the same directory name – is an error. At its end, the boot fires the action `wp_app_framework/init/{slug}` (currently without arguments). Child themes attach to the action of their parent theme, because WordPress loads their `functions.php` before the parent's.
+A child theme with code of its own (blocks, hooks, routes) boots its own framework instance from its `functions.php`, with the same autoloader lines and `Saij\WpAppFramework\ChildTheme::boot();` – see [Child themes](#child-themes). A child theme without code needs neither boot nor build.
 
-The `type` in the consumer's `composer.json` must be `wordpress-theme` or `wordpress-plugin`; the build reads the kind of the project from it.
+The slug of a theme is `get_template()`, of a child theme `get_stylesheet()`, of a plugin its directory name; the asset URLs of a plugin come from `plugin_dir_url()`. Each slug boots once: a second boot with the same slug – from the same consumer, or a theme and a plugin with the same directory name – is an error. At its end, the boot fires the action `wp_app_framework/init/{slug}` (without arguments).
+
+The `type` in the consumer's `composer.json` must be `wordpress-theme` or `wordpress-plugin`; the build reads the kind of the project from it. A theme needs a `style.css`; if it declares a parent theme (`Template:`), the project is a child theme.
 
 ### Modes
 
@@ -65,7 +67,7 @@ The `type` in the consumer's `composer.json` must be `wordpress-theme` or `wordp
 
 Every concrete class under the consumer's PSR-4 directories (`autoload.psr-4` in its `composer.json`) and under the framework's `src/` is a service candidate. Interfaces, abstract classes, traits, enums, attribute classes and classes marked `#[NoService]` (`Saij\WpAppFramework\DependencyInjection\NoService`) are not. Services are shared and autowired by constructor parameter types; scalar parameters must have a default value.
 
-Only services reachable from entry points (`#[Hook]`, `#[RestRoute]`, `#[TemplateFunction]` and `#[TemplateFilter]` methods, including permission callbacks, and `#[Block]` classes) are built and checked, so value objects that are never injected need no marking. Aliases and tags are not supported. The container is internal; consumer code receives services through constructor and hook parameters only. `Saij\WpAppFramework\Theme` is a predefined instance in themes: `Theme::boot()` creates it (its constructor is private) and hands it to the container, which never builds it. Services can inject it to read the paths via `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()` and `getFrameworkDirectory()`. In plugins, `Saij\WpAppFramework\Plugin` takes its place (`getSlug()`, `getFile()`, `getDirectory()`, `getDirectoryUri()`, `getFrameworkDirectory()`); injecting the one of the other kind is a build error. `Saij\WpAppFramework\Twig\TemplateRenderer` is predefined as well; the framework creates it on first use.
+Only services reachable from entry points (`#[Hook]`, `#[RestRoute]`, `#[TemplateFunction]` and `#[TemplateFilter]` methods, including permission callbacks, and `#[Block]` classes) are built and checked, so value objects that are never injected need no marking. Aliases and tags are not supported. The container is internal; consumer code receives services through constructor and hook parameters only. `Saij\WpAppFramework\Theme` is a predefined instance in themes: `Theme::boot()` creates it (its constructor is private) and hands it to the container, which never builds it. Services can inject it to read the paths via `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()` and `getFrameworkDirectory()`. In plugins, `Saij\WpAppFramework\Plugin` takes its place (`getSlug()`, `getFile()`, `getDirectory()`, `getDirectoryUri()`, `getFrameworkDirectory()`), in child themes `Saij\WpAppFramework\ChildTheme` (`getSlug()`, `getParentSlug()`, `getDirectory()`, `getDirectoryUri()`, `getParentDirectory()`, `getParentDirectoryUri()`, `getFrameworkDirectory()`); injecting the one of another kind is a build error. `Saij\WpAppFramework\Twig\TemplateRenderer` is predefined as well; the framework creates it on first use.
 
 ### Hooks
 
@@ -178,15 +180,16 @@ final class Formatting
 ```
 
 ```twig
-{% include 'Component/Button.twig' %}      {# child → theme → framework #}
+{% include 'Component/Button.twig' %}      {# child overrides → theme → framework #}
 {% include '@framework/Component/Button.twig' %} {# exactly this level #}
 {{ price(total) }} {{ name|highlight }}
 ```
 
-- **Lookup:** names without a namespace are searched in the child theme's `src/` (only if a child theme is active and has one), then the theme's, then the framework's. A higher level overrides a template by providing the same path. `@theme/…` and `@framework/…` address exactly one level and cannot be overridden – use them where the exact template matters, e.g. when an override extends the original. `wp-app-framework build` lists templates that override framework templates.
+- **Lookup:** names without a namespace are searched in `overrides/{theme-slug}/` of the active child theme (if it has that directory), then in the theme's `src/`, then in the framework's. A higher level overrides a template by providing the same path: a child theme overrides `src/Block/Hero/Hero.twig` of the theme `my-theme` with `overrides/my-theme/Block/Hero/Hero.twig`. `@theme/…` and `@framework/…` address exactly one level and cannot be overridden – use them where the exact template matters, e.g. when an override extends the original. `wp-app-framework build` lists templates that override framework templates.
+- **Child themes:** the `src/` of a child theme belongs to its own framework instance (if it boots one): its templates are searched in its `src/`, then in the framework's, and never override templates of the theme.
 - **Plugins:** a plugin's templates are searched in `overrides/{plugin-slug}/` of the child theme and of the theme, then in the plugin's `src/`, then in the framework's. So a theme overrides `src/Block/Note/Note.twig` of the plugin `my-plugin` with `overrides/my-plugin/Block/Note/Note.twig`; its own templates in `src/` never collide with plugin templates. `@plugin/…` addresses the plugin's own templates exactly. Overrides are rendered by the plugin's Twig environment: the plugin's template functions and filters and the context the plugin passes apply.
 - **Instances:** compiled templates are named after the slug of their instance as well, so a theme and a plugin never share the compiled code of templates with the same path.
-- **Environment:** autoescaping (`html`) and `strict_variables` are always on; undefined variables are errors. In development mode, debug, auto reload and `dump()` are enabled. Compiled templates are cached in `wp-content/cache/{slug}/twig/`. Release mode compiles without auto reload, so each release uses its own directory `wp-content/cache/{slug}/twig/{templateVersion}/`; the version is a hash over the names and contents of all templates of the project and the framework, written into the release manifest by `build --output`. If the active theme overrides templates of a plugin, the plugin's directory gets a further level named after the versions of theme and child theme: a changed override needs a new theme version. Directories of older releases are not removed yet. Twig exceptions reach the caller, so the error handling of hooks and REST routes applies.
+- **Environment:** autoescaping (`html`) and `strict_variables` are always on; undefined variables are errors. In development mode, debug, auto reload and `dump()` are enabled. Compiled templates are cached in `wp-content/cache/{slug}/twig/`. Release mode compiles without auto reload, so each release uses its own directory `wp-content/cache/{slug}/twig/{templateVersion}/`; the version is a hash over the names and contents of all templates of the project and the framework, written into the release manifest by `build --output`. If the active theme or child theme overrides templates of another instance (a plugin, or the theme overridden by its child theme), that instance's directory gets a further level named after the versions of theme and child theme: a changed override needs a new theme version. Directories of older releases are not removed yet. Twig exceptions reach the caller, so the error handling of hooks and REST routes applies.
 - **`#[TemplateFunction(name, html: false)]` / `#[TemplateFilter(name, html: false)]`** register public, non-static methods of services; the service is created when a template first calls them. Names must be valid identifiers, unique per kind and must not reuse a function or filter Twig provides (Twig would silently replace it); parameters must not be services (inject them through the constructor), variadic or by reference. A filter receives the filtered value as its first parameter.
 - **Escaping:** results are escaped unless `html: true`; such a method must return `string`. An HTML filter receives the filtered value HTML-escaped unless it is already safe (e.g. `|raw`, like Twig's `nl2br`). Other arguments are passed unescaped: an HTML function or filter must escape every argument it puts into its result.
 
@@ -360,9 +363,9 @@ The output goes to `build/`: the runtime to `build/vendor/wp-app-framework/edito
 
 ### Plugins
 
-Plugins use the framework like themes (boot see above) and may offer an interface to other consumers – the theme, other plugins. Instances never share PHP objects of the framework or of its dependencies: each release prefixes them with its own namespace. The interface therefore consists of WordPress hooks named after the plugin's slug and of signatures that use only PHP, WordPress and the plugin's own classes; the build of the plugin rejects other types (also in the plugin classes such a signature uses). The plugin keeps its interface compatible itself.
+Plugins use the framework like themes (boot see above) and may offer an interface to other consumers – the theme, other plugins. Themes may offer the same interface to their child themes. Instances never share PHP objects of the framework or of its dependencies: each release prefixes them with its own namespace. The interface therefore consists of WordPress hooks named after the provider's slug and of signatures that use only PHP, WordPress and the provider's own classes; the build of the provider rejects other types (also in the project classes such a signature uses). The provider keeps its interface compatible itself.
 
-**Public API.** `#[PublicApi]` (`Saij\WpAppFramework\Api\PublicApi`) marks a service of a plugin as its API. A consumer receives it through a constructor parameter:
+**Public API.** `#[PublicApi]` (`Saij\WpAppFramework\Api\PublicApi`) marks a service of a plugin or theme as its API. A consumer receives the API of a plugin through a constructor parameter:
 
 ```php
 use My\Plugin\Api\NoteApi;
@@ -379,7 +382,7 @@ final class Notes
 
 The parameter must be nullable with the default `null`; it is `null` if the plugin is not active. The build does not load the class, so the plugin may be missing; require it as a development dependency (`require-dev`) for the IDE and static analysis – the release build installs without development dependencies. The service is created when the consumer's service is created; doing that before `plugins_loaded` is an error, and so is an active plugin that does not provide the class.
 
-**Public template functions and filters.** `#[TemplateFunction(name, public: true)]` and `#[TemplateFilter(name, public: true)]` in a plugin offer the callable to the templates of other consumers. The name must start with the plugin's template prefix – its slug with underscores, e.g. `my_plugin_` for `my-plugin`. A consumer lists the plugins it uses in its `composer.json` and calls the callables by name:
+**Public template functions and filters.** `#[TemplateFunction(name, public: true)]` and `#[TemplateFilter(name, public: true)]` in a plugin or theme offer the callable to the templates of other consumers. The name must start with the provider's template prefix – its slug with underscores, e.g. `my_plugin_` for `my-plugin`. A consumer lists the plugins it uses in its `composer.json` and calls the callables by name (a child theme uses those of its parent theme without listing it):
 
 ```json
 "extra": { "wp-app-framework": { "template-plugins": ["my-plugin"] } }
@@ -392,6 +395,29 @@ The parameter must be nullable with the default `null`; it is `null` if the plug
 ```
 
 Twig resolves names while compiling templates, so a name with a declared prefix compiles without the plugin; it is resolved when called, and calling it without the plugin is an error – check with `has_plugin(slug)`. Arguments are positional. Results of `html: true` callables are printed unescaped; the input of such a filter is escaped first unless it is the result of an HTML function or filter (unlike filters of the own instance, a value marked with `|raw` is escaped as well). Names starting with a declared prefix are reserved; the consumer's own callables must not use them.
+
+### Child themes
+
+A child theme overrides templates of its parent theme in `overrides/{parent-slug}/` (see Twig) and adjusts `theme.json`, block templates, template parts and patterns as WordPress allows; for that it needs no Composer, no boot and no build.
+
+A child theme with code of its own – blocks, hooks, REST routes – is a framework instance like a plugin: its own `composer.json` (`type: wordpress-theme`, its `style.css` names the parent theme in `Template:`), its own PSR-4 namespace and block namespace, its own release with its own prefix, and `ChildTheme::boot()` in its `functions.php` (see Boot). WordPress loads that file before the parent theme's; the instances share nothing. The build records the parent theme in the manifest, and the boot fails if another parent theme is active. Block names that collide with the parent's are errors, as between any two instances.
+
+The child theme reaches its parent theme only through the parent's public interface (see Plugins): its public template callables, without declaring the parent, and its public API through a constructor parameter with `#[ThemeApi]` (`Saij\WpAppFramework\Api\ThemeApi`):
+
+```php
+use My\Theme\Api\SectionsApi;
+use Saij\WpAppFramework\Api\ThemeApi;
+
+final class Teasers
+{
+    public function __construct(
+        #[ThemeApi]
+        private readonly ?SectionsApi $sections = null,
+    ) {}
+}
+```
+
+The parent theme boots after the child theme, so the service must not be created before `after_setup_theme`. Require the parent theme as a development dependency for the IDE and static analysis. Child themes offer no public interface themselves.
 
 ### Values
 
@@ -425,7 +451,7 @@ Builds the release ZIP of a theme or plugin (by the `type` in its `composer.json
 4. Builds `generated/manifest.php` with the prefixed classes (`bin/wp-app-framework-prefixed.php` in the prefixed copy, written with the template version), then compiles all templates of the project and the framework as release mode would and checks the compiled code for unprefixed names.
 5. `npm ci && npm run build` (if there is a `package.json`), which builds the editor runtime from `vendor/`.
 6. Removes `node_modules/`, `vendor/`, `composer.json`, `composer.lock`, `package.json`, `package-lock.json` and every path the project marks `export-ignore` in `.gitattributes` (use `dir/**` for directories), then checks all PHP files for names of dependencies that were not prefixed (string literals too, except inside `vendor-prefixed/`, where dependencies mention their own class names in messages).
-7. Writes `dist/<slug>-<version>.zip` (or `--output`) with the project directory as root; slug = directory name, version = `Version:` of the theme's `style.css` or of the plugin's main file `<slug>.php`, which `--expect-version` must match.
+7. Writes `dist/<slug>-<version>.zip` (or `--output`) with the project directory as root; slug = directory name, version = `Version:` of the (child) theme's `style.css` or of the plugin's main file `<slug>.php`, which `--expect-version` must match. A child theme is built without its parent theme: calls of the parent's public template callables compile without it.
 
 Every step fails with the file, command or setting at fault; on failure the build directory is kept and its path printed. The project declares the Strauss settings in its `composer.json` – `extra` is part of the lock file's content hash, so the build cannot add them – and the command checks the values it relies on:
 
@@ -442,14 +468,14 @@ Every step fails with the file, command or setting at fault; on failure the buil
 }
 ```
 
-`update_call_sites` must contain the file that boots the framework (`functions.php` of a theme, `<slug>.php` of a plugin). The prefix must not be the project's own namespace (Strauss' default). Leave `constant_prefix` unset: it would rename the constants the Symfony polyfills define for PHP itself (e.g. `MB_CASE_UPPER`); Twig defines none.
+`update_call_sites` must contain the file that boots the framework (`functions.php` of a theme or child theme, `<slug>.php` of a plugin). The prefix must not be the project's own namespace (Strauss' default). Leave `constant_prefix` unset: it would rename the constants the Symfony polyfills define for PHP itself (e.g. `MB_CASE_UPPER`); Twig defines none.
 
 ### Releases and CI
 
 Repositories are released by tags `v<semantic version>`; GitHub Actions run the release pipeline and attach the artifact to the GitHub release of the tag, only after it passed its tests.
 
-- **Themes and plugins** call the reusable workflow `.github/workflows/consumer-release.yml` of this repository from a workflow on `push: tags: ['v*']` with `permissions: contents: write` (see [theme-dev-test](https://github.com/saijsaij/theme-dev-test) and [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test)). It checks out the project and [wp-dev-env](https://github.com/saijsaij/wp-dev-env), runs `composer lint` and `npm run lint` (if defined) and `wp-app-framework build`, builds the release with `--expect-version` of the tag, installs the ZIP into a plain WordPress (`scripts/release-test`) and runs the project's browser tests (`npm run test:e2e`, with `E2E_TARGET=release`; input `e2e: false` skips them). The `type` in `composer.json` decides how the ZIP is installed; a plugin is installed next to the release ZIP of a theme, given as input `with-theme: <owner>/<repository>@<tag>` (required for plugins). Inputs: `repository`, `ref`, `e2e`, `publish`, `framework-ref`, `wp-dev-env-ref`, `with-theme`. Consumers pin the workflow to a framework tag.
-- **The framework:** `ci.yml` runs PHPUnit, Vitest and all linters on pushes and pull requests. `release.yml` runs them for a tag, then the release gates – theme-dev-test and plugin-dev-test built with the framework of the tag (`framework-ref`) and tested in the browser, the plugin next to an older release of the theme, without publishing – and finally attaches `wp-app-framework-<version>.zip` (`git archive`, without the `export-ignore` development files) to the GitHub release.
+- **Themes, child themes and plugins** call the reusable workflow `.github/workflows/consumer-release.yml` of this repository from a workflow on `push: tags: ['v*']` with `permissions: contents: write` (see [theme-dev-test](https://github.com/saijsaij/theme-dev-test), [theme-dev-test-child](https://github.com/saijsaij/theme-dev-test-child) and [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test)). It checks out the project and [wp-dev-env](https://github.com/saijsaij/wp-dev-env), runs `composer lint` and `npm run lint` (if defined) and `wp-app-framework build`, builds the release with `--expect-version` of the tag, installs the ZIP into a plain WordPress (`scripts/release-test`) and runs the project's browser tests (`npm run test:e2e`, with `E2E_TARGET=release`; input `e2e: false` skips them). The `type` in `composer.json` and the `Template:` header of `style.css` decide how the ZIP is installed; a plugin is installed next to the release ZIP of a theme, a child theme on top of the release ZIP of its parent theme, given as input `with-theme: <owner>/<repository>@<tag>` (required for plugins and child themes). Inputs: `repository`, `ref`, `e2e`, `publish`, `framework-ref`, `wp-dev-env-ref`, `with-theme`. Consumers pin the workflow to a framework tag.
+- **The framework:** `ci.yml` runs PHPUnit, Vitest and all linters on pushes and pull requests. `release.yml` runs them for a tag, then the release gates – theme-dev-test, plugin-dev-test and theme-dev-test-child built with the framework of the tag (`framework-ref`) and tested in the browser, the plugin and the child theme with an older release of the theme, without publishing – and finally attaches `wp-app-framework-<version>.zip` (`git archive`, without the `export-ignore` development files) to the GitHub release.
 
 Themes require the framework from this repository (`"repositories": [{"type": "vcs", "url": "https://github.com/saijsaij/wp-app-framework"}]`) by version; the lock file pins the commit.
 
@@ -459,10 +485,10 @@ Themes require the framework from this repository (`"repositories": [{"type": "v
 
 | Directory | Contents |
 |---|---|
-| `Theme.php`, `Plugin.php` | Boot and paths of the active theme or of a plugin |
+| `Theme.php`, `ChildTheme.php`, `Plugin.php` | Boot and paths of the active theme, child theme or of a plugin |
 | `Instance.php` | Boot of one framework instance (internal) |
 | `Project/` | Kind, slug and settings of a consumer from its `composer.json` (build) |
-| `Api/` | `#[PublicApi]`, `#[PluginApi]` attributes, collector and signature checks (build), hooks between instances and `has_plugin()` (runtime) |
+| `Api/` | `#[PublicApi]`, `#[PluginApi]`, `#[ThemeApi]` attributes, collector and signature checks (build), hooks between instances and `has_plugin()` (runtime) |
 | `Hook/` | `#[Hook]` attribute, collector (build), definition, registrar (runtime) |
 | `Rest/` | `#[RestController]`, `#[RestRoute]`, `#[Param]` attributes, `HttpMethod`/`Format` enums, `Permission/` (`PublicAccess`, `Capability`, `Callback`), `RestException`, collector (build), definition, registrar (runtime) |
 | `Twig/` | `#[TemplateFunction]`, `#[TemplateFilter]` attributes, collector (build), definition, `TemplateRenderer` and runtime loader (runtime), override finder (build) |
