@@ -5,12 +5,12 @@
 <title>Twig templates - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-03fb1368cb29.2972061b52.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-03fb1368cb29.f7bedd10a9.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.d23ca40952.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.d9c2b915f7.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.857305b60f.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.993321e56f.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -64,7 +64,7 @@
 <li><strong>Instances:</strong> compiled templates are named after the slug of their instance as well, so a theme and a plugin never share the compiled code of templates with the same path.</li>
 </ul>
 <h2 class="rp-toc-include" id="environment"><a href="#environment" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Environment</h2>
-<p>Autoescaping (<code>html</code>) and <code>strict_variables</code> are always on; undefined variables are errors. In development mode, debug, auto reload and <code>dump()</code> are enabled. A theme or plugin with settings groups has the global <code>settings</code> (see <a href="/wp-app-framework/next/guides/settings.html#using-settings" class="rp-link">Settings</a>). The framework provides the template functions of blocks (<code>attachment_image()</code>, <code>block_wrapper_attributes()</code>, see <a href="/wp-app-framework/next/guides/blocks.html#escaping" class="rp-link">Blocks</a>), of the editor (<code>field()</code>, <code>inner_blocks()</code>, <code>is_editor()</code>) and of <a href="/wp-app-framework/next/guides/values.html#references" class="rp-link">references</a> (<code>post_title()</code>, <code>post_url()</code>, <code>term_name()</code>, <code>term_url()</code>, <code>user_name()</code>).</p>
+<p>Autoescaping (<code>html</code>) and <code>strict_variables</code> are always on; undefined variables are errors. In development mode, debug, auto reload and <code>dump()</code> are enabled. A theme or plugin with settings groups has the global <code>settings</code> (see <a href="/wp-app-framework/next/guides/settings.html#using-settings" class="rp-link">Settings</a>). The framework provides the template functions of blocks (<code>block_wrapper_attributes()</code>, see <a href="/wp-app-framework/next/guides/blocks.html#escaping" class="rp-link">Blocks</a>), of the editor (<code>field()</code>, <code>inner_blocks()</code>, <code>is_editor()</code>), <code>has_plugin()</code> (see <a href="/wp-app-framework/next/guides/plugins.html#public-template-functions-and-filters" class="rp-link">Plugins</a>) and <a href="#wordpress-functions" class="rp-link">WordPress functions</a>.</p>
 <p>Compiled templates are cached in <code>wp-content/cache/{slug}/twig/</code>. Release mode compiles without auto reload, so each release uses its own directory <code>wp-content/cache/{slug}/twig/{templateVersion}/</code>; the version is a hash over the names and contents of all templates of the project and the framework, written into the release manifest by <code>build --output</code>. If the active theme or child theme overrides templates of another instance (a plugin, or the theme overridden by its child theme), that instance&#x27;s directory gets a further level named after the versions of theme and child theme: a changed override needs a new theme version. Directories of older releases are not removed yet.</p>
 <p>Twig exceptions reach the caller, so the error handling of hooks and REST routes applies.</p>
 <h2 class="rp-toc-include" id="template-functions-and-filters"><a href="#template-functions-and-filters" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Template functions and filters</h2>
@@ -72,7 +72,153 @@
 <li><strong><code>#[TemplateFunction(name, html: false)]</code> / <code>#[TemplateFilter(name, html: false)]</code></strong> register public, non-static methods of services; the service is created when a template first calls them. Names must be valid identifiers, unique per kind and must not reuse a function or filter Twig provides (Twig would silently replace it); parameters must not be services (inject them through the constructor), variadic or by reference. A filter receives the filtered value as its first parameter.</li>
 <li><strong>Escaping:</strong> results are escaped unless <code>html: true</code>; such a method must return <code>string</code>. An HTML filter receives the filtered value HTML-escaped unless it is already safe (e.g. <code>|raw</code>, like Twig&#x27;s <code>nl2br</code>). Other arguments are passed unescaped: an HTML function or filter must escape every argument it puts into its result.</li>
 <li>Callables offered to other consumers (<code>public: true</code>) are described in <a href="/wp-app-framework/next/guides/plugins.html#public-template-functions-and-filters" class="rp-link">Plugins</a>.</li>
-</ul><!--/$--></div><footer class="rp-doc-footer"><div class="rp-doc-footer__edit"><a href="https://github.com/saijsaij/wp-app-framework/tree/main/docs/content/guides/twig.md" target="_blank" rel="noopener noreferrer" class="rp-edit-link rp-link">Edit this page</a></div><div class="rp-doc-footer__divider"></div><div class="rp-prev-next-page"><a href="/wp-app-framework/next/guides/rest.html" class="rp-prev-next-page__item rp-prev-next-page__prev rp-link"><span class="rp-prev-next-page__item__desc">Previous page</span><span class="rp-prev-next-page__item__title"><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon rp-prev-next-page__rotate_180"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg><span>REST routes</span></span></a><a href="/wp-app-framework/next/guides/blocks.html" class="rp-prev-next-page__item rp-prev-next-page__next rp-link"><span class="rp-prev-next-page__item__desc">Next page</span><span class="rp-prev-next-page__item__title"><span>Blocks</span><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></span></a></div></footer></main></div><aside class="rp-doc-layout__outline rp-scrollbar"><div class="rp-outline"><div class="rp-outline__title">ON THIS PAGE<svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg></div><nav class="rp-outline__toc rp-scrollbar"><a href="#lookup" class="rp-toc-item rp-link" title="Lookup" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Lookup</span></a><a href="#environment" class="rp-toc-item rp-link" title="Environment" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Environment</span></a><a href="#template-functions-and-filters" class="rp-toc-item rp-link" title="Template functions and filters" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Template functions and filters</span></a></nav><div class="rp-outline__divider"></div><div class="rp-outline__bottom"><a href="https://github.com/saijsaij/wp-app-framework/tree/main/docs/content/guides/twig.md" target="_blank" rel="noopener noreferrer" class="rp-outline__action-row rp-edit-link rp-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg><span>Edit this page</span></a></div></div></aside></div></div>
+</ul>
+<h2 class="rp-toc-include" id="wordpress-functions"><a href="#wordpress-functions" class="rp-header-anchor rp-link" aria-hidden="true">#</a>WordPress functions</h2>
+<p>The framework wraps WordPress functions as template functions named <code>wp_</code> + object + property, without <code>get_</code>/<code>the_</code>; a WordPress function that already starts with <code>wp_</code> keeps its name (<code>wp_date</code>, not <code>wp_wp_date</code>). The prefix is not reserved, but a name the framework already uses is a build error.</p>
+<ul>
+<li>IDs may be <code>null</code> (e.g. an empty <code>#[Image]</code> or <a href="/wp-app-framework/next/guides/values.html#references" class="rp-link">reference</a>); <code>null</code> and objects that do not exist give <code>&#x27;&#x27;</code>. Posts that are not publicly viewable count as missing, except when the block editor renders the block. Attachments are not checked for visibility.</li>
+<li>Text is escaped by Twig. Values WordPress stores or returns escaped (term and user names, site name and description, the logout URL) are decoded first, so they are not escaped twice. Functions marked HTML print their result unescaped.</li>
+</ul>
+<div class="rp-codeblock language-twig"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="twig"><code><span class="line"><span style="color:var(--shiki-foreground)">&lt;</span><span style="color:var(--shiki-token-string-expression)">a</span><span style="color:var(--shiki-token-function)"> href</span><span style="color:var(--shiki-foreground)">=</span><span style="color:var(--shiki-token-string-expression)">&quot;{{ </span><span style="color:var(--shiki-token-function)">wp_post_url</span><span style="color:var(--shiki-token-string-expression)">(attrs</span><span style="color:var(--shiki-token-punctuation)">.</span><span style="color:var(--shiki-token-string-expression)">target) }}&quot;</span><span style="color:var(--shiki-foreground)">&gt;{{ </span><span style="color:var(--shiki-token-function)">wp_post_title</span><span style="color:var(--shiki-foreground)">(attrs</span><span style="color:var(--shiki-token-punctuation)">.</span><span style="color:var(--shiki-foreground)">target) }}&lt;/</span><span style="color:var(--shiki-token-string-expression)">a</span><span style="color:var(--shiki-foreground)">&gt;</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">{{ </span><span style="color:var(--shiki-token-function)">wp_attachment_image</span><span style="color:var(--shiki-foreground)">(attrs</span><span style="color:var(--shiki-token-punctuation)">.</span><span style="color:var(--shiki-foreground)">imageId, </span><span style="color:var(--shiki-token-string-expression)">&#x27;large&#x27;</span><span style="color:var(--shiki-foreground)">, { class</span><span style="color:var(--shiki-token-keyword)">:</span><span style="color:var(--shiki-token-string-expression)"> &#x27;rounded&#x27;</span><span style="color:var(--shiki-foreground)"> }) }}</span></span>
+<span class="line"><span style="color:var(--shiki-foreground)">&lt;</span><span style="color:var(--shiki-token-string-expression)">time</span><span style="color:var(--shiki-foreground)">&gt;{{ </span><span style="color:var(--shiki-token-function)">wp_post_date</span><span style="color:var(--shiki-foreground)">(attrs</span><span style="color:var(--shiki-token-punctuation)">.</span><span style="color:var(--shiki-foreground)">target, </span><span style="color:var(--shiki-token-string-expression)">&#x27;j. F Y&#x27;</span><span style="color:var(--shiki-foreground)">) }}&lt;/</span><span style="color:var(--shiki-token-string-expression)">time</span><span style="color:var(--shiki-foreground)">&gt;</span></span></code></pre></div><div class="rp-code-button-group"><button class="rp-code-button-group__button rp-code-wrap-button" title="Toggle code wrap" aria-label="Toggle code wrap"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrapped"><path fill="currentColor" d="M21 5H3v2h18zM3 19h7v-2H3zm0-6h15c1 0 2 .43 2 2s-1 2-2 2h-2v-2l-4 3 4 3v-2h2c2.95 0 4-1.27 4-4 0-2.72-1-4-4-4H3z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-button-group__icon--wrap"><path fill="currentColor" d="M16 7H3V5h13zM3 19h13v-2H3zm19-7-4-3v2H3v2h15v2z"></path></svg></button><button class="rp-code-button-group__button rp-code-copy-button" title="Copy code"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--copy"><path fill="currentColor" d="M20 8v12H8V8zm0-2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2"></path><path fill="currentColor" d="M4 16H2V4a2 2 0 0 1 2-2h12v2H4Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" class="rp-code-button-group__icon rp-code-copy-button__icon rp-code-copy-button__icon--success"><path fill="currentColor" d="m9.55 18-5.7-5.7 1.425-1.425L9.55 15.15l9.175-9.175L20.15 7.4z"></path></svg></button></div></div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar"><table><thead><tr><th>Function</th><th>WordPress</th><th>Result</th></tr></thead><tbody><tr><td><code>wp_attachment_image(id, size = &#x27;full&#x27;, attributes = {})</code></td><td><code>wp_get_attachment_image()</code></td><td>HTML</td></tr><tr><td><code>wp_attachment_image_url(id, size = &#x27;full&#x27;)</code></td><td><code>wp_get_attachment_image_url()</code></td><td>URL</td></tr><tr><td><code>wp_attachment_url(id)</code></td><td><code>wp_get_attachment_url()</code></td><td>URL</td></tr><tr><td><code>wp_attachment_caption(id)</code></td><td><code>wp_get_attachment_caption()</code></td><td>HTML as stored (filtered with kses when saved without <code>unfiltered_html</code>)</td></tr><tr><td><code>wp_attachment_alt(id)</code></td><td>meta <code>_wp_attachment_image_alt</code></td><td>text</td></tr><tr><td><code>wp_post_url(id)</code></td><td><code>get_permalink()</code></td><td>URL</td></tr><tr><td><code>wp_post_title(id)</code></td><td><code>post_title</code></td><td>text</td></tr><tr><td><code>wp_post_excerpt(id)</code></td><td><code>get_the_excerpt()</code></td><td>plain text: tags removed, entities decoded</td></tr><tr><td><code>wp_post_date(id, format = &#x27;&#x27;)</code></td><td><code>get_the_date()</code></td><td>text; <code>&#x27;&#x27;</code> uses the date format of the site</td></tr><tr><td><code>wp_post_thumbnail(id, size = &#x27;post-thumbnail&#x27;, attributes = {})</code></td><td><code>get_the_post_thumbnail()</code></td><td>HTML</td></tr><tr><td><code>wp_term_url(id)</code></td><td><code>get_term_link()</code></td><td>URL</td></tr><tr><td><code>wp_term_name(id)</code></td><td><code>name</code> of the term</td><td>text</td></tr><tr><td><code>wp_user_name(id)</code></td><td><code>display_name</code> of the user</td><td>text</td></tr><tr><td><code>wp_user_url(id)</code></td><td><code>get_author_posts_url()</code></td><td>URL of the author archive</td></tr><tr><td><code>wp_avatar(id, size = 96)</code></td><td><code>get_avatar()</code></td><td>HTML; <code>&#x27;&#x27;</code> if avatars are turned off</td></tr><tr><td><code>wp_home_url(path = &#x27;&#x27;)</code></td><td><code>home_url()</code></td><td>URL</td></tr><tr><td><code>wp_site_name()</code></td><td><code>get_bloginfo(&#x27;name&#x27;)</code></td><td>text</td></tr><tr><td><code>wp_site_description()</code></td><td><code>get_bloginfo(&#x27;description&#x27;)</code></td><td>text</td></tr><tr><td><code>wp_login_url(redirect = &#x27;&#x27;)</code></td><td><code>wp_login_url()</code></td><td>URL</td></tr><tr><td><code>wp_logout_url(redirect = &#x27;&#x27;)</code></td><td><code>wp_logout_url()</code></td><td>URL with a nonce</td></tr><tr><td><code>wp_is_user_logged_in()</code></td><td><code>is_user_logged_in()</code></td><td><code>true</code>/<code>false</code></td></tr><tr><td><code>wp_date(format, timestamp = null)</code></td><td><code>wp_date()</code></td><td>text in the site&#x27;s time zone and language; <code>null</code> for now</td></tr><tr><td><code>wp_human_time_diff(from, to = 0)</code></td><td><code>human_time_diff()</code></td><td>text, e.g. &quot;5 minutes&quot;; <code>0</code> for now</td></tr><tr><td><code>wp_number_format(number, decimals = 0)</code></td><td><code>number_format_i18n()</code></td><td>text</td></tr><tr><td><code>wp_size_format(bytes, decimals = 0)</code></td><td><code>size_format()</code></td><td>text, e.g. &quot;2 KB&quot;</td></tr></tbody></table></div>
+<p>The output of <code>wp_logout_url()</code>, <code>wp_is_user_logged_in()</code> and <code>wp_avatar()</code> depends on the request (nonce, login), not only on the block&#x27;s attributes.</p><!--/$--></div><footer class="rp-doc-footer"><div class="rp-doc-footer__edit"><a href="https://github.com/saijsaij/wp-app-framework/tree/main/docs/content/guides/twig.md" target="_blank" rel="noopener noreferrer" class="rp-edit-link rp-link">Edit this page</a></div><div class="rp-doc-footer__divider"></div><div class="rp-prev-next-page"><a href="/wp-app-framework/next/guides/rest.html" class="rp-prev-next-page__item rp-prev-next-page__prev rp-link"><span class="rp-prev-next-page__item__desc">Previous page</span><span class="rp-prev-next-page__item__title"><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon rp-prev-next-page__rotate_180"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg><span>REST routes</span></span></a><a href="/wp-app-framework/next/guides/blocks.html" class="rp-prev-next-page__item rp-prev-next-page__next rp-link"><span class="rp-prev-next-page__item__desc">Next page</span><span class="rp-prev-next-page__item__title"><span>Blocks</span><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></span></a></div></footer></main></div><aside class="rp-doc-layout__outline rp-scrollbar"><div class="rp-outline"><div class="rp-outline__title">ON THIS PAGE<svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg></div><nav class="rp-outline__toc rp-scrollbar"><a href="#lookup" class="rp-toc-item rp-link" title="Lookup" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Lookup</span></a><a href="#environment" class="rp-toc-item rp-link" title="Environment" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Environment</span></a><a href="#template-functions-and-filters" class="rp-toc-item rp-link" title="Template functions and filters" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Template functions and filters</span></a><a href="#wordpress-functions" class="rp-toc-item rp-link" title="WordPress functions" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">WordPress functions</span></a></nav><div class="rp-outline__divider"></div><div class="rp-outline__bottom"><a href="https://github.com/saijsaij/wp-app-framework/tree/main/docs/content/guides/twig.md" target="_blank" rel="noopener noreferrer" class="rp-outline__action-row rp-edit-link rp-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg><span>Edit this page</span></a></div></div></aside></div></div>
     <div id="__rspress_modal_container"></div>
   </body>
 </html>
