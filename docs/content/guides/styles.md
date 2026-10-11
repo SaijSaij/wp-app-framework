@@ -53,6 +53,8 @@ The editor canvas renders a block from the same server markup as the front end, 
 What a theme has to do itself, and what stays different:
 
 - **Space between blocks:** set `settings.spacing.blockGap` in `theme.json` (with a value in `styles.spacing.blockGap`). Without it, WordPress 7.1 puts its default gap between blocks in the editor, but none on the front end.
+- **Width of blocks:** set `settings.layout.contentSize` in `theme.json`. Without it, WordPress constrains blocks to an undefined content size in the editor (no maximum width, the whole canvas) but not on the front end.
+- **WordPress' layout wins:** Tailwind's utilities live in cascade layers, WordPress' layout styles do not, and unlayered styles win regardless of specificity. The width of a block in a constrained layout (`max-width`, centering margins) and the space between blocks come from `theme.json`, not from utilities on the block's root element; utilities style the inside of a block.
 - **Empty fields** are rendered in the editor, with a placeholder, so they can be filled in; on the front end the template leaves them out (`{% if attrs.title or is_editor() %}`).
 - **White space:** fields edited in the canvas keep typed spaces and line breaks visible (`white-space: pre-wrap`, set by WordPress' RichText), the front end collapses them.
 - **The page around the blocks** is WordPress' editor: in the post editor without the template, the content is not inside `.wp-site-blocks`, and the root padding sits on the canvas body.
