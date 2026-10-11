@@ -44,6 +44,7 @@ final class ManifestGeneratorTest extends TestCase
         self::assertSame([], $manifest['routes']);
         // Only a release manifest carries a template version (the development cache is not rebuilt for templates).
         self::assertNull($manifest['templateVersion']);
+        self::assertFalse($manifest['styles']);
 
         self::assertSame(
             [

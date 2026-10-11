@@ -23,7 +23,7 @@ Requests of the same moment are sent together, including the framework blocks in
 
 The runtime generates controls from the attribute classes: enum → select, `bool` → toggle, `int`/`float` → number, `string` → text (`#[Url]`: URL), value classes → their values, fields with `inspector: true` → text, rich text or image selection, lists → one card per item with its title (its first text value, else "Item n"), an actions menu (move up, move down, remove) and the item's controls, plus "Add item". Fields of items edited in the canvas stay in the canvas. Typed text is applied after a short pause.
 
-The controls use stable components of `@wordpress/components` only; their styles (`js/editor.scss`) are part of the runtime build. Content attributes (`role: content`) appear in the "Content" group, which stays available in contentOnly mode; all others in "Settings".
+The controls use stable components of `@wordpress/components` only; their styles (`assets/editor.scss`) are part of the runtime build. Content attributes (`role: content`) appear in the "Content" group, which stays available in contentOnly mode; all others in "Settings".
 
 ## Editor scripts
 
@@ -46,7 +46,7 @@ Both warn in the console about unknown blocks and attributes. `@saij/wp-app-fram
 
 ## Build
 
-The theme or plugin builds the runtime and its editor scripts with `@wordpress/scripts` and the framework's webpack helper; the framework ships only sources (`js/`). In development its watcher also picks up changes of a symlinked framework checkout.
+The theme or plugin builds the runtime and its editor scripts with `@wordpress/scripts` and the framework's webpack helper; the framework ships only sources (`assets/`). In development its watcher also picks up changes of a symlinked framework checkout.
 
 ```json
 {
@@ -71,6 +71,7 @@ The output goes to `build/`:
 - the runtime to `build/vendor/wp-app-framework/editor.js` with the styles of its inspector controls (`editor.css`, `editor-rtl.css`),
 - the styles of the editor canvas to `build/vendor/wp-app-framework/canvas.css` (loaded on `enqueue_block_assets` in the editor only, so they reach the canvas iframe but never the front end),
 - editor scripts mirrored from `src/` (`build/Block/Hero/Hero.editor.js`),
+- the consumer's stylesheet `src/styles.css`, if it has one, compiled with Tailwind to `build/styles.css` (see [Styles](./styles.md)),
 
 each with its `.asset.php`. Without a build the editor fails with an exception naming the missing file; a consumer without blocks loads no runtime and needs no build. Run `composer install` before `npm install`: the `file:` dependency points into `vendor/`.
 

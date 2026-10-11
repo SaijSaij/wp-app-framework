@@ -26,6 +26,27 @@ final class ManifestBuilderTest extends TestCase
         return new ManifestBuilder([self::fixture('Valid')])->build();
     }
 
+    public function testStylesheetInTheScriptDirectoryIsRecorded(): void
+    {
+        $scripts = sys_get_temp_dir() . '/wpaf-scripts-' . bin2hex(random_bytes(4));
+        mkdir($scripts);
+
+        try {
+            self::assertFalse(self::buildValid()->hasStyles(), 'Without a script directory.');
+            self::assertFalse(new ManifestBuilder([self::fixture('Valid')], scriptDirectory: $scripts)->build()->hasStyles());
+
+            touch($scripts . '/styles.css');
+            $result = new ManifestBuilder([self::fixture('Valid')], scriptDirectory: $scripts)->build();
+            self::assertTrue($result->hasStyles());
+            self::assertSame($scripts, $result->getScriptDirectory());
+        } finally {
+            if (is_file($scripts . '/styles.css')) {
+                unlink($scripts . '/styles.css');
+            }
+            rmdir($scripts);
+        }
+    }
+
     public function testConcreteClassesAreCandidatesUnlessExcluded(): void
     {
         self::assertSame(

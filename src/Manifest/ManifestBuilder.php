@@ -19,6 +19,7 @@ use Saij\WpAppFramework\Plugin;
 use Saij\WpAppFramework\Project\ComposerProject;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRouteCollector;
+use Saij\WpAppFramework\Style\StyleAssets;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableCollector;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
@@ -37,7 +38,7 @@ final class ManifestBuilder
      * @param list<Source>       $sources
      * @param list<string>       $trackedFiles Absolute paths of files whose content affects the build.
      * @param list<class-string> $predefined   Candidates provided at runtime instead of built.
-     * @param string|null        $scriptDirectory Directory the consumer's build compiles scripts from (its `src/`).
+     * @param string|null        $scriptDirectory Directory the consumer's build compiles scripts and styles from (its `src/`).
      * @param non-empty-string|null  $slug              Slug of the project; null for builds of fixtures.
      * @param list<non-empty-string> $templateProviders Plugins and parent theme whose public template callables the templates use.
      * @param non-empty-string|null  $parent            Parent theme of a child theme.
@@ -173,6 +174,8 @@ final class ManifestBuilder
             $publicApis,
             $templateProviders,
             $this->parent,
+            $this->scriptDirectory,
+            $this->scriptDirectory !== null && is_file($this->scriptDirectory . '/' . StyleAssets::SOURCE),
         );
     }
 

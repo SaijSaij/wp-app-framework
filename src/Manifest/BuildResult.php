@@ -39,6 +39,9 @@ final readonly class BuildResult
      *                                                                         the parent theme whose public template callables
      *                                                                         the templates use.
      * @param non-empty-string|null                             $parent       Parent theme of a child theme.
+     * @param string|null                                       $scriptDirectory Directory the consumer's build compiles scripts and
+     *                                                                         styles from (its `src/`).
+     * @param bool                                              $styles       The consumer has a stylesheet (`src/styles.css`).
      */
     public function __construct(
         private array $sources,
@@ -56,7 +59,19 @@ final readonly class BuildResult
         private array $publicApis,
         private array $templateProviders,
         private ?string $parent = null,
+        private ?string $scriptDirectory = null,
+        private bool $styles = false,
     ) {}
+
+    public function getScriptDirectory(): ?string
+    {
+        return $this->scriptDirectory;
+    }
+
+    public function hasStyles(): bool
+    {
+        return $this->styles;
+    }
 
     public function getKind(): ProjectKind
     {

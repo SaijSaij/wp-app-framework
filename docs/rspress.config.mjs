@@ -58,6 +58,7 @@ export default defineConfig( {
 						{ text: 'Twig templates', link: '/guides/twig' },
 						{ text: 'Blocks', link: '/guides/blocks' },
 						{ text: 'Editor', link: '/guides/editor' },
+						{ text: 'Styles', link: '/guides/styles' },
 						{ text: 'Values', link: '/guides/values' },
 						{ text: 'Plugins', link: '/guides/plugins' },
 						{ text: 'Child themes', link: '/guides/child-themes' },

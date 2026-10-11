@@ -10,9 +10,11 @@ use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
+use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
+use Saij\WpAppFramework\Style\StyleAssets;
 use Throwable;
 
 /**
@@ -164,9 +166,15 @@ final class DevCache
      */
     private function meta(BuildResult $result): array
     {
+        $listed = array_map(static fn(Source $source): string => $source->getDirectory(), $result->getSources());
+        // The script directory decides whether the consumer has a stylesheet; it is usually a source directory as well.
+        $scriptDirectory = $result->getScriptDirectory();
+        if ($scriptDirectory !== null && !in_array($scriptDirectory, $listed, true)) {
+            $listed[] = $scriptDirectory;
+        }
         $directories = [];
-        foreach ($result->getSources() as $source) {
-            $directories[] = [...$this->relative($source->getDirectory()), self::listingHash($source->getDirectory())];
+        foreach ($listed as $directory) {
+            $directories[] = [...$this->relative($directory), self::listingHash($directory)];
         }
 
         $files = [];
@@ -174,10 +182,24 @@ final class DevCache
             $files[] = [...$this->relative($file), hash_file('xxh128', $file)];
         }
 
+        // Only files in the source directories: parent classes from dependencies may be loaded from the vendor
+        // directory of another consumer in development mode. Dependencies change with composer install, which
+        // changes vendor/composer/installed.json (a tracked file); the boot checks that the shared Twig matches.
+        $sourceDirectories = array_map(static fn(Source $source): string => $source->getDirectory() . '/', $result->getSources());
+        $inSources = static function (string $file) use ($sourceDirectories): bool {
+            foreach ($sourceDirectories as $directory) {
+                if (str_starts_with($file, $directory)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
         $classes = [];
         foreach ($result->getClasses() as $name => $class) {
             $classes[$name] = [
-                'files' => array_map($this->relative(...), Signature::files($class)),
+                'files' => array_map($this->relative(...), array_values(array_filter(Signature::files($class), $inSources))),
                 'signature' => Signature::of($class),
             ];
         }
@@ -230,14 +252,16 @@ final class DevCache
     }
 
     /**
-     * Hash of the PHP files and block editor scripts below a source directory:
-     * adding or removing an editor script changes the manifest as well.
+     * Hash of the PHP files and block editor scripts below a directory and of
+     * the stylesheet in it: adding or removing an editor script or the
+     * stylesheet changes the manifest as well.
      */
     private static function listingHash(string $directory): string
     {
         return hash('xxh128', implode("\n", [
             ...ClassDiscovery::files($directory),
             ...ClassDiscovery::files($directory, BlockCollector::EDITOR_SCRIPT_SUFFIX),
+            ...(is_file($directory . '/' . StyleAssets::SOURCE) ? [StyleAssets::SOURCE] : []),
         ]));
     }
 

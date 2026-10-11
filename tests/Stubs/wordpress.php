@@ -393,6 +393,15 @@ function is_admin(): bool
 }
 
 /**
+ * Like WordPress: true on a block editor screen ($GLOBALS['wp_app_framework_test_block_editor_screen']), filtered by
+ * should_load_block_editor_scripts_and_styles.
+ */
+function wp_should_load_block_editor_scripts_and_styles(): bool
+{
+    return (bool) apply_filters('should_load_block_editor_scripts_and_styles', $GLOBALS['wp_app_framework_test_block_editor_screen'] ?? false);
+}
+
+/**
  * Records filters and actions in $GLOBALS['wp_app_framework_test_filters'][$hook_name]; apply_filters() and
  * do_action() call them in the order added (priorities are ignored).
  */

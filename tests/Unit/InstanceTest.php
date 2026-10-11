@@ -15,6 +15,7 @@ use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Tests\Fixtures\ApiValid\NoteApi;
 use Saij\WpAppFramework\Tests\Support\Files;
 use Saij\WpAppFramework\Tests\Support\Hooks;
+use Saij\WpAppFramework\Tests\Support\Recorded;
 use Saij\WpAppFramework\Tests\Unit\Api\PublicApiBuildTest;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableKind;
@@ -37,6 +38,7 @@ final class InstanceTest extends TestCase
     {
         Hooks::reset();
         Files::remove($this->root);
+        unset($GLOBALS['wp_app_framework_test_styles']);
     }
 
     private function instance(ProjectKind $kind): Instance
@@ -53,13 +55,14 @@ final class InstanceTest extends TestCase
         );
     }
 
-    private function writeReleaseManifest(): void
+    private function writeReleaseManifest(bool $styles = false): void
     {
         mkdir($this->root . '/my-plugin/generated');
-        file_put_contents(
-            $this->root . '/my-plugin/' . Instance::RELEASE_MANIFEST,
-            new ManifestGenerator()->generate(PublicApiBuildTest::buildValid(), 'abc123'),
-        );
+        $code = new ManifestGenerator()->generate(PublicApiBuildTest::buildValid(), 'abc123');
+        if ($styles) {
+            $code = str_replace("'styles' => false,", "'styles' => true,", $code);
+        }
+        file_put_contents($this->root . '/my-plugin/' . Instance::RELEASE_MANIFEST, $code);
     }
 
     public function testASlugBootsOnlyOnce(): void
@@ -82,6 +85,28 @@ final class InstanceTest extends TestCase
         self::assertSame(1, did_action('wp_app_framework/init/my-plugin'));
         self::assertInstanceOf(NoteApi::class, InstanceBridge::api(ProjectKind::Plugin, 'my-plugin', NoteApi::class));
         self::assertSame('2', (InstanceBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'my_plugin_note_count')['callable'])());
+    }
+
+    public function testLoadsTheStylesheetOnlyIfTheManifestHasOne(): void
+    {
+        $this->writeReleaseManifest();
+        $this->instance(ProjectKind::Plugin)->boot();
+        do_action('enqueue_block_assets');
+        self::assertSame([], Recorded::styles());
+
+        Hooks::reset();
+        Files::remove($this->root . '/my-plugin/generated');
+        $this->writeReleaseManifest(styles: true);
+        mkdir($this->root . '/my-plugin/build');
+        file_put_contents($this->root . '/my-plugin/build/styles.css', '');
+        file_put_contents($this->root . '/my-plugin/build/styles.asset.php', "<?php return ['dependencies' => [], 'version' => 'v1'];");
+        $this->instance(ProjectKind::Plugin)->boot();
+        do_action('enqueue_block_assets');
+
+        self::assertSame(
+            ['my-plugin-styles' => ['src' => 'https://example.test/wp-content/plugins/my-plugin/build/styles.css', 'deps' => [], 'ver' => 'v1', 'enqueued' => true]],
+            Recorded::styles(),
+        );
     }
 
     public function testManifestOfAnotherKindIsAnError(): void

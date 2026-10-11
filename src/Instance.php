@@ -19,6 +19,7 @@ use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRegistrar;
+use Saij\WpAppFramework\Style\StyleAssets;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Twig\Environment;
@@ -181,6 +182,10 @@ final readonly class Instance
         );
         add_action('enqueue_block_editor_assets', $editorAssets->enqueue(...));
         add_action('enqueue_block_assets', $editorAssets->enqueueCanvas(...));
+        if ($manifest['styles']) {
+            $styleAssets = new StyleAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
+            add_action('enqueue_block_assets', $styleAssets->enqueue(...));
+        }
 
         InstanceBridge::provideApis($this->slug, $manifest['publicApis'], $container);
         InstanceBridge::provideTemplateCallables(

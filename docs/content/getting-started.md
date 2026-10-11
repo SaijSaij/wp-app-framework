@@ -15,10 +15,12 @@ my-theme/
 ├── theme.json
 ├── templates/index.html
 ├── webpack.config.js
-└── src/Block/Teaser/
-    ├── Teaser.php
-    ├── TeaserAttributes.php
-    └── Teaser.twig
+└── src/
+    ├── styles.css
+    └── Block/Teaser/
+        ├── Teaser.php
+        ├── TeaserAttributes.php
+        └── Teaser.twig
 ```
 
 **`composer.json`** requires the framework from its GitHub repository by version and declares the PSR-4 namespace of the theme's classes in `src/` and the settings of the [release build](./build-and-release/release.md):
@@ -84,7 +86,7 @@ require is_file(__DIR__ . '/vendor-prefixed/autoload.php')
 Saij\WpAppFramework\Theme::boot();
 ```
 
-**`package.json`** and **`webpack.config.js`** build the editor runtime of the framework and the editor scripts of the theme (see [Editor](./guides/editor.md#build)). The slug is the directory name of the theme:
+**`package.json`** and **`webpack.config.js`** build the editor runtime of the framework, the editor scripts and the stylesheet of the theme (see [Editor](./guides/editor.md#build)). The slug is the directory name of the theme:
 
 ```json
 {
@@ -93,7 +95,9 @@ Saij\WpAppFramework\Theme::boot();
 	"scripts": { "build": "wp-scripts build", "start": "wp-scripts start" },
 	"devDependencies": {
 		"@saij/wp-app-framework": "file:vendor/saij/wp-app-framework",
-		"@wordpress/scripts": "^36.1.0"
+		"@tailwindcss/webpack": "^4.3.3",
+		"@wordpress/scripts": "^36.1.0",
+		"tailwindcss": "^4.3.3"
 	}
 }
 ```
@@ -105,7 +109,20 @@ module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( 
 } );
 ```
 
-`theme.json` and `templates/index.html` are those of any block theme.
+**`src/styles.css`** is compiled with Tailwind and loaded on the front end and in the editor canvas; it maps Tailwind tokens to the values of `theme.json` (see [Styles](./guides/styles.md)):
+
+```css
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "./**/*.twig";
+
+@theme inline {
+	--color-primary: var(--wp--preset--color--primary);
+}
+```
+
+`theme.json` and `templates/index.html` are those of any block theme; `theme.json` defines the color `primary` used above.
 
 ## A first block
 
@@ -155,21 +172,21 @@ final readonly class TeaserAttributes
 ```
 
 ```twig
-<section {{ block_wrapper_attributes({class: attrs.highlighted ? 'teaser teaser--highlighted' : 'teaser'}) }}>
+<section {{ block_wrapper_attributes({class: attrs.highlighted ? 'p-4 bg-primary' : 'p-4'}) }}>
     <h2{{ field('title') }}>{{ attrs.title }}</h2>
     <div{{ field('text') }}>{{ attrs.text|raw }}</div>
 </section>
 ```
 
-The title and the text are edited in the editor canvas; `highlighted` gets a toggle in the block inspector.
+The title and the text are edited in the editor canvas; `highlighted` gets a toggle in the block inspector and switches between complete class names, which the stylesheet finds in the template.
 
 ## Build and run
 
 ```sh
 composer install          # before npm: the file: dependency points into vendor/
 npm install
-npm run build             # editor runtime and editor scripts into build/
+npm run build             # editor runtime, editor scripts and stylesheet into build/
 composer build-manifest   # checks attributes and services; writes nothing
 ```
 
-Activate the theme in WordPress. In development the framework builds its manifest itself and caches it in `wp-content/cache/my-theme/` (see [Boot and modes](./guides/boot.md#modes)); `npm run start` rebuilds the editor scripts on changes. For a release see [Release](./build-and-release/release.md).
+Activate the theme in WordPress. In development the framework builds its manifest itself and caches it in `wp-content/cache/my-theme/` (see [Boot and modes](./guides/boot.md#modes)); `npm run start` rebuilds the editor scripts and the stylesheet on changes. For a release see [Release](./build-and-release/release.md).

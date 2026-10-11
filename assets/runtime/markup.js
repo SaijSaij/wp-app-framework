@@ -17,6 +17,8 @@ function elementProps( node ) {
 
 /** Class of the elements edited in the canvas; canvas.scss outlines them on hovered and selected blocks. */
 const FIELD_CLASS = 'wp-app-framework-field';
+// Root element of a block of the framework in the canvas (canvas.scss).
+const BLOCK_CLASS = 'wp-app-framework-block';
 
 /**
  * Joins class names, skipping empty ones.
@@ -88,7 +90,11 @@ function rootProps( node, extraProps ) {
 	return {
 		...props,
 		...extraProps,
-		className: classNames( props.className, extraProps.className ),
+		className: classNames(
+			props.className,
+			extraProps.className,
+			BLOCK_CLASS
+		),
 	};
 }
 

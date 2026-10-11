@@ -1,6 +1,6 @@
 # Child themes
 
-A child theme overrides templates of its parent theme in `overrides/{parent-slug}/` (see [Twig templates](./twig.md#lookup)) and adjusts `theme.json`, block templates, template parts and patterns as WordPress allows; for that it needs no Composer, no boot and no build.
+A child theme overrides templates of its parent theme in `overrides/{parent-slug}/` (see [Twig templates](./twig.md#lookup)) and adjusts `theme.json`, block templates, template parts and patterns as WordPress allows; for that it needs no Composer, no boot and no build. Its overrides use the classes in the stylesheet of the parent theme or plain CSS in its `style.css`; further Tailwind utilities need a child theme with code (see [Styles](./styles.md#plugins-and-child-themes)).
 
 A child theme with code of its own – blocks, hooks, REST routes – is a framework instance like a plugin: its own `composer.json` (`type: wordpress-theme`, its `style.css` names the parent theme in `Template:`), its own PSR-4 namespace and block namespace, its own release with its own prefix, and `ChildTheme::boot()` in its `functions.php` (see [Boot and modes](./boot.md)). WordPress loads that file before the parent theme's; the instances share nothing. The build records the parent theme in the manifest, and the boot fails if another parent theme is active. Block names that collide with the parent's are errors, as between any two instances.
 

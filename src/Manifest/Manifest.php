@@ -64,13 +64,14 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     values: array<class-string, array<string, ValueField>>,
  *     publicApis: list<class-string>,
  *     templateProviders: array<non-empty-string, non-empty-string>,
- *     templateVersion: non-empty-string|null
+ *     templateVersion: non-empty-string|null,
+ *     styles: bool
  * }
  */
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 10;
+    public const int FORMAT = 11;
 
     /**
      * @return ManifestData

@@ -2,6 +2,8 @@
 
 Plugins use the framework like themes (see [Boot and modes](./boot.md)) and may offer an interface to other consumers – the theme, other plugins. Themes may offer the same interface to their child themes. Instances never share PHP objects of the framework or of its dependencies: each release prefixes them with its own namespace. The interface therefore consists of WordPress hooks named after the provider's slug and of signatures that use only PHP, WordPress and the provider's own classes; the build of the provider rejects other types (also in the project classes such a signature uses). The provider keeps its interface compatible itself.
 
+The stylesheet of a plugin uses a Tailwind prefix, so its class names never meet those of the theme (see [Styles](./styles.md#plugins-and-child-themes)).
+
 ## Public API
 
 `#[PublicApi]` (`Saij\WpAppFramework\Api\PublicApi`) marks a service of a plugin or theme as its API. A consumer receives the API of a plugin through a constructor parameter:

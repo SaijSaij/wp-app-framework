@@ -4,7 +4,9 @@
  * Builds, into the consumer's `build/` directory:
  * - the editor runtime of this framework instance (build/vendor/wp-app-framework/editor.js),
  * - the consumer's editor scripts next to its code (src/Block/Hero/Hero.editor.js →
- *   build/Block/Hero/Hero.editor.js).
+ *   build/Block/Hero/Hero.editor.js),
+ * - the consumer's stylesheet, if it has one: src/styles.css → build/styles.css, compiled
+ *   with Tailwind CSS (`tailwindcss` and `@tailwindcss/webpack`, installed by the consumer).
  *
  * Imports of `@saij/wp-app-framework` resolve to the runtime of the same instance
  * (global `wpAppFramework[slug]`, script handle `{slug}-wp-app-framework`).
@@ -26,6 +28,11 @@ const EDITOR_SCRIPT_SUFFIX = '.editor.js';
 const RUNTIME_ENTRY = 'vendor/wp-app-framework/editor';
 const CANVAS_ENTRY = 'vendor/wp-app-framework/canvas';
 const IMPORT_NAME = '@saij/wp-app-framework';
+const STYLES_ENTRY = 'styles';
+const STYLES_SOURCE = 'styles.css';
+
+/** Major version of Tailwind CSS the stylesheet is built with (peer dependency). */
+const TAILWIND_MAJOR = 4;
 
 /**
  * Editor scripts below a directory, by entry name (path without extension).
@@ -48,6 +55,62 @@ function editorScripts( directory ) {
 		}
 	}
 	return entries;
+}
+
+/**
+ * Module rule that compiles the consumer's stylesheet with Tailwind CSS. It reuses the
+ * extract loader and css-loader of the `.css` rule of `@wordpress/scripts` and replaces its
+ * postcss-loader (a postcss.config.js in the consumer would replace the PostCSS setup of
+ * `@wordpress/scripts` for every stylesheet).
+ *
+ * @param {Object}                      defaults Configuration of `@wordpress/scripts`.
+ * @param {string}                      styles   Path of the stylesheet.
+ * @param {string}                      root     Root directory of the consumer.
+ * @param {(request: string) => Object} fromRoot Requires a module installed in the consumer.
+ * @return {{cssRule: Object, stylesRule: Object}} The `.css` rule of `@wordpress/scripts` and the new rule.
+ */
+function tailwindRule( defaults, styles, root, fromRoot ) {
+	let tailwindVersion;
+	let loader;
+	try {
+		tailwindVersion = fromRoot( 'tailwindcss/package.json' ).version;
+		loader = require.resolve( '@tailwindcss/webpack', { paths: [ root ] } );
+	} catch {
+		throw new Error(
+			`wp-app-framework: ${ styles } is built with Tailwind CSS ${ TAILWIND_MAJOR }; install it in the consumer: npm install --save-dev tailwindcss@${ TAILWIND_MAJOR } @tailwindcss/webpack@${ TAILWIND_MAJOR }`
+		);
+	}
+	if ( Number( tailwindVersion.split( '.' )[ 0 ] ) !== TAILWIND_MAJOR ) {
+		throw new Error(
+			`wp-app-framework: the stylesheet needs tailwindcss ${ TAILWIND_MAJOR }.x, the consumer has ${ tailwindVersion }.`
+		);
+	}
+
+	const cssRule = defaults.module.rules.find(
+		( rule ) => String( rule.test ) === String( /\.css$/ )
+	);
+	const [ extractLoader, cssLoader, postcssLoader ] = cssRule?.use ?? [];
+	if (
+		! cssLoader?.loader?.includes( 'css-loader' ) ||
+		! postcssLoader?.loader?.includes( 'postcss-loader' )
+	) {
+		throw new Error(
+			'wp-app-framework: the .css rule of @wordpress/scripts has changed (expected the extract loader, css-loader and postcss-loader).'
+		);
+	}
+
+	return {
+		cssRule,
+		stylesRule: {
+			test: styles,
+			use: [
+				extractLoader,
+				cssLoader,
+				// Without source(none), Tailwind detects sources below the consumer's root (default: the working directory).
+				{ loader, options: { base: root } },
+			],
+		},
+	};
 }
 
 /**
@@ -93,15 +156,35 @@ module.exports = function createConfig( { slug, root } = {} ) {
 		'@wordpress/dependency-extraction-webpack-plugin'
 	);
 
+	// Checked once: after adding or removing the stylesheet, restart the watcher.
+	const styles = path.join( root, 'src', STYLES_SOURCE );
+	const tailwind = fs.existsSync( styles )
+		? tailwindRule( defaults, styles, root, fromRoot )
+		: null;
+
 	return {
 		...defaults,
 		// A function, so a new editor script is picked up when the watcher rebuilds.
 		entry: () => ( {
-			[ RUNTIME_ENTRY ]: path.join( __dirname, 'js', 'editor.js' ),
+			[ RUNTIME_ENTRY ]: path.join( __dirname, 'assets', 'editor.js' ),
 			// Styles of the editor canvas (iframe), loaded separately from the runtime.
-			[ CANVAS_ENTRY ]: path.join( __dirname, 'js', 'canvas.scss' ),
+			[ CANVAS_ENTRY ]: path.join( __dirname, 'assets', 'canvas.scss' ),
 			...editorScripts( path.join( root, 'src' ) ),
+			...( tailwind ? { [ STYLES_ENTRY ]: styles } : {} ),
 		} ),
+		module: tailwind
+			? {
+					...defaults.module,
+					rules: [
+						...defaults.module.rules.map( ( rule ) =>
+							rule === tailwind.cssRule
+								? { ...rule, exclude: styles }
+								: rule
+						),
+						tailwind.stylesRule,
+					],
+				}
+			: defaults.module,
 		output: {
 			...defaults.output,
 			path: path.join( root, 'build' ),

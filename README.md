@@ -39,7 +39,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, edi
 
 New areas (settings, block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
 
-The editor runtime lives in `js/` (`editor.js` entry, `editor.scss` styles of the inspector controls, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`); `webpack.config.js` is the helper for the consumer's build. The documentation website lives in `docs/` (see Development).
+The editor runtime and its styles live in `assets/` (`editor.js` entry, `editor.scss` styles of the inspector controls, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`); `webpack.config.js` is the helper for the consumer's build, tested in `assets/test/`. The documentation website lives in `docs/` (see Development).
 
 ## Conventions
 

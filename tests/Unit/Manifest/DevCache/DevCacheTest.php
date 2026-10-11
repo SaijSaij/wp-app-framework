@@ -212,6 +212,38 @@ final class DevCacheTest extends TestCase
         self::assertSame('stale', $this->probe('check'));
     }
 
+    public function testStylesheetChangesRebuild(): void
+    {
+        self::assertSame('no styles', $this->probe('load-styles'));
+        self::assertSame('fresh', $this->probe('check'));
+
+        file_put_contents($this->theme . '/src/styles.css', '');
+        self::assertSame('stale', $this->probe('check'));
+        self::assertSame('styles', $this->probe('load-styles'));
+        self::assertSame('fresh', $this->probe('check'));
+
+        // Only the presence of the stylesheet matters, not its content.
+        file_put_contents($this->theme . '/src/styles.css', '.a {}');
+        touch($this->theme . '/src/styles.css', time() + 10);
+        self::assertSame('fresh', $this->probe('check'));
+
+        unlink($this->theme . '/src/styles.css');
+        self::assertSame('stale', $this->probe('check'));
+        self::assertSame('no styles', $this->probe('load-styles'));
+    }
+
+    public function testParentClassesOutsideTheSourcesAreNotTracked(): void
+    {
+        $outside = dirname($this->theme) . '/outside';
+        mkdir($outside);
+        file_put_contents($outside . '/Base.php', "<?php\n\nnamespace DevCacheOutside;\n\nabstract class Base\n{\n}\n");
+        $this->writeSource('Loader.php', "<?php\n\nnamespace DevCacheProbe;\n\nfinal class Loader extends \\DevCacheOutside\\Base\n{\n}\n");
+
+        self::assertSame('probe_filter', $this->probe('load'));
+        self::assertStringNotContainsString('Base.php', (string) file_get_contents($this->cache . '/manifest.meta.php'));
+        self::assertSame('fresh', $this->probe('check'));
+    }
+
     public function testNewAndDeletedFilesRebuild(): void
     {
         $this->probe('load');

@@ -53,3 +53,23 @@ $field-color: var(--wp-admin-theme-color);
 .wp-app-framework-field-error {
 	color: #cc1818;
 }
+
+// Text wraps in the canvas as on the front end. WordPress lets text in blocks
+// break anywhere (overflow-wrap: break-word in block-editor/content.css), and
+// browsers do the same in every contenteditable field. Unlayered, the root
+// rule beats WordPress' rule and rolls back to the layered declarations: the
+// consumer's utilities, else the inheritance below. That one is in the layer
+// "base": layers with the same name are one layer across all stylesheets, and
+// Tailwind orders "base" before "components" and "utilities", so every utility
+// of a consumer wins, whichever stylesheet loads first.
+.block-editor-block-list__layout .block-editor-block-list__block.wp-app-framework-block {
+	overflow-wrap: revert-layer;
+}
+
+@layer base {
+
+	.wp-app-framework-block,
+	.wp-app-framework-field {
+		overflow-wrap: inherit;
+	}
+}

@@ -101,6 +101,7 @@ final class ManifestGenerator
             'publicApis' => $result->getPublicApis(),
             'templateProviders' => $result->getTemplateProviders(),
             'templateVersion' => $templateVersion,
+            'styles' => $result->hasStyles(),
         ];
     }
 }

@@ -6,8 +6,9 @@ declare(strict_types=1);
  * Runs the dev cache against a temporary project in a fresh PHP process, because
  * classes changed by a test cannot be reloaded in the PHPUnit process.
  *
- * Usage: php dev-cache-probe.php <check|load|load-without-project-base> <cache dir> <project dir>
- * Prints "fresh"/"stale" (check) or the hook names of the loaded manifest (load).
+ * Usage: php dev-cache-probe.php <check|load|load-styles|load-without-project-base> <cache dir> <project dir>
+ * Prints "fresh"/"stale" (check), whether the loaded manifest has styles (load-styles) or the hook names of the
+ * loaded manifest (load).
  */
 
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
@@ -19,11 +20,14 @@ require __DIR__ . '/../../vendor/autoload.php';
 [, $mode, $cacheDirectory, $themeDirectory] = $argv;
 
 spl_autoload_register(static function (string $class) use ($themeDirectory): void {
-    $prefix = 'DevCacheProbe\\';
-    if (str_starts_with($class, $prefix)) {
-        $file = $themeDirectory . '/src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-        if (is_file($file)) {
-            require $file;
+    // DevCacheOutside\ lives next to the project, outside every base directory (like a dependency loaded from
+    // another consumer's vendor directory in development mode).
+    foreach (['DevCacheProbe\\' => $themeDirectory . '/src/', 'DevCacheOutside\\' => dirname($themeDirectory) . '/outside/'] as $prefix => $directory) {
+        if (str_starts_with($class, $prefix)) {
+            $file = $directory . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+            if (is_file($file)) {
+                require $file;
+            }
         }
     }
 });
@@ -38,6 +42,8 @@ $cache = new DevCache($cacheDirectory, $bases, ManifestBuilder::forProject($them
 try {
     if ($mode === 'check') {
         echo $cache->isFresh() ? 'fresh' : 'stale';
+    } elseif ($mode === 'load-styles') {
+        echo $cache->load()['styles'] ? 'styles' : 'no styles';
     } else {
         echo implode(',', array_column($cache->load()['hooks'], 'name'));
     }
