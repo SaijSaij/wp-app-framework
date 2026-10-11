@@ -3,6 +3,7 @@
  *
  * Builds, into the consumer's `build/` directory:
  * - the editor runtime of this framework instance (build/vendor/wp-app-framework/editor.js),
+ * - the script of its settings page (build/vendor/wp-app-framework/settings.js),
  * - the consumer's editor scripts next to its code (src/Block/Hero/Hero.editor.js →
  *   build/Block/Hero/Hero.editor.js),
  * - the consumer's stylesheet, if it has one: src/styles.css → build/styles.css, compiled
@@ -27,6 +28,7 @@ const SCRIPTS_MAJOR = 36;
 const EDITOR_SCRIPT_SUFFIX = '.editor.js';
 const RUNTIME_ENTRY = 'vendor/wp-app-framework/editor';
 const CANVAS_ENTRY = 'vendor/wp-app-framework/canvas';
+const SETTINGS_ENTRY = 'vendor/wp-app-framework/settings';
 const IMPORT_NAME = '@saij/wp-app-framework';
 const STYLES_ENTRY = 'styles';
 const STYLES_SOURCE = 'styles.css';
@@ -169,6 +171,8 @@ module.exports = function createConfig( { slug, root } = {} ) {
 			[ RUNTIME_ENTRY ]: path.join( __dirname, 'assets', 'editor.js' ),
 			// Styles of the editor canvas (iframe), loaded separately from the runtime.
 			[ CANVAS_ENTRY ]: path.join( __dirname, 'assets', 'canvas.scss' ),
+			// The settings page of the instance (admin page with the forms of its settings groups).
+			[ SETTINGS_ENTRY ]: path.join( __dirname, 'assets', 'settings.js' ),
 			...editorScripts( path.join( root, 'src' ) ),
 			...( tailwind ? { [ STYLES_ENTRY ]: styles } : {} ),
 		} ),

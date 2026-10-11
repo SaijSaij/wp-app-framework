@@ -270,6 +270,14 @@ final class RestRouteCollector
         }
 
         $value = $field['value'];
+        if (isset($value['reference']) || ($value['type'] === 'list' && $value['items']['type'] === 'int')) {
+            $this->errors[] = sprintf(
+                '%s: #[PostReference], #[TermReference] and #[UserReference] mark fields of blocks and settings groups, not REST arguments; declare the ID as int.',
+                $parameterLocation,
+            );
+
+            return null;
+        }
         if ($value['type'] === 'object') {
             $this->errors[] = sprintf(
                 '%s: a single value class is not supported as REST argument (a class type without #[ListOf] is injected as service); use #[ListOf(%s::class)] array for a list.',

@@ -46,12 +46,14 @@ final class ServiceResolver
      * @param array<class-string, string>                  $excluded   Scanned non-candidates and the reason, e.g. "an interface".
      * @param list<class-string>                           $predefined Candidates provided at runtime instead of built.
      * @param non-empty-string|null                        $parentTheme Slug of the parent theme of a child theme (`#[ThemeApi]`).
+     * @param list<class-string>                           $settingsGroups Classes with `#[SettingsGroup]`, injected from their option.
      */
     public function __construct(
         private readonly array $candidates,
         private readonly array $excluded,
         private readonly array $predefined,
         private readonly ?string $parentTheme = null,
+        private readonly array $settingsGroups = [],
     ) {}
 
     /**
@@ -60,13 +62,19 @@ final class ServiceResolver
      * @param array<class-string, ReflectionClass<object>> $classes
      * @param list<class-string>                           $predefined Candidates provided at runtime instead of built.
      * @param non-empty-string|null                        $parentTheme Slug of the parent theme of a child theme.
+     * @param list<class-string>                           $settingsGroups Classes with `#[SettingsGroup]`: no services, injected
+     *                                                                     from their option.
      */
-    public static function forClasses(array $classes, array $predefined, ?string $parentTheme = null): self
+    public static function forClasses(array $classes, array $predefined, ?string $parentTheme = null, array $settingsGroups = []): self
     {
         $candidates = [];
         $excluded = [];
         foreach ($classes as $name => $class) {
-            $reason = in_array($name, $predefined, true) ? null : self::CONSUMER_CLASSES[$name] ?? self::exclusionReason($class);
+            $reason = match (true) {
+                in_array($name, $predefined, true) => null,
+                in_array($name, $settingsGroups, true) => 'a settings group',
+                default => self::CONSUMER_CLASSES[$name] ?? self::exclusionReason($class),
+            };
             if ($reason === null) {
                 $candidates[$name] = $class;
             } else {
@@ -74,7 +82,7 @@ final class ServiceResolver
             }
         }
 
-        return new self($candidates, $excluded, $predefined, $parentTheme);
+        return new self($candidates, $excluded, $predefined, $parentTheme, $settingsGroups);
     }
 
     /**
@@ -135,6 +143,24 @@ final class ServiceResolver
 
         if ($type instanceof ReflectionNamedType && !$type->isBuiltin() && isset($this->candidates[$type->getName()])) {
             /** @var class-string $class A key of the candidates. */
+            $class = $type->getName();
+
+            return $class;
+        }
+
+        return null;
+    }
+
+    /**
+     * The settings group class a parameter declares as type, or null.
+     *
+     * @return class-string|null
+     */
+    public function settingsGroupType(ReflectionParameter $parameter): ?string
+    {
+        $type = $parameter->getType();
+        if ($type instanceof ReflectionNamedType && in_array($type->getName(), $this->settingsGroups, true)) {
+            /** @var class-string $class One of the settings groups. */
             $class = $type->getName();
 
             return $class;
@@ -214,6 +240,12 @@ final class ServiceResolver
                 if ($argument !== null) {
                     $arguments[$parameter->getName()] = $argument;
                 }
+                continue;
+            }
+
+            $settingsGroup = $this->settingsGroupType($parameter);
+            if ($settingsGroup !== null) {
+                $arguments[$parameter->getName()] = ['setting' => $settingsGroup];
                 continue;
             }
 

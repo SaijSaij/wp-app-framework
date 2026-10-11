@@ -18,6 +18,7 @@ use Saij\WpAppFramework\Twig\TemplateCallableDefinition;
  *
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
+ * @phpstan-import-type SettingsGroupEntry from \Saij\WpAppFramework\Setting\SettingsCollector
  */
 #[NoService]
 final readonly class BuildResult
@@ -42,6 +43,9 @@ final readonly class BuildResult
      * @param string|null                                       $scriptDirectory Directory the consumer's build compiles scripts and
      *                                                                         styles from (its `src/`).
      * @param bool                                              $styles       The consumer has a stylesheet (`src/styles.css`).
+     * @param list<SettingsGroupEntry>                          $settings     Settings groups, ordered for the settings page.
+     * @param string|null                                       $settingsTitle Title of the settings page (name of the theme or
+     *                                                                         plugin); null without settings groups.
      */
     public function __construct(
         private array $sources,
@@ -61,7 +65,22 @@ final readonly class BuildResult
         private ?string $parent = null,
         private ?string $scriptDirectory = null,
         private bool $styles = false,
+        private array $settings = [],
+        private ?string $settingsTitle = null,
     ) {}
+
+    /**
+     * @return list<SettingsGroupEntry>
+     */
+    public function getSettings(): array
+    {
+        return $this->settings;
+    }
+
+    public function getSettingsTitle(): ?string
+    {
+        return $this->settingsTitle;
+    }
 
     public function getScriptDirectory(): ?string
     {

@@ -31,6 +31,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * @phpstan-import-type BlockSupportEntry from BlockDefinition
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
+ * @phpstan-import-type SettingsGroupEntry from \Saij\WpAppFramework\Setting\SettingsCollector
  * @phpstan-type HookEntry array{name: string, priority: int, acceptedArgs: int, filter: bool, class: class-string, method: string, arguments: list<HookArgument>}
  * @phpstan-type RouteEntry array{
  *     namespace: non-falsy-string,
@@ -67,13 +68,14 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     publicApis: list<class-string>,
  *     templateProviders: array<non-empty-string, non-empty-string>,
  *     templateVersion: non-empty-string|null,
- *     styles: bool
+ *     styles: bool,
+ *     settings: array{title: string|null, groups: list<SettingsGroupEntry>}
  * }
  */
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 12;
+    public const int FORMAT = 13;
 
     /**
      * @return ManifestData

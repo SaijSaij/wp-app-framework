@@ -53,7 +53,7 @@ Names without a namespace are searched in `overrides/{theme-slug}/` of the activ
 
 ## Environment
 
-Autoescaping (`html`) and `strict_variables` are always on; undefined variables are errors. In development mode, debug, auto reload and `dump()` are enabled.
+Autoescaping (`html`) and `strict_variables` are always on; undefined variables are errors. In development mode, debug, auto reload and `dump()` are enabled. A theme or plugin with settings groups has the global `settings` (see [Settings](./settings.md#using-settings)). The framework provides the template functions of blocks (`attachment_image()`, `block_wrapper_attributes()`, see [Blocks](./blocks.md#escaping)), of the editor (`field()`, `inner_blocks()`, `is_editor()`) and of [references](./values.md#references) (`post_title()`, `post_url()`, `term_name()`, `term_url()`, `user_name()`).
 
 Compiled templates are cached in `wp-content/cache/{slug}/twig/`. Release mode compiles without auto reload, so each release uses its own directory `wp-content/cache/{slug}/twig/{templateVersion}/`; the version is a hash over the names and contents of all templates of the project and the framework, written into the release manifest by `build --output`. If the active theme or child theme overrides templates of another instance (a plugin, or the theme overridden by its child theme), that instance's directory gets a further level named after the versions of theme and child theme: a changed override needs a new theme version. Directories of older releases are not removed yet.
 

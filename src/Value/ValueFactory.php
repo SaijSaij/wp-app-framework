@@ -8,6 +8,10 @@ use BackedEnum;
 use InvalidArgumentException;
 use LogicException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Editor\RenderContext;
+use WP_Post;
+use WP_Term;
+use WP_User;
 
 /**
  * The only way from raw values to typed values: block attribute objects, value
@@ -20,10 +24,18 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  *
  * @internal
  *
+ * References (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`)
+ * resolve to their ID only if the object exists and is of an allowed type
+ * (posts also only if publicly viewable, except in renders for the block
+ * editor); otherwise they become null or are left out of their list.
+ *
+ * @phpstan-type Reference array{target: 'post'|'term'|'user', subtypes: list<string>|null}
  * @phpstan-type ClassValue array{type: 'enum'|'object', class: class-string, nullable: bool}
+ * @phpstan-type ReferenceValue array{type: 'int', nullable: bool, reference: Reference}
  * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool', nullable: bool}
+ *     |ReferenceValue
  *     |ClassValue
- *     |array{type: 'list', items: ClassValue, nullable: bool}
+ *     |array{type: 'list', items: ClassValue|ReferenceValue, nullable: bool}
  * @phpstan-type ValueField array{value: Value, required: bool}
  */
 #[NoService]
@@ -31,8 +43,13 @@ final readonly class ValueFactory
 {
     /**
      * @param array<class-string, array<string, ValueField>> $classes Value classes: constructor parameter => field.
+     * @param RenderContext|null                             $context Whether a render is for the block editor (references to
+     *                                                                posts that are not public stay there).
      */
-    public function __construct(private array $classes) {}
+    public function __construct(
+        private array $classes,
+        private ?RenderContext $context = null,
+    ) {}
 
     /**
      * Creates a block attribute object from the attributes WordPress passes to
@@ -76,7 +93,9 @@ final readonly class ValueFactory
         }
 
         return match ($value['type']) {
-            'int' => is_int($raw) ? $raw : throw self::mismatch($path, $value, $raw),
+            'int' => is_int($raw)
+                ? (isset($value['reference']) ? $this->resolve($value['reference'], $raw) : $raw)
+                : throw self::mismatch($path, $value, $raw),
             // JSON does not distinguish 1 from 1.0.
             'float' => is_float($raw) || is_int($raw) ? (float) $raw : throw self::mismatch($path, $value, $raw),
             'string' => is_string($raw) ? $raw : throw self::mismatch($path, $value, $raw),
@@ -84,13 +103,48 @@ final readonly class ValueFactory
             'enum' => $this->createEnum($value['class'], $raw, $path),
             'object' => is_array($raw) ? $this->createObject($value['class'], $raw, $path) : throw self::mismatch($path, $value, $raw),
             'list' => is_array($raw) && array_is_list($raw)
-                ? array_map(
-                    fn(int $index, mixed $item): mixed => $this->create($value['items'], $item, sprintf('%s[%d]', $path, $index)),
-                    array_keys($raw),
-                    $raw,
-                )
+                ? $this->createList($value['items'], $raw, $path)
                 : throw self::mismatch($path, $value, $raw),
         };
+    }
+
+    /**
+     * @param ClassValue|ReferenceValue $items
+     * @param list<mixed>               $raw
+     * @return list<mixed>
+     */
+    private function createList(array $items, array $raw, string $path): array
+    {
+        $list = [];
+        foreach ($raw as $index => $item) {
+            $value = $this->create($items, $item, sprintf('%s[%d]', $path, $index));
+            // A reference that does not resolve is left out.
+            if ($value !== null || $items['type'] !== 'int') {
+                $list[] = $value;
+            }
+        }
+
+        return $list;
+    }
+
+    /**
+     * The ID if the referenced object exists and may be used here, else null.
+     *
+     * @param Reference $reference
+     */
+    private function resolve(array $reference, int $id): ?int
+    {
+        $subtypes = $reference['subtypes'];
+        $valid = match ($reference['target']) {
+            'post' => ($post = get_post($id)) instanceof WP_Post
+                && ($subtypes === null ? is_post_type_viewable($post->post_type) : in_array($post->post_type, $subtypes, true))
+                && (($this->context?->isEditor() ?? false) || is_post_publicly_viewable($post)),
+            'term' => ($term = get_term($id)) instanceof WP_Term
+                && ($subtypes === null ? is_taxonomy_viewable($term->taxonomy) : in_array($term->taxonomy, $subtypes, true)),
+            'user' => get_userdata($id) instanceof WP_User,
+        };
+
+        return $valid ? $id : null;
     }
 
     /**

@@ -2,7 +2,7 @@
 
 A block support adds the same setting to several blocks, for example a color scheme: each block that uses it gets an attribute, a control in the inspector and class names on its root element. The theme or plugin declares the support once and adds it to its blocks; the framework derives everything else in the build.
 
-Block supports apply to the blocks of the same theme or plugin only (not to core blocks or blocks of other instances). The supports of WordPress itself are set with [`#[Supports]`](./blocks.md#supports).
+Block supports apply to the blocks of the same theme or plugin only (not to core blocks or blocks of other instances). The supports of WordPress itself are set with [`#[Supports]`](./blocks.md#supports). Values of the whole site rather than of a block are [settings](./settings.md).
 
 ## Declaring a support
 

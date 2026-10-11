@@ -99,7 +99,9 @@ A value class (see [Values](./values.md)) whose parameters all have a default va
 
 With `inspector: true` (`#[RichText(inspector: true)]`, also on `#[PlainText]` and `#[Image]`) a field is edited in the block inspector instead of the canvas – for values the markup does not show, or that are better edited in a form.
 
-An attribute gets `role: content` if it or a nested field is marked, so the block stays editable in contentOnly mode (patterns and template parts open in it in WordPress 7). The marks have no effect on REST arguments.
+[References](./values.md#references) to posts, terms and users (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are edited with a search in the inspector and count as content as well.
+
+An attribute gets `role: content` if it or a nested field is marked (or is a reference), so the block stays editable in contentOnly mode (patterns and template parts open in it in WordPress 7). The marks have no effect on REST arguments.
 
 ## Text in the post content
 
@@ -156,6 +158,7 @@ final class AllowedBlocks
 | `#[RichText]` | `{{ attrs.headline\|raw }}` – exactly as stored; WordPress filters it with `wp_kses` when a user without `unfiltered_html` saves |
 | `#[Url]` strings | `{{ button.url }}` – the schema has `format: uri`, so the value is sanitized with `sanitize_url()` (disallowed protocols such as `javascript:` become empty) and then autoescaped |
 | Images | `#[Image]` attachment ID with `{{ attachment_image(attrs.imageId, size = 'full', attributes = {}) }}` (`wp_get_attachment_image()`; empty for `null`) |
+| References | IDs; `{{ post_title(attrs.target) }}`, `{{ post_url(attrs.target) }}`, `term_name()`, `term_url()`, `user_name()` (see [References](./values.md#references)) |
 | Inner blocks | `{{ content\|raw }}` |
 | Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports, plus the classes of [block supports](./supports.md)) |
 

@@ -47,7 +47,7 @@ final class RenderControllerTest extends TestCase
         $this->manifest = Manifest::load($this->file);
         $this->context = new RenderContext();
         $GLOBALS['wp_app_framework_test_caps'] = ['edit_posts', 'edit_post:7'];
-        $GLOBALS['wp_app_framework_test_posts'] = [7 => (object) ['ID' => 7], 8 => (object) ['ID' => 8]];
+        $GLOBALS['wp_app_framework_test_posts'] = [7 => new \WP_Post((object) ['ID' => 7]), 8 => new \WP_Post((object) ['ID' => 8])];
     }
 
     protected function tearDown(): void

@@ -19,6 +19,9 @@ use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRegistrar;
+use Saij\WpAppFramework\Setting\SettingsAccessor;
+use Saij\WpAppFramework\Setting\SettingsPage;
+use Saij\WpAppFramework\Setting\SettingsStore;
 use Saij\WpAppFramework\Style\StyleAssets;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Value\ValueFactory;
@@ -121,6 +124,11 @@ final readonly class Instance
         $slug = $this->slug;
         $exactNamespace = $this->kind->getTemplateNamespace();
         $directory = $this->directory;
+        $debug = defined('WP_DEBUG') && WP_DEBUG;
+        $values = new ValueFactory($manifest['values'], $renderContext);
+        $settingsGroups = $manifest['settings']['groups'];
+        $settings = $settingsGroups === [] ? null : new SettingsStore($this->slug, $settingsGroups, $values);
+        $globals = $settings === null ? [] : ['settings' => new SettingsAccessor($settings)];
         $container = new Container(
             $manifest['services'],
             [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext],
@@ -136,6 +144,7 @@ final readonly class Instance
                     $development,
                     $templateCallables,
                     $templateProviders,
+                    $globals,
                 ): TemplateRenderer {
                     $setup = $templateSetup();
 
@@ -151,14 +160,14 @@ final readonly class Instance
                         $templateCallables,
                         $templateProviders,
                         $container,
+                        $globals,
                     );
                 },
             ],
+            $settings,
         );
-        $debug = defined('WP_DEBUG') && WP_DEBUG;
         new HookRegistrar($container, $debug)->register($manifest['hooks']);
 
-        $values = new ValueFactory($manifest['values']);
         $restRegistrar = new RestRegistrar($container, $values, $debug);
         $routes = $manifest['routes'];
         $blocks = $manifest['blocks'];
@@ -185,6 +194,20 @@ final readonly class Instance
         if ($manifest['styles']) {
             $styleAssets = new StyleAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
             add_action('enqueue_block_assets', $styleAssets->enqueue(...));
+        }
+
+        if ($settings !== null) {
+            $settings->hook();
+            $settingsPage = new SettingsPage(
+                $this->slug,
+                $this->kind,
+                (string) $manifest['settings']['title'],
+                $settingsGroups,
+                $this->directory . '/' . self::BUILD_DIRECTORY,
+                $this->directoryUri . '/' . self::BUILD_DIRECTORY,
+            );
+            add_action('admin_menu', $settingsPage->addPage(...));
+            add_action('admin_enqueue_scripts', $settingsPage->enqueue(...));
         }
 
         InstanceBridge::provideApis($this->slug, $manifest['publicApis'], $container);

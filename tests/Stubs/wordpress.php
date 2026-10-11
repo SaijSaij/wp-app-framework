@@ -110,7 +110,7 @@ function is_wp_error(mixed $thing): bool
 }
 
 /**
- * Simplified: checks only the integer type (and null for nullable types).
+ * Simplified: checks the integer and string types, enums (and null for nullable types).
  *
  * @param array<string, mixed> $args
  */
@@ -129,6 +129,12 @@ function rest_validate_value_from_schema(mixed $value, array $args, string $para
     }
     if (in_array('integer', $types, true) && !is_int($value) && !(is_string($value) && preg_match('/^-?\d+$/', $value) === 1)) {
         return new WP_Error('rest_invalid_type', sprintf('%s is not of type integer.', $param));
+    }
+    if ($types === ['string'] && !is_string($value)) {
+        return new WP_Error('rest_invalid_type', sprintf('%s is not of type string.', $param));
+    }
+    if (isset($args['enum']) && is_array($args['enum']) && !in_array($value, $args['enum'], true)) {
+        return new WP_Error('rest_not_in_enum', sprintf('%s is not one of %s.', $param, implode(', ', array_map(strval(...), array_filter($args['enum'], is_scalar(...))))));
     }
 
     return true;
@@ -313,9 +319,13 @@ function current_user_can(string $capability, mixed ...$args): bool
 /**
  * Posts from $GLOBALS['wp_app_framework_test_posts'] by ID.
  */
-function get_post(int $post): ?object
+function get_post(int|WP_Post|null $post = null, string $output = 'OBJECT', string $filter = 'raw'): ?WP_Post
 {
-    return $GLOBALS['wp_app_framework_test_posts'][$post] ?? null;
+    if ($post instanceof WP_Post) {
+        return $post;
+    }
+
+    return $GLOBALS['wp_app_framework_test_posts'][(int) $post] ?? null;
 }
 
 function setup_postdata(object $post): bool
@@ -533,3 +543,180 @@ function wp_get_theme(string $stylesheet = '', string $theme_root = ''): WP_Them
 
 // The content directory of the unit tests; caches of booted instances go below it.
 define('WP_CONTENT_DIR', sys_get_temp_dir() . '/wpaf-wp-content');
+
+/**
+ * Records registered settings in $GLOBALS['wp_app_framework_test_settings'] by option name.
+ *
+ * @param array<string, mixed> $args
+ */
+function register_setting(string $option_group, string $option_name, array $args = []): void
+{
+    $GLOBALS['wp_app_framework_test_settings'][$option_name] = ['group' => $option_group] + $args;
+}
+
+/**
+ * Options from $GLOBALS['wp_app_framework_test_options'].
+ */
+function get_option(string $option, mixed $default_value = false): mixed
+{
+    return array_key_exists($option, $GLOBALS['wp_app_framework_test_options'] ?? [])
+        ? $GLOBALS['wp_app_framework_test_options'][$option]
+        : $default_value;
+}
+
+/**
+ * Records admin pages in $GLOBALS['wp_app_framework_test_pages'] by menu slug; returns the hook suffix like WordPress.
+ */
+function add_theme_page(string $page_title, string $menu_title, string $capability, string $menu_slug, callable|string $callback = '', ?int $position = null): string|false
+{
+    $GLOBALS['wp_app_framework_test_pages'][$menu_slug] = ['parent' => 'themes.php', 'title' => $page_title, 'menu' => $menu_title, 'capability' => $capability, 'callback' => $callback];
+
+    return 'appearance_page_' . $menu_slug;
+}
+
+function add_options_page(string $page_title, string $menu_title, string $capability, string $menu_slug, callable|string $callback = '', ?int $position = null): string|false
+{
+    $GLOBALS['wp_app_framework_test_pages'][$menu_slug] = ['parent' => 'options-general.php', 'title' => $page_title, 'menu' => $menu_title, 'capability' => $capability, 'callback' => $callback];
+
+    return 'settings_page_' . $menu_slug;
+}
+
+/**
+ * Counts calls in $GLOBALS['wp_app_framework_test_media'].
+ *
+ * @param array<string, mixed> $args
+ */
+function wp_enqueue_media(array $args = []): void
+{
+    $GLOBALS['wp_app_framework_test_media'] = ($GLOBALS['wp_app_framework_test_media'] ?? 0) + 1;
+}
+
+/**
+ * Like WordPress: the properties come from the given object.
+ */
+final class WP_Post
+{
+    public int $ID = 0;
+    public string $post_type = 'post';
+    public string $post_status = 'publish';
+    public string $post_title = '';
+
+    public function __construct(object $post)
+    {
+        foreach (get_object_vars($post) as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+}
+
+/**
+ * Like WordPress: the properties come from the given object.
+ */
+final class WP_Term
+{
+    public int $term_id = 0;
+    public string $taxonomy = 'category';
+    public string $name = '';
+
+    public function __construct(object $term)
+    {
+        foreach (get_object_vars($term) as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+}
+
+/**
+ * Like WordPress for a user data object: the properties come from it.
+ */
+final class WP_User
+{
+    public int $ID = 0;
+    public string $display_name = '';
+
+    public function __construct(int|object $id = 0, string $name = '', string $site_id = '')
+    {
+        if (is_object($id)) {
+            foreach (get_object_vars($id) as $key => $value) {
+                $this->$key = $value;
+            }
+        } else {
+            $this->ID = $id;
+        }
+    }
+}
+
+/**
+ * Terms from $GLOBALS['wp_app_framework_test_terms'] by ID.
+ */
+function get_term(int|object $term, string $taxonomy = '', string $output = 'OBJECT', string $filter = 'raw'): WP_Term|WP_Error|null
+{
+    return $term instanceof WP_Term ? $term : $GLOBALS['wp_app_framework_test_terms'][is_int($term) ? $term : 0] ?? null;
+}
+
+/**
+ * Users from $GLOBALS['wp_app_framework_test_users'] by ID.
+ */
+function get_userdata(int $user_id): WP_User|false
+{
+    return $GLOBALS['wp_app_framework_test_users'][$user_id] ?? false;
+}
+
+/**
+ * Viewable post types: post and page (like a default installation).
+ */
+function is_post_type_viewable(string|object $post_type): bool
+{
+    return in_array($post_type, ['post', 'page'], true);
+}
+
+/**
+ * Published posts of viewable post types.
+ */
+function is_post_publicly_viewable(int|WP_Post|null $post = null): bool
+{
+    $post = get_post($post);
+
+    return $post !== null && $post->post_status === 'publish' && is_post_type_viewable($post->post_type);
+}
+
+/**
+ * Viewable taxonomies: category and post_tag.
+ */
+function is_taxonomy_viewable(string|object $taxonomy): bool
+{
+    return in_array($taxonomy, ['category', 'post_tag'], true);
+}
+
+function get_permalink(int|WP_Post $post = 0, bool $leavename = false): string|false
+{
+    $post = get_post($post);
+
+    return $post === null ? false : 'https://example.test/?p=' . $post->ID;
+}
+
+function get_term_link(WP_Term|int|string $term, string $taxonomy = ''): string|WP_Error
+{
+    return $term instanceof WP_Term ? 'https://example.test/?cat=' . $term->term_id : new WP_Error('invalid_term', 'Empty Term.');
+}
+
+function wp_specialchars_decode(string $text, int|string $quote_style = ENT_NOQUOTES): string
+{
+    return htmlspecialchars_decode($text, ENT_QUOTES);
+}
+
+/**
+ * Simplified: removes script elements.
+ */
+function wp_kses_post(string $data): string
+{
+    return (string) preg_replace('~<script\b[^>]*>.*?</script>~is', '', $data);
+}
+
+/**
+ * Counts calls in $GLOBALS['wp_app_framework_test_editor'].
+ */
+function wp_enqueue_editor(): void
+{
+    $GLOBALS['wp_app_framework_test_editor'] = ($GLOBALS['wp_app_framework_test_editor'] ?? 0) + 1;
+}

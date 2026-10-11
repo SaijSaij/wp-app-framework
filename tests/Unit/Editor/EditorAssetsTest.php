@@ -65,7 +65,7 @@ final class EditorAssetsTest extends TestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(sprintf(
-            'The editor script vendor/wp-app-framework/editor is not built: %s/vendor/wp-app-framework/editor.asset.php is missing. Run "npm run build" (or "npm run start") in the theme or plugin my-theme.',
+            'The script vendor/wp-app-framework/editor is not built: %s/vendor/wp-app-framework/editor.asset.php is missing. Run "npm run build" (or "npm run start") in the theme or plugin my-theme.',
             $this->build,
         ));
 

@@ -68,6 +68,7 @@ final class TemplateRenderer
      * @param list<TemplateCallableEntry>               $callables          Template functions and filters from the manifest.
      * @param array<non-empty-string, non-empty-string> $templateProviders  Template prefix => slug of the plugins and the parent
      *                                                                      theme whose public template callables the templates use.
+     * @param array<string, mixed>                      $globals            Global template variables of the instance (`settings`).
      */
     public function __construct(
         private readonly string $slug,
@@ -81,6 +82,7 @@ final class TemplateRenderer
         private readonly array $callables,
         private readonly array $templateProviders,
         private readonly Container $container,
+        private readonly array $globals = [],
     ) {}
 
     /**
@@ -144,6 +146,9 @@ final class TemplateRenderer
         $loader->addPath($this->frameworkTemplates, 'framework');
 
         $environment = self::createEnvironment($loader, $this->development, $this->cacheDirectory);
+        foreach ($this->globals as $name => $value) {
+            $environment->addGlobal($name, $value);
+        }
 
         $classes = [];
         foreach ($this->callables as $callable) {

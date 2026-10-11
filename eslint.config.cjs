@@ -1,7 +1,7 @@
 /**
  * ESLint configuration: the defaults of `@wordpress/scripts`.
  *
- * WordPress provides these packages to the editor at runtime (script handles,
+ * WordPress provides these packages to the editor and admin pages at runtime (script handles,
  * mapped by the dependency extraction plugin); they are not installed.
  */
 const defaults = require( '@wordpress/scripts/config/eslint.config.cjs' );
@@ -11,8 +11,13 @@ const PROVIDED_BY_WORDPRESS = [
 	'@wordpress/block-editor',
 	'@wordpress/blocks',
 	'@wordpress/components',
+	'@wordpress/compose',
+	'@wordpress/core-data',
 	'@wordpress/data',
+	'@wordpress/dom-ready',
 	'@wordpress/element',
+	'@wordpress/media-utils',
+	'@wordpress/notices',
 ];
 
 module.exports = [

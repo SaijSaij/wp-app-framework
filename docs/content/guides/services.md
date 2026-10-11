@@ -1,6 +1,6 @@
 # Services
 
-Every concrete class under the consumer's PSR-4 directories (`autoload.psr-4` in its `composer.json`) and under the framework's `src/` is a service candidate. Interfaces, abstract classes, traits, enums, attribute classes and classes marked `#[NoService]` (`Saij\WpAppFramework\DependencyInjection\NoService`) are not. Services are shared and autowired by constructor parameter types; scalar parameters must have a default value.
+Every concrete class under the consumer's PSR-4 directories (`autoload.psr-4` in its `composer.json`) and under the framework's `src/` is a service candidate. Interfaces, abstract classes, traits, enums, attribute classes, classes marked `#[NoService]` (`Saij\WpAppFramework\DependencyInjection\NoService`) and settings groups are not; a constructor parameter typed with a [settings group](./settings.md#using-settings) receives the group with the stored values. Services are shared and autowired by constructor parameter types; scalar parameters must have a default value.
 
 Only services reachable from entry points (`#[Hook]`, `#[RestRoute]`, `#[TemplateFunction]` and `#[TemplateFilter]` methods, including permission callbacks, and `#[Block]` classes) are built and checked, so value objects that are never injected need no marking. Aliases and tags are not supported. The container is internal; consumer code receives services through constructor and hook parameters only.
 

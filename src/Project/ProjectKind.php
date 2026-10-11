@@ -52,6 +52,17 @@ enum ProjectKind: string
     }
 
     /**
+     * The header in the header file that names the theme or plugin.
+     */
+    public function getNameHeader(): string
+    {
+        return match ($this) {
+            self::Theme, self::ChildTheme => 'Theme Name',
+            self::Plugin => 'Plugin Name',
+        };
+    }
+
+    /**
      * The file that boots the framework; Strauss must rewrite its references to the framework.
      *
      * @param non-empty-string $slug

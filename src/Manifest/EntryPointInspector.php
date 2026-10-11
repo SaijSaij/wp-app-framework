@@ -72,6 +72,11 @@ final readonly class EntryPointInspector
             return sprintf('%s: union and intersection types containing a service are not supported.', $parameterLocation);
         }
 
+        $settingsGroup = $this->resolver->settingsGroupType($parameter);
+        if ($settingsGroup !== null) {
+            return sprintf('%s: settings group %s is injected into constructors of services only, not in %s.', $parameterLocation, $settingsGroup, $context);
+        }
+
         foreach ([PluginApi::class => '#[PluginApi]', ThemeApi::class => '#[ThemeApi]'] as $class => $attribute) {
             if ($parameter->getAttributes($class) !== []) {
                 return sprintf('%s: %s is only supported on constructor parameters of services, not in %s.', $parameterLocation, $attribute, $context);

@@ -49,6 +49,21 @@ afterEach( () => {
 } );
 
 describe( 'webpack helper', () => {
+	it( 'builds the editor runtime, the canvas styles and the settings page', () => {
+		const root = consumer( { styles: false, packages: TOOLCHAIN } );
+		const entry = createConfig( { slug: 'my-theme', root } ).entry();
+
+		expect( entry[ 'vendor/wp-app-framework/editor' ] ).toBe(
+			path.join( framework, 'assets', 'editor.js' )
+		);
+		expect( entry[ 'vendor/wp-app-framework/canvas' ] ).toBe(
+			path.join( framework, 'assets', 'canvas.scss' )
+		);
+		expect( entry[ 'vendor/wp-app-framework/settings' ] ).toBe(
+			path.join( framework, 'assets', 'settings.js' )
+		);
+	} );
+
 	it( 'builds no stylesheet and needs no Tailwind without src/styles.css', () => {
 		const root = consumer( { styles: false, packages: TOOLCHAIN } );
 		const config = createConfig( { slug: 'my-theme', root } );

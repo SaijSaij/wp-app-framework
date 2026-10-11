@@ -122,6 +122,7 @@ final class ManifestBuilderTest extends TestCase
                 \Saij\WpAppFramework\Editor\RenderContext::class,
                 \Saij\WpAppFramework\Theme::class,
                 \Saij\WpAppFramework\Twig\TemplateRenderer::class,
+                \Saij\WpAppFramework\Value\ReferenceTemplateFunctions::class,
             ],
             $result->getCandidates(),
         );
@@ -132,6 +133,7 @@ final class ManifestBuilderTest extends TestCase
                     'context' => \Saij\WpAppFramework\Editor\RenderContext::class,
                 ],
                 \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class => ['context' => \Saij\WpAppFramework\Editor\RenderContext::class],
+                \Saij\WpAppFramework\Value\ReferenceTemplateFunctions::class => ['context' => \Saij\WpAppFramework\Editor\RenderContext::class],
             ],
             $result->getServices(),
         );

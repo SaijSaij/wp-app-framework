@@ -16,6 +16,7 @@ use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableKind;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
+use Saij\WpAppFramework\Value\ReferenceTemplateFunctions;
 
 final class TemplateCallableCollectorTest extends TestCase
 {
@@ -48,6 +49,11 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Function, 'field', EditorTemplateFunctions::class, 'field', true],
                 [TemplateCallableKind::Function, 'inner_blocks', EditorTemplateFunctions::class, 'innerBlocks', true],
                 [TemplateCallableKind::Function, 'is_editor', EditorTemplateFunctions::class, 'isEditor', false],
+                [TemplateCallableKind::Function, 'post_url', ReferenceTemplateFunctions::class, 'postUrl', false],
+                [TemplateCallableKind::Function, 'post_title', ReferenceTemplateFunctions::class, 'postTitle', false],
+                [TemplateCallableKind::Function, 'term_url', ReferenceTemplateFunctions::class, 'termUrl', false],
+                [TemplateCallableKind::Function, 'term_name', ReferenceTemplateFunctions::class, 'termName', false],
+                [TemplateCallableKind::Function, 'user_name', ReferenceTemplateFunctions::class, 'userName', false],
             ],
             $collected,
         );

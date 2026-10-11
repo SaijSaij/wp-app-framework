@@ -21,7 +21,7 @@ Requests of the same moment are sent together, including the framework blocks in
 
 ## Inspector
 
-The runtime generates controls from the attribute classes: enum → select, `bool` → toggle, `int`/`float` → number, `string` → text (`#[Url]`: URL), value classes → their values, fields with `inspector: true` → text, rich text or image selection, lists → one card per item with its title (its first text value, else "Item n"), an actions menu (move up, move down, remove) and the item's controls, plus "Add item". Fields of items edited in the canvas stay in the canvas. Typed text is applied after a short pause.
+The runtime generates controls from the attribute classes: enum → select, `bool` → toggle, `int`/`float` → number, `string` → text (`#[Url]`: URL), value classes → their values, fields with `inspector: true` → text, rich text or image selection, [references](./values.md#references) → search (lists: cards with move and remove), lists → one card per item with its title (its first text value, else "Item n"), an actions menu (move up, move down, remove) and the item's controls, plus "Add item". Fields of items edited in the canvas stay in the canvas. Typed text is applied after a short pause.
 
 The controls use stable components of `@wordpress/components` only; their styles (`assets/editor.scss`) are part of the runtime build. Content attributes (`role: content`) appear in the "Content" group, which stays available in contentOnly mode; all others in "Settings". Controls of [block supports](./supports.md) appear in the "Styles" tab (panel "Appearance") or in "Settings", depending on the support's group; like "Settings", only in the default editing mode.
 
@@ -70,11 +70,12 @@ The output goes to `build/`:
 
 - the runtime to `build/vendor/wp-app-framework/editor.js` with the styles of its inspector controls (`editor.css`, `editor-rtl.css`),
 - the styles of the editor canvas to `build/vendor/wp-app-framework/canvas.css` (loaded on `enqueue_block_assets` in the editor only, so they reach the canvas iframe but never the front end),
+- the script of the [settings page](./settings.md#settings-page) to `build/vendor/wp-app-framework/settings.js` with its styles (`settings.css`, `settings-rtl.css`), loaded on that page only,
 - editor scripts mirrored from `src/` (`build/Block/Hero/Hero.editor.js`),
 - the consumer's stylesheet `src/styles.css`, if it has one, compiled with Tailwind to `build/styles.css` (see [Styles](./styles.md)),
 
-each with its `.asset.php`. Without a build the editor fails with an exception naming the missing file; a consumer without blocks loads no runtime and needs no build. Run `composer install` before `npm install`: the `file:` dependency points into `vendor/`.
+each with its `.asset.php`. Without a build the editor fails with an exception naming the missing file; a consumer without blocks and settings loads no script and needs no build. Run `composer install` before `npm install`: the `file:` dependency points into `vendor/`.
 
 ## Instances
 
-Everything global is derived from the slug of the instance (`get_template()`): the render route, the script handles (`{slug}-wp-app-framework`, `{slug}-{block}-editor`) and the JS global `window.wpAppFramework[slug]`, so several framework instances in different versions can run side by side.
+Everything global is derived from the slug of the instance (`get_template()`): the render route, the script handles (`{slug}-wp-app-framework`, `{slug}-{block}-editor`, `{slug}-wp-app-framework-settings`) and the JS global `window.wpAppFramework[slug]`, so several framework instances in different versions can run side by side.

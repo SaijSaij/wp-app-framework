@@ -1,64 +1,7 @@
 /**
  * Styles of the editor runtime's inspector controls. Built by the consumer's
  * build into build/vendor/wp-app-framework/editor.css and loaded in the
- * block editor (outside the canvas). Classes are prefixed with
- * "wp-app-framework-"; spacing follows the block inspector (16px between
- * controls, 8px between related items).
+ * block editor (outside the canvas).
  */
 
-.wp-app-framework-controls,
-.wp-app-framework-group,
-.wp-app-framework-list__body {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
-.wp-app-framework-control {
-	display: flex;
-	flex-direction: column;
-}
-
-.wp-app-framework-list {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.wp-app-framework-list__title {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	font-weight: 500;
-}
-
-// Like the input of a TextControl.
-.wp-app-framework-rich-input {
-	box-sizing: border-box;
-	min-height: 40px;
-	padding: 9px 12px;
-	border: 1px solid #949494;
-	border-radius: 2px;
-	font-size: 13px;
-	line-height: 20px;
-
-	&:focus {
-		border-color: var(--wp-admin-theme-color);
-		box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
-		// Visible in Windows high contrast mode.
-		outline: 2px solid transparent;
-	}
-}
-
-.wp-app-framework-image {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.wp-app-framework-image__preview {
-	display: block;
-	max-width: 100%;
-	height: auto;
-	border-radius: 2px;
-}
+@use "controls";

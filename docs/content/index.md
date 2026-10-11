@@ -24,8 +24,9 @@ The framework is in development (0.x); breaking changes are listed in [Upgrading
 - Framework core: boot, container, manifest build, development mode and `#[Hook]`.
 - REST routes: `#[RestController]`, `#[RestRoute]`, `#[Param]`.
 - Twig: `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`.
-- Server-side blocks: `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments.
+- Server-side blocks: `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments, references to posts, terms and users.
 - Block supports of the theme or plugin: `#[BlockSupport]`, `#[UseSupport]`, `registerSupportControl()`.
+- Settings: `#[SettingsGroup]`, one option per group, settings page, injection into services and the template global `settings`.
 - Editor runtime: inline editing in the canvas, generated inspector, batch render route, webpack helper.
 - Release: `wp-app-framework release` (prefixed ZIP), release mode with a versioned Twig cache, GitHub workflows.
 - Plugins: `Plugin::boot()`, theme overrides of plugin templates, public APIs and public template callables of plugins.
@@ -34,6 +35,6 @@ The framework is in development (0.x); breaking changes are listed in [Upgrading
 ## Where to start
 
 - [Getting started](./getting-started.md) sets up a theme with a first block.
-- The guides describe each part of the API; [Values](./guides/values.md) is shared by blocks and REST routes.
+- The guides describe each part of the API; [Values](./guides/values.md) is shared by blocks, REST routes and settings.
 - A complete example of every feature is the test theme [theme-dev-test](https://github.com/saijsaij/theme-dev-test), with the test plugin [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test) and the test child theme [theme-dev-test-child](https://github.com/saijsaij/theme-dev-test-child).
 - A local WordPress for development is provided by [wp-dev-env](https://github.com/saijsaij/wp-dev-env).

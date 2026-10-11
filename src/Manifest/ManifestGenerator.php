@@ -103,6 +103,7 @@ final class ManifestGenerator
             'templateProviders' => $result->getTemplateProviders(),
             'templateVersion' => $templateVersion,
             'styles' => $result->hasStyles(),
+            'settings' => ['title' => $result->getSettingsTitle(), 'groups' => $result->getSettings()],
         ];
     }
 }

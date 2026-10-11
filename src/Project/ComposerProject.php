@@ -115,6 +115,29 @@ final readonly class ComposerProject
     }
 
     /**
+     * The file with the headers of the theme (style.css) or plugin ({slug}.php).
+     *
+     * @return non-empty-string
+     */
+    public function getHeaderFile(): string
+    {
+        return $this->directory . '/' . $this->kind->getHeaderFile($this->slug);
+    }
+
+    /**
+     * The name of the theme or plugin (`Theme Name:` or `Plugin Name:` header), null if the header file or the header
+     * is missing.
+     *
+     * @return non-empty-string|null
+     */
+    public function getName(): ?string
+    {
+        $file = $this->getHeaderFile();
+
+        return is_file($file) ? FileHeader::value($file, $this->kind->getNameHeader()) : null;
+    }
+
+    /**
      * Slug of the parent theme (`Template:` header), for child themes only.
      *
      * @return non-empty-string|null

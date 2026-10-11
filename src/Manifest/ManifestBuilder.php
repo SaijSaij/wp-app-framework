@@ -20,6 +20,7 @@ use Saij\WpAppFramework\Plugin;
 use Saij\WpAppFramework\Project\ComposerProject;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRouteCollector;
+use Saij\WpAppFramework\Setting\SettingsCollector;
 use Saij\WpAppFramework\Style\StyleAssets;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableCollector;
@@ -44,6 +45,7 @@ final class ManifestBuilder
      * @param list<non-empty-string> $templateProviders Plugins and parent theme whose public template callables the templates use.
      * @param non-empty-string|null  $parent            Parent theme of a child theme.
      * @param list<string>           $foreignNamespaces Namespaces of dependencies, prefixed in a release.
+     * @param string|null            $name              Name of the theme or plugin (header), the title of its settings page.
      */
     public function __construct(
         private readonly array $sources,
@@ -55,6 +57,7 @@ final class ManifestBuilder
         private readonly array $templateProviders = [],
         private readonly array $foreignNamespaces = [],
         private readonly ?string $parent = null,
+        private readonly ?string $name = null,
     ) {}
 
     /**
@@ -70,6 +73,10 @@ final class ManifestBuilder
         $sources = [...$project->getSources(), $framework];
 
         $trackedFiles = [$project->getComposerFile()];
+        // The name of the theme or plugin is the title of its settings page.
+        if (is_file($project->getHeaderFile())) {
+            $trackedFiles[] = $project->getHeaderFile();
+        }
         // Installed dependencies decide which namespaces a public signature must not use.
         $installed = $root . '/vendor/composer/installed.json';
         if (is_file($installed)) {
@@ -99,6 +106,7 @@ final class ManifestBuilder
             $project->getTemplateProviders(),
             $project->getForeignNamespaces(),
             $project->getParent(),
+            $project->getName(),
         );
     }
 
@@ -119,8 +127,10 @@ final class ManifestBuilder
         $errors = [];
         $classes = $this->loadClasses($errors);
 
-        $resolver = ServiceResolver::forClasses($classes, $this->predefined, $this->parent);
+        $resolver = ServiceResolver::forClasses($classes, $this->predefined, $this->parent, SettingsCollector::groupClasses($classes));
         $values = new ValueSchemaBuilder($classes);
+        $settingsCollector = new SettingsCollector($values, self::frameworkSource()->getDirectory(), $this->slug, $this->name);
+        $settings = $settingsCollector->collect($classes);
         $hookCollector = new HookCollector($resolver);
         $hooks = $hookCollector->collect($classes);
         $routeCollector = new RestRouteCollector($resolver, $values);
@@ -155,6 +165,7 @@ final class ManifestBuilder
             ...$publicApiCollector->errors(),
             ...$supportCollector->errors(),
             ...$blockCollector->errors(),
+            ...$settingsCollector->errors(),
             ...$values->errors(),
             ...$resolver->errors(),
         ];
@@ -180,6 +191,8 @@ final class ManifestBuilder
             $this->parent,
             $this->scriptDirectory,
             $this->scriptDirectory !== null && is_file($this->scriptDirectory . '/' . StyleAssets::SOURCE),
+            $settings,
+            $settings === [] ? null : $this->name,
         );
     }
 

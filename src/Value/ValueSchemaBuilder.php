@@ -32,6 +32,16 @@ use Throwable;
  * paths relative to the value, `*` for list items) and the control of the
  * generated inspector (null for inline and hidden values).
  *
+ * References (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are
+ * IDs on `?int` (one) or `array` (a list of IDs) with a search control; in
+ * blocks they count as content.
+ *
+ * Settings groups use the same derivation in settings mode: there is no canvas,
+ * so `#[PlainText]`, `#[RichText]` and `#[Image]` get a control on the settings
+ * page (rich text with the formats the classic editor offers); `#[Content]` and
+ * `postContent` mean nothing there and are errors. Value classes are checked
+ * per mode, so one class can be used by blocks and settings.
+ *
  * @phpstan-import-type ClassValue from ValueFactory
  * @phpstan-import-type Value from ValueFactory
  * @phpstan-import-type ValueField from ValueFactory
@@ -39,7 +49,8 @@ use Throwable;
  * @phpstan-type Control array<string, mixed>
  * @phpstan-type Field array{schema: array<string, mixed>, value: Value, content: bool, fields: list<EditorField>, control: Control|null}
  * @phpstan-type ClassField array{schema: array<string, mixed>, value: ClassValue, content: bool, fields: list<EditorField>, control: Control|null}
- * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, label: string, hidden: bool}
+ * @phpstan-import-type Reference from ValueFactory
+ * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, label: string, hidden: bool, reference: Reference|null}
  */
 #[NoService]
 final class ValueSchemaBuilder
@@ -48,8 +59,17 @@ final class ValueSchemaBuilder
 
     private const array SCALAR_TYPES = ['int' => 'integer', 'float' => 'number', 'string' => 'string', 'bool' => 'boolean'];
 
+    /** Rich text formats the settings page offers (classic editor): the allowedFormats of #[RichText] in settings groups. */
+    public const array SETTINGS_FORMATS = ['core/bold', 'core/italic', 'core/link', 'core/strikethrough', 'core/subscript', 'core/superscript'];
+
+    /** Post type and taxonomy keys, as register_post_type() and register_taxonomy() expect them (sanitize_key()). */
+    private const string SLUG_PATTERN = '~^[a-z0-9_-]+$~';
+
     /** @var array<class-string, array<string, Field>|null> Fields of checked value classes; null if a class is invalid. */
     private array $objects = [];
+
+    /** @var array<class-string, array<string, Field>|null> The same for settings groups (settings mode). */
+    private array $settingsObjects = [];
 
     /** @var list<class-string> Value classes being checked, to detect recursion. */
     private array $pending = [];
@@ -68,9 +88,10 @@ final class ValueSchemaBuilder
      * The schema contains the type keywords only (`type`, `enum`, `format`,
      * `properties`, `items`); callers add `required`, `default` or `role`.
      *
+     * @param bool $settings Settings mode (settings groups): images get a control, block content markers are errors.
      * @return Field|null Null if the parameter is invalid; the error is recorded.
      */
-    public function parameter(ReflectionParameter $parameter, string $location): ?array
+    public function parameter(ReflectionParameter $parameter, string $location, bool $settings = false): ?array
     {
         $type = $parameter->getType();
         if ($type === null) {
@@ -84,7 +105,7 @@ final class ValueSchemaBuilder
             return null;
         }
 
-        $markers = $this->markers($parameter, $type, $location);
+        $markers = $this->markers($parameter, $type, $location, $settings);
         if ($markers === null) {
             return null;
         }
@@ -96,13 +117,17 @@ final class ValueSchemaBuilder
             return null;
         }
 
+        if ($markers['reference'] !== null) {
+            return $this->referenceField($markers, $name, $nullable, $listOf, $location);
+        }
+
         if ($name === 'array') {
             if ($listOf === null) {
                 $this->errors[] = sprintf('%s is an array and needs #[ListOf(Item::class)] with a backed enum or a value class.', $location);
 
                 return null;
             }
-            $item = $this->classField($listOf, false, sprintf('%s: #[ListOf]', $location));
+            $item = $this->classField($listOf, false, sprintf('%s: #[ListOf]', $location), $settings);
             if ($item === null) {
                 return null;
             }
@@ -166,8 +191,8 @@ final class ValueSchemaBuilder
                 'value' => ['type' => $name, 'nullable' => $nullable],
                 'content' => $markers['content'],
                 'fields' => $fields,
-                // Canvas fields have no inspector control; fields with inspector: true have one instead.
-                'control' => ($markers['kind'] !== null && !$markers['inspector']) || $markers['hidden'] ? null : $control,
+                // Canvas fields have no inspector control; fields with inspector: true and images in settings have one instead.
+                'control' => ($markers['kind'] !== null && !$markers['inspector'] && !$settings) || $markers['hidden'] ? null : $control,
             ];
         }
 
@@ -177,7 +202,7 @@ final class ValueSchemaBuilder
             return null;
         }
 
-        $field = $this->classField($name, $nullable, $location);
+        $field = $this->classField($name, $nullable, $location, $settings);
         if ($field === null) {
             return null;
         }
@@ -195,12 +220,14 @@ final class ValueSchemaBuilder
      *
      * @param class-string $class
      * @param string       $location Where the class is used, for error messages.
+     * @param bool         $settings Settings mode (settings groups).
      * @return array<string, Field>|null Null if the class is invalid; the errors are recorded.
      */
-    public function objectFields(string $class, string $location): ?array
+    public function objectFields(string $class, string $location, bool $settings = false): ?array
     {
-        if (array_key_exists($class, $this->objects)) {
-            return $this->objects[$class];
+        $checked = $settings ? $this->settingsObjects : $this->objects;
+        if (array_key_exists($class, $checked)) {
+            return $checked[$class];
         }
 
         if (in_array($class, $this->pending, true)) {
@@ -213,21 +240,21 @@ final class ValueSchemaBuilder
         if ($reflection === null) {
             $this->errors[] = sprintf('%s: %s is outside the scanned PSR-4 directories of the project and the framework.', $location, $class);
 
-            return $this->objects[$class] = null;
+            return $this->remember($class, null, $settings);
         }
 
         $error = $this->valueClassError($reflection);
         if ($error !== null) {
             $this->errors[] = sprintf('%s: %s', $location, $error);
 
-            return $this->objects[$class] = null;
+            return $this->remember($class, null, $settings);
         }
 
         $this->pending[] = $class;
         $fields = [];
         $valid = true;
         foreach ($reflection->getConstructor()?->getParameters() ?? [] as $parameter) {
-            $field = $this->parameter($parameter, sprintf('parameter $%s of %s::__construct()', $parameter->getName(), $class));
+            $field = $this->parameter($parameter, sprintf('parameter $%s of %s::__construct()', $parameter->getName(), $class), $settings);
             if ($field === null) {
                 $valid = false;
                 continue;
@@ -236,7 +263,21 @@ final class ValueSchemaBuilder
         }
         array_pop($this->pending);
 
-        return $this->objects[$class] = $valid ? $fields : null;
+        return $this->remember($class, $valid ? $fields : null, $settings);
+    }
+
+    /**
+     * @param class-string              $class
+     * @param array<string, Field>|null $fields
+     * @return array<string, Field>|null
+     */
+    private function remember(string $class, ?array $fields, bool $settings): ?array
+    {
+        if ($settings) {
+            return $this->settingsObjects[$class] = $fields;
+        }
+
+        return $this->objects[$class] = $fields;
     }
 
     /**
@@ -285,7 +326,8 @@ final class ValueSchemaBuilder
     public function values(): array
     {
         $values = [];
-        foreach ($this->objects as $class => $fields) {
+        // The value descriptions do not depend on the mode.
+        foreach ([...$this->settingsObjects, ...$this->objects] as $class => $fields) {
             if ($fields === null) {
                 continue;
             }
@@ -308,13 +350,14 @@ final class ValueSchemaBuilder
      */
     public function errors(): array
     {
-        return $this->errors;
+        // A value class used by blocks and settings reports its errors once.
+        return array_values(array_unique($this->errors));
     }
 
     /**
      * @return Markers|null
      */
-    private function markers(ReflectionParameter $parameter, ReflectionNamedType $type, string $location): ?array
+    private function markers(ReflectionParameter $parameter, ReflectionNamedType $type, string $location, bool $settings): ?array
     {
         $plainAttributes = $parameter->getAttributes(PlainText::class);
         $plain = $plainAttributes !== [];
@@ -326,11 +369,23 @@ final class ValueSchemaBuilder
         $url = $parameter->getAttributes(Url::class) !== [];
         $hidden = $parameter->getAttributes(Hidden::class) !== [];
         $labelAttributes = $parameter->getAttributes(Label::class);
+        $referenceAttributes = [
+            ...$parameter->getAttributes(PostReference::class),
+            ...$parameter->getAttributes(TermReference::class),
+            ...$parameter->getAttributes(UserReference::class),
+        ];
         $isString = $type->getName() === 'string';
         $kinds = array_keys(array_filter(['PlainText' => $plain, 'RichText' => $rich, 'Image' => $image]));
         $kind = $kinds[0] ?? null;
 
         $error = match (true) {
+            count($referenceAttributes) > 1 => 'has several references; use one of #[PostReference], #[TermReference] and #[UserReference]',
+            $referenceAttributes !== [] && ($kind !== null || $content || $url) => sprintf(
+                'has #[%s] together with #[%s]; a reference is an ID with its own control and counts as content in blocks',
+                self::shortName($referenceAttributes[0]->getName()),
+                $kind ?? ($content ? 'Content' : 'Url'),
+            ),
+            $settings && $content => 'has #[Content], which marks the content of blocks; settings groups have no block content',
             count($kinds) > 1 => sprintf('has #[%s]; use only one of #[PlainText], #[RichText] and #[Image]', implode('] and #[', $kinds)),
             $kind !== null && $content => sprintf('has #[%s] and #[Content]; #[%1$s] already marks the field as content', $kind),
             ($plain || $rich) && !$isString => sprintf('has #[%s], which is only allowed on strings', $kind),
@@ -347,6 +402,7 @@ final class ValueSchemaBuilder
         }
 
         try {
+            $reference = $referenceAttributes === [] ? null : self::reference($referenceAttributes[0]->newInstance());
             $kindAttribute = ($plainAttributes[0] ?? $richAttributes[0] ?? $imageAttributes[0] ?? null)?->newInstance();
             $allowedFormats = $kindAttribute instanceof RichText ? $kindAttribute->allowedFormats : null;
             $inspector = $kindAttribute->inspector ?? false;
@@ -354,7 +410,7 @@ final class ValueSchemaBuilder
             $excerpt = ($kindAttribute instanceof RichText || $kindAttribute instanceof PlainText) && $kindAttribute->excerpt;
             $label = $labelAttributes !== [] ? $labelAttributes[0]->newInstance()->label : self::humanize($parameter->getName());
         } catch (Throwable $exception) {
-            $this->errors[] = sprintf('Invalid #[RichText] or #[Label] on %s: %s', $location, $exception->getMessage());
+            $this->errors[] = sprintf('Invalid #[RichText], #[Label] or reference on %s: %s', $location, $exception->getMessage());
 
             return null;
         }
@@ -366,6 +422,29 @@ final class ValueSchemaBuilder
         }
         if (trim($label) === '') {
             $this->errors[] = sprintf('%s has an empty #[Label].', $location);
+
+            return null;
+        }
+        $invalidSlugs = $reference !== null && $reference['subtypes'] !== null && (
+            $reference['subtypes'] === []
+            || !array_is_list($reference['subtypes'])
+            || array_filter($reference['subtypes'], static fn(mixed $slug): bool => !is_string($slug) || preg_match(self::SLUG_PATTERN, $slug) !== 1) !== []
+        );
+        $unknownFormats = $settings && $allowedFormats !== null ? array_diff($allowedFormats, self::SETTINGS_FORMATS) : [];
+        $error = match (true) {
+            $invalidSlugs && $reference['target'] === 'post' => sprintf('%s: postTypes of #[PostReference] must be a non-empty list of post type keys (lowercase letters, digits, "-" and "_"), or null for all.', $location),
+            $invalidSlugs => sprintf('%s: taxonomies of #[TermReference] must be a non-empty list of taxonomy keys (lowercase letters, digits, "-" and "_"), or null for all.', $location),
+            $settings && $postContent => sprintf('%s has #[RichText(postContent: true)], which stores the value in the post content of a block; settings groups have no post content.', $location),
+            $unknownFormats !== [] => sprintf(
+                '%s: allowedFormats of #[RichText] in a settings group may only contain the formats of the settings page (%s), not %s.',
+                $location,
+                implode(', ', self::SETTINGS_FORMATS),
+                implode(', ', $unknownFormats),
+            ),
+            default => null,
+        };
+        if ($error !== null) {
+            $this->errors[] = $error;
 
             return null;
         }
@@ -386,6 +465,71 @@ final class ValueSchemaBuilder
             'excerpt' => $excerpt,
             'label' => $label,
             'hidden' => $hidden,
+            'reference' => $reference,
+        ];
+    }
+
+    /**
+     * @return Reference
+     */
+    private static function reference(PostReference|TermReference|UserReference $attribute): array
+    {
+        return match (true) {
+            $attribute instanceof PostReference => ['target' => 'post', 'subtypes' => $attribute->postTypes],
+            $attribute instanceof TermReference => ['target' => 'term', 'subtypes' => $attribute->taxonomies],
+            default => ['target' => 'user', 'subtypes' => null],
+        };
+    }
+
+    private static function shortName(string $class): string
+    {
+        return substr($class, (int) strrpos($class, '\\') + 1);
+    }
+
+    /**
+     * A reference: one ID on ?int, a list of IDs on array.
+     *
+     * @param Markers $markers
+     * @return Field|null
+     */
+    private function referenceField(array $markers, string $type, bool $nullable, ?string $listOf, string $location): ?array
+    {
+        /** @var Reference $reference */
+        $reference = $markers['reference'];
+        $attribute = match ($reference['target']) {
+            'post' => '#[PostReference]',
+            'term' => '#[TermReference]',
+            'user' => '#[UserReference]',
+        };
+        $error = match (true) {
+            $listOf !== null => sprintf('%s has %s and #[ListOf]; a reference on an array is a list of IDs without #[ListOf].', $location, $attribute),
+            $type === 'int' && !$nullable => sprintf('%s has %s on int; use ?int (null without reference) or array (a list of IDs).', $location, $attribute),
+            $type !== 'int' && $type !== 'array' => sprintf('%s has %s, which is only allowed on ?int (one ID) or array (a list of IDs).', $location, $attribute),
+            default => null,
+        };
+        if ($error !== null) {
+            $this->errors[] = $error;
+
+            return null;
+        }
+
+        $control = ['label' => $markers['label'], 'nullable' => $nullable, 'target' => $reference['target'], 'subtypes' => $reference['subtypes']];
+        if ($type === 'int') {
+            return [
+                'schema' => ['type' => ['integer', 'null']],
+                'value' => ['type' => 'int', 'nullable' => true, 'reference' => $reference],
+                'content' => true,
+                'fields' => [],
+                'control' => $markers['hidden'] ? null : ['type' => 'reference', ...$control],
+            ];
+        }
+
+        return [
+            'schema' => ['type' => self::type('array', $nullable), 'items' => ['type' => 'integer']],
+            'value' => ['type' => 'list', 'items' => ['type' => 'int', 'nullable' => false, 'reference' => $reference], 'nullable' => $nullable],
+            'content' => true,
+            'fields' => [],
+            'control' => $markers['hidden'] ? null : ['type' => 'references', ...$control],
         ];
     }
 
@@ -433,7 +577,7 @@ final class ValueSchemaBuilder
      *
      * @return ClassField|null
      */
-    private function classField(string $class, bool $nullable, string $location): ?array
+    private function classField(string $class, bool $nullable, string $location, bool $settings): ?array
     {
         if (enum_exists($class)) {
             if (!is_subclass_of($class, BackedEnum::class)) {
@@ -475,7 +619,7 @@ final class ValueSchemaBuilder
             return null;
         }
 
-        $fields = $this->objectFields($class, $location);
+        $fields = $this->objectFields($class, $location, $settings);
         if ($fields === null) {
             return null;
         }

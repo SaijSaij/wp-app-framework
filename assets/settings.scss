@@ -1,0 +1,34 @@
+/**
+ * Styles of the settings page. Built by the consumer's build into
+ * build/vendor/wp-app-framework/settings.css and loaded on the settings page
+ * of the theme or plugin only.
+ */
+
+@use "controls";
+
+.wp-app-framework-settings {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	max-width: 640px;
+	margin-top: 16px;
+}
+
+.wp-app-framework-settings__group {
+	padding-top: 16px;
+
+	> p {
+		margin-top: 0;
+	}
+}
+
+
+// The form is wider than the block inspector, whose sidebar limits the preview.
+.wp-app-framework-settings .wp-app-framework-image__preview {
+	max-width: 240px;
+}
+
+// The combobox has no background of its own; the admin page is gray.
+.wp-app-framework-settings .components-combobox-control__suggestions-container {
+	background-color: #fff;
+}

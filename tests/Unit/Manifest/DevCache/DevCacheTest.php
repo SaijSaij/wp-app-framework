@@ -229,6 +229,28 @@ final class DevCacheTest extends TestCase
         self::assertSame('stale', $this->probe('check'));
     }
 
+    public function testSettingsChangesRebuild(): void
+    {
+        $group = static fn(string $title, string $default): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Setting\\SettingsGroup;\n\n#[SettingsGroup('general', title: '{$title}')]\nfinal readonly class General\n{\n    public function __construct(public bool \$wide = {$default})\n    {\n    }\n}\n";
+
+        $this->writeSource('General.php', $group('General', 'false'));
+        $this->probe('load');
+        self::assertSame('fresh', $this->probe('check'));
+
+        $this->writeSource('General.php', $group('Main', 'false'));
+        self::assertSame('stale', $this->probe('check'));
+
+        $this->probe('load');
+        $this->writeSource('General.php', $group('Main', 'true'));
+        self::assertSame('stale', $this->probe('check'));
+
+        // The name of the theme is the title of the settings page.
+        $this->probe('load');
+        file_put_contents($this->theme . '/style.css', "/*\nTheme Name: Renamed\n*/\n");
+        touch($this->theme . '/style.css', time() + 10);
+        self::assertSame('stale', $this->probe('check'));
+    }
+
     public function testStylesheetChangesRebuild(): void
     {
         self::assertSame('no styles', $this->probe('load-styles'));
