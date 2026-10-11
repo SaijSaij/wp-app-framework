@@ -8,8 +8,11 @@ use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
+use Saij\WpAppFramework\Block\Support\SupportCollector;
+use Saij\WpAppFramework\Block\Support\UseSupport;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
+use Saij\WpAppFramework\Editor\EditorScript;
 use Saij\WpAppFramework\Manifest\EntryPointInspector;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
@@ -21,6 +24,7 @@ use Throwable;
  * @phpstan-import-type BlockArgument from BlockDefinition
  * @phpstan-import-type BlockEditor from BlockDefinition
  * @phpstan-import-type BlockField from BlockDefinition
+ * @phpstan-import-type BlockSupportEntry from BlockDefinition
  * @phpstan-import-type Control from ValueSchemaBuilder
  * @phpstan-import-type EditorField from ValueSchemaBuilder
  */
@@ -32,9 +36,6 @@ final class BlockCollector
 
     private const string BLOCK_CLASS = 'WP_Block';
 
-    /** Suffix of a block's editor script next to its class file: Hero.php → Hero.editor.js. */
-    public const string EDITOR_SCRIPT_SUFFIX = '.editor.js';
-
     /**
      * Attributes WordPress adds itself: `lock` and `metadata` to every block
      * (WP_Block_Type::GLOBAL_ATTRIBUTES), `className`, `anchor` and `align`
@@ -42,7 +43,7 @@ final class BlockCollector
      * default) and the design supports. Reserved regardless of the declared
      * supports, so enabling a support later never clashes with an attribute.
      */
-    private const array RESERVED_ATTRIBUTES = ['lock', 'metadata', 'className', 'anchor', 'align', 'style'];
+    public const array RESERVED_ATTRIBUTES = ['lock', 'metadata', 'className', 'anchor', 'align', 'style'];
 
     /** @var list<string> */
     private array $errors = [];
@@ -60,6 +61,7 @@ final class BlockCollector
     public function __construct(
         private readonly ServiceResolver $resolver,
         private readonly ValueSchemaBuilder $values,
+        private readonly SupportCollector $supports,
         private readonly string $frameworkDirectory,
         private readonly ?string $scriptDirectory = null,
     ) {
@@ -79,6 +81,9 @@ final class BlockCollector
             if ($attributes === []) {
                 if ($class->getAttributes(Supports::class) !== []) {
                     $this->errors[] = sprintf('%s has #[Supports], but no #[Block].', $name);
+                }
+                if ($class->getAttributes(UseSupport::class) !== []) {
+                    $this->errors[] = sprintf('%s has #[UseSupport], but no #[Block].', $name);
                 }
                 continue;
             }
@@ -143,6 +148,25 @@ final class BlockCollector
         }
 
         [$arguments, $attributeSchemas, $fields, $controls, $postContentField] = $render;
+        $blockSupports = $this->supports->blockSupports($class, array_keys($attributeSchemas));
+        if ($blockSupports === null) {
+            return null;
+        }
+        $supportEntries = [];
+        foreach ($blockSupports as ['definition' => $definition, 'default' => $default]) {
+            $schema = $definition->getSchema();
+            if ($default !== null) {
+                $schema['default'] = ValueSchemaBuilder::export($default);
+            }
+            $attributeSchemas[$definition->getAttribute()] = $schema;
+            $controls[$definition->getAttribute()] = [...$definition->getControl(), 'content' => false, 'group' => $definition->getGroup()->value];
+            $supportEntries[] = [
+                'attribute' => $definition->getAttribute(),
+                'class' => $definition->getClass(),
+                'value' => $definition->getValue(),
+                'editorScript' => $definition->getEditorScript(),
+            ];
+        }
         $innerBlocks = in_array('content', array_column($arguments, 'kind'), true);
         $excerptFields = self::excerptFields($fields);
         $error = match (true) {
@@ -167,8 +191,10 @@ final class BlockCollector
 
             return null;
         }
-        $editorScript = $this->editorScript($file, $name);
-        if ($editorScript === false) {
+        [$editorScript, $error] = EditorScript::locate($file, $name, $this->scriptDirectory);
+        if ($error !== null) {
+            $this->errors[] = $error;
+
             return null;
         }
         $this->names[$block->name] = $name;
@@ -202,10 +228,11 @@ final class BlockCollector
             'innerBlocks' => $innerBlocks,
             'postContentField' => $postContentField,
             'editorScript' => $editorScript,
+            'supports' => array_column($supportEntries, 'attribute'),
         ], [
             'fields' => $excerptFields,
             'wrapper' => $block->excerptWrapper,
-        ]);
+        ], $supportEntries);
     }
 
     /**
@@ -224,31 +251,6 @@ final class BlockCollector
         }
 
         return $excerpt;
-    }
-
-    /**
-     * The editor script next to the class file, as path below the script directory without extension.
-     *
-     * @return string|null|false Null without editor script, false on error (recorded).
-     */
-    private function editorScript(string $classFile, string $class): string|false|null
-    {
-        $script = dirname($classFile) . '/' . basename($classFile, '.php') . self::EDITOR_SCRIPT_SUFFIX;
-        if (!is_file($script)) {
-            return null;
-        }
-        if ($this->scriptDirectory === null || !str_starts_with($script, $this->scriptDirectory . '/')) {
-            $this->errors[] = sprintf(
-                'The editor script %s of %s is outside the script directory %s, which the build of the project compiles.',
-                $script,
-                $class,
-                $this->scriptDirectory ?? '(none)',
-            );
-
-            return false;
-        }
-
-        return substr($script, strlen($this->scriptDirectory) + 1, -strlen('.js'));
     }
 
     private function nameError(Block $block, string $class): ?string

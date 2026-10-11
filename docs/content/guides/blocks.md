@@ -83,13 +83,15 @@ final readonly class Button
 
 `#[Supports(contentRole: false, anchor: false, align: [], customClassName: true, multiple: true, reusable: true, inserter: true, lock: true, renaming: true, customCSS: true)]` with WordPress' defaults; only differing values are registered. `html` is always disabled. Container blocks set `contentRole: true`, so inner blocks can be inserted in contentOnly mode. `customCSS` (enabled by default in WordPress 7) lets users with `edit_css` store free CSS per block instance; the theme decides whether it allows it – per block with `customCSS: false`, or for all blocks with its own `register_block_type_args` hook.
 
+Settings of your own that several blocks share, such as a color scheme, are [block supports](./supports.md) of the theme or plugin, added with `#[UseSupport]`.
+
 ## `render()`
 
 `render()` is public, non-static and returns `string`. Its parameters are matched by type, each at most once and in any order: the attribute class, `string` (the rendered inner blocks) and `WP_Block`. Services come through the constructor; the block service is created when the block is first rendered.
 
 ## Attribute class
 
-A value class (see [Values](./values.md)) whose parameters all have a default value, because an attribute can always be missing in the content. The names `lock`, `metadata`, `className`, `anchor`, `align` and `style` are reserved for the attributes WordPress adds itself (`style` comes with the `customCSS` support, enabled by default in WordPress 7). The attribute schema gets `type`, `enum`, `properties`/`items`, `default` and `role: content` (below).
+A value class (see [Values](./values.md)) whose parameters all have a default value, because an attribute can always be missing in the content. The names `lock`, `metadata`, `className`, `anchor`, `align` and `style` are reserved for the attributes WordPress adds itself (`style` comes with the `customCSS` support, enabled by default in WordPress 7), and the attributes of the block's [block supports](./supports.md) may not be used either. The attribute schema gets `type`, `enum`, `properties`/`items`, `default` and `role: content` (below).
 
 ## Fields
 
@@ -121,7 +123,7 @@ Search is unchanged: WordPress searches the raw post content, which finds single
 
 ## Attributes at render time
 
-WordPress validates the attributes against the schema before rendering (an invalid value falls back to the default) but does not sanitize them. The value factory sanitizes each attribute against its schema (`rest_sanitize_value_from_schema()`) and creates the attribute object; attributes of block supports are ignored.
+WordPress validates the attributes against the schema before rendering (an invalid value falls back to the default) but does not sanitize them. The value factory sanitizes each attribute against its schema (`rest_sanitize_value_from_schema()`) and creates the attribute object; attributes of block supports (WordPress' and [your own](./supports.md)) are ignored.
 
 ## Errors
 
@@ -155,6 +157,6 @@ final class AllowedBlocks
 | `#[Url]` strings | `{{ button.url }}` – the schema has `format: uri`, so the value is sanitized with `sanitize_url()` (disallowed protocols such as `javascript:` become empty) and then autoescaped |
 | Images | `#[Image]` attachment ID with `{{ attachment_image(attrs.imageId, size = 'full', attributes = {}) }}` (`wp_get_attachment_image()`; empty for `null`) |
 | Inner blocks | `{{ content\|raw }}` |
-| Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports) |
+| Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports, plus the classes of [block supports](./supports.md)) |
 
 No string filters such as `upper` on HTML (uppercase via CSS).

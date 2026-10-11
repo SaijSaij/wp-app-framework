@@ -212,6 +212,23 @@ final class DevCacheTest extends TestCase
         self::assertSame('stale', $this->probe('check'));
     }
 
+    public function testBlockSupportChangesRebuild(): void
+    {
+        $support = static fn(string $label, string $default): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Support\\BlockSupport;\n\n#[BlockSupport('framed', label: '{$label}')]\nfinal class Framed\n{\n    public function className(bool \$value = {$default}): ?string\n    {\n        return \$value ? 'framed' : null;\n    }\n}\n";
+
+        $this->writeSource('Framed.php', $support('Framed', 'false'));
+        $this->probe('load');
+        self::assertSame('fresh', $this->probe('check'));
+
+        $this->writeSource('Framed.php', $support('Frame', 'false'));
+        self::assertSame('stale', $this->probe('check'));
+
+        // The default of the value is the default of the attribute.
+        $this->probe('load');
+        $this->writeSource('Framed.php', $support('Frame', 'true'));
+        self::assertSame('stale', $this->probe('check'));
+    }
+
     public function testStylesheetChangesRebuild(): void
     {
         self::assertSame('no styles', $this->probe('load-styles'));

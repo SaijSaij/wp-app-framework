@@ -23,7 +23,7 @@ Requests of the same moment are sent together, including the framework blocks in
 
 The runtime generates controls from the attribute classes: enum → select, `bool` → toggle, `int`/`float` → number, `string` → text (`#[Url]`: URL), value classes → their values, fields with `inspector: true` → text, rich text or image selection, lists → one card per item with its title (its first text value, else "Item n"), an actions menu (move up, move down, remove) and the item's controls, plus "Add item". Fields of items edited in the canvas stay in the canvas. Typed text is applied after a short pause.
 
-The controls use stable components of `@wordpress/components` only; their styles (`assets/editor.scss`) are part of the runtime build. Content attributes (`role: content`) appear in the "Content" group, which stays available in contentOnly mode; all others in "Settings".
+The controls use stable components of `@wordpress/components` only; their styles (`assets/editor.scss`) are part of the runtime build. Content attributes (`role: content`) appear in the "Content" group, which stays available in contentOnly mode; all others in "Settings". Controls of [block supports](./supports.md) appear in the "Styles" tab (panel "Appearance") or in "Settings", depending on the support's group; like "Settings", only in the default editing mode.
 
 ## Editor scripts
 
@@ -38,11 +38,11 @@ registerControl( 'sections/hero', 'count', ( { value, onChange } ) => (
 	<RangeControl label="Count" value={ value } onChange={ onChange } min={ 1 } max={ 6 } />
 ) );
 
-// Adds a panel to the "Settings" group.
+// Adds a panel to the default group of the inspector, after the "Settings" panel.
 registerPanel( 'sections/hero', ( { attributes, setAttributes } ) => <PanelBody title="Hero">…</PanelBody> );
 ```
 
-Both warn in the console about unknown blocks and attributes. `@saij/wp-app-framework` maps to the runtime of the consumer's own framework instance.
+Both warn in the console about unknown blocks and attributes. Controls of block supports are replaced with `registerSupportControl()` in a script next to the support class (see [Block supports](./supports.md#in-the-editor)). `@saij/wp-app-framework` maps to the runtime of the consumer's own framework instance.
 
 ## Build
 

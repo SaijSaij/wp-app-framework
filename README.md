@@ -14,7 +14,7 @@ The framework is a library that themes, child themes and plugins (its *consumers
 
 ## Status
 
-In development (0.x): framework core, REST routes, Twig, server-side blocks, editor runtime, release build, plugins and child themes. Breaking changes are listed in [Upgrading](https://saijsaij.github.io/wp-app-framework/next/reference/upgrading.html).
+In development (0.x): framework core, REST routes, Twig, server-side blocks, block supports, editor runtime, release build, plugins and child themes. Breaking changes are listed in [Upgrading](https://saijsaij.github.io/wp-app-framework/next/reference/upgrading.html).
 
 ## Source layout
 
@@ -29,8 +29,8 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, edi
 | `Hook/` | `#[Hook]` attribute, collector (build), definition, registrar (runtime) |
 | `Rest/` | `#[RestController]`, `#[RestRoute]`, `#[Param]` attributes, `HttpMethod`/`Format` enums, `Permission/` (`PublicAccess`, `Capability`, `Callback`), `RestException`, collector (build), definition, registrar (runtime) |
 | `Twig/` | `#[TemplateFunction]`, `#[TemplateFilter]` attributes, collector (build), definition, `TemplateRenderer` and runtime loader (runtime), override finder (build) |
-| `Block/` | `#[Block]`, `#[Supports]`, `#[PlainText]`, `#[RichText]`, `#[Image]`, `#[Content]`, `#[Label]`, `#[Hidden]` attributes, `Labeled` interface, `BlockCategory`/`Align` enums, collector (build), definition, registrar and template functions (runtime) |
-| `Editor/` | Editor template functions (`field()`, `inner_blocks()`, `is_editor()`), render context, batch render route and editor assets (runtime) |
+| `Block/` | `#[Block]`, `#[Supports]`, `#[PlainText]`, `#[RichText]`, `#[Image]`, `#[Content]`, `#[Label]`, `#[Hidden]` attributes, `Labeled` interface, `BlockCategory`/`Align` enums, collector (build), definition, registrar and template functions (runtime); `Support/` (`#[BlockSupport]`, `#[UseSupport]`, `SupportGroup`, collector) |
+| `Editor/` | Editor template functions (`field()`, `inner_blocks()`, `is_editor()`), render context, batch render route and editor assets (runtime), editor scripts next to classes (build) |
 | `Value/` | `#[ListOf]`, `#[Url]` attributes, schema derivation of typed values (build), value factory (runtime) |
 | `DependencyInjection/` | `#[NoService]` attribute, service candidates and resolver (build), container (runtime) |
 | `Manifest/` | Manifest builder, generator and loader, checks shared by entry point collectors; `Discovery/` (PSR-4 class discovery), `DevCache/` (development mode cache) |

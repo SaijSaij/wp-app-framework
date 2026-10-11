@@ -28,6 +28,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * @phpstan-import-type BlockArgument from BlockDefinition
  * @phpstan-import-type BlockEditor from BlockDefinition
  * @phpstan-import-type BlockExcerpt from BlockDefinition
+ * @phpstan-import-type BlockSupportEntry from BlockDefinition
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
  * @phpstan-type HookEntry array{name: string, priority: int, acceptedArgs: int, filter: bool, class: class-string, method: string, arguments: list<HookArgument>}
@@ -48,7 +49,8 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     class: class-string,
  *     arguments: list<BlockArgument>,
  *     editor: BlockEditor,
- *     excerpt: BlockExcerpt
+ *     excerpt: BlockExcerpt,
+ *     supports: list<BlockSupportEntry>
  * }
  * @phpstan-type ManifestData array{
  *     format: int,
@@ -71,7 +73,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 11;
+    public const int FORMAT = 12;
 
     /**
      * @return ManifestData

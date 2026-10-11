@@ -34,6 +34,12 @@ use WP_Block_Type_Registry;
  * block renders only its excerpt fields, one paragraph each, without running
  * render() or its template.
  *
+ * Custom block supports (#[UseSupport]) are evaluated before the block
+ * renders: the value of each support attribute passes through the value
+ * factory, the support service returns the class names, and
+ * block_wrapper_attributes() adds them to the root element. Invalid class
+ * names and a template without block_wrapper_attributes() are errors.
+ *
  * A block name another framework instance or plugin already registered is an
  * error (WordPress itself only reports it as "doing it wrong"): with WP_DEBUG
  * it is thrown, otherwise logged and the block is skipped.
@@ -140,6 +146,8 @@ final readonly class BlockRegistrar
                 // The build checked that the block class has a public render(): string.
                 // @phpstan-ignore method.notFound, return.type
                 fn(): string => $this->container->get($block['class'])->render(...$named),
+                $this->supportClasses($block, $attributes),
+                $block['supports'] !== [],
             );
         } catch (Throwable $exception) {
             if ($this->debug) {
@@ -158,6 +166,45 @@ final readonly class BlockRegistrar
 
             return '';
         }
+    }
+
+    /**
+     * Class names of the block supports for the given attributes.
+     *
+     * @param BlockEntry           $block
+     * @param array<string, mixed> $attributes
+     * @return list<string>
+     */
+    private function supportClasses(array $block, array $attributes): array
+    {
+        $classes = [];
+        foreach ($block['supports'] as $support) {
+            $attribute = $support['attribute'];
+            $raw = $attributes[$attribute] ?? null;
+            if ($raw !== null) {
+                $raw = rest_sanitize_value_from_schema($raw, $block['args']['attributes'][$attribute], $attribute);
+            }
+            $value = $this->values->create($support['value'], $raw, $attribute);
+            // The build checked that the support class has a public className(): ?string with one parameter.
+            /** @var string|null $result */
+            // @phpstan-ignore method.notFound
+            $result = $this->container->get($support['class'])->className($value);
+            foreach (preg_split('/\s+/', (string) $result, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $class) {
+                if (sanitize_html_class($class) !== $class) {
+                    throw new LogicException(sprintf(
+                        'Block support %s::className() returned the invalid class name "%s" for the value %s of attribute "%s" of block %s; use letters, digits, "-" and "_".',
+                        $support['class'],
+                        $class,
+                        var_export($raw, true),
+                        $attribute,
+                        $block['name'],
+                    ));
+                }
+                $classes[] = $class;
+            }
+        }
+
+        return $classes;
     }
 
     /**

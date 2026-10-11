@@ -128,7 +128,9 @@ final class ManifestBuilderTest extends TestCase
         self::assertSame(
             [
                 \Saij\WpAppFramework\Api\PluginTemplateFunctions::class => [],
-                \Saij\WpAppFramework\Block\BlockTemplateFunctions::class => [],
+                \Saij\WpAppFramework\Block\BlockTemplateFunctions::class => [
+                    'context' => \Saij\WpAppFramework\Editor\RenderContext::class,
+                ],
                 \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class => ['context' => \Saij\WpAppFramework\Editor\RenderContext::class],
             ],
             $result->getServices(),

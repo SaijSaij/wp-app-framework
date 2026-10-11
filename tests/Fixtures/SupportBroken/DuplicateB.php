@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Saij\WpAppFramework\Tests\Fixtures\SupportBroken;
+
+use Saij\WpAppFramework\Block\Support\BlockSupport;
+
+#[BlockSupport('duplicate', label: 'X')]
+final class DuplicateB
+{
+    public function className(bool $value = false): ?string
+    {
+        return $value ? 'x' : null;
+    }
+}

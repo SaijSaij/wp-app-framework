@@ -81,6 +81,21 @@ final readonly class EditorAssets
             $this->register($blockHandle, $script);
             wp_enqueue_script($blockHandle);
         }
+
+        // A support's editor script once, if any block uses the support.
+        $supportScripts = [];
+        foreach ($this->blocks as $block) {
+            foreach ($block['supports'] as $support) {
+                if ($support['editorScript'] !== null) {
+                    $supportScripts[$support['attribute']] = $support['editorScript'];
+                }
+            }
+        }
+        foreach ($supportScripts as $attribute => $script) {
+            $supportHandle = $this->slug . '-support-' . strtolower((string) preg_replace('/(?<=[a-z0-9])([A-Z])/', '-$1', $attribute)) . '-editor';
+            $this->register($supportHandle, $script);
+            wp_enqueue_script($supportHandle);
+        }
     }
 
     /**
@@ -112,6 +127,7 @@ final readonly class EditorAssets
                 'controls' => (object) $block['editor']['controls'],
                 'innerBlocks' => $block['editor']['innerBlocks'],
                 'postContentField' => $block['editor']['postContentField'],
+                'supports' => $block['editor']['supports'],
             ];
         }
 

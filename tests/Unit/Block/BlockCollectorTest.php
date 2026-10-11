@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Tests\Unit\Block;
 use PHPUnit\Framework\TestCase;
 use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\Block\BlockDefinition;
+use Saij\WpAppFramework\Block\Support\SupportCollector;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
@@ -150,7 +151,9 @@ final class BlockCollectorTest extends TestCase
         $source = ManifestBuilderTest::fixture('BlockValid');
         $classes = Reflection::classes($source);
 
-        $collector = new BlockCollector(ServiceResolver::forClasses($classes, []), new ValueSchemaBuilder($classes), $source->getDirectory());
+        $resolver = ServiceResolver::forClasses($classes, []);
+        $values = new ValueSchemaBuilder($classes);
+        $collector = new BlockCollector($resolver, $values, new SupportCollector($resolver, $values, $source->getDirectory()), $source->getDirectory());
         self::assertSame([], $collector->collect($classes));
         self::assertContains(BlockValid\Hero::class . ' has #[Block], but the framework registers no blocks; blocks belong to the theme or plugin.', $collector->errors());
         self::assertCount(4, $collector->errors());

@@ -6,8 +6,8 @@ namespace Saij\WpAppFramework\Manifest\DevCache;
 
 use ReflectionClass;
 use RuntimeException;
-use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Editor\EditorScript;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
@@ -260,7 +260,7 @@ final class DevCache
     {
         return hash('xxh128', implode("\n", [
             ...ClassDiscovery::files($directory),
-            ...ClassDiscovery::files($directory, BlockCollector::EDITOR_SCRIPT_SUFFIX),
+            ...ClassDiscovery::files($directory, EditorScript::SUFFIX),
             ...(is_file($directory . '/' . StyleAssets::SOURCE) ? [StyleAssets::SOURCE] : []),
         ]));
     }

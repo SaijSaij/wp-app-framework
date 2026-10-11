@@ -41,6 +41,7 @@ export function startRuntime( slug ) {
 	}
 
 	instance.registerControl = runtime.registry.registerControl;
+	instance.registerSupportControl = runtime.registry.registerSupportControl;
 	instance.registerPanel = runtime.registry.registerPanel;
 }
 

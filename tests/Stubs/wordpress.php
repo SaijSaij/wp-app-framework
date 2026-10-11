@@ -458,6 +458,16 @@ function esc_html(string $text): string
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
 
+function sanitize_html_class(string $classname, string $fallback = ''): string
+{
+    $sanitized = (string) preg_replace('/[^A-Za-z0-9_-]/', '', (string) preg_replace('|%[a-fA-F0-9][a-fA-F0-9]|', '', $classname));
+    if ($sanitized === '' && $fallback !== '') {
+        return sanitize_html_class($fallback);
+    }
+
+    return $sanitized;
+}
+
 /**
  * The active themes from $GLOBALS['wp_app_framework_test_themes']:
  * `['template' => slug, 'stylesheet' => slug, 'root' => theme root, 'versions' => [slug => version]]`.

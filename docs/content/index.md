@@ -25,6 +25,7 @@ The framework is in development (0.x); breaking changes are listed in [Upgrading
 - REST routes: `#[RestController]`, `#[RestRoute]`, `#[Param]`.
 - Twig: `TemplateRenderer`, `#[TemplateFunction]`, `#[TemplateFilter]`.
 - Server-side blocks: `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` also for REST arguments.
+- Block supports of the theme or plugin: `#[BlockSupport]`, `#[UseSupport]`, `registerSupportControl()`.
 - Editor runtime: inline editing in the canvas, generated inspector, batch render route, webpack helper.
 - Release: `wp-app-framework release` (prefixed ZIP), release mode with a versioned Twig cache, GitHub workflows.
 - Plugins: `Plugin::boot()`, theme overrides of plugin templates, public APIs and public template callables of plugins.

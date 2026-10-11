@@ -7,9 +7,11 @@ namespace Saij\WpAppFramework\Tests\Unit\Editor;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use Saij\WpAppFramework\Editor\EditorAssets;
+use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Tests\Support\Recorded;
+use Saij\WpAppFramework\Tests\Unit\Block\Support\SupportCollectorTest;
 
 final class EditorAssetsTest extends TestCase
 {
@@ -23,7 +25,7 @@ final class EditorAssetsTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (['vendor/wp-app-framework/editor.asset.php', 'vendor/wp-app-framework/editor.css', 'vendor/wp-app-framework/canvas.asset.php', 'vendor/wp-app-framework/canvas.css', 'Container.editor.asset.php'] as $file) {
+        foreach (['vendor/wp-app-framework/editor.asset.php', 'vendor/wp-app-framework/editor.css', 'vendor/wp-app-framework/canvas.asset.php', 'vendor/wp-app-framework/canvas.css', 'Container.editor.asset.php', 'Accent.editor.asset.php'] as $file) {
             if (is_file($this->build . '/' . $file)) {
                 unlink($this->build . '/' . $file);
             }
@@ -34,10 +36,10 @@ final class EditorAssetsTest extends TestCase
         unset($GLOBALS['wp_app_framework_test_scripts'], $GLOBALS['wp_app_framework_test_styles'], $GLOBALS['wp_app_framework_test_admin']);
     }
 
-    private function assets(): EditorAssets
+    private function assets(?BuildResult $result = null): EditorAssets
     {
         $file = (string) tempnam(sys_get_temp_dir(), 'manifest');
-        file_put_contents($file, new ManifestGenerator()->generate(EditorBuildTest::buildValid()));
+        file_put_contents($file, new ManifestGenerator()->generate($result ?? EditorBuildTest::buildValid()));
         $manifest = Manifest::load($file);
         unlink($file);
 
@@ -150,7 +152,28 @@ final class EditorAssetsTest extends TestCase
         self::assertSame(100, $config['maxBlocks']);
         self::assertTrue($config['development']);
         self::assertSame(['fixture/container', 'fixture/teaser', 'fixture/wrong-field'], array_keys($config['blocks']));
-        self::assertSame(['fields' => [], 'controls' => [], 'innerBlocks' => true, 'postContentField' => null], $config['blocks']['fixture/container']);
+        self::assertSame(['fields' => [], 'controls' => [], 'innerBlocks' => true, 'postContentField' => null, 'supports' => []], $config['blocks']['fixture/container']);
         self::assertSame(['kind' => 'rich', 'label' => 'Title', 'allowedFormats' => ['core/bold']], $config['blocks']['fixture/teaser']['fields']['title']);
+    }
+
+    public function testEnqueuesTheEditorScriptsOfUsedSupportsAndPassesTheirAttributes(): void
+    {
+        $this->writeAsset('vendor/wp-app-framework/editor', "'wp-blocks'");
+        file_put_contents($this->build . '/vendor/wp-app-framework/editor.css', '');
+        $this->writeAsset('Accent.editor', "'my-theme-wp-app-framework'");
+
+        $assets = $this->assets(SupportCollectorTest::buildValid());
+        $assets->enqueue();
+        $scripts = Recorded::scripts();
+
+        self::assertSame(['my-theme-wp-app-framework', 'my-theme-support-accent-editor'], array_keys($scripts));
+        self::assertSame('https://example.test/build/Accent.editor.js', $scripts['my-theme-support-accent-editor']['src']);
+        self::assertTrue($scripts['my-theme-support-accent-editor']['enqueued']);
+
+        $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = { config: ';
+        /** @var array{blocks: array<string, array{supports: list<string>}>} $config */
+        $config = json_decode(substr($assets->configScript(), strlen($prefix), -strlen(' };')), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame(['surface', 'framed', 'accent'], $config['blocks']['fixture/card']['supports']);
+        self::assertSame([], $config['blocks']['fixture/plain']['supports']);
     }
 }

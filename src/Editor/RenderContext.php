@@ -14,7 +14,7 @@ use LogicException;
  *
  * @internal Theme code uses the template functions field(), inner_blocks() and is_editor().
  *
- * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, innerBlocks: bool}
+ * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, innerBlocks: bool, classes: list<string>, wrapper: bool}
  */
 final class RenderContext
 {
@@ -26,17 +26,46 @@ final class RenderContext
     /**
      * Runs a block's render callback with the block as current block.
      *
-     * @param array<string, array<string, mixed>> $fields Inline fields by path pattern, e.g. "buttons.*.label".
+     * @param array<string, array<string, mixed>> $fields         Inline fields by path pattern, e.g. "buttons.*.label".
      * @param Closure(): string                   $render
+     * @param list<string>                        $classes        Class names of the block supports for the root element.
+     * @param bool                                $requireWrapper The block uses block supports: rendering without
+     *                                                            printing the wrapper attributes is an error.
      */
-    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render): string
+    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render, array $classes = [], bool $requireWrapper = false): string
     {
-        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'innerBlocks' => $innerBlocks];
+        $index = count($this->blocks);
+        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'innerBlocks' => $innerBlocks, 'classes' => $classes, 'wrapper' => false];
         try {
-            return $render();
+            $html = $render();
+            if ($requireWrapper && !$this->blocks[$index]['wrapper']) {
+                throw new LogicException(sprintf(
+                    'Block %s uses block supports (#[UseSupport]), but did not print its root element with block_wrapper_attributes(), so the class names of the supports are missing.',
+                    $name,
+                ));
+            }
+
+            return $html;
         } finally {
             array_pop($this->blocks);
         }
+    }
+
+    /**
+     * Records that the current block printed the attributes of its root element
+     * and returns the class names of its block supports; none outside of a block.
+     *
+     * @return list<string>
+     */
+    public function applyWrapper(): array
+    {
+        $current = array_key_last($this->blocks);
+        if ($current === null) {
+            return [];
+        }
+        $this->blocks[$current]['wrapper'] = true;
+
+        return $this->blocks[$current]['classes'];
     }
 
     /**

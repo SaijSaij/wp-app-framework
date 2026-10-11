@@ -8,6 +8,7 @@ use ReflectionClass;
 use Saij\WpAppFramework\Api\PublicApiCollector;
 use Saij\WpAppFramework\Api\PublicSignatureInspector;
 use Saij\WpAppFramework\Block\BlockCollector;
+use Saij\WpAppFramework\Block\Support\SupportCollector;
 use Saij\WpAppFramework\ChildTheme;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
@@ -124,7 +125,9 @@ final class ManifestBuilder
         $hooks = $hookCollector->collect($classes);
         $routeCollector = new RestRouteCollector($resolver, $values);
         $routes = $routeCollector->collect($classes);
-        $blockCollector = new BlockCollector($resolver, $values, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
+        $supportCollector = new SupportCollector($resolver, $values, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
+        $supportCollector->collect($classes);
+        $blockCollector = new BlockCollector($resolver, $values, $supportCollector, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
         $blocks = $blockCollector->collect($classes);
         // The framework's namespace is prefixed in a release as well; also listed for builds without vendor/.
         $framework = self::frameworkSource();
@@ -150,6 +153,7 @@ final class ManifestBuilder
             ...$routeCollector->errors(),
             ...$templateCallableCollector->errors(),
             ...$publicApiCollector->errors(),
+            ...$supportCollector->errors(),
             ...$blockCollector->errors(),
             ...$values->errors(),
             ...$resolver->errors(),

@@ -26,6 +26,7 @@ import { useContext, useEffect, useRef, useState } from '@wordpress/element';
 
 import { BlockDataContext, useBlockData } from './context';
 import { createValue } from './defaults';
+import { groupControls } from './groups';
 import { itemTitle } from './list';
 
 /** Delay before a typed inspector value is applied (and the block re-rendered). */
@@ -533,8 +534,9 @@ export function ValueControl( props ) {
 
 /**
  * Generated inspector of a block: content controls in the "content" group
- * (which stays visible in contentOnly mode), all others in the default group,
- * plus the controls and panels the theme or plugin registered.
+ * (which stays visible in contentOnly mode), controls of block supports in
+ * the Styles tab or the default group, all others in the default group, plus
+ * the controls and panels the theme or plugin registered.
  *
  * @param {Object} props
  * @param {Object} props.registry Registered controls and panels.
@@ -555,6 +557,7 @@ export function Inspector( { registry } ) {
 		}
 		entries.push( {
 			content: control.content,
+			group: control.group,
 			element: (
 				<ValueControl
 					key={ attribute }
@@ -573,6 +576,7 @@ export function Inspector( { registry } ) {
 		const Control = registry.getControl( name, attribute );
 		entries.push( {
 			content: schemas[ attribute ]?.role === 'content',
+			group: block.controls[ attribute ]?.group,
 			element: (
 				<Control
 					key={ attribute }
@@ -587,11 +591,7 @@ export function Inspector( { registry } ) {
 		} );
 	}
 
-	const content = entries.filter( ( entry ) => entry.content );
-	const settings =
-		mode === 'default'
-			? entries.filter( ( entry ) => ! entry.content )
-			: [];
+	const { content, styles, settings } = groupControls( entries, mode );
 	const panels = mode === 'default' ? registry.getPanels( name ) : [];
 
 	return (
@@ -601,6 +601,15 @@ export function Inspector( { registry } ) {
 					<PanelBody title="Content">
 						<div className="wp-app-framework-controls">
 							{ content.map( ( entry ) => entry.element ) }
+						</div>
+					</PanelBody>
+				</InspectorControls>
+			) }
+			{ styles.length > 0 && (
+				<InspectorControls group="styles">
+					<PanelBody title="Appearance">
+						<div className="wp-app-framework-controls">
+							{ styles.map( ( entry ) => entry.element ) }
 						</div>
 					</PanelBody>
 				</InspectorControls>
