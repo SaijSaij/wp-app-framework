@@ -16,7 +16,7 @@ use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableKind;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
-use Saij\WpAppFramework\Value\ReferenceTemplateFunctions;
+use Saij\WpAppFramework\Twig\WordPressTemplateFunctions;
 
 final class TemplateCallableCollectorTest extends TestCase
 {
@@ -45,15 +45,34 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Function, 'count_items', TwigValid\TextHelpers::class, 'countItems', false],
                 [TemplateCallableKind::Function, 'has_plugin', PluginTemplateFunctions::class, 'hasPlugin', false],
                 [TemplateCallableKind::Function, 'block_wrapper_attributes', BlockTemplateFunctions::class, 'blockWrapperAttributes', true],
-                [TemplateCallableKind::Function, 'attachment_image', BlockTemplateFunctions::class, 'attachmentImage', true],
                 [TemplateCallableKind::Function, 'field', EditorTemplateFunctions::class, 'field', true],
                 [TemplateCallableKind::Function, 'inner_blocks', EditorTemplateFunctions::class, 'innerBlocks', true],
                 [TemplateCallableKind::Function, 'is_editor', EditorTemplateFunctions::class, 'isEditor', false],
-                [TemplateCallableKind::Function, 'post_url', ReferenceTemplateFunctions::class, 'postUrl', false],
-                [TemplateCallableKind::Function, 'post_title', ReferenceTemplateFunctions::class, 'postTitle', false],
-                [TemplateCallableKind::Function, 'term_url', ReferenceTemplateFunctions::class, 'termUrl', false],
-                [TemplateCallableKind::Function, 'term_name', ReferenceTemplateFunctions::class, 'termName', false],
-                [TemplateCallableKind::Function, 'user_name', ReferenceTemplateFunctions::class, 'userName', false],
+                [TemplateCallableKind::Function, 'wp_attachment_image', WordPressTemplateFunctions::class, 'attachmentImage', true],
+                [TemplateCallableKind::Function, 'wp_attachment_image_url', WordPressTemplateFunctions::class, 'attachmentImageUrl', false],
+                [TemplateCallableKind::Function, 'wp_attachment_url', WordPressTemplateFunctions::class, 'attachmentUrl', false],
+                [TemplateCallableKind::Function, 'wp_attachment_caption', WordPressTemplateFunctions::class, 'attachmentCaption', true],
+                [TemplateCallableKind::Function, 'wp_attachment_alt', WordPressTemplateFunctions::class, 'attachmentAlt', false],
+                [TemplateCallableKind::Function, 'wp_post_url', WordPressTemplateFunctions::class, 'postUrl', false],
+                [TemplateCallableKind::Function, 'wp_post_title', WordPressTemplateFunctions::class, 'postTitle', false],
+                [TemplateCallableKind::Function, 'wp_post_excerpt', WordPressTemplateFunctions::class, 'postExcerpt', false],
+                [TemplateCallableKind::Function, 'wp_post_date', WordPressTemplateFunctions::class, 'postDate', false],
+                [TemplateCallableKind::Function, 'wp_post_thumbnail', WordPressTemplateFunctions::class, 'postThumbnail', true],
+                [TemplateCallableKind::Function, 'wp_term_url', WordPressTemplateFunctions::class, 'termUrl', false],
+                [TemplateCallableKind::Function, 'wp_term_name', WordPressTemplateFunctions::class, 'termName', false],
+                [TemplateCallableKind::Function, 'wp_user_name', WordPressTemplateFunctions::class, 'userName', false],
+                [TemplateCallableKind::Function, 'wp_user_url', WordPressTemplateFunctions::class, 'userUrl', false],
+                [TemplateCallableKind::Function, 'wp_avatar', WordPressTemplateFunctions::class, 'avatar', true],
+                [TemplateCallableKind::Function, 'wp_home_url', WordPressTemplateFunctions::class, 'homeUrl', false],
+                [TemplateCallableKind::Function, 'wp_site_name', WordPressTemplateFunctions::class, 'siteName', false],
+                [TemplateCallableKind::Function, 'wp_site_description', WordPressTemplateFunctions::class, 'siteDescription', false],
+                [TemplateCallableKind::Function, 'wp_login_url', WordPressTemplateFunctions::class, 'loginUrl', false],
+                [TemplateCallableKind::Function, 'wp_logout_url', WordPressTemplateFunctions::class, 'logoutUrl', false],
+                [TemplateCallableKind::Function, 'wp_is_user_logged_in', WordPressTemplateFunctions::class, 'isUserLoggedIn', false],
+                [TemplateCallableKind::Function, 'wp_date', WordPressTemplateFunctions::class, 'date', false],
+                [TemplateCallableKind::Function, 'wp_human_time_diff', WordPressTemplateFunctions::class, 'humanTimeDiff', false],
+                [TemplateCallableKind::Function, 'wp_number_format', WordPressTemplateFunctions::class, 'numberFormat', false],
+                [TemplateCallableKind::Function, 'wp_size_format', WordPressTemplateFunctions::class, 'sizeFormat', false],
             ],
             $collected,
         );

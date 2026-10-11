@@ -600,6 +600,8 @@ final class WP_Post
     public string $post_type = 'post';
     public string $post_status = 'publish';
     public string $post_title = '';
+    public string $post_excerpt = '';
+    public string $post_date = '0000-00-00 00:00:00';
 
     public function __construct(object $post)
     {
@@ -719,4 +721,147 @@ function wp_kses_post(string $data): string
 function wp_enqueue_editor(): void
 {
     $GLOBALS['wp_app_framework_test_editor'] = ($GLOBALS['wp_app_framework_test_editor'] ?? 0) + 1;
+}
+
+function wp_get_attachment_image_url(int $attachment_id, string|array $size = 'thumbnail', bool $icon = false): string|false
+{
+    return isset($GLOBALS['wp_app_framework_test_posts'][$attachment_id]) ? sprintf('https://example.test/%d-%s.jpg', $attachment_id, is_string($size) ? $size : 'custom') : false;
+}
+
+function wp_get_attachment_url(int $attachment_id = 0): string|false
+{
+    return isset($GLOBALS['wp_app_framework_test_posts'][$attachment_id]) ? sprintf('https://example.test/%d.jpg', $attachment_id) : false;
+}
+
+/**
+ * Like WordPress: the excerpt of an attachment, false for other posts.
+ */
+function wp_get_attachment_caption(int $post_id = 0): string|false
+{
+    $post = get_post($post_id);
+
+    return $post === null || $post->post_type !== 'attachment' ? false : $post->post_excerpt;
+}
+
+/**
+ * Meta from $GLOBALS['wp_app_framework_test_meta'] by object ID and key.
+ */
+function get_post_meta(int $post_id, string $key = '', bool $single = false): mixed
+{
+    return $GLOBALS['wp_app_framework_test_meta'][$post_id][$key] ?? ($single ? '' : []);
+}
+
+/**
+ * Simplified: the stored excerpt, like WordPress for a manual one.
+ */
+function get_the_excerpt(int|WP_Post|null $post = null): string
+{
+    return get_post($post)->post_excerpt ?? '';
+}
+
+function wp_strip_all_tags(string $text, bool $remove_breaks = false): string
+{
+    return trim(strip_tags($text));
+}
+
+/**
+ * Simplified: the post date in the given format, Y-m-d by default.
+ */
+function get_the_date(string $format = '', int|WP_Post|null $post = null): string|int|false
+{
+    $post = get_post($post);
+
+    return $post === null ? false : date($format === '' ? 'Y-m-d' : $format, (int) strtotime($post->post_date));
+}
+
+/**
+ * @param array<string, string> $attr
+ */
+function get_the_post_thumbnail(int|WP_Post|null $post = null, string|array $size = 'post-thumbnail', array|string $attr = ''): string
+{
+    $post = get_post($post);
+
+    return $post === null ? '' : sprintf('<img data-post="%d" data-size="%s">', $post->ID, is_string($size) ? $size : 'custom');
+}
+
+function get_author_posts_url(int $author_id, string $author_nicename = ''): string
+{
+    return 'https://example.test/?author=' . $author_id;
+}
+
+/**
+ * Like WordPress with avatars turned off when $GLOBALS['wp_app_framework_test_options']['show_avatars'] is false.
+ *
+ * @param array<string, mixed>|null $args
+ */
+function get_avatar(mixed $id_or_email, int $size = 96, string $default_value = '', string $alt = '', ?array $args = null): string|false
+{
+    return get_option('show_avatars', true) === false ? false : sprintf('<img class="avatar" data-user="%s" width="%d">', (string) $id_or_email, $size);
+}
+
+function home_url(string $path = '', ?string $scheme = null): string
+{
+    return 'https://example.test/' . ltrim($path, '/');
+}
+
+/**
+ * The options blogname and blogdescription, as stored (escaped).
+ */
+function get_bloginfo(string $show = '', string $filter = 'raw'): string
+{
+    $option = ['name' => 'blogname', 'description' => 'blogdescription'][$show] ?? null;
+
+    return $option === null ? '' : (string) get_option($option, '');
+}
+
+function wp_login_url(string $redirect = '', bool $force_reauth = false): string
+{
+    return 'https://example.test/wp-login.php' . ($redirect === '' ? '' : '?redirect_to=' . urlencode($redirect));
+}
+
+/**
+ * Like WordPress: escaped by wp_nonce_url().
+ */
+function wp_logout_url(string $redirect = ''): string
+{
+    return esc_html('https://example.test/wp-login.php?action=logout' . ($redirect === '' ? '' : '&redirect_to=' . urlencode($redirect)) . '&_wpnonce=nonce');
+}
+
+/**
+ * $GLOBALS['wp_app_framework_test_logged_in'].
+ */
+function is_user_logged_in(): bool
+{
+    return $GLOBALS['wp_app_framework_test_logged_in'] ?? false;
+}
+
+/**
+ * Simplified: in UTC; false for the format "fail".
+ */
+function wp_date(string $format, ?int $timestamp = null, ?DateTimeZone $timezone = null): string|false
+{
+    return $format === 'fail' ? false : gmdate($format, $timestamp ?? time());
+}
+
+/**
+ * Simplified: in minutes.
+ */
+function human_time_diff(int $from, int $to = 0): string
+{
+    return sprintf('%d minutes', intdiv(abs(($to === 0 ? time() : $to) - $from), 60));
+}
+
+function number_format_i18n(float $number, int $decimals = 0): string
+{
+    return number_format($number, $decimals, ',', '.');
+}
+
+/**
+ * Simplified: bytes and KB; false for negative sizes.
+ */
+function size_format(int|string $bytes, int $decimals = 0): string|false
+{
+    $bytes = (int) $bytes;
+
+    return $bytes < 0 ? false : ($bytes < 1024 ? $bytes . ' B' : number_format($bytes / 1024, $decimals) . ' KB');
 }

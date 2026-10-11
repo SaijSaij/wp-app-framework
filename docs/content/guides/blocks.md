@@ -58,7 +58,7 @@ final readonly class Button
         <p{{ field('topline') }}>{{ attrs.topline }}</p>
     {% endif %}
     <h1{{ field('headline') }}>{{ attrs.headline|raw }}</h1>
-    <figure{{ field('imageId') }}>{{ attachment_image(attrs.imageId, 'large') }}</figure>
+    <figure{{ field('imageId') }}>{{ wp_attachment_image(attrs.imageId, 'large') }}</figure>
     {% for button in attrs.buttons %}
         <a href="{{ button.url }}"{{ field(['buttons', loop.index0, 'label']) }}>{{ button.label }}</a>
     {% endfor %}
@@ -157,8 +157,8 @@ final class AllowedBlocks
 | `#[PlainText]` and other strings | `{{ attrs.topline }}` – Twig's autoescaping |
 | `#[RichText]` | `{{ attrs.headline\|raw }}` – exactly as stored; WordPress filters it with `wp_kses` when a user without `unfiltered_html` saves |
 | `#[Url]` strings | `{{ button.url }}` – the schema has `format: uri`, so the value is sanitized with `sanitize_url()` (disallowed protocols such as `javascript:` become empty) and then autoescaped |
-| Images | `#[Image]` attachment ID with `{{ attachment_image(attrs.imageId, size = 'full', attributes = {}) }}` (`wp_get_attachment_image()`; empty for `null`) |
-| References | IDs; `{{ post_title(attrs.target) }}`, `{{ post_url(attrs.target) }}`, `term_name()`, `term_url()`, `user_name()` (see [References](./values.md#references)) |
+| Images | `#[Image]` attachment ID with `{{ wp_attachment_image(attrs.imageId, size = 'full', attributes = {}) }}` (`wp_get_attachment_image()`; empty for `null`; more in [WordPress functions](./twig.md#wordpress-functions)) |
+| References | IDs; `{{ wp_post_title(attrs.target) }}`, `{{ wp_post_url(attrs.target) }}`, `wp_term_name()`, `wp_term_url()`, `wp_user_name()` and more [WordPress functions](./twig.md#wordpress-functions) (see [References](./values.md#references)) |
 | Inner blocks | `{{ content\|raw }}` |
 | Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports, plus the classes of [block supports](./supports.md)) |
 

@@ -32,16 +32,4 @@ final class BlockTemplateFunctions
 
         return get_block_wrapper_attributes($extra);
     }
-
-    /**
-     * An image from the media library, as returned by wp_get_attachment_image().
-     * Empty if the ID is null or no image exists.
-     *
-     * @param array<string, string> $attributes Additional attributes of the img element.
-     */
-    #[TemplateFunction('attachment_image', html: true)]
-    public function attachmentImage(?int $id, string $size = 'full', array $attributes = []): string
-    {
-        return $id === null ? '' : wp_get_attachment_image($id, $size, false, $attributes);
-    }
 }

@@ -38,7 +38,7 @@ final readonly class GeneralSettings
 - `name` consists of lowercase letters, digits and `_` and starts with a letter; it is unique within the theme or plugin. It names the option and the key in templates.
 - `title` is the title of the group on the settings page, `description` an optional text above its form. `position` orders the groups (lower first, then by name).
 - The settings follow the rules of [values](./values.md): `int`, `float`, `string`, `bool`, backed enums (labeled with [`Labeled`](./blocks.md#editor-labels)), value classes and `#[ListOf]` lists, each optionally nullable; `#[Url]`, `#[Label]` and `#[Hidden]` (no control on the settings page) apply as for block attributes. Every setting needs a default: it is missing until the group is saved.
-- `#[Image]` on a `?int` stores the ID of an attachment, selected from the media library on the settings page (also in value classes and list items); print it with [`attachment_image()`](./blocks.md#escaping). A value class used by a block and by a settings group keeps its image in the block canvas there and in the form here.
+- `#[Image]` on a `?int` stores the ID of an attachment, selected from the media library on the settings page (also in value classes and list items); print it with [`wp_attachment_image()`](./twig.md#wordpress-functions). A value class used by a block and by a settings group keeps its image in the block canvas there and in the form here.
 - `#[PlainText]` is a text field. `#[RichText(allowedFormats: null)]` is edited with WordPress' classic editor (the rich text of the block editor works only inside a block); `allowedFormats` may contain `core/bold`, `core/italic`, `core/link`, `core/strikethrough`, `core/subscript` and `core/superscript` (others are build errors), and the editor keeps only their elements and line breaks, without paragraphs. Print rich text with `|raw`; when a user without `unfiltered_html` (e.g. on multisite) saves, it is filtered with `wp_kses_post()`. `inspector` and `excerpt` have no effect in settings; `postContent` is a build error.
 - [References](./values.md#references) (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are chosen with a search, one or as a list.
 - `#[Content]` marks the content of blocks and means nothing in settings; it is a build error, also in value classes a group uses.
@@ -75,7 +75,7 @@ Templates read the groups of their own theme or plugin through the global `setti
 
 ```twig
 <p class="tagline tagline--{{ settings.general.density.value }}">{{ settings.general.tagline }}</p>
-{{ attachment_image(settings.general.logo, 'medium') }}
+{{ wp_attachment_image(settings.general.logo, 'medium') }}
 ```
 
 `settings` exists only if the theme or plugin declares settings groups; an unknown group name is an error.

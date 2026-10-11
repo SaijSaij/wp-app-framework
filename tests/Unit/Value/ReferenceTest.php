@@ -14,7 +14,6 @@ use Saij\WpAppFramework\Tests\Fixtures\ReferenceValid;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
-use Saij\WpAppFramework\Value\ReferenceTemplateFunctions;
 use Saij\WpAppFramework\Value\ValueFactory;
 use WP_Post;
 use WP_Term;
@@ -149,24 +148,4 @@ final class ReferenceTest extends TestCase
         self::assertSame(3, $page);
     }
 
-    public function testTemplateFunctionsPrintTitlesNamesAndUrls(): void
-    {
-        $context = new RenderContext();
-        $functions = new ReferenceTemplateFunctions($context);
-
-        self::assertSame('About & us', $functions->postTitle(1));
-        self::assertSame('https://example.test/?p=1', $functions->postUrl(1));
-        self::assertSame('', $functions->postTitle(null));
-        self::assertSame('', $functions->postTitle(99));
-        self::assertSame('', $functions->postTitle(3));
-        self::assertSame('', $functions->postUrl(3));
-        self::assertSame('Draft', $context->renderForEditor(static fn(): string => $functions->postTitle(3)));
-        // Stored escaped by WordPress, decoded for Twig's escaping.
-        self::assertSame('Food & drink', $functions->termName(10));
-        self::assertSame('https://example.test/?cat=10', $functions->termUrl(10));
-        self::assertSame('', $functions->termName(99));
-        self::assertSame('', $functions->termUrl(null));
-        self::assertSame('Ann & Bob', $functions->userName(20));
-        self::assertSame('', $functions->userName(21));
-    }
 }
