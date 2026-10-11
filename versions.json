@@ -1,7 +1,8 @@
 {
-	"latest": "0.3",
+	"latest": "0.4",
 	"next": true,
 	"versions": [
+		"0.4",
 		"0.3"
 	]
 }
