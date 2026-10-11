@@ -5,12 +5,12 @@
 <title>Styles - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-b42a7dab12b9.f159532dc1.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-b42a7dab12b9.e422331560.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.d23ca40952.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.d9c2b915f7.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.6cde33f2be.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.91e5788839.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -57,6 +57,8 @@
 <p>What a theme has to do itself, and what stays different:</p>
 <ul>
 <li><strong>Space between blocks:</strong> set <code>settings.spacing.blockGap</code> in <code>theme.json</code> (with a value in <code>styles.spacing.blockGap</code>). Without it, WordPress 7.1 puts its default gap between blocks in the editor, but none on the front end.</li>
+<li><strong>Width of blocks:</strong> set <code>settings.layout.contentSize</code> in <code>theme.json</code>. Without it, WordPress constrains blocks to an undefined content size in the editor (no maximum width, the whole canvas) but not on the front end.</li>
+<li><strong>WordPress&#x27; layout wins:</strong> Tailwind&#x27;s utilities live in cascade layers, WordPress&#x27; layout styles do not, and unlayered styles win regardless of specificity. The width of a block in a constrained layout (<code>max-width</code>, centering margins) and the space between blocks come from <code>theme.json</code>, not from utilities on the block&#x27;s root element; utilities style the inside of a block.</li>
 <li><strong>Empty fields</strong> are rendered in the editor, with a placeholder, so they can be filled in; on the front end the template leaves them out (<code>{% if attrs.title or is_editor() %}</code>).</li>
 <li><strong>White space:</strong> fields edited in the canvas keep typed spaces and line breaks visible (<code>white-space: pre-wrap</code>, set by WordPress&#x27; RichText), the front end collapses them.</li>
 <li><strong>The page around the blocks</strong> is WordPress&#x27; editor: in the post editor without the template, the content is not inside <code>.wp-site-blocks</code>, and the root padding sits on the canvas body.</li>
