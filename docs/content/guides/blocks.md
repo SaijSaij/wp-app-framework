@@ -1,20 +1,35 @@
 # Blocks
 
-A block is a service class with `#[Block]` and a `render()` method; its attributes are a typed attribute class. There is no `block.json`: the build derives the attribute schema from the attribute class, and WordPress passes it to the editor (`get_block_editor_server_block_settings()`). The post content stores the block comment with the attributes as JSON, e.g. `<!-- wp:sections/hero {"topline":"Summer"} /-->`. The only markup in the post content is the value of a `#[RichText(postContent: true)]` field: inline HTML without wrapping element, e.g. `<!-- wp:sections/paragraph -->Summer <strong>party</strong><!-- /wp:sections/paragraph -->` (see [Text in the post content](#text-in-the-post-content)).
+Blocks are the heart of a framework theme. Every block is rendered on the server from a Twig template, and content editors edit it inline in the editor canvas. This page shows how to write a block, which attributes it can have and how its values reach the markup.
+
+## How blocks are stored
+
+A WordPress block usually stores its HTML in the post content. Once saved, that HTML stays as it is: changing the block's markup later means either migrating old posts or leaving them with the old markup.
+
+Framework blocks store no markup. The post content holds only the block comment with the attributes as JSON:
+
+```html
+<!-- wp:sections/hero {"topline":"Summer","gradient":"blue"} /-->
+```
+
+When the page is displayed, the framework renders the block from its Twig template. A change to the template therefore shows up in every post at once. Block supports such as alignment or an anchor are attributes as well.
+
+There is one exception: the value of a `#[RichText(postContent: true)]` field is stored as inline HTML without a wrapping element, e.g. `<!-- wp:sections/paragraph -->Summer <strong>party</strong><!-- /wp:sections/paragraph -->`. That keeps the text of paragraphs and headings in the post content, where search and other plugins expect it (see [Text in the post content](#text-in-the-post-content)).
+
+## Anatomy of a block
+
+A block is made of three parts: a service class with `#[Block]` and a `render()` method, a typed attribute class, and a Twig template. There is no `block.json`. The build derives the attribute schema from the attribute class, and WordPress passes it to the editor on its own (through `get_block_editor_server_block_settings()`). The schema and the PHP object you work with therefore always match.
+
+Here is a hero block with a topline, a headline, an image, a gradient and a list of buttons.
+
+### The block class
 
 ```php
 use Saij\WpAppFramework\Block\Align;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\Content;
-use Saij\WpAppFramework\Block\Image;
-use Saij\WpAppFramework\Block\Label;
-use Saij\WpAppFramework\Block\PlainText;
-use Saij\WpAppFramework\Block\RichText;
 use Saij\WpAppFramework\Block\Supports;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\Url;
 
 #[Block('sections/hero', title: 'Hero', category: BlockCategory::Design, icon: 'cover-image')]
 #[Supports(anchor: true, align: [Align::Wide, Align::Full])]
@@ -29,6 +44,22 @@ final class Hero
         return $this->renderer->render('Block/Hero/Hero.twig', ['attrs' => $attrs, 'content' => $content]);
     }
 }
+```
+
+`#[Block]` names the block and describes it for the inserter. `#[Supports]` switches on WordPress features: here an HTML anchor and the wide and full alignments.
+
+`render()` receives what it asks for. `HeroAttributes` is the attribute object, `string $content` the rendered inner blocks, and `WP_Block $block` WordPress' block instance. A block that asks for `$content` can contain inner blocks.
+
+### The attribute class
+
+```php
+use Saij\WpAppFramework\Block\Content;
+use Saij\WpAppFramework\Block\Image;
+use Saij\WpAppFramework\Block\Label;
+use Saij\WpAppFramework\Block\PlainText;
+use Saij\WpAppFramework\Block\RichText;
+use Saij\WpAppFramework\Value\ListOf;
+use Saij\WpAppFramework\Value\Url;
 
 final readonly class HeroAttributes
 {
@@ -52,6 +83,15 @@ final readonly class Button
 }
 ```
 
+Each constructor parameter becomes an attribute, and its type decides how it is edited:
+
+- `$topline` and `$headline` are edited in the canvas: plain text, and rich text with bold and italic.
+- `$imageId` is an image chosen from the media library in the canvas. Only the attachment ID is stored.
+- `$gradient` is a backed enum. The editor shows a select with its cases in the inspector.
+- `$buttons` is a list of `Button` value objects. The inspector shows a list editor, and each button's label is edited in the canvas.
+
+### The template
+
 ```twig
 <section {{ block_wrapper_attributes({class: 'hero hero--' ~ attrs.gradient.value}) }}>
     {% if attrs.topline or is_editor() %}
@@ -66,74 +106,151 @@ final readonly class Button
 </section>
 ```
 
-`field()`, `inner_blocks()` and `is_editor()` only matter in the editor; on the front end the marks are empty (see [Editor](./editor.md)).
+The template is ordinary Twig with a few helpers:
+
+- `block_wrapper_attributes()` goes on the root element. It adds the classes and the anchor of the block's supports.
+- `field('topline')` marks the element that shows a field, so the editor can turn it into an editor. `inner_blocks()` marks where inner blocks go.
+- `is_editor()` keeps the empty topline in the editor, so content editors can fill it in, while the front end leaves it out.
+
+On the front end `field()`, `inner_blocks()` and `is_editor()` print nothing; they only matter in the editor (see [Editor](./editor.md)). The headline is printed with `|raw` because it holds HTML; everything else is escaped by Twig (see [Escaping](#escaping)).
 
 ## `#[Block]`
 
-`#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [], allowedBlocks: null, excerptWrapper: false)]` on a service class.
+`#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [], allowedBlocks: null, excerptWrapper: false)]` goes on a service class.
 
-- The name is `namespace/name` (lowercase letters, digits, `-`); the namespace `core` and duplicate names are build errors, and the framework itself declares no blocks.
-- `category` is a `BlockCategory` case.
-- `usesContext` lists the context values the block reads from `WP_Block::$context`, e.g. `postId` in a query loop.
-- `allowedBlocks` limits the blocks that can be inserted as inner blocks (`allowed_blocks`); it requires `render()` to accept `string $content`.
-- `excerptWrapper` adds a container to `excerpt_allowed_wrapper_blocks` (see [Excerpts](#excerpts)); it also requires `string $content`.
-- Blocks are registered on `init` with `api_version` 3.
+The **name** is `namespace/name` in lowercase letters, digits and `-`. The namespace belongs to the theme or plugin, for example `sections/hero`. The namespace `core` and duplicate names are build errors. The framework itself declares no blocks.
+
+The **category** is a `BlockCategory` case; an enum instead of a string lets your IDE complete it.
+
+**`usesContext`** lists the context values the block reads from `WP_Block::$context`. The typical case is `postId` in a query loop, where a block shows data of the current post.
+
+**`allowedBlocks`** limits which blocks can be inserted as inner blocks (`allowed_blocks` in WordPress). It requires `render()` to accept `string $content`.
+
+**`excerptWrapper`** adds a container to WordPress' `excerpt_allowed_wrapper_blocks` (see [Excerpts](#excerpts)). It also requires `string $content`.
+
+The framework registers blocks on `init` with `api_version` 3.
 
 ## `#[Supports]`
 
-`#[Supports(contentRole: false, anchor: false, align: [], customClassName: true, multiple: true, reusable: true, inserter: true, lock: true, renaming: true, customCSS: true)]` with WordPress' defaults; only differing values are registered. `html` is always disabled. Container blocks set `contentRole: true`, so inner blocks can be inserted in contentOnly mode. `customCSS` (enabled by default in WordPress 7) lets users with `edit_css` store free CSS per block instance; the theme decides whether it allows it – per block with `customCSS: false`, or for all blocks with its own `register_block_type_args` hook.
+`#[Supports]` switches on the block supports of WordPress. Its arguments and their defaults are WordPress' own:
+
+`#[Supports(contentRole: false, anchor: false, align: [], customClassName: true, multiple: true, reusable: true, inserter: true, lock: true, renaming: true, customCSS: true)]`
+
+Only values that differ from WordPress' defaults are registered. `html` is always disabled, because a framework block has no stored HTML to edit.
+
+**`contentRole: true`** is for container blocks without content of their own. WordPress 7 opens patterns and template parts in contentOnly mode, where editors may only insert blocks into containers that count as content. A block counts as content if it has a content attribute (see [Fields](#fields)) or `contentRole: true`. A section that only holds inner blocks needs `contentRole: true`, so that blocks can be inserted into it in contentOnly mode.
+
+**`customCSS`**, enabled by default in WordPress 7, lets users with `edit_css` store free CSS for each block instance. Whether to allow that is the theme's decision: per block with `customCSS: false`, or for all blocks with a `register_block_type_args` hook of its own.
 
 Settings of your own that several blocks share, such as a color scheme, are [block supports](./supports.md) of the theme or plugin, added with `#[UseSupport]`.
 
 ## `render()`
 
-`render()` is public, non-static and returns `string`. Its parameters are matched by type, each at most once and in any order: the attribute class, `string` (the rendered inner blocks) and `WP_Block`. Services come through the constructor; the block service is created when the block is first rendered.
+`render()` is public, non-static and returns `string`. Its parameters are matched by type, each at most once and in any order:
+
+- the attribute class,
+- `string` – the rendered inner blocks,
+- `WP_Block` – WordPress' block instance.
+
+Services come through the constructor. The block service is created when the block renders for the first time, not when WordPress registers it.
 
 ## Attribute class
 
-A value class (see [Values](./values.md)) whose parameters all have a default value, because an attribute can always be missing in the content. The names `lock`, `metadata`, `className`, `anchor`, `align` and `style` are reserved for the attributes WordPress adds itself (`style` comes with the `customCSS` support, enabled by default in WordPress 7), and the attributes of the block's [block supports](./supports.md) may not be used either. The attribute schema gets `type`, `enum`, `properties`/`items`, `default` and `role: content` (below).
+The attribute class is a value class (see [Values](./values.md)). Every parameter needs a default value, because any attribute can be missing in the content: the block was inserted before the attribute existed, or the editor never set it.
+
+Some names are taken. WordPress adds the attributes `lock`, `metadata`, `className`, `anchor`, `align` and `style` itself (`style` comes with the `customCSS` support, enabled by default in WordPress 7). The attributes of the block's own [block supports](./supports.md) are taken as well. None of these can be a parameter of the attribute class.
+
+From the class, the build creates the attribute schema with `type`, `enum`, `properties`/`items`, `default` and `role: content` (see below).
 
 ## Fields
 
-`#[PlainText]` (inline text, strings only), `#[RichText(allowedFormats: null)]` (inline HTML, strings only; `allowedFormats` lists the formats the editor offers, e.g. `['core/bold']`, `null` allows all, `[]` none) and `#[Image]` (an attachment ID, `?int` only) mark the fields edited in the canvas; `#[Content]` marks other content such as links.
+Most blocks hold text and images that content editors should change directly where they see them. Mark these parameters, and the editor makes them editable in the canvas:
 
-With `inspector: true` (`#[RichText(inspector: true)]`, also on `#[PlainText]` and `#[Image]`) a field is edited in the block inspector instead of the canvas – for values the markup does not show, or that are better edited in a form.
+- **`#[PlainText]`** – inline text, on strings only.
+- **`#[RichText(allowedFormats: null)]`** – inline HTML, on strings only. `allowedFormats` lists the formats the editor offers, e.g. `['core/bold']`; `null` allows all, `[]` none.
+- **`#[Image]`** – an attachment ID, on `?int` only.
 
-[References](./values.md#references) to posts, terms and users (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are edited with a search in the inspector and count as content as well.
+Some values are not visible in the markup, or are better edited in a form. With `inspector: true` – `#[RichText(inspector: true)]`, also on `#[PlainText]` and `#[Image]` – a field is edited in the block inspector instead of the canvas.
 
-An attribute gets `role: content` if it or a nested field is marked (or is a reference), so the block stays editable in contentOnly mode (patterns and template parts open in it in WordPress 7). The marks have no effect on REST arguments.
+**`#[Content]`** marks other content, such as the URL of a link. It is edited in the inspector like any other value, but it counts as content: its control appears in the inspector's "Content" group, and WordPress keeps it editable in contentOnly mode (see below).
 
-## Text in the post content
+[References](./values.md#references) to posts, terms and users (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are edited with a search in the inspector, and they count as content too.
 
-`#[RichText(postContent: true)]` stores the value as the block's inner HTML instead of in the block comment: inline HTML without wrapping element, so text blocks such as paragraphs and headings keep their text in the post content, while the markup stays in Twig (`source: html` without selector; the editor saves it with `RawHTML`). WordPress never parses sourced attributes on the server; the framework takes the value from the block content before creating the attribute object, so the template prints it like any other value (`{{ attrs.text|raw }}`).
+### Content in contentOnly mode
 
-Rules (build errors): on a parameter of the attribute class itself (not in value classes or list items), at most one per block, only in blocks without inner blocks (both would share the block content) and with the default `''` (the editor stores an empty value as empty block content). The root element of the template may be the field itself, e.g. `<p {{ block_wrapper_attributes() }}{{ field('text') }}>{{ attrs.text|raw }}</p>`.
+In WordPress 7, patterns and template parts open in contentOnly mode. Content editors can change the content of blocks there, but not their design. A block without content attributes is hidden and cannot be selected.
 
-## Excerpts
+WordPress decides by the attribute's `role: content`. The build sets it for you: an attribute gets `role: content` if it, or a field nested in it, carries `#[PlainText]`, `#[RichText]`, `#[Image]` or `#[Content]`, or is a reference. In the example, `buttons` is content because each button has a label and a URL.
 
-`excerpt: true` on `#[PlainText]` or `#[RichText]` (also in list items, value classes and with `inspector: true`) includes a value in automatic excerpts (`get_the_excerpt()` without a manual excerpt: archives, `core/post-excerpt`, feeds, REST). Blocks with such fields are added to `excerpt_allowed_blocks`.
-
-WordPress renders allowed blocks for an excerpt while the `get_the_excerpt` filter runs and offers no other signal; during that filter the block renders only its excerpt fields, one paragraph each (rich text as stored, plain text escaped), without `render()` or its template – `wp_trim_excerpt()` strips the tags. If other code renders blocks inside a `get_the_excerpt` filter, framework blocks render as excerpts there, too.
-
-WordPress never renders blocks with inner blocks for excerpts, so `excerpt: true` in such a block is a build error; `#[Block(excerptWrapper: true)]` includes a container's allowed inner blocks instead, like `core/group`.
-
-Search is unchanged: WordPress searches the raw post content, which finds single words of values in the block comment JSON (stored as is, also non-ASCII), but no phrases across formatting and no values with `&`, `<`, `>` or `"` (stored as `&` etc.); attribute names and enum values match, too.
+The marks have no effect on REST arguments.
 
 ## Editor labels
 
-`#[Label('…')]` labels a value in the inspector and is the placeholder of an inline field; without it the label is derived from the parameter name (`imageId` → "Image id"). A backed enum implements `Block\Labeled` (`label(): string`, evaluated in the build) to label its cases; otherwise the editor shows the case values. `#[Hidden]` keeps a value out of the generated inspector (not allowed on inline fields).
+The editor needs a label for each value. `#[Label('…')]` sets the label in the inspector and the placeholder of an inline field. Without it, the label is derived from the parameter name: `imageId` becomes "Image id".
+
+A backed enum labels its cases by implementing `Block\Labeled` with a method `label(): string`. The build evaluates it, so it may not depend on run-time state. Without it, the editor shows the case values.
+
+`#[Hidden]` keeps a value out of the generated inspector. It is not allowed on inline fields.
+
+## Text in the post content
+
+Text blocks such as paragraphs and headings are a special case. Search, SEO plugins and exports read the raw post content, and for most blocks they find only JSON there. For a block whose whole purpose is text, it is better to keep the text in the post content.
+
+`#[RichText(postContent: true)]` does that. The value is stored as the block's inner HTML instead of in the block comment: inline HTML without a wrapping element. The markup around it still comes from Twig.
+
+```php
+final readonly class ParagraphAttributes
+{
+    public function __construct(
+        #[RichText(postContent: true)] public string $text = '',
+    ) {}
+}
+```
+
+```twig
+<p {{ block_wrapper_attributes() }}{{ field('text') }}>{{ attrs.text|raw }}</p>
+```
+
+As the example shows, the root element of the template may be the field itself.
+
+For your code nothing changes: the template prints the value like any other. Under the hood, the attribute is a sourced attribute (`source: html` without selector), and the editor saves it with `RawHTML`. WordPress never parses sourced attributes on the server, so the framework takes the value from the block content before it creates the attribute object.
+
+The following are build errors, each for a reason:
+
+- The field is not a parameter of the attribute class itself (but of a value class or a list item): only top-level values can map to the inner HTML.
+- A block has more than one such field: there is only one inner HTML.
+- The block has inner blocks: inner blocks and the field would share the block content.
+- The default is not `''`: the editor stores an empty value as empty block content.
+
+## Excerpts
+
+WordPress creates automatic excerpts from the post content – for archives, `core/post-excerpt`, feeds and REST – when a post has no manual excerpt (`get_the_excerpt()`). To do that, it renders only blocks that it knows contain text. Framework blocks tell WordPress which of their texts belong in an excerpt.
+
+`excerpt: true` on `#[PlainText]` or `#[RichText]` includes the value in automatic excerpts. It also works in list items, in value classes and with `inspector: true`. Blocks with such fields are added to `excerpt_allowed_blocks`.
+
+When WordPress renders a block for an excerpt, the block renders only its excerpt fields, one paragraph each: rich text as stored, plain text escaped. Neither `render()` nor the template runs. `wp_trim_excerpt()` then strips the tags.
+
+:::warning
+WordPress renders blocks for an excerpt while the `get_the_excerpt` filter runs, and offers no other signal. If other code renders blocks inside a `get_the_excerpt` filter, framework blocks render as excerpts there, too.
+:::
+
+WordPress never renders blocks with inner blocks for excerpts, so `excerpt: true` in such a block is a build error. For a container, use `#[Block(excerptWrapper: true)]` instead. It includes the excerpts of the container's allowed inner blocks, like `core/group`.
+
+### Search
+
+Search is unchanged. WordPress searches the raw post content, and it finds single words of values in the block comment JSON, which stores non-ASCII characters as they are. It does not find phrases across formatting, nor values with `&`, `<`, `>` or `"` (stored as `&` etc.). Attribute names and enum values match, too.
 
 ## Attributes at render time
 
-WordPress validates the attributes against the schema before rendering (an invalid value falls back to the default) but does not sanitize them. The value factory sanitizes each attribute against its schema (`rest_sanitize_value_from_schema()`) and creates the attribute object; attributes of block supports (WordPress' and [your own](./supports.md)) are ignored.
+WordPress validates the attributes against the schema before rendering: an invalid value falls back to the default. It does not sanitize them, though. The framework's value factory therefore sanitizes each attribute against its schema (`rest_sanitize_value_from_schema()`) and only then creates the attribute object. Attributes of block supports, WordPress' and [your own](./supports.md), are not part of the attribute object.
 
 ## Errors
 
-Exceptions in `render()` or in creating the attributes are rethrown if `WP_DEBUG` is enabled; otherwise they are logged with `error_log()` and the block renders nothing.
+An exception in `render()` or while the attribute object is created is rethrown if `WP_DEBUG` is enabled. Otherwise it is logged with `error_log()`, and the block renders nothing. The rest of the page still renders.
 
 ## Core blocks
 
-The framework disables none. A theme decides itself which core blocks it allows, e.g. with a [hook](./hooks.md):
+The framework disables no core blocks. Which ones a theme offers is the theme's decision. A [hook](./hooks.md) on `allowed_block_types_all` limits them:
 
 ```php
 final class AllowedBlocks
@@ -152,6 +269,8 @@ final class AllowedBlocks
 
 ## Escaping
 
+Twig escapes every value unless you say otherwise. This table shows how each kind of value gets into the markup:
+
 | Value | Output |
 |---|---|
 | `#[PlainText]` and other strings | `{{ attrs.topline }}` – Twig's autoescaping |
@@ -162,4 +281,4 @@ final class AllowedBlocks
 | Inner blocks | `{{ content\|raw }}` |
 | Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports, plus the classes of [block supports](./supports.md)) |
 
-No string filters such as `upper` on HTML (uppercase via CSS).
+Don't apply string filters such as `upper` to HTML: they change tags, URLs and entities too. Use CSS for uppercase text.

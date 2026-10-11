@@ -1,10 +1,16 @@
 # Getting started
 
-This page sets up a block theme `my-theme` with one block. Plugins and child themes with code of their own are set up the same way; see [Boot and modes](./guides/boot.md), [Plugins](./guides/plugins.md) and [Child themes](./guides/child-themes.md) for the differences.
+In this walkthrough you set up a block theme called `my-theme` and give it a first block: a teaser with a title and a text that content editors type directly into the editor canvas, and a switch in the inspector that highlights it. Along the way you see every file a consumer of the framework needs and why it is there.
 
-You need PHP 8.5, Composer and Node 24 – or [wp-dev-env](https://github.com/saijsaij/wp-dev-env), which provides them in a container together with a local WordPress.
+Plugins and child themes with code of their own are set up the same way. [Boot and modes](./guides/boot.md), [Plugins](./guides/plugins.md) and [Child themes](./guides/child-themes.md) describe what differs.
 
-## Files
+## What you need
+
+You need PHP 8.5, Composer and Node 24. The simplest way to get them is [wp-dev-env](https://github.com/saijsaij/wp-dev-env): it runs them in a container together with a local WordPress, so you only need Docker on your machine.
+
+## The files of the theme
+
+When you're done, the theme looks like this:
 
 ```
 my-theme/
@@ -23,7 +29,11 @@ my-theme/
         └── Teaser.twig
 ```
 
-**`composer.json`** requires the framework from its GitHub repository by version and declares the PSR-4 namespace of the theme's classes in `src/` and the settings of the [release build](./build-and-release/release.md):
+`style.css`, `theme.json` and `templates/index.html` are the same as in any block theme. `composer.json` and `functions.php` bring in the framework and start it. `package.json` and `webpack.config.js` build the JavaScript for the editor and the stylesheet. Your own code lives in `src/`.
+
+### composer.json
+
+Composer installs the framework and tells it where your classes are. The framework is required from its GitHub repository by version; the lock file pins the exact commit. The PSR-4 namespace `Acme\MyTheme\` maps to `src/`, and every class in there is something the framework can use – a block, a hook, a service.
 
 ```json
 {
@@ -34,7 +44,7 @@ my-theme/
     ],
     "require": {
         "php": ">=8.5",
-        "saij/wp-app-framework": "^0.3"
+        "saij/wp-app-framework": "^0.7"
     },
     "autoload": {
         "psr-4": { "Acme\\MyTheme\\": "src/" }
@@ -59,7 +69,15 @@ my-theme/
 }
 ```
 
-**`style.css`** carries the theme header; `Version:` is the version of the release:
+A few entries deserve a closer look:
+
+- `type` tells the framework's build what kind of project this is. `wordpress-theme` covers themes and child themes, `wordpress-plugin` plugins.
+- The two scripts give you short commands for the framework's tools: `composer build-manifest` checks your code, and `composer release` builds a ZIP for production.
+- `extra.strauss` configures the prefixing of the release build. A release renames the framework and all dependencies into your own namespace (here `Acme\MyTheme\Vendor\`), so they cannot collide with other themes or plugins. [Release](./build-and-release/release.md#strauss-settings) explains each value.
+
+### style.css
+
+The theme header works as usual. `Version:` is the version the release build puts into the ZIP's file name:
 
 ```css
 /*
@@ -71,7 +89,9 @@ Text Domain: my-theme
 */
 ```
 
-**`functions.php`** loads the autoloader and boots the framework:
+### functions.php
+
+`functions.php` loads Composer's autoloader and boots the framework. A release ships the prefixed dependencies in `vendor-prefixed/` instead of `vendor/`, so the file picks whichever exists:
 
 ```php
 <?php
@@ -86,7 +106,11 @@ require is_file(__DIR__ . '/vendor-prefixed/autoload.php')
 Saij\WpAppFramework\Theme::boot();
 ```
 
-**`package.json`** and **`webpack.config.js`** build the editor runtime of the framework, the editor scripts and the stylesheet of the theme (see [Editor](./guides/editor.md#build)). The slug is the directory name of the theme:
+That is the only call into the framework you write by hand. Everything else – blocks, hooks, routes – the framework finds through the attributes on your classes.
+
+### package.json and webpack.config.js
+
+The block editor needs JavaScript: the framework's editor runtime, which makes your blocks editable, and any editor scripts of your own. The framework ships only the sources of the runtime. Your theme builds them together with its own scripts and its stylesheet, using `@wordpress/scripts` and a webpack helper from the framework (see [Editor](./guides/editor.md#build)).
 
 ```json
 {
@@ -102,6 +126,8 @@ Saij\WpAppFramework\Theme::boot();
 }
 ```
 
+The helper needs the slug of the theme, which is its directory name:
+
 ```js
 module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( {
 	slug: 'my-theme',
@@ -109,7 +135,9 @@ module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( 
 } );
 ```
 
-**`src/styles.css`** is compiled with Tailwind and loaded on the front end and in the editor canvas; it maps Tailwind tokens to the values of `theme.json` (see [Styles](./guides/styles.md)):
+### src/styles.css
+
+Blocks are styled with Tailwind CSS. If the theme has a `src/styles.css`, the build compiles it with Tailwind, and the framework loads it on the front end and in the editor canvas. The stylesheet maps Tailwind's tokens to the values of `theme.json`. Here `bg-primary` uses the color `primary`, which `theme.json` defines:
 
 ```css
 @layer theme, base, components, utilities;
@@ -122,11 +150,13 @@ module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( 
 }
 ```
 
-`theme.json` and `templates/index.html` are those of any block theme; `theme.json` defines the color `primary` used above.
+[Styles](./guides/styles.md) explains each line.
 
 ## A first block
 
-A block is a service class with `#[Block]` and a `render()` method, an attribute class and a Twig template next to it (see [Blocks](./guides/blocks.md)):
+A block consists of three parts: a class that describes the block and renders it, a class that holds its attributes, and a Twig template with the markup. They sit next to each other in `src/Block/Teaser/`.
+
+The block class carries `#[Block]` with the block's name, title, category and icon. Its constructor asks for the `TemplateRenderer`, which the framework provides, and `render()` passes the attributes to the template:
 
 ```php
 <?php
@@ -151,6 +181,8 @@ final readonly class Teaser
 }
 ```
 
+The attribute class lists what content editors can set. Each constructor parameter becomes a block attribute. `#[PlainText]` and `#[RichText]` mark text that is edited directly in the canvas; the plain `bool` gets a toggle in the block inspector automatically.
+
 ```php
 <?php
 
@@ -171,6 +203,8 @@ final readonly class TeaserAttributes
 }
 ```
 
+The template renders the markup. `block_wrapper_attributes()` goes on the root element and adds the classes WordPress needs. `field('title')` marks the element that shows the title, so that the editor can make it editable; on the front end it prints nothing.
+
 ```twig
 <section {{ block_wrapper_attributes({class: attrs.highlighted ? 'p-4 bg-primary' : 'p-4'}) }}>
     <h2{{ field('title') }}>{{ attrs.title }}</h2>
@@ -178,15 +212,23 @@ final readonly class TeaserAttributes
 </section>
 ```
 
-The title and the text are edited in the editor canvas; `highlighted` gets a toggle in the block inspector and switches between complete class names, which the stylesheet finds in the template.
+The template switches between two complete class names instead of building one from the attribute. That is deliberate: Tailwind finds class names by reading the templates, so it only generates classes that appear there in full.
+
+[Blocks](./guides/blocks.md) covers all of this in depth.
 
 ## Build and run
 
+Install the dependencies and build the assets. Run `composer install` first, because the `file:` dependency in `package.json` points into `vendor/`:
+
 ```sh
-composer install          # before npm: the file: dependency points into vendor/
+composer install
 npm install
 npm run build             # editor runtime, editor scripts and stylesheet into build/
 composer build-manifest   # checks attributes and services; writes nothing
 ```
 
-Activate the theme in WordPress. In development the framework builds its manifest itself and caches it in `wp-content/cache/my-theme/` (see [Boot and modes](./guides/boot.md#modes)); `npm run start` rebuilds the editor scripts and the stylesheet on changes. For a release see [Release](./build-and-release/release.md).
+`composer build-manifest` is optional here, but useful: it checks your attributes and services and reports problems with class and parameter names.
+
+Now activate the theme in WordPress and add the teaser to a page. You don't need to build anything else while you develop. The framework builds its manifest itself and caches it in `wp-content/cache/my-theme/` (see [Boot and modes](./guides/boot.md#modes)), and `npm run start` rebuilds the editor scripts and the stylesheet whenever you change them.
+
+When you are ready to ship the theme, [Release](./build-and-release/release.md) shows how to build a ZIP that runs in any WordPress installation.

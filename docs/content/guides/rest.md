@@ -1,11 +1,15 @@
 # REST routes
 
+A REST route in WordPress needs more code than it seems. You call `register_rest_route()`, write an `args` schema for validation, add a permission callback, read and convert the parameters, and turn errors into `WP_Error` objects with the right status code. Forgetting the permission callback makes the route public.
+
+With the framework, a route is a method with `#[RestRoute]`. The framework derives the argument schema from the method signature, so WordPress validates and sanitizes the arguments before your code runs. The permission is a required argument of the attribute, so your IDE and the build report a route without one.
+
+## Controller and routes
+
+Routes live in a controller class. `#[RestController]` on the class sets the REST namespace and an optional base path for all its routes:
+
 ```php
-use Saij\WpAppFramework\Rest\Format;
 use Saij\WpAppFramework\Rest\HttpMethod;
-use Saij\WpAppFramework\Rest\Param;
-use Saij\WpAppFramework\Rest\Permission\Callback;
-use Saij\WpAppFramework\Rest\Permission\Capability;
 use Saij\WpAppFramework\Rest\Permission\PublicAccess;
 use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestException;
@@ -19,48 +23,91 @@ final class ItemController
     {
         return $items->find($id) ?? throw new RestException('sections_item_not_found', 'Item not found.', 404);
     }
-
-    #[RestRoute('/{id}', [HttpMethod::Put, HttpMethod::Patch], new Callback(self::canEdit(...)))]
-    public function update(int $id, #[Param(maxLength: 200)] string $title, #[Param(format: Format::Email)] ?string $contact = null): WP_REST_Response
-    {
-        // …
-        return new WP_REST_Response($data, 201);
-    }
-
-    #[RestRoute('/{id}', HttpMethod::Delete, new Capability('delete_posts'))]
-    public function delete(int $id): void
-    {
-        // … responds with 204 No Content
-    }
-
-    public static function canEdit(int $id, ItemRepository $items): bool
-    {
-        return current_user_can('edit_post', $items->getPostId($id));
-    }
 }
 ```
 
-## Controller and routes
+This registers `GET /wp-json/sections/v1/items/{id}`. Read the method signature from left to right:
 
-- `#[RestController(namespace, base: '')]` on the class defines the REST namespace (no leading or trailing slash) and an optional base path prepended to every route of the class. The value may be a class constant. A `#[RestRoute]` in a class without it is a build error.
-- `#[RestRoute(path, methods, permission)]` is repeatable; all three arguments are required, so a missing permission is reported by the IDE and by the build. `path` is empty or starts with `/`; `methods` is an `HttpMethod` case or a list of them.
+- `int $id` matches the placeholder `{id}` in the path. Because it is an `int`, the route only matches digits.
+- `ItemRepository $items` is a [service](./services.md), so the framework injects it.
+- `Variant $variant = Variant::Short` is a backed enum with a default, so it becomes an optional request argument (`?variant=long`). WordPress accepts only the enum's values, and the method receives the enum case.
+
+The method returns an array, which becomes a JSON response with status 200. If the item does not exist, it throws a `RestException` with status 404.
+
+`#[RestController(namespace, base: '')]` takes the namespace without leading or trailing slash; the value may be a class constant. A `#[RestRoute]` in a class without `#[RestController]` is a build error.
+
+`#[RestRoute(path, methods, permission)]` is repeatable, and all three arguments are required, so the IDE and the build both report a missing permission. `path` is empty or starts with `/`. `methods` is an `HttpMethod` case or a list of them.
 
 ## Permission
 
-`new PublicAccess()` (everybody), `new Capability('…')` (`current_user_can()`) or `new Callback(self::method(...))`. A callback is a first-class callable of a public **static** method returning `bool` – PHP allows first-class callables in attribute arguments only for static methods. Its parameters follow the route rules below; request arguments must exist in the route with the same name and type. Before calling it, the framework validates and sanitizes these arguments against the route's own schema and denies access if one is invalid, because WordPress also calls permission callbacks for the `Allow` header with a request validated for another handler.
+Every route says who may call it. There are three kinds of permission, all in the namespace `Saij\WpAppFramework\Rest\Permission`:
+
+```php
+new PublicAccess()                      // everybody
+new Capability('delete_posts')          // current_user_can('delete_posts')
+new Callback(self::canEdit(...))        // your own check
+```
+
+A callback decides with your own logic. It is a first-class callable of a public **static** method that returns `bool`. It must be static because PHP allows first-class callables in attribute arguments only for static methods.
+
+```php
+#[RestRoute('/{id}', [HttpMethod::Put, HttpMethod::Patch], new Callback(self::canEdit(...)))]
+public function update(int $id, string $title): WP_REST_Response { /* … */ }
+
+public static function canEdit(int $id, ItemRepository $items): bool
+{
+    return current_user_can('edit_post', $items->getPostId($id));
+}
+```
+
+The callback's parameters follow the same rules as those of the route: services are injected, and request arguments must exist in the route with the same name and type. Before calling it, the framework validates and sanitizes these arguments against the route's own schema and denies access if one is invalid. That matters because WordPress also calls permission callbacks to build the `Allow` header, with a request validated for a different route handler.
 
 ## Path placeholders
 
-`{name}` matches the parameter of the same name, which must be required and of type `int` (`\d+`), `string` (`[^/]+`) or a backed enum (its values). Their values are taken from the URL parameters, never from a query argument of the same name. Route paths may only contain letters, digits, `.`, `_`, `~`, `-`, `/` and placeholders.
+`{name}` in the path matches the parameter with the same name. That parameter must be required and of type `int` (matches `\d+`), `string` (`[^/]+`) or a backed enum (its values). Its value always comes from the URL, never from a query argument with the same name.
+
+Route paths may only contain letters, digits, `.`, `_`, `~`, `-`, `/` and placeholders.
 
 ## Parameters
 
-- Service candidates are injected, `WP_REST_Request` receives the request, all other parameters are request arguments of the same name: `int`, `float`, `string`, `bool`, a backed enum or `array` with `#[ListOf(Enum::class)]` / `#[ListOf(ValueClass::class)]` (see [Values](./values.md)), optionally nullable with a default value. A single value class without `#[ListOf]` is not supported: a class type is injected as service.
-- The argument schema (`type`, `enum`, `items`, `required`, `default`) is derived from the signature; WordPress validates and sanitizes the arguments, answers 400 on errors and shows the schema on `OPTIONS`. Missing optional arguments use the parameter default; enums, value objects and lists are converted by the value factory.
-- `#[Param(description:, minimum:, maximum:, minLength:, maxLength:, pattern:, format: Format::…)]` adds schema keywords; the build checks that they apply to the parameter type.
+The framework looks at each parameter of the method and decides where its value comes from:
+
+- **A service candidate** is injected.
+- **`WP_REST_Request`** receives the request itself.
+- **Everything else is a request argument** with the parameter's name: `int`, `float`, `string`, `bool`, a backed enum, or an `array` with `#[ListOf(Enum::class)]` or `#[ListOf(ValueClass::class)]` (see [Values](./values.md)). Each may be nullable and have a default value.
+
+A single value class without `#[ListOf]` is not supported as a request argument, because a parameter with a class type is treated as a service.
+
+From the request arguments the framework builds the route's argument schema (`type`, `enum`, `items`, `required`, `default`). WordPress then does the work it always does with a schema: it validates and sanitizes the arguments, answers with 400 if one is invalid, and shows the schema on an `OPTIONS` request. Missing optional arguments get the parameter's default. Enums, value objects and lists are converted by the value factory, so your method receives typed values.
+
+`#[Param]` (`Saij\WpAppFramework\Rest\Param`) adds further constraints to the schema:
+
+```php
+public function update(
+    int $id,
+    #[Param(maxLength: 200)] string $title,
+    #[Param(format: Format::Email)] ?string $contact = null,
+): WP_REST_Response
+```
+
+Its arguments are `description`, `minimum`, `maximum`, `minLength`, `maxLength`, `pattern` and `format` (a case of `Saij\WpAppFramework\Rest\Format`). The build checks that each one applies to the parameter's type.
 
 ## Responses and errors
 
-- **Responses:** a `void` method responds with 204 No Content; any other value goes through `rest_ensure_response()` (200). Return a `WP_REST_Response` for another status or headers.
-- **Errors:** throw `RestException(code, message, status, data)` (status 400–599) for an error response. Any other exception is logged with `error_log()` and answered with 500 `wp_app_framework_internal_error`; class, message, file, line and stack trace are included only if `WP_DEBUG` is enabled.
-- Services are created when the route is called.
+What the method returns decides the response:
+
+- A `void` method responds with **204 No Content**.
+- Any other value goes through `rest_ensure_response()` and responds with **200**.
+- For another status code or extra headers, return a `WP_REST_Response`, e.g. `new WP_REST_Response($data, 201)`.
+
+```php
+#[RestRoute('/{id}', HttpMethod::Delete, new Capability('delete_posts'))]
+public function delete(int $id): void
+{
+    // … responds with 204 No Content
+}
+```
+
+For an error response, throw `RestException(code, message, status, data)` with a status between 400 and 599. Any other exception is an unexpected error. It is logged with `error_log()` and answered with status 500 and the code `wp_app_framework_internal_error`. Class, message, file, line and stack trace of the exception are included in the response only if `WP_DEBUG` is enabled, so a live site never shows its internals.
+
+Like hooks, the controller and its services are created only when the route is called.

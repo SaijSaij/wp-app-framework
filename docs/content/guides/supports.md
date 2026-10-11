@@ -1,12 +1,14 @@
 # Block supports
 
-A block support adds the same setting to several blocks, for example a color scheme: each block that uses it gets an attribute, a control in the inspector and class names on its root element. The theme or plugin declares the support once and adds it to its blocks; the framework derives everything else in the build.
+Some settings belong to many blocks at once. A color scheme is the typical example: a card, a section and a teaser should all offer the same choice, look the same in the inspector and produce the same class names. Copying an enum into every attribute class and a class into every template would work, but every new block would have to repeat it, and nothing would keep the copies in line.
 
-Block supports apply to the blocks of the same theme or plugin only (not to core blocks or blocks of other instances). The supports of WordPress itself are set with [`#[Supports]`](./blocks.md#supports). Values of the whole site rather than of a block are [settings](./settings.md).
+A *block support* declares such a setting once. Every block that uses it gets an attribute, a control in the inspector and class names on its root element; the framework derives all of that in the build. WordPress uses the same idea for its own supports such as alignment, which you switch on with [`#[Supports]`](./blocks.md#supports).
+
+Block supports apply only to the blocks of the same theme or plugin, not to core blocks or blocks of other instances. Values for the whole site rather than for a single block are [settings](./settings.md).
 
 ## Declaring a support
 
-`#[BlockSupport(attribute, label, group: SupportGroup::Styles)]` on a service class with a public method `className()`:
+A support is a service class with `#[BlockSupport]` and a public method `className()`. The method receives the value of the attribute and returns the class names for it:
 
 ```php
 use Saij\WpAppFramework\Block\Support\BlockSupport;
@@ -21,16 +23,30 @@ final class Surface
 }
 ```
 
-- `attribute` is the name of the block attribute in camelCase (`colorScheme`); the names WordPress reserves (`lock`, `metadata`, `className`, `anchor`, `align`, `style`) and a name another support of the theme or plugin uses are build errors.
-- `label` labels the control. `group` places it in the "Styles" tab (`SupportGroup::Styles`) or in the block's "Settings" panel (`SupportGroup::Settings`).
-- `className()` has exactly one parameter, the value of the attribute, with a default. Its type sets the attribute schema and the control: a backed enum (select; cases labeled with [`Labeled`](./blocks.md#editor-labels)), `bool` (toggle), `int` or `float` (number), `string` (text), each optionally nullable. Value classes and lists are not supported, and the parameter takes no attributes such as `#[Label]`.
-- `className()` returns the class names for the value (several separated by spaces), or `null` or `''` for none. It returns `string` or `?string`.
+The signature of `className()` describes the whole support. Its parameter type sets the attribute's schema and the control in the inspector, and its default is the attribute's default. Here `SurfaceTone` is a backed enum, so the inspector shows a select, and blocks start with `SurfaceTone::Light`.
 
-The class is a [service](./services.md): it may depend on other services through its constructor, and it is created when a block with the support renders for the first time. A support no block uses is not built.
+`#[BlockSupport(attribute, label, group: SupportGroup::Styles)]` takes three arguments:
+
+- **`attribute`** is the name of the block attribute, in camelCase (`colorScheme`). The names WordPress reserves (`lock`, `metadata`, `className`, `anchor`, `align`, `style`) and a name that another support of the same theme or plugin uses are build errors.
+- **`label`** labels the control.
+- **`group`** places the control in the "Styles" tab (`SupportGroup::Styles`) or in the block's "Settings" panel (`SupportGroup::Settings`).
+
+`className()` has exactly one parameter, with a default. Its type is one of these, each optionally nullable:
+
+| Type | Control |
+|---|---|
+| backed enum | select; label the cases with [`Labeled`](./blocks.md#editor-labels) |
+| `bool` | toggle |
+| `int`, `float` | number |
+| `string` | text |
+
+Value classes and lists are not supported, and the parameter takes no attributes such as `#[Label]`. The method returns `string` or `?string`: the class names for the value, several separated by spaces, or `null` or `''` for none.
+
+The class is a [service](./services.md). It can depend on other services through its constructor – for example to read the available color schemes from the settings – and it is created when a block with the support renders for the first time. A support that no block uses is not built.
 
 ## Using a support
 
-`#[UseSupport(Support::class, default: …)]` on a `#[Block]` class, repeatable for several supports:
+A block adds a support with `#[UseSupport]`. It is repeatable, one per support:
 
 ```php
 #[Block('sections/card', title: 'Card', category: BlockCategory::Design)]
@@ -41,23 +57,33 @@ final class Card
 }
 ```
 
-- The attribute is added to the block's attribute schema with the default of `className()`'s parameter; `default` overrides it for this block and must have the type of the value (a case of the enum, a `bool`, …).
-- The attribute must not have the name of a parameter of the block's attribute class; using a support twice or a class without `#[BlockSupport]` is a build error.
-- The template prints the root element with [`block_wrapper_attributes()`](./blocks.md#escaping), which adds the class names of the supports to the classes of WordPress' supports. A block with supports that renders without calling it fails, so a support never stays without effect unnoticed.
+The block now has the attribute `surface`. Its default comes from the parameter of `className()`; `default` overrides it for this block and must have the type of the value – a case of the enum, a `bool`, and so on.
 
-Like every attribute, the value is stored in the block comment, e.g. `<!-- wp:sections/card {"surface":"light"} /-->`. The attribute object of `render()` does not contain it.
+The template doesn't need to know about the support. It prints the root element with [`block_wrapper_attributes()`](./blocks.md#escaping), as every block template does, and that adds the class names of all supports to the classes of WordPress' supports:
+
+```twig
+<article {{ block_wrapper_attributes({class: 'card'}) }}>…</article>
+```
+
+A block with supports that renders without calling `block_wrapper_attributes()` fails. That way a support never stays without effect unnoticed.
+
+Like every attribute, the value is stored in the block comment, e.g. `<!-- wp:sections/card {"surface":"light"} /-->`. The attribute object passed to `render()` does not contain it; the support handles it.
+
+The following are build errors: an attribute of a support with the name of a parameter of the block's attribute class, the same support used twice, and a class without `#[BlockSupport]` in `#[UseSupport]`.
 
 ## At render time
 
-Before the block renders, the framework sanitizes the value against its schema, converts it to its PHP type (an enum case) and calls `className()`. Each class name must consist of letters, digits, `-` and `_` (it must equal its `sanitize_html_class()`); anything else is an error. Errors follow the [render errors](./blocks.md#errors) of blocks: rethrown with `WP_DEBUG`, otherwise logged, and the block renders nothing.
+Before the block renders, the framework sanitizes the value against its schema, converts it to its PHP type (an enum case, for example) and calls `className()`.
+
+Each returned class name must consist of letters, digits, `-` and `_`, so it must equal its `sanitize_html_class()`. Anything else is an error, because a class name built from user data could otherwise break the markup. Errors are handled like the [render errors](./blocks.md#errors) of blocks: rethrown with `WP_DEBUG`, otherwise logged, and the block renders nothing.
 
 Blocks rendered for an [excerpt](./blocks.md#excerpts) evaluate no supports.
 
 ## In the editor
 
-The control appears in the group of the support, only in the default editing mode (not in contentOnly mode, patterns and template parts). Changing it renders the block again, so the class names in the canvas come from the server like on the front end.
+The control appears in the support's group, only in the default editing mode. In contentOnly mode – in patterns and template parts – it is hidden, as WordPress hides its own design settings there. Changing the value renders the block again, so the class names in the canvas come from the server, just like on the front end.
 
-A script next to the support class replaces the generated control in every block that uses the support, e.g. `src/Support/Surface.editor.js` next to `src/Support/Surface.php`; it is loaded with the runtime if a block uses the support:
+A script next to the support class can replace the generated control in every block that uses the support. For `src/Support/Surface.php` that is `src/Support/Surface.editor.js`; it is loaded with the runtime if a block uses the support:
 
 ```jsx
 import { registerSupportControl } from '@saij/wp-app-framework';
@@ -65,7 +91,7 @@ import { registerSupportControl } from '@saij/wp-app-framework';
 registerSupportControl( 'surface', ( { value, onChange } ) => <SurfacePicker value={ value } onChange={ onChange } /> );
 ```
 
-The component receives `{ value, onChange, attributes, setAttributes }`. A control registered with [`registerControl()`](./editor.md#editor-scripts) for a block wins over the support's control.
+The component receives `{ value, onChange, attributes, setAttributes }`. A control that a block registers with [`registerControl()`](./editor.md#editor-scripts) for the same attribute wins over the support's control.
 
 ## Styling
 

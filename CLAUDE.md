@@ -33,6 +33,16 @@ Fixed design decisions:
 - Everything in this repository is English: code, identifiers, comments, README, commit messages.
 - READMEs link to the other repositories by GitHub URL (`https://github.com/saijsaij/<repo>`), never by relative path. Pages in `docs/content/` link to each other by relative `.md` paths.
 
+## Writing documentation
+
+The pages in `docs/content/` are written for people learning the framework, not as a specification:
+
+- Explanatory prose that addresses the reader ("you"), in active sentences with one idea each. Start a page with what the feature is for and why it exists, then how it works, then an example built up step by step with text between the code blocks.
+- WordPress internals go into a sentence of their own, not into parentheses in the middle of a rule.
+- Exact rules – signatures, parameters, defaults, build errors – stay complete; collect them in a "Rules" section or a table at the end of a section instead of packing them into the prose. Tables and lists are for reference, not for explanations.
+- Shared ideas (instances, build and run time, modes, how a block works, template layers) are explained once in `concepts.md`; other pages link there.
+- Use Rspress callouts (`:::warning`, `:::tip`) sparingly, for pitfalls.
+
 ## Commands
 
 All checks run in the `tools` container of [wp-dev-env](https://github.com/saijsaij/wp-dev-env), checked out next to this repository; run the commands from the wp-dev-env directory. Every check must pass without errors or warnings.

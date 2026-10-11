@@ -1,8 +1,12 @@
 # Boot and modes
 
+Before the framework can register anything, your theme or plugin has to start it. That takes one call in the file WordPress loads first: `functions.php` for a theme, the main plugin file for a plugin. This page shows that call for each kind of project. It then explains the two modes the framework runs in: development mode for your checkout and release mode for production.
+
 ## Boot
 
-The theme's `functions.php` loads the autoloader and boots the framework:
+### Themes
+
+A theme loads Composer's autoloader and boots the framework in its `functions.php`:
 
 ```php
 <?php
@@ -17,7 +21,11 @@ require is_file(__DIR__ . '/vendor-prefixed/autoload.php')
 Saij\WpAppFramework\Theme::boot();
 ```
 
-A plugin boots from its main file, which must be named after its directory (`my-plugin/my-plugin.php`):
+The autoloader lines choose between two directories. In your Git checkout, Composer installs everything into `vendor/`. A release ZIP contains `vendor-prefixed/` instead, with every dependency renamed into the theme's own namespace (see [Release](../build-and-release/release.md)). If neither exists, `require` fails with a fatal error that names the missing path.
+
+### Plugins
+
+A plugin does the same in its main file. The main file must be named after the plugin's directory, for example `my-plugin/my-plugin.php`, and it passes its own path to the boot:
 
 ```php
 <?php
@@ -36,15 +44,49 @@ require is_file(__DIR__ . '/vendor-prefixed/autoload.php')
 Saij\WpAppFramework\Plugin::boot(__FILE__);
 ```
 
-A child theme with code of its own (blocks, hooks, routes) boots its own framework instance from its `functions.php`, with the same autoloader lines and `Saij\WpAppFramework\ChildTheme::boot();` – see [Child themes](./child-themes.md). A child theme without code needs neither boot nor build.
+The framework needs the file to find the plugin's directory and its URL; asset URLs of a plugin come from `plugin_dir_url()`.
 
-The slug of a theme is `get_template()`, of a child theme `get_stylesheet()`, of a plugin its directory name; the asset URLs of a plugin come from `plugin_dir_url()`. Each slug boots once: a second boot with the same slug – from the same consumer, or a theme and a plugin with the same directory name – is an error. At its end, the boot fires the action `wp_app_framework/init/{slug}` (without arguments).
+### Child themes
 
-The `type` in the consumer's `composer.json` must be `wordpress-theme` or `wordpress-plugin`; the build reads the kind of the project from it. A theme needs a `style.css`; if it declares a parent theme (`Template:`), the project is a child theme.
+A child theme without code needs neither a boot nor a build. It overrides templates of its parent theme and adjusts `theme.json` like any child theme.
+
+A child theme with code of its own – blocks, hooks, REST routes – boots its own framework instance in its `functions.php`. It uses the same autoloader lines and `Saij\WpAppFramework\ChildTheme::boot();`. [Child themes](./child-themes.md) explains how it works next to its parent theme.
+
+### Slug and init action
+
+Each instance is identified by a slug. For a theme it is `get_template()`, for a child theme `get_stylesheet()` and for a plugin its directory name. The framework derives every global name of the instance from it.
+
+A slug can boot only once. A second boot with the same slug is an error, whether it comes from the same project or from a theme and a plugin that happen to share a directory name.
+
+At the end of the boot the framework fires the action `wp_app_framework/init/{slug}`, without arguments.
+
+### The kind of project
+
+The framework's build reads the kind of project from the `type` in its `composer.json`, which must be `wordpress-theme` or `wordpress-plugin`. A theme needs a `style.css`. If that file names a parent theme in its `Template:` header, the project is a child theme.
 
 ## Modes
 
-- **Release mode:** the theme or plugin contains `generated/manifest.php`, which only the [release build](../build-and-release/release.md) creates. The manifest is loaded as is: no reflection, no file checks, no writes to the project. Compiled Twig templates go to a cache directory named after the template version of the release (see [Twig templates](./twig.md#environment)).
-- **Development mode:** otherwise. The manifest is built by reflection and cached in `wp-content/cache/{slug}/manifest/` (never in the project). Like Symfony's container cache in debug mode, a meta file records the resources the build depended on, using relative paths only. Each request compares modification times; only for newer files the class signature (attributes, parents, interfaces, traits and the signatures of the constructor and public methods, not method bodies) or file content is recomputed, and only a difference triggers a rebuild.
+The framework reads your attributes in a build step and writes the result into a manifest (see [Concepts](../concepts.md#build-and-run-time)). Where that manifest comes from depends on the mode, and the framework chooses the mode by itself. You never set a constant or a flag.
 
-  In development mode all consumers share the unprefixed classes of the framework and its dependencies: whichever autoloader comes first provides them. The boot therefore requires that the loaded framework is the consumer's own `vendor/saij/wp-app-framework` (by real path) and that the loaded Twig version is the one in its `vendor/composer/installed.php`, and fails otherwise. Link the same framework checkout into every consumer (`WP_PACKAGE_LINKS` of [wp-dev-env](https://github.com/saijsaij/wp-dev-env)).
+### Release mode
+
+A theme or plugin is in release mode when it contains `generated/manifest.php`. Only the [release build](../build-and-release/release.md) creates that file, so release mode is what runs on a live site.
+
+In release mode the framework loads the manifest as it is: no reflection, no file checks, and no writes into the theme or plugin directory. Compiled Twig templates go to a cache directory named after the template version of the release (see [Twig templates](./twig.md#environment)).
+
+### Development mode
+
+Without `generated/manifest.php` the framework is in development mode. This is the mode of your checkout. You change a class, reload the page, and the change is there.
+
+The framework builds the manifest by reflection and caches it in `wp-content/cache/{slug}/manifest/`, never in the project itself. To avoid rebuilding on every request, it works like Symfony's container cache in debug mode. A meta file records the files the build depended on, with relative paths only. On each request the framework compares modification times. Only for files that are newer does it recompute the class signature or the file content. The signature covers attributes, parents, interfaces, traits and the signatures of the constructor and public methods; it does not cover method bodies. Only a difference triggers a rebuild, so editing the body of a method costs nothing.
+
+### Several consumers in development mode
+
+In development mode the framework and its dependencies are not prefixed. All consumers therefore share the same classes, and whichever autoloader runs first provides them. A plugin built against one framework checkout would silently run with the framework of the theme.
+
+To rule that out, the boot checks two things and fails if either does not hold:
+
+- the loaded framework is the consumer's own `vendor/saij/wp-app-framework`, compared by real path;
+- the loaded Twig version is the one recorded in the consumer's `vendor/composer/installed.php`.
+
+In practice, link the same framework checkout into every consumer. The option `WP_PACKAGE_LINKS` of [wp-dev-env](https://github.com/saijsaij/wp-dev-env) does exactly that.
