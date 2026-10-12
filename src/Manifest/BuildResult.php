@@ -6,6 +6,7 @@ namespace Saij\WpAppFramework\Manifest;
 
 use ReflectionClass;
 use Saij\WpAppFramework\Block\BlockDefinition;
+use Saij\WpAppFramework\Block\Markup\MarkupFiles;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Hook\HookDefinition;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
@@ -46,6 +47,8 @@ final readonly class BuildResult
      * @param list<SettingsGroupEntry>                          $settings     Settings groups, ordered for the settings page.
      * @param string|null                                       $settingsTitle Title of the settings page (name of the theme or
      *                                                                         plugin); null without settings groups.
+     * @param MarkupFiles|null                                  $markup       Checked block templates, template parts and patterns;
+     *                                                                         null for plugins.
      */
     public function __construct(
         private array $sources,
@@ -67,7 +70,13 @@ final readonly class BuildResult
         private bool $styles = false,
         private array $settings = [],
         private ?string $settingsTitle = null,
+        private ?MarkupFiles $markup = null,
     ) {}
+
+    public function getMarkup(): ?MarkupFiles
+    {
+        return $this->markup;
+    }
 
     /**
      * @return list<SettingsGroupEntry>

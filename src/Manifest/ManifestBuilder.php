@@ -8,6 +8,8 @@ use ReflectionClass;
 use Saij\WpAppFramework\Api\PublicApiCollector;
 use Saij\WpAppFramework\Api\PublicSignatureInspector;
 use Saij\WpAppFramework\Block\BlockCollector;
+use Saij\WpAppFramework\Block\Markup\BlockMarkupValidator;
+use Saij\WpAppFramework\Block\Markup\MarkupFiles;
 use Saij\WpAppFramework\Block\Support\SupportCollector;
 use Saij\WpAppFramework\ChildTheme;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -46,6 +48,8 @@ final class ManifestBuilder
      * @param non-empty-string|null  $parent            Parent theme of a child theme.
      * @param list<string>           $foreignNamespaces Namespaces of dependencies, prefixed in a release.
      * @param string|null            $name              Name of the theme or plugin (header), the title of its settings page.
+     * @param string|null            $markupDirectory   Theme or child theme whose block templates, template parts and
+     *                                                  patterns are checked against its blocks; null for plugins.
      */
     public function __construct(
         private readonly array $sources,
@@ -58,6 +62,7 @@ final class ManifestBuilder
         private readonly array $foreignNamespaces = [],
         private readonly ?string $parent = null,
         private readonly ?string $name = null,
+        private readonly ?string $markupDirectory = null,
     ) {}
 
     /**
@@ -107,6 +112,8 @@ final class ManifestBuilder
             $project->getForeignNamespaces(),
             $project->getParent(),
             $project->getName(),
+            // WordPress reads templates, template parts and patterns only from themes.
+            $project->getKind() === ProjectKind::Plugin ? null : $root,
         );
     }
 
@@ -139,6 +146,12 @@ final class ManifestBuilder
         $supportCollector->collect($classes);
         $blockCollector = new BlockCollector($resolver, $values, $supportCollector, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
         $blocks = $blockCollector->collect($classes);
+        $markup = $this->markupDirectory !== null ? MarkupFiles::scan($this->markupDirectory) : null;
+        $markupValidator = new BlockMarkupValidator($blocks);
+        // Checked only against complete block definitions; otherwise the markup would report follow-up errors.
+        if ($markup !== null && $blockCollector->errors() === [] && $supportCollector->errors() === [] && $values->errors() === []) {
+            $markupValidator->validate($markup);
+        }
         // The framework's namespace is prefixed in a release as well; also listed for builds without vendor/.
         $framework = self::frameworkSource();
         $signatures = new PublicSignatureInspector($classes, [...$this->foreignNamespaces, $framework->getPrefix()], $framework->getDirectory());
@@ -165,6 +178,7 @@ final class ManifestBuilder
             ...$publicApiCollector->errors(),
             ...$supportCollector->errors(),
             ...$blockCollector->errors(),
+            ...$markupValidator->errors(),
             ...$settingsCollector->errors(),
             ...$values->errors(),
             ...$resolver->errors(),
@@ -193,6 +207,7 @@ final class ManifestBuilder
             $this->scriptDirectory !== null && is_file($this->scriptDirectory . '/' . StyleAssets::SOURCE),
             $settings,
             $settings === [] ? null : $this->name,
+            $markup,
         );
     }
 

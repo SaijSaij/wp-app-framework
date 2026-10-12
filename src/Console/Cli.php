@@ -144,6 +144,9 @@ final class Cli
             count($result->getBlocks()),
             $output !== null ? ' Written to ' . $output . '.' : ' Nothing written (no --output).',
         ));
+        if ($result->getMarkup() !== null) {
+            fwrite($stdout, sprintf("Block markup OK: %d templates, template parts and patterns checked.\n", count($result->getMarkup()->getFiles())));
+        }
         if ($result->getPublicApis() !== [] || $public > 0) {
             fwrite($stdout, sprintf("Public: %d APIs, %d template functions and filters.\n", count($result->getPublicApis()), $public));
         }

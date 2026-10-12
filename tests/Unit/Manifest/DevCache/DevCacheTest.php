@@ -322,4 +322,53 @@ final class DevCacheTest extends TestCase
             $this->probe('load-without-project-base'),
         );
     }
+
+    private function writeMarkup(string $name, string $content): void
+    {
+        $file = $this->theme . '/' . $name;
+        if (!is_dir(dirname($file))) {
+            mkdir(dirname($file), 0777, true);
+        }
+        file_put_contents($file, $content);
+        touch($file, time() + 10);
+    }
+
+    public function testBlockMarkupChangesRebuild(): void
+    {
+        $this->writeMarkup('templates/index.html', '<!-- wp:paragraph /-->');
+        $this->probe('load');
+        self::assertSame('fresh', $this->probe('check'));
+
+        // A changed template.
+        $this->writeMarkup('templates/index.html', '<!-- wp:paragraph {"broken":} /-->');
+        self::assertSame('stale', $this->probe('check'));
+        self::assertStringContainsString(
+            'templates/index.html:1: block core/paragraph: invalid JSON in the block comment',
+            $this->probe('load'),
+        );
+
+        $this->writeMarkup('templates/index.html', '<!-- wp:paragraph /-->');
+        $this->probe('load');
+        self::assertSame('fresh', $this->probe('check'));
+
+        // A new directory and a new file in it.
+        mkdir($this->theme . '/parts');
+        self::assertSame('stale', $this->probe('check'));
+        $this->probe('load');
+        $this->writeMarkup('parts/header.html', '');
+        self::assertSame('stale', $this->probe('check'));
+
+        // A new pattern below a subdirectory, then its removal.
+        $this->probe('load');
+        $this->writeMarkup('patterns/nested/hero.php', '<?php /** Title: Hero */ ?>');
+        self::assertSame('stale', $this->probe('check'));
+        $this->probe('load');
+        unlink($this->theme . '/patterns/nested/hero.php');
+        self::assertSame('stale', $this->probe('check'));
+
+        // A deprecated template directory.
+        $this->probe('load');
+        mkdir($this->theme . '/block-templates');
+        self::assertSame('stale', $this->probe('check'));
+    }
 }

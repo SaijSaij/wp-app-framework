@@ -21,7 +21,8 @@ use Throwable;
  * Manifest cache for development mode, following Symfony's ConfigCache in debug mode.
  *
  * Next to the manifest, a meta file lists the resources the build depended on:
- * the file lists of the source directories, files whose content matters and,
+ * the file lists of the source directories, files whose content matters, the
+ * file lists of the directories with block markup (also if they are missing) and,
  * per scanned class, its files and signature hash. A request compares file
  * modification times with the manifest; only for newer files the content hash
  * or class signature is recomputed, and only a difference triggers a rebuild.
@@ -36,13 +37,14 @@ use Throwable;
  *     format: int,
  *     directories: list<array{0: string, 1: string, 2: string}>,
  *     files: list<array{0: string, 1: string, 2: string}>,
+ *     markup: list<array{0: string, 1: string, 2: string}>,
  *     classes: array<class-string, array{files: list<PathRef>, signature: string}>
  * }
  */
 #[NoService]
 final class DevCache
 {
-    private const int META_FORMAT = 1;
+    private const int META_FORMAT = 2;
 
     /**
      * @param string                $directory Cache directory, outside the project.
@@ -88,6 +90,12 @@ final class DevCache
         foreach ($meta['directories'] as [$base, $relative, $hash]) {
             $directory = $this->absolute($base, $relative);
             if (!is_dir($directory) || self::listingHash($directory) !== $hash) {
+                return false;
+            }
+        }
+
+        foreach ($meta['markup'] as [$base, $relative, $hash]) {
+            if (self::markupListingHash($this->absolute($base, $relative)) !== $hash) {
                 return false;
             }
         }
@@ -177,8 +185,17 @@ final class DevCache
             $directories[] = [...$this->relative($directory), self::listingHash($directory)];
         }
 
+        $markup = [];
+        $trackedFiles = $result->getTrackedFiles();
+        if ($result->getMarkup() !== null) {
+            foreach ($result->getMarkup()->getWatchedDirectories() as $directory) {
+                $markup[] = [...$this->relative($directory), self::markupListingHash($directory)];
+            }
+            $trackedFiles = [...$trackedFiles, ...$result->getMarkup()->getAbsoluteFiles()];
+        }
+
         $files = [];
-        foreach ($result->getTrackedFiles() as $file) {
+        foreach ($trackedFiles as $file) {
             $files[] = [...$this->relative($file), hash_file('xxh128', $file)];
         }
 
@@ -208,6 +225,7 @@ final class DevCache
             'format' => self::META_FORMAT,
             'directories' => $directories,
             'files' => $files,
+            'markup' => $markup,
             'classes' => $classes,
         ];
     }
@@ -264,6 +282,19 @@ final class DevCache
             ...ClassDiscovery::files($directory, ScriptKind::View->value),
             ...(is_file($directory . '/' . StyleAssets::SOURCE) ? [StyleAssets::SOURCE] : []),
         ]));
+    }
+
+    /**
+     * Hash of all files below a directory with block markup; a missing directory has a hash of its own, so that
+     * creating it rebuilds the manifest.
+     */
+    private static function markupListingHash(string $directory): string
+    {
+        if (!file_exists($directory)) {
+            return 'missing';
+        }
+
+        return hash('xxh128', implode("\n", is_dir($directory) ? ClassDiscovery::files($directory, '') : ['']));
     }
 
     private static function write(string $file, string $content): void

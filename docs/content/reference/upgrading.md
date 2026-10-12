@@ -4,6 +4,12 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.8
+
+**The build checks block templates, template parts and patterns.** Before 0.8 the build looked at your PHP classes only. Mistakes in the block markup of your theme – a misspelled attribute, a value outside an enum, HTML in a block without a `postContent` field – went unnoticed, and WordPress dropped what it could not use. Since 0.8 the build checks these files against your blocks (see [Checking templates, parts and patterns](../build-and-release/build.md#checking-templates-parts-and-patterns)).
+
+A theme or child theme that built fine with 0.7 may now fail with errors in `templates/`, `parts/` or `patterns/`. Each error names the file, the line and the block; fix the markup as the message says. Two errors need more than a fix in place: PHP code inside the block comment of one of your blocks in a pattern (write the attributes as plain JSON), and a container of your theme without content that holds content blocks in a template part or a pattern with a single top-level block (give it `#[Supports(contentRole: true)]`).
+
 ## 0.7
 
 **Template functions that wrap WordPress functions start with `wp_`.** Before 0.7 a template could call `post_title()` or `attachment_image()`, and nothing showed that these were WordPress functions rather than framework functions or functions of the theme. 0.7 gives all of them the prefix `wp_` and adds many more (see [WordPress functions](../guides/twig.md#wordpress-functions)).

@@ -138,7 +138,7 @@ The framework registers blocks on `init` with `api_version` 3.
 
 Only values that differ from WordPress' defaults are registered. `html` is always disabled, because a framework block has no stored HTML to edit.
 
-**`contentRole: true`** is for container blocks without content of their own. WordPress 7 opens patterns and template parts in contentOnly mode, where editors may only insert blocks into containers that count as content. A block counts as content if it has a content attribute (see [Fields](#fields)) or `contentRole: true`. A section that only holds inner blocks needs `contentRole: true`, so that blocks can be inserted into it in contentOnly mode.
+**`contentRole: true`** is for container blocks without content of their own. WordPress 7 opens patterns and template parts in contentOnly mode, where editors may only insert blocks into containers that count as content. A block counts as content if it has a content attribute (see [Fields](#fields)) or `contentRole: true`. A section that only holds inner blocks needs `contentRole: true`, so that blocks can be inserted into it in contentOnly mode. The [build](../build-and-release/build.md#checking-templates-parts-and-patterns) reports a container without it in your patterns and template parts.
 
 **`customCSS`**, enabled by default in WordPress 7, lets users with `edit_css` store free CSS for each block instance. Whether to allow that is the theme's decision: per block with `customCSS: false`, or for all blocks with a `register_block_type_args` hook of its own.
 
@@ -178,7 +178,7 @@ Some values are not visible in the markup, or are better edited in a form. With 
 
 ### Content in contentOnly mode
 
-In WordPress 7, patterns and template parts open in contentOnly mode. Content editors can change the content of blocks there, but not their design. A block without content attributes is hidden and cannot be selected.
+In WordPress 7, template parts and inserted patterns open in contentOnly mode. Content editors can change the content of blocks there, but not their design. A pattern becomes such a section only if it has a single top-level block, such as a group around its content; WordPress inserts a pattern with several top-level blocks as ordinary blocks. A block without content attributes is still shown, but it cannot be selected.
 
 WordPress decides by the attribute's `role: content`. The build sets it for you: an attribute gets `role: content` if it, or a field nested in it, carries `#[PlainText]`, `#[RichText]`, `#[Image]` or `#[Content]`, or is a reference. In the example, `buttons` is content because each button has a label and a URL.
 

@@ -4,7 +4,7 @@ Child themes are where customer projects adapt a theme: different markup for a b
 
 ## Child themes without code
 
-Most adaptations need no PHP at all. A child theme without code overrides templates of its parent theme and adjusts `theme.json`, block templates, template parts and patterns, as WordPress allows for any child theme. It needs no Composer, no boot and no build.
+Most adaptations need no PHP at all. A child theme without code overrides templates of its parent theme and adjusts `theme.json`, block templates, template parts and patterns, as WordPress allows for any child theme. It needs no Composer, no boot and no build. Without a build, nothing checks its block templates, template parts and patterns against the blocks of the parent theme (see [Checking templates, parts and patterns](../build-and-release/build.md#checking-templates-parts-and-patterns)).
 
 To change the markup of a block, put a template with the same path into `overrides/{parent-slug}/`. For the parent theme `my-theme`, the file `overrides/my-theme/Block/Hero/Hero.twig` replaces the theme's `src/Block/Hero/Hero.twig`. The block keeps its attributes and its editor; only the markup changes. [Twig templates](./twig.md#lookup) describes the full lookup order.
 
