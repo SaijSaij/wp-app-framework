@@ -5,12 +5,12 @@
 <title>Blocks - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-2409267e7d13.080c1648ef.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-2409267e7d13.8bf12e2f4c.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.d23ca40952.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.d9c2b915f7.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.c3882fe1e8.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.0cfbd30635.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -119,7 +119,7 @@
 <p><code>#[Supports]</code> switches on the block supports of WordPress. Its arguments and their defaults are WordPress&#x27; own:</p>
 <p><code>#[Supports(contentRole: false, anchor: false, align: [], customClassName: true, multiple: true, reusable: true, inserter: true, lock: true, renaming: true, customCSS: true)]</code></p>
 <p>Only values that differ from WordPress&#x27; defaults are registered. <code>html</code> is always disabled, because a framework block has no stored HTML to edit.</p>
-<p><strong><code>contentRole: true</code></strong> is for container blocks without content of their own. WordPress 7 opens patterns and template parts in contentOnly mode, where editors may only insert blocks into containers that count as content. A block counts as content if it has a content attribute (see <a href="#fields" class="rp-link">Fields</a>) or <code>contentRole: true</code>. A section that only holds inner blocks needs <code>contentRole: true</code>, so that blocks can be inserted into it in contentOnly mode.</p>
+<p><strong><code>contentRole: true</code></strong> is for container blocks without content of their own. WordPress 7 opens patterns and template parts in contentOnly mode, where editors may only insert blocks into containers that count as content. A block counts as content if it has a content attribute (see <a href="#fields" class="rp-link">Fields</a>) or <code>contentRole: true</code>. A section that only holds inner blocks needs <code>contentRole: true</code>, so that blocks can be inserted into it in contentOnly mode. The <a href="/wp-app-framework/next/build-and-release/build.html#checking-templates-parts-and-patterns" class="rp-link">build</a> reports a container without it in your patterns and template parts.</p>
 <p><strong><code>customCSS</code></strong>, enabled by default in WordPress 7, lets users with <code>edit_css</code> store free CSS for each block instance. Whether to allow that is the theme&#x27;s decision: per block with <code>customCSS: false</code>, or for all blocks with a <code>register_block_type_args</code> hook of its own.</p>
 <p>Settings of your own that several blocks share, such as a color scheme, are <a href="/wp-app-framework/next/guides/supports.html" class="rp-link">block supports</a> of the theme or plugin, added with <code>#[UseSupport]</code>.</p>
 <h2 class="rp-toc-include" id="render"><a href="#render" class="rp-header-anchor rp-link" aria-hidden="true">#</a><code>render()</code></h2>
@@ -145,7 +145,7 @@
 <p><strong><code>#[Content]</code></strong> marks other content, such as the URL of a link. It is edited in the inspector like any other value, but it counts as content: its control appears in the inspector&#x27;s &quot;Content&quot; group, and WordPress keeps it editable in contentOnly mode (see below).</p>
 <p><a href="/wp-app-framework/next/guides/values.html#references" class="rp-link">References</a> to posts, terms and users (<code>#[PostReference]</code>, <code>#[TermReference]</code>, <code>#[UserReference]</code>) are edited with a search in the inspector, and they count as content too.</p>
 <h3 class="rp-toc-include" id="content-in-contentonly-mode"><a href="#content-in-contentonly-mode" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Content in contentOnly mode</h3>
-<p>In WordPress 7, patterns and template parts open in contentOnly mode. Content editors can change the content of blocks there, but not their design. A block without content attributes is hidden and cannot be selected.</p>
+<p>In WordPress 7, template parts and inserted patterns open in contentOnly mode. Content editors can change the content of blocks there, but not their design. A pattern becomes such a section only if it has a single top-level block, such as a group around its content; WordPress inserts a pattern with several top-level blocks as ordinary blocks. A block without content attributes is still shown, but it cannot be selected.</p>
 <p>WordPress decides by the attribute&#x27;s <code>role: content</code>. The build sets it for you: an attribute gets <code>role: content</code> if it, or a field nested in it, carries <code>#[PlainText]</code>, <code>#[RichText]</code>, <code>#[Image]</code> or <code>#[Content]</code>, or is a reference. In the example, <code>buttons</code> is content because each button has a label and a URL.</p>
 <p>The marks have no effect on REST arguments.</p>
 <h2 class="rp-toc-include" id="editor-labels"><a href="#editor-labels" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Editor labels</h2>
