@@ -115,7 +115,27 @@ registerControl( 'sections/hero', 'count', ( { value, onChange } ) => (
 registerPanel( 'sections/hero', ( { attributes, setAttributes } ) => <PanelBody title="Hero">…</PanelBody> );
 ```
 
-`registerControl()` replaces the generated control of one attribute. `registerPanel()` adds a panel of your own. `registerToolbarButton()` adds buttons to the block's toolbar (see [Front-end scripts](./frontend.md#toolbar-buttons)). All of them warn in the console about unknown blocks and attributes.
+`registerControl()` replaces the generated control of one attribute. `registerPanel()` adds a panel of your own. Both warn in the console about unknown blocks and attributes.
+
+### Toolbar buttons
+
+`registerToolbarButton()` adds buttons of your own to a block's toolbar, for actions that belong right at the block rather than in the inspector:
+
+```jsx
+import { registerToolbarButton } from '@saij/wp-app-framework';
+import { ToolbarButton } from '@wordpress/components';
+
+registerToolbarButton( 'sections/faq', ( { attributes, setAttributes } ) => (
+	<ToolbarButton
+		icon="arrow-down-alt2"
+		label="Open by default"
+		isPressed={ attributes.open }
+		onClick={ () => setAttributes( { open: ! attributes.open } ) }
+	/>
+) );
+```
+
+The component receives the block's `attributes`, `setAttributes`, its `clientId` and `isPreview` (whether the block shows its [preview](#preview)), and renders one or more toolbar buttons. Several registrations for a block appear in the order they were registered. An unknown block name is reported in the console.
 
 Controls of block supports are replaced with `registerSupportControl()`, in a script next to the support class (see [Block supports](./supports.md#in-the-editor)).
 

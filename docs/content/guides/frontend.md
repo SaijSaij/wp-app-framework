@@ -95,33 +95,12 @@ In the editor, a block shows its editing view: fields are edited inline, and emp
 
 The preview shows the block as it appears on the front end. The editor asks the server to render the block, with its inner blocks, exactly as on a page, and shows that markup in place of the editing view. Then it mounts the block's views on it, with `this.isPreview` set to `true`. Content editors can open the FAQ, step through a slider or try any other state.
 
-Editing pauses while the preview is on; the inspector stays available. A changed attribute renders the preview again: the old views unmount, the new markup appears and new views mount. Pressing **Preview** again, or removing the block, unmounts the views and returns to editing.
+Editing pauses while the preview is on; the inspector stays available. A changed attribute renders the preview again: the old views unmount, the new markup appears and new views mount. Pressing **Preview** again, or removing the block, unmounts the views and returns to editing. Buttons of your own in a block's toolbar are an editor feature, independent of view scripts; see [Toolbar buttons](./editor.md#toolbar-buttons).
 
 Two things differ from the front end, and the view must allow for them:
 
 - **Another document.** The editor runs view scripts in its main window, but the block lives in the canvas iframe. Use `this.document` and `this.window`, which belong to the block's element, instead of the globals `document` and `window`.
 - **The root element belongs to the editor.** In the preview, the editor manages the class and style of the root element and resets them, for example when the block is selected. Keep the state of a view in the elements inside the block or in data attributes, not in the root element's classes.
-
-## Toolbar buttons
-
-Block developers can add buttons of their own to a block's toolbar, in its [editor script](./editor.md#editor-scripts):
-
-```jsx
-// src/Block/Faq/Faq.editor.js
-import { registerToolbarButton } from '@saij/wp-app-framework';
-import { ToolbarButton } from '@wordpress/components';
-
-registerToolbarButton( 'sections/faq', ( { attributes, setAttributes } ) => (
-	<ToolbarButton
-		icon="arrow-down-alt2"
-		label="Open by default"
-		isPressed={ attributes.open }
-		onClick={ () => setAttributes( { open: ! attributes.open } ) }
-	/>
-) );
-```
-
-The component receives the block's `attributes`, `setAttributes`, its `clientId` and `isPreview`. It renders one or more toolbar buttons. Toolbar buttons work for every block, with or without a view script.
 
 ## Rules
 
