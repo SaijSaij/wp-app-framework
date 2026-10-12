@@ -29,14 +29,15 @@ final readonly class BuildAssets
     ) {}
 
     /**
-     * @param non-empty-string $handle
-     * @param string           $script Below the build directory, without extension.
+     * @param non-empty-string                                $handle
+     * @param string                                          $script Below the build directory, without extension.
+     * @param array{in_footer?: bool, strategy?: 'defer'|'async'} $args   Loading options of wp_register_script().
      * @return string The version from the asset file.
      */
-    public function registerScript(string $handle, string $script): string
+    public function registerScript(string $handle, string $script, array $args = ['in_footer' => false]): string
     {
         $asset = $this->asset($script);
-        wp_register_script($handle, $this->buildUri . '/' . $script . '.js', $asset['dependencies'], $asset['version'], ['in_footer' => false]);
+        wp_register_script($handle, $this->buildUri . '/' . $script . '.js', $asset['dependencies'], $asset['version'], $args);
 
         return $asset['version'];
     }

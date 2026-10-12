@@ -22,7 +22,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  *     supports: list<string>
  * }
  * @phpstan-type BlockExcerpt array{fields: array<string, 'plain'|'rich'>, wrapper: bool}
- * @phpstan-type BlockSupportEntry array{attribute: string, class: class-string, value: Value, editorScript: string|null}
+ * @phpstan-type BlockSupportEntry array{attribute: string, class: class-string, value: Value, editorScript: string|null, viewScript: string|null}
  * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
  */
 #[NoService]
@@ -41,7 +41,9 @@ final readonly class BlockDefinition
      *                                        `*`) and whether the block is an excerpt wrapper.
      * @param list<BlockSupportEntry> $supports Block supports (`#[UseSupport]`) in declaration order: attribute,
      *                                        service with className(), description of the value and the support's
-     *                                        editor script below the script directory, without extension.
+     *                                        editor and view scripts below the script directory, without extension.
+     * @param string|null          $viewScript The block's view script (front end) below the script directory,
+     *                                        without extension.
      */
     public function __construct(
         private string $name,
@@ -51,6 +53,7 @@ final readonly class BlockDefinition
         private array $editor,
         private array $excerpt,
         private array $supports = [],
+        private ?string $viewScript = null,
     ) {}
 
     public function getName(): string
@@ -104,5 +107,10 @@ final readonly class BlockDefinition
     public function getSupports(): array
     {
         return $this->supports;
+    }
+
+    public function getViewScript(): ?string
+    {
+        return $this->viewScript;
     }
 }

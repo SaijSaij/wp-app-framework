@@ -10,8 +10,10 @@ use Saij\WpAppFramework\Editor\EditorAssets;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
+use Saij\WpAppFramework\Tests\Support\Files;
 use Saij\WpAppFramework\Tests\Support\Recorded;
 use Saij\WpAppFramework\Tests\Unit\Block\Support\SupportCollectorTest;
+use Saij\WpAppFramework\Tests\Unit\View\ViewBuildTest;
 
 final class EditorAssetsTest extends TestCase
 {
@@ -25,14 +27,7 @@ final class EditorAssetsTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (['vendor/wp-app-framework/editor.asset.php', 'vendor/wp-app-framework/editor.css', 'vendor/wp-app-framework/canvas.asset.php', 'vendor/wp-app-framework/canvas.css', 'Container.editor.asset.php', 'Accent.editor.asset.php'] as $file) {
-            if (is_file($this->build . '/' . $file)) {
-                unlink($this->build . '/' . $file);
-            }
-        }
-        rmdir($this->build . '/vendor/wp-app-framework');
-        rmdir($this->build . '/vendor');
-        rmdir($this->build);
+        Files::remove($this->build);
         unset($GLOBALS['wp_app_framework_test_scripts'], $GLOBALS['wp_app_framework_test_styles'], $GLOBALS['wp_app_framework_test_admin']);
     }
 
@@ -152,7 +147,7 @@ final class EditorAssetsTest extends TestCase
         self::assertSame(100, $config['maxBlocks']);
         self::assertTrue($config['development']);
         self::assertSame(['fixture/container', 'fixture/teaser', 'fixture/wrong-field'], array_keys($config['blocks']));
-        self::assertSame(['fields' => [], 'controls' => [], 'innerBlocks' => true, 'postContentField' => null, 'supports' => []], $config['blocks']['fixture/container']);
+        self::assertSame(['fields' => [], 'controls' => [], 'innerBlocks' => true, 'postContentField' => null, 'supports' => [], 'view' => false], $config['blocks']['fixture/container']);
         self::assertSame(['kind' => 'rich', 'label' => 'Title', 'allowedFormats' => ['core/bold']], $config['blocks']['fixture/teaser']['fields']['title']);
     }
 
@@ -175,5 +170,36 @@ final class EditorAssetsTest extends TestCase
         $config = json_decode(substr($assets->configScript(), strlen($prefix), -strlen(' };')), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(['surface', 'framed', 'accent'], $config['blocks']['fixture/card']['supports']);
         self::assertSame([], $config['blocks']['fixture/plain']['supports']);
+    }
+
+    public function testLoadsTheViewScriptsForThePreviewAndMarksTheBlocksWithViews(): void
+    {
+        $this->writeAsset('vendor/wp-app-framework/editor', "'wp-blocks'");
+        file_put_contents($this->build . '/vendor/wp-app-framework/editor.css', '');
+        $this->writeAsset('vendor/wp-app-framework/view', '');
+        $this->writeAsset('Faq.view', "'my-theme-wp-app-framework-view'");
+        $this->writeAsset('Reveal.view', "'my-theme-wp-app-framework-view'");
+        $this->writeAsset('Bare.view', "'my-theme-wp-app-framework-view'");
+
+        $assets = $this->assets(ViewBuildTest::buildValid());
+        $assets->enqueue();
+        $scripts = Recorded::scripts();
+
+        self::assertSame(
+            ['my-theme-wp-app-framework', 'my-theme-wp-app-framework-view', 'my-theme-fixture-bare-view', 'my-theme-fixture-faq-view', 'my-theme-support-reveal-on-scroll-view'],
+            array_keys($scripts),
+        );
+        foreach ($scripts as $handle => $script) {
+            self::assertTrue($script['enqueued'], $handle);
+        }
+
+        $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = { config: ';
+        /** @var array{previewPath: string, blocks: array<string, array{view: bool}>} $config */
+        $config = json_decode(substr($assets->configScript(), strlen($prefix), -strlen(' };')), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('/wp-app-framework/v1/my-theme/preview', $config['previewPath']);
+        self::assertSame(
+            ['fixture/bare' => true, 'fixture/faq' => true, 'fixture/note' => true, 'fixture/plain' => false],
+            array_map(static fn(array $block): bool => $block['view'], $config['blocks']),
+        );
     }
 }

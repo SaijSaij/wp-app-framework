@@ -51,7 +51,8 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     arguments: list<BlockArgument>,
  *     editor: BlockEditor,
  *     excerpt: BlockExcerpt,
- *     supports: list<BlockSupportEntry>
+ *     supports: list<BlockSupportEntry>,
+ *     viewScript: string|null
  * }
  * @phpstan-type ManifestData array{
  *     format: int,
@@ -75,7 +76,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 13;
+    public const int FORMAT = 14;
 
     /**
      * @return ManifestData

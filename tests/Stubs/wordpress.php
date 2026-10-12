@@ -201,11 +201,21 @@ function register_block_type(string $block_type, array $args = []): WP_Block_Typ
 }
 
 /**
+ * The class of a test block plus the extra attributes; attributes other than class, style, id and
+ * aria-label are appended escaped, as in WordPress (class-wp-block-supports.php).
+ *
  * @param array<string, string> $extra
  */
 function get_block_wrapper_attributes(array $extra = []): string
 {
-    return 'class="wp-block-test' . (isset($extra['class']) ? ' ' . $extra['class'] : '') . '"';
+    $attributes = ['class="wp-block-test' . (isset($extra['class']) ? ' ' . $extra['class'] : '') . '"'];
+    foreach ($extra as $name => $value) {
+        if (!in_array($name, ['class', 'style', 'id', 'aria-label'], true)) {
+            $attributes[] = $name . '="' . esc_attr($value) . '"';
+        }
+    }
+
+    return implode(' ', $attributes);
 }
 
 /**
@@ -300,6 +310,16 @@ final class WP_Block_Type
 /**
  * @param array{blockName: string, attrs: array<string, mixed>, innerHTML?: string} $parsed_block
  */
+/**
+ * Parsed blocks prepared by a test in $GLOBALS['wp_app_framework_test_parsed_blocks'] by content.
+ *
+ * @return list<array{blockName: string|null, attrs: array<string, mixed>, innerBlocks: list<array<string, mixed>>, innerHTML: string, innerContent: list<string|null>}>
+ */
+function parse_blocks(string $content): array
+{
+    return $GLOBALS['wp_app_framework_test_parsed_blocks'][$content] ?? [];
+}
+
 function render_block(array $parsed_block, ?WP_Block $parent_block = null): string
 {
     return new WP_Block($parsed_block)->render();
@@ -353,9 +373,23 @@ function wp_json_encode(mixed $value, int $flags = 0): string|false
  */
 function wp_register_script(string $handle, string $src, array $deps = [], string|bool|null $ver = false, array|bool $args = []): bool
 {
-    $GLOBALS['wp_app_framework_test_scripts'][$handle] = ['src' => $src, 'deps' => $deps, 'ver' => $ver, 'enqueued' => false, 'before' => []];
+    $GLOBALS['wp_app_framework_test_scripts'][$handle] = ['src' => $src, 'deps' => $deps, 'ver' => $ver, 'args' => $args, 'enqueued' => false, 'before' => []];
 
     return true;
+}
+
+/**
+ * Status of a script recorded in $GLOBALS['wp_app_framework_test_scripts'] ("registered" or "enqueued").
+ */
+function wp_script_is(string $handle, string $status = 'enqueued'): bool
+{
+    $script = $GLOBALS['wp_app_framework_test_scripts'][$handle] ?? null;
+
+    return match ($status) {
+        'registered' => $script !== null,
+        'enqueued' => (bool) ($script['enqueued'] ?? false),
+        default => false,
+    };
 }
 
 function wp_add_inline_script(string $handle, string $data, string $position = 'after'): bool

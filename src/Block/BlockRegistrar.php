@@ -10,6 +10,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Value\ValueFactory;
+use Saij\WpAppFramework\View\ViewAssets;
 use Throwable;
 use WP_Block;
 use WP_Block_Type_Registry;
@@ -40,6 +41,14 @@ use WP_Block_Type_Registry;
  * block_wrapper_attributes() adds them to the root element. Invalid class
  * names and a template without block_wrapper_attributes() are errors.
  *
+ * Blocks with view scripts (front-end scripts next to the block class or the
+ * classes of its block supports) mark their root element through
+ * block_wrapper_attributes() and enqueue the scripts when they render; not
+ * in editor renders and not for excerpts, so a page only loads the scripts of
+ * blocks it shows. WordPress dequeues them again if the block renders nothing
+ * (WP_Block::render()). A template without block_wrapper_attributes() is an
+ * error.
+ *
  * A block name another framework instance or plugin already registered is an
  * error (WordPress itself only reports it as "doing it wrong"): with WP_DEBUG
  * it is thrown, otherwise logged and the block is skipped.
@@ -57,6 +66,7 @@ final readonly class BlockRegistrar
         private RenderContext $context,
         private bool $debug,
         private string $slug,
+        private ViewAssets $views,
     ) {}
 
     /**
@@ -139,16 +149,24 @@ final readonly class BlockRegistrar
                 };
             }
 
-            return $this->context->renderBlock(
+            ['classes' => $classes, 'values' => $supportValues] = $this->supportValues($block, $attributes);
+            $views = ViewAssets::hasViews($block) && !$this->context->isEditor();
+            $html = $this->context->renderBlock(
                 $block['name'],
                 $block['editor']['fields'],
                 $block['editor']['innerBlocks'],
                 // The build checked that the block class has a public render(): string.
                 // @phpstan-ignore method.notFound, return.type
                 fn(): string => $this->container->get($block['class'])->render(...$named),
-                $this->supportClasses($block, $attributes),
-                $block['supports'] !== [],
+                $classes,
+                self::missingWrapper($block),
+                $views ? $this->views->marker($block, $supportValues) : [],
             );
+            if ($views) {
+                $this->views->enqueue($block);
+            }
+
+            return $html;
         } catch (Throwable $exception) {
             if ($this->debug) {
                 throw $exception;
@@ -169,21 +187,47 @@ final readonly class BlockRegistrar
     }
 
     /**
-     * Class names of the block supports for the given attributes.
+     * The error if the block renders without block_wrapper_attributes(); null if it may.
+     *
+     * @param BlockEntry $block
+     */
+    private static function missingWrapper(array $block): ?string
+    {
+        if (ViewAssets::hasViews($block)) {
+            return sprintf(
+                'Block %s has view scripts, but did not print its root element with block_wrapper_attributes(), so its views cannot be mounted%s.',
+                $block['name'],
+                $block['supports'] !== [] ? ' and the class names of its block supports (#[UseSupport]) are missing' : '',
+            );
+        }
+        if ($block['supports'] !== []) {
+            return sprintf(
+                'Block %s uses block supports (#[UseSupport]), but did not print its root element with block_wrapper_attributes(), so the class names of the supports are missing.',
+                $block['name'],
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * Class names of the block supports for the given attributes and the sanitized value of each support attribute.
      *
      * @param BlockEntry           $block
      * @param array<string, mixed> $attributes
-     * @return list<string>
+     * @return array{classes: list<string>, values: array<string, mixed>}
      */
-    private function supportClasses(array $block, array $attributes): array
+    private function supportValues(array $block, array $attributes): array
     {
         $classes = [];
+        $values = [];
         foreach ($block['supports'] as $support) {
             $attribute = $support['attribute'];
             $raw = $attributes[$attribute] ?? null;
             if ($raw !== null) {
                 $raw = rest_sanitize_value_from_schema($raw, $block['args']['attributes'][$attribute], $attribute);
             }
+            $values[$attribute] = $raw;
             $value = $this->values->create($support['value'], $raw, $attribute);
             // The build checked that the support class has a public className(): ?string with one parameter.
             /** @var string|null $result */
@@ -204,7 +248,7 @@ final readonly class BlockRegistrar
             }
         }
 
-        return $classes;
+        return ['classes' => $classes, 'values' => $values];
     }
 
     /**

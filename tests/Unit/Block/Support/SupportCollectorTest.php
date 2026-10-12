@@ -81,10 +81,10 @@ final class SupportCollectorTest extends TestCase
         $card = self::blocks()['fixture/card'];
 
         self::assertSame([
-            ['attribute' => 'surface', 'class' => SupportValid\Surface::class, 'value' => ['type' => 'enum', 'class' => SupportValid\Tone::class, 'nullable' => false], 'editorScript' => null],
-            ['attribute' => 'framed', 'class' => SupportValid\Framed::class, 'value' => ['type' => 'bool', 'nullable' => false], 'editorScript' => null],
+            ['attribute' => 'surface', 'class' => SupportValid\Surface::class, 'value' => ['type' => 'enum', 'class' => SupportValid\Tone::class, 'nullable' => false], 'editorScript' => null, 'viewScript' => null],
+            ['attribute' => 'framed', 'class' => SupportValid\Framed::class, 'value' => ['type' => 'bool', 'nullable' => false], 'editorScript' => null, 'viewScript' => null],
             // The editor script next to the support class.
-            ['attribute' => 'accent', 'class' => SupportValid\Accent::class, 'value' => ['type' => 'string', 'nullable' => true], 'editorScript' => 'Accent.editor'],
+            ['attribute' => 'accent', 'class' => SupportValid\Accent::class, 'value' => ['type' => 'string', 'nullable' => true], 'editorScript' => 'Accent.editor', 'viewScript' => null],
         ], $card->getSupports());
 
         $services = $result->getServices();

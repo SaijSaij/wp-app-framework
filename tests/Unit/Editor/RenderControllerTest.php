@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Tests\Unit\Editor;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
+use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
@@ -17,6 +18,7 @@ use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Tests\Support\Recorded;
 use Saij\WpAppFramework\Tests\Support\Requests;
 use Saij\WpAppFramework\Value\ValueFactory;
+use Saij\WpAppFramework\View\ViewAssets;
 use WP_Block_Type_Registry;
 
 /**
@@ -61,6 +63,7 @@ final class RenderControllerTest extends TestCase
             $GLOBALS['wp_app_framework_test_caps'],
             $GLOBALS['wp_app_framework_test_posts'],
             $GLOBALS['wp_app_framework_test_postdata'],
+            $GLOBALS['wp_app_framework_test_parsed_blocks'],
             $GLOBALS['post'],
         );
     }
@@ -71,7 +74,7 @@ final class RenderControllerTest extends TestCase
     private function controller(bool $debug): RenderController
     {
         $container = new Container($this->manifest['services'], [RenderContext::class => $this->context]);
-        new BlockRegistrar($container, new ValueFactory($this->manifest['values']), $this->context, $debug, 'my-theme')
+        new BlockRegistrar($container, new ValueFactory($this->manifest['values']), $this->context, $debug, 'my-theme', new ViewAssets('my-theme', new BuildAssets('my-theme', '/nonexistent/build', 'https://example.test/build')))
             ->register($this->manifest['blocks']);
         foreach (Recorded::blocks() as $name => $args) {
             // @phpstan-ignore argument.type (the arguments the registrar passed to register_block_type())
@@ -154,6 +157,73 @@ final class RenderControllerTest extends TestCase
         self::assertSame([['html' => '']], $this->render([['name' => 'fixture/wrong-field']], false));
         self::assertStringContainsString('"missing" is not an inline field', (string) file_get_contents($this->log));
         self::assertFalse($this->context->isEditor());
+    }
+
+    /**
+     * @param list<array<string, mixed>> $blocks Parsed blocks of the content.
+     */
+    private function preview(array $blocks, ?int $postId = null, bool $debug = true): \WP_REST_Response|\WP_Error
+    {
+        $GLOBALS['wp_app_framework_test_parsed_blocks'] = ['<!-- content -->' => $blocks];
+
+        return $this->controller($debug)->preview(Requests::create(['content' => '<!-- content -->', 'postId' => $postId]));
+    }
+
+    /**
+     * @param array<string, mixed> $attrs
+     * @return array<string, mixed>
+     */
+    private static function parsed(string $name, array $attrs = []): array
+    {
+        return ['blockName' => $name, 'attrs' => $attrs, 'innerBlocks' => [], 'innerHTML' => '', 'innerContent' => []];
+    }
+
+    public function testPreviewRendersTheBlockAsOnTheFrontEnd(): void
+    {
+        $whitespace = ['blockName' => null, 'attrs' => [], 'innerBlocks' => [], 'innerHTML' => "\n", 'innerContent' => ["\n"]];
+        $response = $this->preview([$whitespace, self::parsed('fixture/teaser', ['kicker' => 'Hi & bye']), $whitespace], 7);
+
+        self::assertInstanceOf(\WP_REST_Response::class, $response);
+        self::assertSame(['html' => '<div><p>Hi &amp; bye</p></div>'], $response->get_data());
+        self::assertSame(7, $GLOBALS['wp_app_framework_test_postdata']);
+        self::assertArrayNotHasKey('post', $GLOBALS, 'The previous global post is restored.');
+    }
+
+    public function testPreviewRendersExactlyOneBlockOfTheInstance(): void
+    {
+        foreach ([[], [self::parsed('fixture/teaser'), self::parsed('fixture/teaser')], [self::parsed('core/paragraph')]] as $blocks) {
+            self::unregisterBlockTypes();
+            $response = $this->preview($blocks);
+            self::assertInstanceOf(\WP_Error::class, $response);
+            self::assertSame('wp_app_framework_invalid_preview', $response->get_error_code());
+            self::assertSame('The preview renders exactly one block of fixture.', $response->get_error_message());
+            self::assertSame(['status' => 400], $response->get_error_data());
+        }
+    }
+
+    public function testPreviewChecksThePost(): void
+    {
+        $missing = $this->preview([self::parsed('fixture/teaser')], 99);
+        self::assertInstanceOf(\WP_Error::class, $missing);
+        self::assertSame(['wp_app_framework_post_not_found', ['status' => 404]], [$missing->get_error_code(), $missing->get_error_data()]);
+
+        self::unregisterBlockTypes();
+        $forbidden = $this->preview([self::parsed('fixture/teaser')], 8);
+        self::assertInstanceOf(\WP_Error::class, $forbidden);
+        self::assertSame(['wp_app_framework_forbidden', ['status' => 403]], [$forbidden->get_error_code(), $forbidden->get_error_data()]);
+    }
+
+    public function testPreviewErrorsAreLogged(): void
+    {
+        $error = $this->preview([self::parsed('fixture/wrong-field')]);
+
+        self::assertInstanceOf(\WP_Error::class, $error);
+        self::assertSame('wp_app_framework_render_failed', $error->get_error_code());
+        self::assertSame('field() in block fixture/wrong-field: "missing" is not an inline field of the block (it has none).', $error->get_error_message());
+        $data = $error->get_error_data();
+        self::assertIsArray($data);
+        self::assertSame(500, $data['status'] ?? null);
+        self::assertStringContainsString('editor preview of block fixture/wrong-field failed', (string) file_get_contents($this->log));
     }
 
     public function testTemplateFunctionsCheckTheCurrentBlock(): void

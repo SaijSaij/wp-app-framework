@@ -25,6 +25,8 @@ final readonly class SupportDefinition
      * @param mixed                $default Default of className()'s parameter, as PHP value.
      * @param string|null          $editorScript Editor script next to the class below the script directory,
      *                                           without extension.
+     * @param string|null          $viewScript   View script (front end) next to the class below the script
+     *                                           directory, without extension.
      */
     public function __construct(
         private string $class,
@@ -35,6 +37,7 @@ final readonly class SupportDefinition
         private array $control,
         private mixed $default,
         private ?string $editorScript = null,
+        private ?string $viewScript = null,
     ) {}
 
     /**
@@ -87,5 +90,10 @@ final readonly class SupportDefinition
     public function getEditorScript(): ?string
     {
         return $this->editorScript;
+    }
+
+    public function getViewScript(): ?string
+    {
+        return $this->viewScript;
     }
 }

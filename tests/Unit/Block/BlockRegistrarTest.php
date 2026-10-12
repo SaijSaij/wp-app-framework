@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Tests\Unit\Block;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\Editor\RenderContext;
@@ -14,6 +15,7 @@ use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Tests\Support\Recorded;
 use Saij\WpAppFramework\Value\ValueFactory;
+use Saij\WpAppFramework\View\ViewAssets;
 use WP_Block;
 use WP_Block_Type_Registry;
 
@@ -57,7 +59,7 @@ final class BlockRegistrarTest extends TestCase
      */
     private function register(bool $debug): array
     {
-        new BlockRegistrar(new Container($this->manifest['services']), new ValueFactory($this->manifest['values']), new RenderContext(), $debug, 'my-theme')
+        new BlockRegistrar(new Container($this->manifest['services']), new ValueFactory($this->manifest['values']), new RenderContext(), $debug, 'my-theme', new ViewAssets('my-theme', new BuildAssets('my-theme', '/nonexistent/build', 'https://example.test/build')))
             ->register($this->manifest['blocks']);
 
         return Recorded::blocks();

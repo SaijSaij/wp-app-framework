@@ -25,6 +25,8 @@ export function startRuntime( slug ) {
 	const { config } = instance;
 	const runtime = {
 		config,
+		// The view runtime of the instance (view.js), loaded with the editor runtime; mounts views in the preview.
+		getViewRuntime: () => instance.viewRuntime,
 		renderer: createRenderer( {
 			fetch: apiFetch,
 			path: config.renderPath,
@@ -43,6 +45,7 @@ export function startRuntime( slug ) {
 	instance.registerControl = runtime.registry.registerControl;
 	instance.registerSupportControl = runtime.registry.registerSupportControl;
 	instance.registerPanel = runtime.registry.registerPanel;
+	instance.registerToolbarButton = runtime.registry.registerToolbarButton;
 }
 
 /**

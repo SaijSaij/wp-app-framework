@@ -115,11 +115,15 @@ registerControl( 'sections/hero', 'count', ( { value, onChange } ) => (
 registerPanel( 'sections/hero', ( { attributes, setAttributes } ) => <PanelBody title="Hero">…</PanelBody> );
 ```
 
-`registerControl()` replaces the generated control of one attribute. `registerPanel()` adds a panel of your own. Both warn in the console about unknown blocks and attributes.
+`registerControl()` replaces the generated control of one attribute. `registerPanel()` adds a panel of your own. `registerToolbarButton()` adds buttons to the block's toolbar (see [Front-end scripts](./frontend.md#toolbar-buttons)). All of them warn in the console about unknown blocks and attributes.
 
 Controls of block supports are replaced with `registerSupportControl()`, in a script next to the support class (see [Block supports](./supports.md#in-the-editor)).
 
 `@saij/wp-app-framework` always maps to the runtime of your own framework instance, never to that of another theme or plugin.
+
+## Preview
+
+A block with a [front-end script](./frontend.md) gets a **Preview** button in its toolbar. It shows the block's front-end markup instead of the editing view and runs its view scripts on it, so content editors can try the block's behavior; editing pauses until the preview ends. See [Preview in the editor](./frontend.md#preview-in-the-editor).
 
 ## Build
 
@@ -152,11 +156,13 @@ The build writes to `build/`, each file with its `.asset.php`:
 | `build/vendor/wp-app-framework/editor.js` | the runtime, with the styles of its inspector controls (`editor.css`, `editor-rtl.css`) |
 | `build/vendor/wp-app-framework/canvas.css` | the styles of the editor canvas, loaded on `enqueue_block_assets` in the editor only: they reach the canvas iframe, never the front end |
 | `build/vendor/wp-app-framework/settings.js` | the script of the [settings page](./settings.md#settings-page) with its styles (`settings.css`, `settings-rtl.css`), loaded on that page only |
+| `build/vendor/wp-app-framework/view.js` | the view runtime: base classes of [front-end scripts](./frontend.md), starts their views; loaded with them on the front end and with the runtime in the editor |
 | `build/Block/Hero/Hero.editor.js` | editor scripts, mirrored from `src/` |
+| `build/Block/Faq/Faq.view.js` | front-end scripts (view scripts), mirrored from `src/` |
 | `build/styles.css` | the consumer's `src/styles.css`, if it has one, compiled with Tailwind (see [Styles](./styles.md)) |
 
 Without a build, the editor fails with an exception that names the missing file. A consumer without blocks and settings loads no script and needs no build.
 
 ## Instances
 
-Everything global is derived from the slug of the instance: the render route, the script handles (`{slug}-wp-app-framework`, `{slug}-{block}-editor`, `{slug}-wp-app-framework-settings`) and the JavaScript global `window.wpAppFramework[slug]`. Several framework instances, even in different versions, therefore run side by side in the same editor.
+Everything global is derived from the slug of the instance: the render and preview routes, the script handles (`{slug}-wp-app-framework`, `{slug}-{block}-editor`, `{slug}-wp-app-framework-view`, `{slug}-{block}-view`, `{slug}-wp-app-framework-settings`) and the JavaScript global `window.wpAppFramework[slug]`. Several framework instances, even in different versions, therefore run side by side in the same editor.

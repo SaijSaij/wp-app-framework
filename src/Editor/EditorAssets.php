@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Editor;
 
 use Saij\WpAppFramework\Asset\BuildAssets;
+use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\Manifest;
+use Saij\WpAppFramework\View\ViewAssets;
 
 /**
  * Loads the editor runtime and the block editor scripts of one framework
@@ -17,6 +19,9 @@ use Saij\WpAppFramework\Manifest\Manifest;
  * with its styles (editor.css, for the inspector controls of the framework),
  * block scripts mirrored from `src/` (src/Block/Hero/Hero.editor.js →
  * build/Block/Hero/Hero.editor.js), each with an .asset.php file.
+ *
+ * The view scripts of blocks and block supports load with the runtime as
+ * well: the runtime mounts them on a block in preview mode.
  *
  * @internal
  *
@@ -33,6 +38,8 @@ final readonly class EditorAssets
 
     private BuildAssets $assets;
 
+    private ViewAssets $views;
+
     /**
      * @param string           $slug           Slug of the framework instance; names the script handles and the JS global.
      * @param string           $buildDirectory Filesystem path of the consumer's build directory.
@@ -48,6 +55,7 @@ final readonly class EditorAssets
         private bool $development,
     ) {
         $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri);
+        $this->views = new ViewAssets($slug, $this->assets);
     }
 
     /**
@@ -81,7 +89,7 @@ final readonly class EditorAssets
             if ($script === null) {
                 continue;
             }
-            $blockHandle = $this->slug . '-' . str_replace('/', '-', $block['name']) . '-editor';
+            $blockHandle = ScriptKind::Editor->blockHandle($this->slug, $block['name']);
             $this->assets->registerScript($blockHandle, $script);
             wp_enqueue_script($blockHandle);
         }
@@ -96,9 +104,13 @@ final readonly class EditorAssets
             }
         }
         foreach ($supportScripts as $attribute => $script) {
-            $supportHandle = $this->slug . '-support-' . strtolower((string) preg_replace('/(?<=[a-z0-9])([A-Z])/', '-$1', $attribute)) . '-editor';
+            $supportHandle = ScriptKind::Editor->supportHandle($this->slug, $attribute);
             $this->assets->registerScript($supportHandle, $script);
             wp_enqueue_script($supportHandle);
+        }
+
+        foreach ($this->blocks as $block) {
+            $this->views->enqueue($block);
         }
     }
 
@@ -132,12 +144,14 @@ final readonly class EditorAssets
                 'innerBlocks' => $block['editor']['innerBlocks'],
                 'postContentField' => $block['editor']['postContentField'],
                 'supports' => $block['editor']['supports'],
+                'view' => ViewAssets::hasViews($block),
             ];
         }
 
         $config = [
             'slug' => $this->slug,
             'renderPath' => '/' . RenderController::NAMESPACE . RenderController::route($this->slug),
+            'previewPath' => '/' . RenderController::NAMESPACE . RenderController::previewRoute($this->slug),
             'maxBlocks' => RenderController::MAX_BLOCKS,
             'development' => $this->development,
             'blocks' => (object) $blocks,

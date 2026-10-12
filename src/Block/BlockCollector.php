@@ -8,11 +8,11 @@ use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
+use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\Block\Support\SupportCollector;
 use Saij\WpAppFramework\Block\Support\UseSupport;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Editor\EditorScript;
 use Saij\WpAppFramework\Manifest\EntryPointInspector;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
@@ -56,7 +56,7 @@ final class BlockCollector
     /**
      * @param string      $frameworkDirectory Source directory of the framework, which must not declare blocks.
      * @param string|null $scriptDirectory    Directory the consumer's build compiles scripts from (its `src/`);
-     *                                        editor scripts must be below it. Null if the consumer has none.
+     *                                        editor and view scripts must be below it. Null if the consumer has none.
      */
     public function __construct(
         private readonly ServiceResolver $resolver,
@@ -165,6 +165,7 @@ final class BlockCollector
                 'class' => $definition->getClass(),
                 'value' => $definition->getValue(),
                 'editorScript' => $definition->getEditorScript(),
+                'viewScript' => $definition->getViewScript(),
             ];
         }
         $innerBlocks = in_array('content', array_column($arguments, 'kind'), true);
@@ -191,9 +192,10 @@ final class BlockCollector
 
             return null;
         }
-        [$editorScript, $error] = EditorScript::locate($file, $name, $this->scriptDirectory);
-        if ($error !== null) {
-            $this->errors[] = $error;
+        [$editorScript, $editorError] = ScriptKind::Editor->locate($file, $name, $this->scriptDirectory);
+        [$viewScript, $viewError] = ScriptKind::View->locate($file, $name, $this->scriptDirectory);
+        if ($editorError !== null || $viewError !== null) {
+            array_push($this->errors, ...array_filter([$editorError, $viewError]));
 
             return null;
         }
@@ -232,7 +234,7 @@ final class BlockCollector
         ], [
             'fields' => $excerptFields,
             'wrapper' => $block->excerptWrapper,
-        ], $supportEntries);
+        ], $supportEntries, $viewScript);
     }
 
     /**

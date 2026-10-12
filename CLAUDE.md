@@ -63,7 +63,7 @@ docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs run 
 
 ## Tests
 
-- Units and **every build error** are tested here: PHPUnit with fixtures in `tests/Fixtures/`, Vitest in `assets/runtime/test/` and `assets/test/` (webpack helper). Fixtures that are wrong on purpose carry `@phpstan-ignore` with the reason. Tests in `tests/Unit/` mirror `src/`.
+- Units and **every build error** are tested here: PHPUnit with fixtures in `tests/Fixtures/`, Vitest in `assets/runtime/test/`, `assets/view/test/` (view runtime) and `assets/test/` (webpack helper). Fixtures that are wrong on purpose carry `@phpstan-ignore` with the reason. Tests in `tests/Unit/` mirror `src/`.
 - Everything that needs WordPress, a browser or a complete consumer build (successful manifest build, REST, Twig in WordPress, blocks on the front end and in the editor, release ZIP) is tested in [theme-dev-test](https://github.com/saijsaij/theme-dev-test); plugin and child theme behavior in [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test) and [theme-dev-test-child](https://github.com/saijsaij/theme-dev-test-child). Code written to check a feature stays there as a permanent test.
 - WordPress is not loaded in unit tests. The test doubles in `tests/Stubs/` follow the real WordPress 7.1 signatures and are loaded by `tests/bootstrap.php` only.
 

@@ -59,3 +59,34 @@ describe( 'registerSupportControl', () => {
 		expect( registry.getControl( 'test/card', 'framed' ) ).toBeUndefined();
 	} );
 } );
+
+describe( 'registerToolbarButton', () => {
+	afterEach( () => {
+		vi.restoreAllMocks();
+	} );
+
+	it( 'adds buttons to the toolbar of a block in order', () => {
+		const registry = createRegistry( blocks, getBlockType );
+		const First = () => null;
+		const Second = () => null;
+		registry.registerToolbarButton( 'test/card', First );
+		registry.registerToolbarButton( 'test/card', Second );
+
+		expect( registry.getToolbarButtons( 'test/card' ) ).toEqual( [
+			First,
+			Second,
+		] );
+		expect( registry.getToolbarButtons( 'test/hero' ) ).toEqual( [] );
+	} );
+
+	it( 'warns about unknown blocks', () => {
+		const warn = vi.spyOn( console, 'warn' ).mockImplementation( () => {} );
+		const registry = createRegistry( blocks, getBlockType );
+		registry.registerToolbarButton( 'test/missing', () => null );
+
+		expect( warn ).toHaveBeenCalledWith(
+			'wp-app-framework: registerToolbarButton( "test/missing" ): no block of this theme or plugin has that name.'
+		);
+		expect( registry.getToolbarButtons( 'test/missing' ) ).toEqual( [] );
+	} );
+} );

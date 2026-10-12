@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Tests\Unit\Block;
 
 use PHPUnit\Framework\TestCase;
+use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Block\BlockDefinition;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\DependencyInjection\Container;
@@ -22,6 +23,7 @@ use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Value\ValueFactory;
+use Saij\WpAppFramework\View\ViewAssets;
 use WP_Block;
 use WP_Block_Type_Registry;
 
@@ -92,7 +94,7 @@ final class PostContentAndExcerptTest extends TestCase
     private function registrar(RenderContext $context = new RenderContext()): void
     {
         $container = new Container($this->manifest['services'], [RenderContext::class => $context]);
-        new BlockRegistrar($container, new ValueFactory($this->manifest['values']), $context, true, 'my-theme')
+        new BlockRegistrar($container, new ValueFactory($this->manifest['values']), $context, true, 'my-theme', new ViewAssets('my-theme', new BuildAssets('my-theme', '/nonexistent/build', 'https://example.test/build')))
             ->register($this->manifest['blocks']);
         foreach (Recorded::blocks() as $name => $args) {
             // @phpstan-ignore argument.type (the arguments the registrar passed to register_block_type())

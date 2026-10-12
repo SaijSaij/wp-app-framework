@@ -108,7 +108,7 @@ Each constructor parameter becomes an attribute, and its type decides how it is 
 
 The template is ordinary Twig with a few helpers:
 
-- `block_wrapper_attributes()` goes on the root element. It adds the classes and the anchor of the block's supports.
+- `block_wrapper_attributes()` goes on the root element. It adds the classes and the anchor of the block's supports, and the marker of its [front-end scripts](./frontend.md).
 - `field('topline')` marks the element that shows a field, so the editor can turn it into an editor. `inner_blocks()` marks where inner blocks go.
 - `is_editor()` keeps the empty topline in the editor, so content editors can fill it in, while the front end leaves it out.
 
@@ -279,6 +279,6 @@ Twig escapes every value unless you say otherwise. This table shows how each kin
 | Images | `#[Image]` attachment ID with `{{ wp_attachment_image(attrs.imageId, size = 'full', attributes = {}) }}` (`wp_get_attachment_image()`; empty for `null`; more in [WordPress functions](./twig.md#wordpress-functions)) |
 | References | IDs; `{{ wp_post_title(attrs.target) }}`, `{{ wp_post_url(attrs.target) }}`, `wp_term_name()`, `wp_term_url()`, `wp_user_name()` and more [WordPress functions](./twig.md#wordpress-functions) (see [References](./values.md#references)) |
 | Inner blocks | `{{ content\|raw }}` |
-| Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports, plus the classes of [block supports](./supports.md)) |
+| Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports, plus the classes of [block supports](./supports.md) and the marker of [front-end scripts](./frontend.md)) |
 
 Don't apply string filters such as `upper` to HTML: they change tags, URLs and entities too. Use CSS for uppercase text.

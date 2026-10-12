@@ -93,6 +93,10 @@ registerSupportControl( 'surface', ( { value, onChange } ) => <SurfacePicker val
 
 The component receives `{ value, onChange, attributes, setAttributes }`. A control that a block registers with [`registerControl()`](./editor.md#editor-scripts) for the same attribute wins over the support's control.
 
+## On the front end
+
+When a support needs JavaScript on the page – an element that fades in while it scrolls into view, for example – put a view script next to its class: `src/Support/Reveal.view.js`. It runs in every block that uses the support and receives the support's value. See [Front-end scripts](./frontend.md#block-supports).
+
 ## Styling
 
 `className()` builds class names at run time, so Tailwind does not find them in the templates. Style them with CSS of the theme, or list them with `@source inline(…)` in `src/styles.css` (see [Styles](./styles.md)).

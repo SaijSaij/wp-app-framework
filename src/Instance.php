@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework;
 use Closure;
 use LogicException;
 use Saij\WpAppFramework\Api\InstanceBridge;
+use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -25,6 +26,7 @@ use Saij\WpAppFramework\Setting\SettingsStore;
 use Saij\WpAppFramework\Style\StyleAssets;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Value\ValueFactory;
+use Saij\WpAppFramework\View\ViewAssets;
 use Twig\Environment;
 
 /**
@@ -177,7 +179,8 @@ final readonly class Instance
             $renderController->register();
         });
 
-        $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug, $this->slug);
+        $buildAssets = new BuildAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
+        $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug, $this->slug, new ViewAssets($this->slug, $buildAssets));
         add_action('init', static function () use ($blockRegistrar, $blocks): void {
             $blockRegistrar->register($blocks);
         });

@@ -14,7 +14,7 @@ The framework is a library that themes, child themes and plugins (its *consumers
 
 ## Status
 
-In development (0.x): framework core, REST routes, Twig, server-side blocks, block supports, settings, editor runtime, release build, plugins and child themes. Breaking changes are listed in [Upgrading](https://saijsaij.github.io/wp-app-framework/next/reference/upgrading.html).
+In development (0.x): framework core, REST routes, Twig, server-side blocks, block supports, settings, editor runtime, front-end scripts, release build, plugins and child themes. Breaking changes are listed in [Upgrading](https://saijsaij.github.io/wp-app-framework/next/reference/upgrading.html).
 
 ## Source layout
 
@@ -30,10 +30,11 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 | `Rest/` | `#[RestController]`, `#[RestRoute]`, `#[Param]` attributes, `HttpMethod`/`Format` enums, `Permission/` (`PublicAccess`, `Capability`, `Callback`), `RestException`, collector (build), definition, registrar (runtime) |
 | `Twig/` | `#[TemplateFunction]`, `#[TemplateFilter]` attributes, collector (build), definition, `TemplateRenderer` and runtime loader (runtime), override finder (build) |
 | `Block/` | `#[Block]`, `#[Supports]`, `#[PlainText]`, `#[RichText]`, `#[Image]`, `#[Content]`, `#[Label]`, `#[Hidden]` attributes, `Labeled` interface, `BlockCategory`/`Align` enums, collector (build), definition, registrar and template functions (runtime); `Support/` (`#[BlockSupport]`, `#[UseSupport]`, `SupportGroup`, collector) |
-| `Editor/` | Editor template functions (`field()`, `inner_blocks()`, `is_editor()`), render context, batch render route and editor assets (runtime), editor scripts next to classes (build) |
+| `Editor/` | Editor template functions (`field()`, `inner_blocks()`, `is_editor()`), render context, batch render and preview routes and editor assets (runtime) |
+| `View/` | Loading of the front-end scripts (view scripts) of blocks and block supports and the marker of their root elements (runtime) |
 | `Setting/` | `#[SettingsGroup]` attribute, collector (build), settings store, template global and settings page (runtime) |
 | `Style/` | Loading of the consumer's built stylesheet (runtime) |
-| `Asset/` | Registration of scripts and styles from the consumer's build (runtime) |
+| `Asset/` | Scripts next to classes (`ScriptKind`: editor and view scripts, build) and registration of scripts and styles from the consumer's build (runtime) |
 | `Value/` | `#[ListOf]`, `#[Url]` attributes, schema derivation of typed values (build), value factory (runtime) |
 | `DependencyInjection/` | `#[NoService]` attribute, service candidates and resolver (build), container (runtime) |
 | `Manifest/` | Manifest builder, generator and loader, checks shared by entry point collectors; `Discovery/` (PSR-4 class discovery), `DevCache/` (development mode cache) |
@@ -42,7 +43,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 
 New areas (block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
 
-The editor runtime and its styles live in `assets/` (`editor.js` entry, `editor.scss` styles of the inspector, `settings.js` and `settings.scss` of the settings page, `_controls.scss` styles of the controls they share, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`); `webpack.config.js` is the helper for the consumer's build, tested in `assets/test/`. The documentation website lives in `docs/` (see Development).
+The editor runtime and its styles live in `assets/` (`editor.js` entry, `editor.scss` styles of the inspector, `settings.js` and `settings.scss` of the settings page, `_controls.scss` styles of the controls they share, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`; `view.js` entry of the view runtime with its modules and tests in `view/`); `webpack.config.js` is the helper for the consumer's build, tested in `assets/test/`. The documentation website lives in `docs/` (see Development).
 
 ## Conventions
 

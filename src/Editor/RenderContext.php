@@ -14,7 +14,7 @@ use LogicException;
  *
  * @internal Theme code uses the template functions field(), inner_blocks() and is_editor().
  *
- * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, innerBlocks: bool, classes: list<string>, wrapper: bool}
+ * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, innerBlocks: bool, classes: list<string>, attributes: array<string, string>, wrapper: bool}
  */
 final class RenderContext
 {
@@ -29,20 +29,20 @@ final class RenderContext
      * @param array<string, array<string, mixed>> $fields         Inline fields by path pattern, e.g. "buttons.*.label".
      * @param Closure(): string                   $render
      * @param list<string>                        $classes        Class names of the block supports for the root element.
-     * @param bool                                $requireWrapper The block uses block supports: rendering without
-     *                                                            printing the wrapper attributes is an error.
+     * @param string|null                         $missingWrapper Error message if the block renders without printing the
+     *                                                            wrapper attributes; null if it may (no block supports,
+     *                                                            no view scripts).
+     * @param array<string, string>               $attributes     Further attributes of the root element (the marker of
+     *                                                            the view scripts).
      */
-    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render, array $classes = [], bool $requireWrapper = false): string
+    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render, array $classes = [], ?string $missingWrapper = null, array $attributes = []): string
     {
         $index = count($this->blocks);
-        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'innerBlocks' => $innerBlocks, 'classes' => $classes, 'wrapper' => false];
+        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'innerBlocks' => $innerBlocks, 'classes' => $classes, 'attributes' => $attributes, 'wrapper' => false];
         try {
             $html = $render();
-            if ($requireWrapper && !$this->blocks[$index]['wrapper']) {
-                throw new LogicException(sprintf(
-                    'Block %s uses block supports (#[UseSupport]), but did not print its root element with block_wrapper_attributes(), so the class names of the supports are missing.',
-                    $name,
-                ));
+            if ($missingWrapper !== null && !$this->blocks[$index]['wrapper']) {
+                throw new LogicException($missingWrapper);
             }
 
             return $html;
@@ -53,19 +53,20 @@ final class RenderContext
 
     /**
      * Records that the current block printed the attributes of its root element
-     * and returns the class names of its block supports; none outside of a block.
+     * and returns the class names of its block supports and its further root
+     * attributes; none outside of a block.
      *
-     * @return list<string>
+     * @return array{classes: list<string>, attributes: array<string, string>}
      */
     public function applyWrapper(): array
     {
         $current = array_key_last($this->blocks);
         if ($current === null) {
-            return [];
+            return ['classes' => [], 'attributes' => []];
         }
         $this->blocks[$current]['wrapper'] = true;
 
-        return $this->blocks[$current]['classes'];
+        return ['classes' => $this->blocks[$current]['classes'], 'attributes' => $this->blocks[$current]['attributes']];
     }
 
     /**

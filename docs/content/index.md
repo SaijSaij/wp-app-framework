@@ -32,7 +32,8 @@ These parts are ready to use:
 - server-side blocks with `#[Block]`, `#[Supports]`, typed attribute classes, `#[ListOf]` (also for REST arguments) and references to posts, terms and users;
 - block supports of your own with `#[BlockSupport]`, `#[UseSupport]` and `registerSupportControl()`;
 - settings with `#[SettingsGroup]`, one option per group, a settings page, injection into services and the template global `settings`;
-- the editor runtime: inline editing in the canvas, a generated inspector, a batch render route and a webpack helper;
+- the editor runtime: inline editing in the canvas, a generated inspector, toolbar buttons, a batch render route and a webpack helper;
+- front-end scripts of blocks and block supports with the base classes `BlockView` and `SupportView`, loaded only with their blocks and previewed in the editor;
 - the release build `wp-app-framework release` (prefixed ZIP), release mode with a versioned Twig cache, and GitHub workflows;
 - plugins: `Plugin::boot()`, theme overrides of plugin templates, public APIs and public template callables;
 - child themes: `ChildTheme::boot()`, overrides of theme templates in `overrides/{theme}/`, public APIs and template callables of themes, and `#[ThemeApi]`.
@@ -49,6 +50,6 @@ The test theme [theme-dev-test](https://github.com/saijsaij/theme-dev-test) cont
 |---|---|
 | Composer package | `saij/wp-app-framework` |
 | PHP namespace | `Saij\WpAppFramework` |
-| JavaScript import | `@saij/wp-app-framework` |
+| JavaScript import | `@saij/wp-app-framework` (editor scripts), `@saij/wp-app-framework/view` (front-end scripts) |
 | JavaScript global at run time | `window.wpAppFramework[slug]`, one per framework instance |
 | Source code | [github.com/saijsaij/wp-app-framework](https://github.com/saijsaij/wp-app-framework) |

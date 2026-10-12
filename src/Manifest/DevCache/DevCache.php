@@ -6,8 +6,8 @@ namespace Saij\WpAppFramework\Manifest\DevCache;
 
 use ReflectionClass;
 use RuntimeException;
+use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Editor\EditorScript;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
@@ -252,15 +252,16 @@ final class DevCache
     }
 
     /**
-     * Hash of the PHP files and block editor scripts below a directory and of
-     * the stylesheet in it: adding or removing an editor script or the
+     * Hash of the PHP files, editor scripts and view scripts below a directory
+     * and of the stylesheet in it: adding or removing a script or the
      * stylesheet changes the manifest as well.
      */
     private static function listingHash(string $directory): string
     {
         return hash('xxh128', implode("\n", [
             ...ClassDiscovery::files($directory),
-            ...ClassDiscovery::files($directory, EditorScript::SUFFIX),
+            ...ClassDiscovery::files($directory, ScriptKind::Editor->value),
+            ...ClassDiscovery::files($directory, ScriptKind::View->value),
             ...(is_file($directory . '/' . StyleAssets::SOURCE) ? [StyleAssets::SOURCE] : []),
         ]));
     }

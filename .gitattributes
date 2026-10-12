@@ -11,6 +11,7 @@
 /eslint.config.cjs export-ignore
 /assets/runtime/test/** export-ignore
 /assets/test/** export-ignore
+/assets/view/test/** export-ignore
 /package-lock.json export-ignore
 /phpstan.dist.neon export-ignore
 /phpunit.xml.dist export-ignore

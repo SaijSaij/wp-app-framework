@@ -110,7 +110,7 @@ That is the only call into the framework you write by hand. Everything else – 
 
 ### package.json and webpack.config.js
 
-The block editor needs JavaScript: the framework's editor runtime, which makes your blocks editable, and any editor scripts of your own. The framework ships only the sources of the runtime. Your theme builds them together with its own scripts and its stylesheet, using `@wordpress/scripts` and a webpack helper from the framework (see [Editor](./guides/editor.md#build)).
+The block editor needs JavaScript: the framework's editor runtime, which makes your blocks editable, and any editor scripts of your own. Blocks with [front-end scripts](./guides/frontend.md) need them built as well. The framework ships only the sources of the runtime. Your theme builds them together with its own scripts and its stylesheet, using `@wordpress/scripts` and a webpack helper from the framework (see [Editor](./guides/editor.md#build)).
 
 ```json
 {
@@ -223,7 +223,7 @@ Install the dependencies and build the assets. Run `composer install` first, bec
 ```sh
 composer install
 npm install
-npm run build             # editor runtime, editor scripts and stylesheet into build/
+npm run build             # editor runtime, editor and front-end scripts and stylesheet into build/
 composer build-manifest   # checks attributes and services; writes nothing
 ```
 

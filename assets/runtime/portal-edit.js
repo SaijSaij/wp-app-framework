@@ -1,5 +1,5 @@
-import { useBlockProps } from '@wordpress/block-editor';
-import { Notice } from '@wordpress/components';
+import { BlockControls, useBlockProps } from '@wordpress/block-editor';
+import { Notice, ToolbarButton } from '@wordpress/components';
 import { useRegistry, useSelect } from '@wordpress/data';
 import { useEffect, useMemo, useState } from '@wordpress/element';
 
@@ -8,6 +8,8 @@ import { BlockDataContext } from './context';
 import { Inspector } from './inspector';
 import { BlockMarkup } from './markup';
 import { blankInlineText, stableStringify } from './paths';
+import { parsePreview } from './parse-preview';
+import { PreviewMarkup, usePreview } from './preview';
 
 /** Root props while new markup loads: the old markup stays, dimmed, without layout change. */
 const LOADING_PROPS = {
@@ -109,8 +111,47 @@ function Message( { status, children } ) {
 }
 
 /**
+ * The toolbar of a block: the preview switch (blocks with view scripts) and
+ * the buttons registered with registerToolbarButton().
+ *
+ * @param {Object}                                       props
+ * @param {Array<import('react').ComponentType<Object>>} props.buttons     Registered toolbar button components.
+ * @param {boolean}                                      props.hasView     Whether the block or one of its supports has a view script.
+ * @param {boolean}                                      props.isPreview
+ * @param {(isPreview: boolean) => void}                 props.setPreview
+ * @param {Object}                                       props.buttonProps Props of the registered buttons.
+ */
+function Toolbar( { buttons, hasView, isPreview, setPreview, buttonProps } ) {
+	return (
+		<>
+			{ hasView && (
+				<BlockControls group="other">
+					<ToolbarButton
+						icon="visibility"
+						label="Preview"
+						isPressed={ isPreview }
+						onClick={ () => setPreview( ! isPreview ) }
+					/>
+				</BlockControls>
+			) }
+			{ buttons.length > 0 && (
+				<BlockControls>
+					{ buttons.map( ( Button, index ) => (
+						<Button key={ index } { ...buttonProps } />
+					) ) }
+				</BlockControls>
+			) }
+		</>
+	);
+}
+
+/**
  * Edit component of every framework block: renders the block on the server
  * and replaces the marked elements with inline editors.
+ *
+ * In preview mode (blocks with view scripts) it shows the block's front-end
+ * markup instead, with its views mounted; inline editing pauses until the
+ * preview ends.
  *
  * @param {Object}                       props
  * @param {string}                       props.name          Block name.
@@ -196,8 +237,44 @@ export function PortalEdit( {
 	);
 	const loading = state.key !== key;
 
+	const [ isPreview, setPreview ] = useState( false );
+	const preview = usePreview( {
+		clientId,
+		postId,
+		path: runtime.config.previewPath,
+		enabled: isPreview,
+	} );
+	const previewMarkup = useMemo(
+		() =>
+			preview.html === undefined
+				? null
+				: parsePreview( preview.html, document ),
+		[ preview.html ]
+	);
+	const viewRuntime = runtime.getViewRuntime();
+
 	let content;
-	if ( state.error && state.key === key ) {
+	if ( isPreview && preview.error ) {
+		content = (
+			<Message status="error">{ `${ name }: ${ preview.error.message }` }</Message>
+		);
+	} else if ( isPreview && previewMarkup?.error ) {
+		content = (
+			<Message status="error">{ `${ name }: ${ previewMarkup.error }` }</Message>
+		);
+	} else if ( isPreview && ! viewRuntime ) {
+		content = (
+			<Message status="error">{ `${ name }: the view runtime of ${ runtime.config.slug } is not loaded.` }</Message>
+		);
+	} else if ( isPreview && previewMarkup ) {
+		content = (
+			<PreviewMarkup
+				markup={ previewMarkup }
+				extraProps={ preview.loading ? LOADING_PROPS : IDLE_PROPS }
+				viewRuntime={ viewRuntime }
+			/>
+		);
+	} else if ( state.error && state.key === key ) {
 		content = (
 			<Message status="error">{ `${ name }: ${ state.error.message }` }</Message>
 		);
@@ -212,7 +289,11 @@ export function PortalEdit( {
 			<BlockMarkup
 				node={ analysis.root }
 				fields={ block.fields }
-				extraProps={ loading ? LOADING_PROPS : IDLE_PROPS }
+				extraProps={
+					loading || ( isPreview && preview.loading )
+						? LOADING_PROPS
+						: IDLE_PROPS
+				}
 			/>
 		);
 	}
@@ -220,6 +301,18 @@ export function PortalEdit( {
 	return (
 		<BlockDataContext.Provider value={ data }>
 			{ content }
+			<Toolbar
+				buttons={ runtime.registry.getToolbarButtons( name ) }
+				hasView={ block.view }
+				isPreview={ isPreview }
+				setPreview={ setPreview }
+				buttonProps={ {
+					attributes,
+					setAttributes,
+					clientId,
+					isPreview,
+				} }
+			/>
 			<Inspector registry={ runtime.registry } />
 		</BlockDataContext.Provider>
 	);

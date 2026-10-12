@@ -210,6 +210,15 @@ final class DevCacheTest extends TestCase
         $this->probe('load');
         unlink($this->theme . '/src/Hooks.editor.js');
         self::assertSame('stale', $this->probe('check'));
+
+        // So is whether it has a view script.
+        $this->probe('load');
+        file_put_contents($this->theme . '/src/Hooks.view.js', '');
+        self::assertSame('stale', $this->probe('check'));
+
+        $this->probe('load');
+        unlink($this->theme . '/src/Hooks.view.js');
+        self::assertSame('stale', $this->probe('check'));
     }
 
     public function testBlockSupportChangesRebuild(): void

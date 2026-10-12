@@ -46,6 +46,8 @@ src/Block/Teaser/
 └── Teaser.twig            the markup
 ```
 
+Two optional scripts can sit next to them: `Teaser.editor.js` extends the block in the editor (see [Editor](./guides/editor.md#editor-scripts)), `Teaser.view.js` gives it behavior on the page (see [Front-end scripts](./guides/frontend.md)).
+
 **In the build**, the framework reads the attribute class and derives the attribute schema from its constructor: types, defaults, the allowed values of enums, and which attributes are content. There is no `block.json`. On `init` the framework registers the block with `register_block_type()`, and WordPress passes the definition to the block editor by itself.
 
 **In the post content**, the block is stored as a comment with its attributes as JSON:
@@ -57,6 +59,8 @@ src/Block/Teaser/
 **On the front end**, WordPress calls the framework when it renders the block. The framework cleans the attributes against their schema, turns them into an instance of your attribute class, and calls your block's `render()` method, which renders the Twig template.
 
 **In the editor**, the framework's editor runtime asks the server to render the block from the same template. The template marks editable elements with `field('title')`. In the editor these marks become attributes on the element, and the runtime replaces the marked elements with text editors, image pickers and inner blocks. Content editors type into the real markup; there is no second template for the editor. Typing does not re-render the block, but every other change, such as a different option in the inspector, does.
+
+**With a front-end script**, the block also gets behavior on the page. The framework loads the script only on pages that render the block and starts one instance of its class per block. In the editor, a **Preview** button in the block's toolbar shows the front-end markup and runs the script on it.
 
 ```
 TeaserAttributes.php ──build──▶ attribute schema ──▶ register_block_type()

@@ -17,7 +17,8 @@ final class BlockTemplateFunctions
     /**
      * The attributes of the block's root element from its supports (class
      * names, anchor, alignment), as returned by get_block_wrapper_attributes(),
-     * plus the class names of its custom block supports (#[UseSupport]).
+     * plus the class names of its custom block supports (#[UseSupport]) and,
+     * on the front end, the marker its view scripts are mounted on.
      * Empty outside of rendering a block.
      *
      * @param array<string, string> $extra Additional attributes; `class` and `style` are merged.
@@ -25,11 +26,11 @@ final class BlockTemplateFunctions
     #[TemplateFunction('block_wrapper_attributes', html: true)]
     public function blockWrapperAttributes(array $extra = []): string
     {
-        $classes = $this->context->applyWrapper();
+        ['classes' => $classes, 'attributes' => $attributes] = $this->context->applyWrapper();
         if ($classes !== []) {
             $extra['class'] = trim(($extra['class'] ?? '') . ' ' . implode(' ', $classes));
         }
 
-        return get_block_wrapper_attributes($extra);
+        return get_block_wrapper_attributes([...$extra, ...$attributes]);
     }
 }

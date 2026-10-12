@@ -4,13 +4,20 @@
  * Builds, into the consumer's `build/` directory:
  * - the editor runtime of this framework instance (build/vendor/wp-app-framework/editor.js),
  * - the script of its settings page (build/vendor/wp-app-framework/settings.js),
+ * - the view runtime of this framework instance (build/vendor/wp-app-framework/view.js),
  * - the consumer's editor scripts next to its code (src/Block/Hero/Hero.editor.js →
  *   build/Block/Hero/Hero.editor.js),
+ * - the consumer's view scripts next to its code (src/Block/Faq/Faq.view.js →
+ *   build/Block/Faq/Faq.view.js); the class each exports by default is assigned to
+ *   wpAppFramework[slug].views['Block/Faq/Faq.view'], where the view runtime finds it,
  * - the consumer's stylesheet, if it has one: src/styles.css → build/styles.css, compiled
  *   with Tailwind CSS (`tailwindcss` and `@tailwindcss/webpack`, installed by the consumer).
  *
  * Imports of `@saij/wp-app-framework` resolve to the runtime of the same instance
- * (global `wpAppFramework[slug]`, script handle `{slug}-wp-app-framework`).
+ * (global `wpAppFramework[slug]`, script handle `{slug}-wp-app-framework`), imports of
+ * `@saij/wp-app-framework/view` to its view runtime (global `wpAppFramework[slug].view`,
+ * script handle `{slug}-wp-app-framework-view`). A view script must not import
+ * `@saij/wp-app-framework`: the editor runtime is not loaded on the front end.
  *
  * Usage in the consumer's webpack.config.js:
  *
@@ -26,10 +33,13 @@ const path = require( 'path' );
 const SCRIPTS_MAJOR = 36;
 
 const EDITOR_SCRIPT_SUFFIX = '.editor.js';
+const VIEW_SCRIPT_SUFFIX = '.view.js';
 const RUNTIME_ENTRY = 'vendor/wp-app-framework/editor';
+const VIEW_ENTRY = 'vendor/wp-app-framework/view';
 const CANVAS_ENTRY = 'vendor/wp-app-framework/canvas';
 const SETTINGS_ENTRY = 'vendor/wp-app-framework/settings';
 const IMPORT_NAME = '@saij/wp-app-framework';
+const VIEW_IMPORT_NAME = '@saij/wp-app-framework/view';
 const STYLES_ENTRY = 'styles';
 const STYLES_SOURCE = 'styles.css';
 
@@ -37,19 +47,20 @@ const STYLES_SOURCE = 'styles.css';
 const TAILWIND_MAJOR = 4;
 
 /**
- * Editor scripts below a directory, by entry name (path without extension).
+ * Scripts with a suffix below a directory, by entry name (path without extension).
  *
  * @param {string} directory
+ * @param {string} suffix    E.g. ".editor.js".
  * @return {Object<string, string>} Entries.
  */
-function editorScripts( directory ) {
+function scripts( directory, suffix ) {
 	const entries = {};
 	if ( ! fs.existsSync( directory ) ) {
 		return entries;
 	}
 	for ( const file of fs.readdirSync( directory, { recursive: true } ) ) {
 		const relative = String( file ).split( path.sep ).join( '/' );
-		if ( relative.endsWith( EDITOR_SCRIPT_SUFFIX ) ) {
+		if ( relative.endsWith( suffix ) ) {
 			entries[ relative.slice( 0, -'.js'.length ) ] = path.join(
 				directory,
 				relative
@@ -57,6 +68,67 @@ function editorScripts( directory ) {
 		}
 	}
 	return entries;
+}
+
+/**
+ * Entries of the view scripts below a directory: each assigns its default export (the view class)
+ * to wpAppFramework[slug].views[entry name].
+ *
+ * @param {string} directory
+ * @param {string} slug
+ * @return {Object<string, Object>} Entries.
+ */
+function viewScripts( directory, slug ) {
+	return Object.fromEntries(
+		Object.entries( scripts( directory, VIEW_SCRIPT_SUFFIX ) ).map(
+			( [ name, file ] ) => [
+				name,
+				{
+					import: file,
+					library: {
+						type: 'window',
+						name: [ 'wpAppFramework', slug, 'views', name ],
+						export: 'default',
+					},
+				},
+			]
+		)
+	);
+}
+
+/**
+ * Fails the build when a view script (an entry ending in ".view") imports the editor runtime.
+ */
+class ViewImportCheck {
+	apply( compiler ) {
+		compiler.hooks.compilation.tap( 'wp-app-framework', ( compilation ) => {
+			compilation.hooks.afterChunks.tap( 'wp-app-framework', () => {
+				for ( const [ name, entrypoint ] of compilation.entrypoints ) {
+					if (
+						! name.endsWith( VIEW_SCRIPT_SUFFIX.slice( 0, -3 ) )
+					) {
+						continue;
+					}
+					const imports = entrypoint.chunks.some( ( chunk ) =>
+						[
+							...compilation.chunkGraph.getChunkModulesIterable(
+								chunk
+							),
+						].some(
+							( module ) => module.userRequest === IMPORT_NAME
+						)
+					);
+					if ( imports ) {
+						compilation.errors.push(
+							new compiler.webpack.WebpackError(
+								`wp-app-framework: the view script src/${ name }.js imports ${ IMPORT_NAME }, the editor runtime, which is not loaded on the front end; view scripts import ${ VIEW_IMPORT_NAME }.`
+							)
+						);
+					}
+				}
+			} );
+		} );
+	}
 }
 
 /**
@@ -166,14 +238,17 @@ module.exports = function createConfig( { slug, root } = {} ) {
 
 	return {
 		...defaults,
-		// A function, so a new editor script is picked up when the watcher rebuilds.
+		// A function, so a new editor or view script is picked up when the watcher rebuilds.
 		entry: () => ( {
 			[ RUNTIME_ENTRY ]: path.join( __dirname, 'assets', 'editor.js' ),
 			// Styles of the editor canvas (iframe), loaded separately from the runtime.
 			[ CANVAS_ENTRY ]: path.join( __dirname, 'assets', 'canvas.scss' ),
 			// The settings page of the instance (admin page with the forms of its settings groups).
 			[ SETTINGS_ENTRY ]: path.join( __dirname, 'assets', 'settings.js' ),
-			...editorScripts( path.join( root, 'src' ) ),
+			// The view runtime: base classes of view scripts, mounts their views.
+			[ VIEW_ENTRY ]: path.join( __dirname, 'assets', 'view.js' ),
+			...scripts( path.join( root, 'src' ), EDITOR_SCRIPT_SUFFIX ),
+			...viewScripts( path.join( root, 'src' ), slug ),
 			...( tailwind ? { [ STYLES_ENTRY ]: styles } : {} ),
 		} ),
 		module: tailwind
@@ -192,6 +267,8 @@ module.exports = function createConfig( { slug, root } = {} ) {
 		output: {
 			...defaults.output,
 			path: path.join( root, 'build' ),
+			// The entry is a function: the library type of the view scripts must be enabled up front.
+			enabledLibraryTypes: [ 'window' ],
 		},
 		resolve: {
 			...defaults.resolve,
@@ -205,18 +282,27 @@ module.exports = function createConfig( { slug, root } = {} ) {
 					plugin.constructor.name !==
 					'DependencyExtractionWebpackPlugin'
 			),
+			new ViewImportCheck(),
 			new webpack.DefinePlugin( {
 				WP_APP_FRAMEWORK_SLUG: JSON.stringify( slug ),
 			} ),
 			new DependencyExtractionWebpackPlugin( {
-				requestToExternal: ( request ) =>
-					request === IMPORT_NAME
-						? [ 'wpAppFramework', slug ]
-						: undefined,
-				requestToHandle: ( request ) =>
-					request === IMPORT_NAME
-						? `${ slug }-wp-app-framework`
-						: undefined,
+				requestToExternal: ( request ) => {
+					if ( request === IMPORT_NAME ) {
+						return [ 'wpAppFramework', slug ];
+					}
+					return request === VIEW_IMPORT_NAME
+						? [ 'wpAppFramework', slug, 'view' ]
+						: undefined;
+				},
+				requestToHandle: ( request ) => {
+					if ( request === IMPORT_NAME ) {
+						return `${ slug }-wp-app-framework`;
+					}
+					return request === VIEW_IMPORT_NAME
+						? `${ slug }-wp-app-framework-view`
+						: undefined;
+				},
 			} ),
 		],
 	};

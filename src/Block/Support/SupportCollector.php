@@ -6,10 +6,10 @@ namespace Saij\WpAppFramework\Block\Support;
 
 use ReflectionClass;
 use ReflectionNamedType;
+use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Editor\EditorScript;
 use Saij\WpAppFramework\Manifest\EntryPointInspector;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
@@ -253,9 +253,10 @@ final class SupportCollector
         if ($field === null || $field['control'] === null) {
             return null;
         }
-        [$editorScript, $error] = EditorScript::locate($file, $name, $this->scriptDirectory);
-        if ($error !== null) {
-            $this->errors[] = $error;
+        [$editorScript, $editorError] = ScriptKind::Editor->locate($file, $name, $this->scriptDirectory);
+        [$viewScript, $viewError] = ScriptKind::View->locate($file, $name, $this->scriptDirectory);
+        if ($editorError !== null || $viewError !== null) {
+            array_push($this->errors, ...array_filter([$editorError, $viewError]));
 
             return null;
         }
@@ -269,6 +270,7 @@ final class SupportCollector
             ['label' => $support->label] + $field['control'],
             $parameter->getDefaultValue(),
             $editorScript,
+            $viewScript,
         );
     }
 

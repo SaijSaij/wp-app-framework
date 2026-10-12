@@ -60,6 +60,10 @@ export default defineConfig( {
 						{ text: 'Blocks', link: '/guides/blocks' },
 						{ text: 'Block supports', link: '/guides/supports' },
 						{ text: 'Editor', link: '/guides/editor' },
+						{
+							text: 'Front-end scripts',
+							link: '/guides/frontend',
+						},
 						{ text: 'Styles', link: '/guides/styles' },
 						{ text: 'Settings', link: '/guides/settings' },
 						{ text: 'Values', link: '/guides/values' },

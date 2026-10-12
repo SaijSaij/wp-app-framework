@@ -48,11 +48,11 @@ final class Recorded
 
     /**
      * @phpstan-impure Changes with each registration.
-     * @return array<string, array{src: string, deps: list<string>, ver: string|bool|null, enqueued: bool, before: list<string>}> By handle.
+     * @return array<string, array{src: string, deps: list<string>, ver: string|bool|null, args: array<string, mixed>|bool, enqueued: bool, before: list<string>}> By handle.
      */
     public static function scripts(): array
     {
-        /** @var array<string, array{src: string, deps: list<string>, ver: string|bool|null, enqueued: bool, before: list<string>}> */
+        /** @var array<string, array{src: string, deps: list<string>, ver: string|bool|null, args: array<string, mixed>|bool, enqueued: bool, before: list<string>}> */
         return $GLOBALS['wp_app_framework_test_scripts'] ?? [];
     }
 

@@ -84,6 +84,7 @@ final class ManifestGenerator
                 'editor' => $block->getEditor(),
                 'excerpt' => $block->getExcerpt(),
                 'supports' => $block->getSupports(),
+                'viewScript' => $block->getViewScript(),
             ];
         }
 

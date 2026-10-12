@@ -1,7 +1,7 @@
 /**
- * Inspector controls and panels registered by the consumer's editor scripts
- * (`registerControl`, `registerSupportControl`, `registerPanel` of
- * `@saij/wp-app-framework`). A control registered for a block wins over a
+ * Inspector controls, panels and toolbar buttons registered by the consumer's
+ * editor scripts (`registerControl`, `registerSupportControl`, `registerPanel`,
+ * `registerToolbarButton` of `@saij/wp-app-framework`). A control registered for a block wins over a
  * control registered for a block support.
  *
  * @param {Object}                               blocks       Block configuration of the instance by name.
@@ -12,6 +12,7 @@ export function createRegistry( blocks, getBlockType ) {
 	const controls = new Map();
 	const supportControls = new Map();
 	const panels = new Map();
+	const toolbarButtons = new Map();
 
 	function usesSupport( name, attribute ) {
 		return ( blocks[ name ]?.supports ?? [] ).includes( attribute );
@@ -86,6 +87,22 @@ export function createRegistry( blocks, getBlockType ) {
 			panels.set( name, [ ...( panels.get( name ) ?? [] ), Component ] );
 		},
 
+		/**
+		 * Adds a button to the toolbar of a block.
+		 *
+		 * @param {string}                                name      Block name.
+		 * @param {import('react').ComponentType<Object>} Component Receives {attributes, setAttributes, clientId, isPreview}; renders toolbar buttons (`ToolbarButton` of `@wordpress/components`).
+		 */
+		registerToolbarButton( name, Component ) {
+			if ( ! knownBlock( name, 'registerToolbarButton' ) ) {
+				return;
+			}
+			toolbarButtons.set( name, [
+				...( toolbarButtons.get( name ) ?? [] ),
+				Component,
+			] );
+		},
+
 		getControl( name, attribute ) {
 			return (
 				controls.get( `${ name }\u0000${ attribute }` ) ??
@@ -113,6 +130,10 @@ export function createRegistry( blocks, getBlockType ) {
 
 		getPanels( name ) {
 			return panels.get( name ) ?? [];
+		},
+
+		getToolbarButtons( name ) {
+			return toolbarButtons.get( name ) ?? [];
 		},
 	};
 }
