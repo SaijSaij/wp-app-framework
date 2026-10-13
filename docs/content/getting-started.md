@@ -44,7 +44,7 @@ Composer installs the framework and tells it where your classes are. The framewo
     ],
     "require": {
         "php": ">=8.5",
-        "saij/wp-app-framework": "^0.7"
+        "saij/wp-app-framework": "^0.8"
     },
     "autoload": {
         "psr-4": { "Acme\\MyTheme\\": "src/" }
