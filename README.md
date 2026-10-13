@@ -24,7 +24,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 |---|---|
 | `Theme.php`, `ChildTheme.php`, `Plugin.php` | Boot and paths of the active theme, child theme or of a plugin |
 | `Instance.php` | Boot of one framework instance (internal) |
-| `Post/` | `#[PostType]`, `#[PostMeta]`, `#[Taxonomy]`, post objects (`AbstractPost`, `Post`, `Page`), collector (build), post store and registry, registration, rewrite rules and meta boxes (runtime), template function `post()` |
+| `Post/` | `#[PostType]`, `#[PostMeta]`, `#[Taxonomy]`, post objects (`AbstractPost`, `Post`, `Page`), core taxonomies (`Category`, `Tag`), `PostFormat`, collector (build), post store and registry, registration, rewrite rules and meta boxes (runtime), template function `post()` |
 | `Query/` | `PostQuery` (`Event::query()`), conditions (`Terms`, `Any`, `All`), field classes in `Field/`, `#[MetaFields]` with its build check and generator, sort clauses for meta fields |
 | `Project/` | Kind, slug, namespace and settings of a consumer from its `composer.json` (build) |
 | `Api/` | `#[PublicApi]`, `#[PluginApi]`, `#[ThemeApi]` attributes, collector and signature checks (build), hooks between instances and `has_plugin()` (runtime) |

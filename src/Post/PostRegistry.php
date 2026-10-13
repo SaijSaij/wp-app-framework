@@ -72,7 +72,7 @@ final class PostRegistry
     public static function taxonomyName(string $class): string
     {
         $store = self::$taxonomies[$class] ?? throw new LogicException(sprintf(
-            '%s is no taxonomy class of a booted theme or plugin: taxonomy classes need #[Taxonomy] (rebuild the manifest after code changes).',
+            '%s is no taxonomy class of a booted theme or plugin: taxonomy classes need #[Taxonomy] or are Category and Tag (rebuild the manifest after code changes).',
             $class,
         ));
 

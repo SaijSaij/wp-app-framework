@@ -88,7 +88,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 17;
+    public const int FORMAT = 18;
 
     /**
      * @return ManifestData

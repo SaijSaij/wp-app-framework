@@ -125,7 +125,7 @@ Queries of posts have a shortcut: `Event::query()->…->cache(ttl: 600)` caches 
 Three tags are invalidated by the framework itself:
 
 - `PostTypeTag('product')` when a post of that type is created, changed, trashed, deleted, changes its status or its post meta. The edit lock the block editor sets while somebody edits a post does not count. Name your own post types by their [post class](./posts.md): `new PostTypeTag(Event::class)`.
-- `TaxonomyTag('category')` when a term of that taxonomy is created, changed or deleted, changes its term meta, or is assigned to or removed from a post.
+- `TaxonomyTag('category')` or `TaxonomyTag(Category::class)` when a term of that taxonomy is created, changed or deleted, changes its term meta, or is assigned to or removed from a post.
 - `SettingsTag(SiteSettings::class)` when the [settings group](./settings.md) is saved.
 
 For everything else, define tags of your own. A tag is a case of a string-backed enum that implements `CacheTag`:

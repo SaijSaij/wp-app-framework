@@ -110,7 +110,33 @@ $events = Event::query()
 
 `Any::of()` is met if one of its conditions is met, `All::of()` if all of them are; groups can contain groups. WordPress keeps conditions on meta fields and on terms in two separate parts of a query and always joins the two with AND. A group therefore contains either meta conditions or term conditions; mixing them throws an exception.
 
-The data of the post has methods of its own: `status()`, `ids()`, `exclude()`, `author()`, `parent()`, `search()`, `publishedAfter()` and `publishedBefore()`.
+The data of the post has methods of its own, described in the next section.
+
+## Posts and pages
+
+Queries work the same for the post types of WordPress: `Post::query()` returns posts, `Page::query()` pages. The fields every post has – slug, title, dates, parent, template, format, password, comments – have methods of their own, because they are columns of the posts table or data WordPress keeps in a fixed place, not fields of a meta class:
+
+```php
+$news = Post::query()
+    ->where(Terms::in(Category::class, [$news]), Terms::notIn(Tag::class, [$internal]))
+    ->format(PostFormat::Standard, PostFormat::Video)
+    ->sticky(false)
+    ->modifiedAfter(new DateTimeImmutable('-7 days'))
+    ->search('concert', columns: [SearchColumn::Title])
+    ->get();
+
+$imprint = Page::query()->slug('imprint')->first();
+$wide = Page::query()->parentIn($about, $team)->template('page-wide')->orderBy(PostOrder::MenuOrder)->get();
+```
+
+WordPress' categories and tags are named by the framework classes `Category` and `Tag`, like its post types by `Post` and `Page`. They register nothing and work wherever a taxonomy class is accepted: in `Terms`, `getTerms()`, `TaxonomyTag` and `#[TermReference]`.
+
+A few fields need a word of explanation:
+
+- **Template:** WordPress stores the template of a post in the protected meta key `_wp_page_template`, as the slug of the file in `templates/`. `template('page-wide')` finds posts with that template, `defaultTemplate()` posts without one.
+- **Format:** post formats are terms of the taxonomy `post_format`. Since you know them as a fixed list, `format()` takes the enum `PostFormat`; `PostFormat::Standard` is a post without format.
+- **Sticky:** WordPress keeps the IDs of sticky posts in the option `sticky_posts`. `sticky()` reads it when the query runs, so a cached query notices a change. Only posts of the type `post` can be sticky.
+- **Search:** without further arguments, `search()` looks in the title, excerpt and content, like the search of WordPress. `columns` limits it, `exact` requires the text to be the whole value of a column, and `sentence` searches the words as one phrase.
 
 ## Sorting and pages
 
@@ -165,10 +191,21 @@ public function render(EventListAttributes $attrs): string
 | `where(Condition ...$conditions)` | All conditions must be met; adds to earlier calls. |
 | `status(PostStatus ...)` | These statuses instead of `Publish`. The capabilities of the current user are not checked. |
 | `ids(AbstractPost\|int ...)` | Only these posts; without arguments no posts at all. |
-| `exclude(AbstractPost\|int ...)` | Not these posts; adds to earlier calls. |
+| `exclude(AbstractPost\|int ...)` | Not these posts; adds to earlier calls. Next to `ids()` the posts are taken out of the IDs, because WordPress ignores its own exclusion when IDs are given. |
 | `author(int ...)` | Posts of these authors. |
 | `parent(?AbstractPost)` | Children of the post, or top-level posts with null; hierarchical post types only. |
-| `search(string)` | The search of WordPress; the text must not be empty. |
+| `search(string, list<SearchColumn> $columns = [], bool $exact = false, bool $sentence = false)` | The search of WordPress; the text must not be empty. Without columns: title, excerpt and content. |
+| `slug(string ...)` | Posts with one of the slugs (`post_name`). |
+| `title(string)` | Posts with exactly this title. |
+| `parentIn(AbstractPost\|int ...)`, `parentNotIn(…)` | Children of one of the posts, or no children of them; hierarchical post types only. |
+| `modifiedAfter(DateTimeInterface)`, `modifiedBefore(…)` | Date of the last change, the time itself excluded. |
+| `template(string ...)`, `defaultTemplate()` | Posts with one of the templates (slug), or without template. |
+| `format(PostFormat ...)` | Posts with one of the formats; `Standard` is a post without format. |
+| `sticky(bool = true)` | Sticky posts only, or no sticky posts; `Post::query()` only. |
+| `hasPassword(bool = true)` | Posts with a password, or without one. |
+| `menuOrder(int)` | Posts with this menu order (at least 0). |
+| `commentCount(int, Comparison = Equal)` | Posts whose number of approved comments compares to the number. |
+| `commentStatus(DiscussionStatus)`, `pingStatus(DiscussionStatus)` | Posts whose comments or pings are open or closed. |
 | `publishedAfter(DateTimeInterface)`, `publishedBefore(…)` | Publication date, the time itself excluded. |
 | `orderBy(PostOrder\|Field, Direction = Asc)` | Sorts; further calls sort what is still equal. Without it: newest first. |
 | `limit(int)`, `offset(int)` | At most this many posts (at least 1), skipping some (with `limit()`). Without `limit()`, all posts. |

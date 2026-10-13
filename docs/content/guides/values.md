@@ -83,7 +83,7 @@ public ?Event $event = null,                         // the event, null without
 
 The single reference must be nullable. It resolves if the post has the type of the class and is published, also for post types that are not public, such as data types. The search in the editor uses the REST collection of the post type, so it finds posts of these types too.
 
-`postTypes` and `taxonomies` also take post and taxonomy classes instead of names: `#[PostReference(postTypes: [Event::class, 'page'])]`, `#[TermReference(taxonomies: [Genre::class])]`.
+`postTypes` and `taxonomies` also take post and taxonomy classes instead of names: `#[PostReference(postTypes: [Event::class, 'page'])]`, `#[TermReference(taxonomies: [Genre::class, Category::class])]`. WordPress' own types and taxonomies are the framework classes `Post`, `Page`, `Category` and `Tag`.
 
 ### Editing
 

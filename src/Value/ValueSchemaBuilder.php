@@ -640,7 +640,7 @@ final class ValueSchemaBuilder
                         $location,
                         $argument,
                         $subtype,
-                        $target === 'post' ? 'post class (#[PostType], Post or Page)' : 'taxonomy class (#[Taxonomy])',
+                        $target === 'post' ? 'post class (#[PostType], Post or Page)' : 'taxonomy class (#[Taxonomy], Category or Tag)',
                     );
 
                     return false;

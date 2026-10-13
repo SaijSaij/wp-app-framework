@@ -119,7 +119,7 @@ final class CachePolicy
             if (str_contains($taxonomy, '\\')) {
                 $name = $names->taxonomy($taxonomy);
                 if ($name === null) {
-                    return [null, sprintf('TaxonomyTag needs a taxonomy name or a taxonomy class of this theme or plugin (#[Taxonomy]), %s given', $taxonomy)];
+                    return [null, sprintf('TaxonomyTag needs a taxonomy name or a taxonomy class (#[Taxonomy] of this theme or plugin, Category or Tag), %s given', $taxonomy)];
                 }
                 $taxonomy = $name;
             }

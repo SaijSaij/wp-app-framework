@@ -21,16 +21,22 @@ use Saij\WpAppFramework\Cache\Tag\TaxonomyTag;
 use Saij\WpAppFramework\Cache\TagNames;
 use Saij\WpAppFramework\Cache\TagVersions;
 use Saij\WpAppFramework\DependencyInjection\Container;
+use Saij\WpAppFramework\Post\Category;
+use Saij\WpAppFramework\Post\Page;
 use Saij\WpAppFramework\Post\Post;
+use Saij\WpAppFramework\Post\PostFormat;
 use Saij\WpAppFramework\Post\PostStatus;
 use Saij\WpAppFramework\Query\All;
 use Saij\WpAppFramework\Query\Any;
+use Saij\WpAppFramework\Query\Comparison;
 use Saij\WpAppFramework\Query\Condition;
 use Saij\WpAppFramework\Query\Direction;
+use Saij\WpAppFramework\Query\DiscussionStatus;
 use Saij\WpAppFramework\Query\Field\StringField;
 use Saij\WpAppFramework\Query\MetaOrderClauses;
 use Saij\WpAppFramework\Query\PostOrder;
 use Saij\WpAppFramework\Query\PostQuery;
+use Saij\WpAppFramework\Query\SearchColumn;
 use Saij\WpAppFramework\Query\Terms;
 use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Density;
 use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Event;
@@ -63,7 +69,7 @@ final class PostQueryTest extends TestCase
             new TagVersions('my_theme_'),
             new CodeGeneration(static fn(): string => 'g1'),
             new Container([]),
-            new TagNames([], [Event::class => 'fixture_event'], [Genre::class => 'fixture_genre']),
+            new TagNames([], [Event::class => 'fixture_event'], [Genre::class => 'fixture_genre', Category::class => 'category']),
         ));
     }
 
@@ -100,12 +106,12 @@ final class PostQueryTest extends TestCase
             'fields' => 'ids',
             'ignore_sticky_posts' => true,
             'suppress_filters' => false,
-            'post__in' => [5, 20],
-            'post__not_in' => [7, 8],
             'author__in' => [3, 4],
             'post_parent' => 20,
             's' => 'jazz',
             'date_query' => [['column' => 'post_date_gmt', 'after' => '2026-10-01 18:00:00', 'before' => '2026-10-31 23:00:00', 'inclusive' => false]],
+            // 7 and 8 are excluded from the IDs: WordPress ignores post__not_in next to post__in.
+            'post__in' => [5, 20],
         ], $args);
         self::assertSame(0, Venue::query()->parent(null)->toArgs()['post_parent']);
     }
@@ -334,6 +340,110 @@ final class PostQueryTest extends TestCase
         self::assertNull(Event::query()->first());
     }
 
+    public function testStandardFieldsOfPostsAndPagesBecomeArgumentsOfWpQuery(): void
+    {
+        $args = Venue::query()
+            ->slug('hall', '', 'club')
+            ->title('Main hall')
+            ->parentIn(5, 6)
+            ->parentNotIn(7)
+            ->search('jazz club', columns: [SearchColumn::Title, SearchColumn::Excerpt, SearchColumn::Title], sentence: true)
+            ->publishedAfter(new DateTimeImmutable('2026-01-01 00:00', new DateTimeZone('UTC')))
+            ->modifiedBefore(new DateTimeImmutable('2026-10-01 12:00', new DateTimeZone('UTC')))
+            ->hasPassword(false)
+            ->menuOrder(2)
+            ->commentCount(3, Comparison::GreaterOrEqual)
+            ->commentStatus(DiscussionStatus::Open)
+            ->pingStatus(DiscussionStatus::Closed)
+            ->toArgs();
+
+        self::assertSame('jazz club', $args['s']);
+        self::assertSame([
+            ['column' => 'post_date_gmt', 'after' => '2026-01-01 00:00:00', 'inclusive' => false],
+            ['column' => 'post_modified_gmt', 'before' => '2026-10-01 12:00:00', 'inclusive' => false],
+        ], $args['date_query']);
+        foreach ([
+            'post_name__in' => ['hall', 'club'],
+            'title' => 'Main hall',
+            'post_parent__in' => [5, 6],
+            'post_parent__not_in' => [7],
+            'search_columns' => ['post_title', 'post_excerpt'],
+            'sentence' => true,
+            'has_password' => false,
+            'menu_order' => 2,
+            'comment_count' => ['value' => 3, 'compare' => '>='],
+            'comment_status' => 'open',
+            'ping_status' => 'closed',
+        ] as $name => $value) {
+            self::assertSame($value, $args[$name], $name);
+        }
+        self::assertArrayNotHasKey('exact', $args);
+        // A new search replaces the options of the previous one.
+        self::assertArrayNotHasKey('search_columns', Venue::query()->search('a', [SearchColumn::Title])->search('b', exact: true)->toArgs());
+    }
+
+    public function testTemplatesAndFormatsBecomeClausesNextToTheConditions(): void
+    {
+        $args = Post::query()
+            ->where(ExtrasFields::featured()->equals(true), Terms::in(Category::class, [3]))
+            ->template('page-wide', 'default', 'landing')
+            ->format(PostFormat::Video, PostFormat::Standard, PostFormat::Video)
+            ->toArgs();
+
+        self::assertSame([
+            'relation' => 'AND',
+            ['key' => '_wp_page_template', 'compare' => 'IN', 'value' => ['page-wide', 'landing']],
+            ['key' => 'fixture_featured', 'compare' => '=', 'value' => 1, 'type' => 'SIGNED'],
+        ], $args['meta_query']);
+        self::assertSame([
+            'relation' => 'AND',
+            ['relation' => 'OR', ['taxonomy' => 'post_format', 'field' => 'slug', 'terms' => ['post-format-video'], 'operator' => 'IN'], ['taxonomy' => 'post_format', 'operator' => 'NOT EXISTS']],
+            ['taxonomy' => 'category', 'operator' => 'IN', 'include_children' => true, 'field' => 'term_id', 'terms' => [3]],
+        ], $args['tax_query']);
+
+        self::assertSame(
+            ['relation' => 'AND', ['relation' => 'OR', ['key' => '_wp_page_template', 'compare' => 'NOT EXISTS'], ['key' => '_wp_page_template', 'compare' => 'IN', 'value' => ['', 'default']]]],
+            Page::query()->defaultTemplate()->toArgs()['meta_query'],
+        );
+        self::assertSame(
+            ['relation' => 'AND', ['taxonomy' => 'post_format', 'field' => 'slug', 'terms' => ['post-format-aside'], 'operator' => 'IN']],
+            Post::query()->format(PostFormat::Aside)->toArgs()['tax_query'],
+        );
+    }
+
+    public function testStickyPostsComeFromTheirOption(): void
+    {
+        $GLOBALS['wp_app_framework_test_options'] = ['sticky_posts' => [3, '5']];
+
+        self::assertSame([3, 5], Post::query()->sticky()->toArgs()['post__in']);
+        self::assertSame([5], Post::query()->ids(5, 6)->sticky()->toArgs()['post__in']);
+        // No sticky post among the IDs: no post at all.
+        self::assertSame([0], Post::query()->ids(6)->sticky()->toArgs()['post__in']);
+        self::assertSame([9, 3, 5], Post::query()->exclude(9)->sticky(false)->toArgs()['post__not_in']);
+        // WordPress ignores post__not_in next to post__in: excluded from the IDs instead.
+        $args = Post::query()->ids(3, 6, 7)->exclude(7)->sticky(false)->toArgs();
+        self::assertSame([6], $args['post__in']);
+        self::assertArrayNotHasKey('post__not_in', $args);
+        self::assertSame([0], Post::query()->ids(3)->exclude(3)->toArgs()['post__in']);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage(sprintf('%s::query()->sticky(): only posts of the type post can be sticky.', Page::class));
+        (void) Page::query()->sticky();
+    }
+
+    public function testFormatsInvalidateCachedQueries(): void
+    {
+        Posts::add(10, 'post');
+        $GLOBALS['wp_app_framework_test_query_result'] = ['posts' => [10]];
+        $query = Post::query()->format(PostFormat::Video)->cache(60);
+
+        self::assertCount(1, $query->get());
+        $GLOBALS['wp_app_framework_test_query_result'] = ['posts' => []];
+        self::assertCount(1, $query->get());
+        $this->cache?->invalidate(new TaxonomyTag('post_format'));
+        self::assertSame([], $query->get());
+    }
+
     public function testIdsWithoutPostsFindNothingWithoutAQuery(): void
     {
         $query = Event::query()->ids();
@@ -358,6 +468,13 @@ final class PostQueryTest extends TestCase
             static fn(): mixed => EventDetailsFields::capacity()->in(),
             static fn(): mixed => EventDetailsFields::venue()->equals(new Venue()),
             static fn(): mixed => Event::query()->orderBy(PostOrder::Random)->cache(60)->get(),
+            static fn(): mixed => Event::query()->slug(''),
+            static fn(): mixed => Event::query()->title(' '),
+            static fn(): mixed => Event::query()->parentIn(1),
+            static fn(): mixed => Venue::query()->parentIn(),
+            static fn(): mixed => Event::query()->template('default'),
+            static fn(): mixed => Event::query()->menuOrder(-1),
+            static fn(): mixed => Event::query()->commentCount(-1),
         ] as $call) {
             try {
                 $call();
@@ -380,6 +497,13 @@ final class PostQueryTest extends TestCase
             sprintf('%s::$capacity: IN needs at least one value.', EventDetails::class),
             sprintf('%s::$venue: the %s has not been saved yet.', EventDetails::class, Venue::class),
             sprintf('%s::query(): a random order cannot be cached; remove cache() or PostOrder::Random.', Event::class),
+            sprintf('%s::query()->slug() needs at least one slug.', Event::class),
+            sprintf('%s::query()->title() needs a title.', Event::class),
+            sprintf('%s::query()->parentIn(): the post type is not hierarchical.', Event::class),
+            sprintf('%s::query()->parentIn() needs at least one post.', Venue::class),
+            sprintf('%s::query()->template() needs at least one template slug; use defaultTemplate() for the default.', Event::class),
+            sprintf('%s::query()->menuOrder() needs at least 0, -1 given.', Event::class),
+            sprintf('%s::query()->commentCount() needs at least 0, -1 given.', Event::class),
         ], $errors);
     }
 

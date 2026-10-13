@@ -42,7 +42,9 @@ final readonly class PostTypeRegistrar
             }
         }
         foreach ($this->store->getTaxonomies() as $taxonomy) {
-            register_taxonomy($taxonomy['name'], $taxonomy['postTypes'], $taxonomy['args']);
+            if (!$taxonomy['builtin'] && $taxonomy['args'] !== null) {
+                register_taxonomy($taxonomy['name'], $taxonomy['postTypes'], $taxonomy['args']);
+            }
         }
         foreach ($this->store->getMeta() as $meta) {
             foreach ($meta['postTypes'] as $postClass) {

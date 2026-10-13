@@ -27,6 +27,8 @@ final class PostTypeRegistrarTest extends TestCase
         $types = Recorded::postTypes();
         self::assertSame(['fixture_event', 'fixture_venue'], array_keys($types), 'Post and page are registered by WordPress.');
         self::assertSame(['name' => 'Events'], array_intersect_key((array) $types['fixture_event']['labels'], ['name' => true]));
+        // WordPress registers its own taxonomies.
+        self::assertSame(['fixture_genre'], array_keys(Recorded::taxonomies()));
         [$objectTypes, $taxonomyArgs] = Recorded::taxonomies()['fixture_genre'];
         self::assertSame(['fixture_event', 'post'], $objectTypes);
         self::assertSame(['name' => 'Genres'], array_intersect_key((array) $taxonomyArgs['labels'], ['name' => true]));

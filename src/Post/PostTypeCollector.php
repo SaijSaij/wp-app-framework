@@ -50,7 +50,7 @@ use Throwable;
  *     args: PostTypeArgs|null,
  *     meta: list<class-string>
  * }
- * @phpstan-type TaxonomyEntry array{name: non-empty-string, args: TaxonomyArgs, postTypes: list<non-empty-string>}
+ * @phpstan-type TaxonomyEntry array{name: non-empty-string, builtin: bool, args: TaxonomyArgs|null, postTypes: list<non-empty-string>}
  * @phpstan-type MetaFieldEntry array{
  *     key: non-empty-string,
  *     type: 'string'|'boolean'|'integer'|'number'|'array'|'object',
@@ -123,7 +123,7 @@ final class PostTypeCollector
      */
     public static function taxonomyClasses(array $classes, string $namespace): array
     {
-        $taxonomies = [];
+        $taxonomies = [Category::class => 'category', Tag::class => 'post_tag'];
         foreach ($classes as $class => $reflection) {
             $attribute = self::instance($reflection, Taxonomy::class);
             if ($attribute instanceof Taxonomy && $attribute->name !== '') {
@@ -147,7 +147,7 @@ final class PostTypeCollector
             $kind = match (true) {
                 $reflection->isSubclassOf(AbstractPost::class) => 'a post class',
                 $reflection->getAttributes(PostMeta::class) !== [] => 'a meta class',
-                $reflection->getAttributes(Taxonomy::class) !== [] => 'a taxonomy class',
+                $reflection->getAttributes(Taxonomy::class) !== [], $class === Category::class, $class === Tag::class => 'a taxonomy class',
                 $reflection->getAttributes(MetaFields::class) !== [] => 'a meta fields class',
                 default => null,
             };
@@ -204,7 +204,11 @@ final class PostTypeCollector
             }
         }
 
-        $taxonomies = [];
+        // WordPress' own taxonomies: registered by WordPress, named by the framework's classes.
+        $taxonomies = [
+            Category::class => ['name' => 'category', 'builtin' => true, 'args' => null, 'postTypes' => ['post']],
+            Tag::class => ['name' => 'post_tag', 'builtin' => true, 'args' => null, 'postTypes' => ['post']],
+        ];
         $taxonomyNames = [];
         foreach ($classes as $class => $reflection) {
             $entry = $this->taxonomy($class, $reflection, $posts, $taxonomyNames);
@@ -224,7 +228,7 @@ final class PostTypeCollector
             }
         }
         foreach ($taxonomies as $taxonomy) {
-            if ($taxonomy['args']['public'] === true) {
+            if ($taxonomy['args'] !== null && $taxonomy['args']['public'] === true) {
                 $rewrite[] = ['taxonomy', $taxonomy['name'], $taxonomy['args']['rewrite'], $taxonomy['postTypes'], $taxonomy['args']['hierarchical']];
             }
         }
@@ -483,7 +487,7 @@ final class PostTypeCollector
 
         $typeNames = array_map(static fn(string $postClass): string => $posts[$postClass]['name'], $postTypes);
 
-        return ['name' => $name, 'args' => self::taxonomyArgs($taxonomy), 'postTypes' => $typeNames];
+        return ['name' => $name, 'builtin' => false, 'args' => self::taxonomyArgs($taxonomy), 'postTypes' => $typeNames];
     }
 
     /**

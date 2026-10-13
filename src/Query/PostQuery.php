@@ -17,6 +17,7 @@ use Saij\WpAppFramework\Cache\Tag\TaxonomyTag;
 use Saij\WpAppFramework\Cache\TagNames;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Post\AbstractPost;
+use Saij\WpAppFramework\Post\PostFormat;
 use Saij\WpAppFramework\Post\PostRegistry;
 use Saij\WpAppFramework\Post\PostStatus;
 use Saij\WpAppFramework\Query\Field\Field;
@@ -45,6 +46,9 @@ use wpdb;
 #[NoService]
 final readonly class PostQuery
 {
+    /** The meta key of the template of a post (get_page_template_slug()). */
+    private const string TEMPLATE_KEY = '_wp_page_template';
+
     /**
      * @param class-string<T>                          $class
      * @param non-empty-string                         $type
@@ -55,6 +59,9 @@ final readonly class PostQuery
      * @param list<Condition>                          $conditions
      * @param list<array{PostOrder|Field, Direction}>  $order
      * @param array{ttl: int, tags: list<CacheTag>, vary: list<CacheVary>}|null $cache
+     * @param array<string, mixed>                     $args          Further arguments of WP_Query, as set by the methods.
+     * @param list<string>|null                        $templates     Template slugs; [] for the default template.
+     * @param list<PostFormat>                         $formats
      */
     private function __construct(
         private string $class,
@@ -72,6 +79,12 @@ final readonly class PostQuery
         private ?int $limit = null,
         private int $offset = 0,
         private ?array $cache = null,
+        private array $args = [],
+        private ?string $modifiedAfter = null,
+        private ?string $modifiedBefore = null,
+        private ?array $templates = null,
+        private array $formats = [],
+        private ?bool $sticky = null,
     ) {}
 
     /**
@@ -155,16 +168,200 @@ final readonly class PostQuery
     }
 
     /**
-     * Posts that contain the words, searched like the search of WordPress.
+     * Children of one of the posts (hierarchical post types).
+     *
+     * @param T|int ...$parents
      */
     #[\NoDiscard]
-    public function search(string $text): static
+    public function parentIn(AbstractPost|int ...$parents): static
+    {
+        return $this->withArg('post_parent__in', $this->parents('parentIn', $parents));
+    }
+
+    /**
+     * Posts that are no children of the posts (hierarchical post types).
+     *
+     * @param T|int ...$parents
+     */
+    #[\NoDiscard]
+    public function parentNotIn(AbstractPost|int ...$parents): static
+    {
+        return $this->withArg('post_parent__not_in', $this->parents('parentNotIn', $parents));
+    }
+
+    /**
+     * Posts that contain the words, searched like the search of WordPress: in the title, excerpt and content, or in
+     * the given columns; with $exact the text must be a whole column value, with $sentence the words are one phrase.
+     *
+     * @param list<SearchColumn> $columns
+     */
+    #[\NoDiscard]
+    public function search(string $text, array $columns = [], bool $exact = false, bool $sentence = false): static
     {
         if (trim($text) === '') {
             throw new InvalidArgumentException(sprintf('%s::query()->search() needs a text.', $this->class));
         }
+        $args = $this->args;
+        unset($args['search_columns'], $args['exact'], $args['sentence']);
+        if ($columns !== []) {
+            $args['search_columns'] = array_values(array_unique(array_map(static fn(SearchColumn $column): string => $column->value, $columns)));
+        }
+        if ($exact) {
+            $args['exact'] = true;
+        }
+        if ($sentence) {
+            $args['sentence'] = true;
+        }
 
-        return clone($this, ['search' => $text]);
+        return clone($this, ['search' => $text, 'args' => $args]);
+    }
+
+    /**
+     * Posts with one of the slugs (post_name).
+     */
+    #[\NoDiscard]
+    public function slug(string ...$slugs): static
+    {
+        $slugs = array_values(array_filter($slugs, static fn(string $slug): bool => $slug !== ''));
+        if ($slugs === []) {
+            throw new InvalidArgumentException(sprintf('%s::query()->slug() needs at least one slug.', $this->class));
+        }
+
+        return $this->withArg('post_name__in', $slugs);
+    }
+
+    /**
+     * Posts with exactly this title.
+     */
+    #[\NoDiscard]
+    public function title(string $title): static
+    {
+        if (trim($title) === '') {
+            throw new InvalidArgumentException(sprintf('%s::query()->title() needs a title.', $this->class));
+        }
+
+        return $this->withArg('title', $title);
+    }
+
+    /**
+     * Posts last changed after the time (not at the time).
+     */
+    #[\NoDiscard]
+    public function modifiedAfter(DateTimeInterface $time): static
+    {
+        return clone($this, ['modifiedAfter' => self::utc($time)]);
+    }
+
+    /**
+     * Posts last changed before the time (not at the time).
+     */
+    #[\NoDiscard]
+    public function modifiedBefore(DateTimeInterface $time): static
+    {
+        return clone($this, ['modifiedBefore' => self::utc($time)]);
+    }
+
+    /**
+     * Posts with one of the templates, by slug (`page-wide` for templates/page-wide.html).
+     */
+    #[\NoDiscard]
+    public function template(string ...$slugs): static
+    {
+        $slugs = array_values(array_filter($slugs, static fn(string $slug): bool => $slug !== '' && $slug !== 'default'));
+        if ($slugs === []) {
+            throw new InvalidArgumentException(sprintf('%s::query()->template() needs at least one template slug; use defaultTemplate() for the default.', $this->class));
+        }
+
+        return clone($this, ['templates' => $slugs]);
+    }
+
+    /**
+     * Posts with the default template of their type: no template stored.
+     */
+    #[\NoDiscard]
+    public function defaultTemplate(): static
+    {
+        return clone($this, ['templates' => []]);
+    }
+
+    /**
+     * Posts with one of the formats; PostFormat::Standard is a post without format.
+     */
+    #[\NoDiscard]
+    public function format(PostFormat $format, PostFormat ...$more): static
+    {
+        $formats = [];
+        foreach ([$format, ...$more] as $each) {
+            $formats[$each->value] = $each;
+        }
+
+        return clone($this, ['formats' => array_values($formats)]);
+    }
+
+    /**
+     * Sticky posts only, or with false no sticky posts (posts of WordPress only).
+     */
+    #[\NoDiscard]
+    public function sticky(bool $sticky = true): static
+    {
+        if ($this->type !== 'post') {
+            throw new LogicException(sprintf('%s::query()->sticky(): only posts of the type post can be sticky.', $this->class));
+        }
+
+        return clone($this, ['sticky' => $sticky]);
+    }
+
+    /**
+     * Posts with a password, or with false without one.
+     */
+    #[\NoDiscard]
+    public function hasPassword(bool $password = true): static
+    {
+        return $this->withArg('has_password', $password);
+    }
+
+    /**
+     * Posts with this menu order (page attributes).
+     */
+    #[\NoDiscard]
+    public function menuOrder(int $order): static
+    {
+        if ($order < 0) {
+            throw new InvalidArgumentException(sprintf('%s::query()->menuOrder() needs at least 0, %d given.', $this->class, $order));
+        }
+
+        return $this->withArg('menu_order', $order);
+    }
+
+    /**
+     * Posts whose number of approved comments compares to $count.
+     */
+    #[\NoDiscard]
+    public function commentCount(int $count, Comparison $comparison = Comparison::Equal): static
+    {
+        if ($count < 0) {
+            throw new InvalidArgumentException(sprintf('%s::query()->commentCount() needs at least 0, %d given.', $this->class, $count));
+        }
+
+        return $this->withArg('comment_count', ['value' => $count, 'compare' => $comparison->value]);
+    }
+
+    /**
+     * Posts whose comments are open or closed.
+     */
+    #[\NoDiscard]
+    public function commentStatus(DiscussionStatus $status): static
+    {
+        return $this->withArg('comment_status', $status->value);
+    }
+
+    /**
+     * Posts whose pings (trackbacks, pingbacks) are open or closed.
+     */
+    #[\NoDiscard]
+    public function pingStatus(DiscussionStatus $status): static
+    {
+        return $this->withArg('ping_status', $status->value);
     }
 
     /**
@@ -304,12 +501,6 @@ final readonly class PostQuery
             'ignore_sticky_posts' => true,
             'suppress_filters' => false,
         ];
-        if ($this->ids !== null) {
-            $args['post__in'] = $this->ids;
-        }
-        if ($this->exclude !== []) {
-            $args['post__not_in'] = $this->exclude;
-        }
         if ($this->authors !== []) {
             $args['author__in'] = $this->authors;
         }
@@ -319,15 +510,22 @@ final readonly class PostQuery
         if ($this->search !== null) {
             $args['s'] = $this->search;
         }
-        if ($this->after !== null || $this->before !== null) {
-            $args['date_query'] = [array_filter(
-                ['column' => 'post_date_gmt', 'after' => $this->after, 'before' => $this->before, 'inclusive' => false],
-                static fn(mixed $value): bool => $value !== null,
-            )];
+        $dates = [];
+        foreach ([['post_date_gmt', $this->after, $this->before], ['post_modified_gmt', $this->modifiedAfter, $this->modifiedBefore]] as [$column, $after, $before]) {
+            if ($after !== null || $before !== null) {
+                $dates[] = array_filter(
+                    ['column' => $column, 'after' => $after, 'before' => $before, 'inclusive' => false],
+                    static fn(mixed $value): bool => $value !== null,
+                );
+            }
         }
+        if ($dates !== []) {
+            $args['date_query'] = $dates;
+        }
+        $args = [...$args, ...$this->args, ...$this->idArgs()];
 
-        $meta = [];
-        $tax = [];
+        $meta = $this->templateClauses();
+        $tax = $this->formatClauses();
         foreach ($this->conditions as $condition) {
             if (Group::kindOf($condition) === 'meta') {
                 $meta[] = $this->metaClause($condition);
@@ -367,7 +565,11 @@ final readonly class PostQuery
         }
         $cache = PostRegistry::postStore($this->class)->getCache();
         $entry = $cache->entry(sprintf('%s::query()->cache()', $this->class), $this->cache['ttl'], $this->cache['tags'], $this->cache['vary']);
-        $automatic = [new PostTypeTag($this->type), ...array_map(static fn(string $taxonomy): TaxonomyTag => new TaxonomyTag($taxonomy), $this->taxonomies($this->conditions))];
+        $taxonomies = $this->taxonomies($this->conditions);
+        if ($this->formats !== []) {
+            $taxonomies[] = 'post_format';
+        }
+        $automatic = [new PostTypeTag($this->type), ...array_map(static fn(string $taxonomy): TaxonomyTag => new TaxonomyTag($taxonomy), $taxonomies)];
         foreach ($automatic as $tag) {
             $key = CachePolicy::tagKey($tag, new TagNames())[0];
             if ($key !== null && !in_array($key, $entry['tags'], true)) {
@@ -534,6 +736,112 @@ final readonly class PostQuery
     private function field(Field $field): array
     {
         return PostRegistry::metaStore($field->getMetaClass())->queryField($this->class, $field);
+    }
+
+    #[\NoDiscard]
+    private function withArg(string $name, mixed $value): static
+    {
+        return clone($this, ['args' => [...$this->args, $name => $value]]);
+    }
+
+    /**
+     * @param array<AbstractPost|int> $parents
+     * @return list<int>
+     */
+    private function parents(string $method, array $parents): array
+    {
+        if (!PostRegistry::postStore($this->class)->post($this->class)['hierarchical']) {
+            throw new LogicException(sprintf('%s::query()->%s(): the post type is not hierarchical.', $this->class, $method));
+        }
+        if ($parents === []) {
+            throw new InvalidArgumentException(sprintf('%s::query()->%s() needs at least one post.', $this->class, $method));
+        }
+
+        return array_map($this->id(...), array_values($parents));
+    }
+
+    /**
+     * The meta clause of template() or defaultTemplate().
+     *
+     * @return list<array<string|int, mixed>>
+     */
+    private function templateClauses(): array
+    {
+        if ($this->templates === null) {
+            return [];
+        }
+        if ($this->templates !== []) {
+            return [['key' => self::TEMPLATE_KEY, 'compare' => 'IN', 'value' => $this->templates]];
+        }
+
+        return [['relation' => 'OR', ['key' => self::TEMPLATE_KEY, 'compare' => 'NOT EXISTS'], ['key' => self::TEMPLATE_KEY, 'compare' => 'IN', 'value' => ['', 'default']]]];
+    }
+
+    /**
+     * The tax clause of format(): terms post-format-{format}; Standard has none.
+     *
+     * @return list<array<string|int, mixed>>
+     */
+    private function formatClauses(): array
+    {
+        if ($this->formats === []) {
+            return [];
+        }
+        $slugs = [];
+        $standard = false;
+        foreach ($this->formats as $format) {
+            if ($format === PostFormat::Standard) {
+                $standard = true;
+            } else {
+                $slugs[] = 'post-format-' . $format->value;
+            }
+        }
+        $clauses = [];
+        if ($slugs !== []) {
+            $clauses[] = ['taxonomy' => 'post_format', 'field' => 'slug', 'terms' => $slugs, 'operator' => 'IN'];
+        }
+        if ($standard) {
+            $clauses[] = ['taxonomy' => 'post_format', 'operator' => 'NOT EXISTS'];
+        }
+
+        return count($clauses) === 1 ? $clauses : [['relation' => 'OR', ...$clauses]];
+    }
+
+    /**
+     * post__in and post__not_in from ids(), exclude() and sticky(). WordPress ignores post__not_in next to post__in
+     * (class-wp-query.php), so excluded posts are taken out of the IDs instead; no post has the ID 0, which keeps
+     * an empty list from being ignored.
+     *
+     * @return array{post__in?: list<int>, post__not_in?: list<int>}
+     */
+    private function idArgs(): array
+    {
+        $in = $this->ids;
+        $notIn = $this->exclude;
+        if ($this->sticky !== null) {
+            $sticky = self::stickyIds();
+            if ($this->sticky) {
+                $in = $in === null ? $sticky : array_values(array_intersect($in, $sticky));
+            } else {
+                $notIn = array_values(array_unique([...$notIn, ...$sticky]));
+            }
+        }
+        if ($in === null) {
+            return $notIn === [] ? [] : ['post__not_in' => $notIn];
+        }
+        $in = array_values(array_diff($in, $notIn));
+
+        return ['post__in' => $in === [] ? [0] : $in];
+    }
+
+    /**
+     * @return list<int>
+     */
+    private static function stickyIds(): array
+    {
+        $sticky = get_option('sticky_posts');
+
+        return is_array($sticky) ? array_values(array_map(static fn(mixed $id): int => is_numeric($id) ? (int) $id : 0, $sticky)) : [];
     }
 
     private function id(AbstractPost|int $post): int

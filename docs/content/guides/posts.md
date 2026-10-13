@@ -116,6 +116,8 @@ final class Genre {}
 
 It is registered as `sections_genre`, with labels derived like those of a post type. The block editor shows it in the document settings of its post types.
 
+WordPress' own taxonomies have framework classes too: `Category` for `category` and `Tag` for `post_tag`. They register nothing; use them where a taxonomy class is expected, for example `$post->getTerms(Category::class)` or `Terms::in(Tag::class, [$id])` in a [query](./queries.md#posts-and-pages).
+
 ## Working with posts
 
 The post class loads posts, and `meta()` returns the meta objects of a post:

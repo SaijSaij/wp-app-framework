@@ -12,8 +12,10 @@ use Saij\WpAppFramework\Cache\TagNames;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
+use Saij\WpAppFramework\Post\Category;
 use Saij\WpAppFramework\Post\Page;
 use Saij\WpAppFramework\Post\Post;
+use Saij\WpAppFramework\Post\Tag;
 use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
@@ -94,7 +96,12 @@ final class PostTypeCollectorTest extends TestCase
         $result = self::buildValid()->getPosts();
         $genre = $result['taxonomies'][PostTypeValid\Genre::class];
 
-        self::assertSame(['fixture_genre', ['fixture_event', 'post']], [$genre['name'], $genre['postTypes']]);
+        // WordPress' own taxonomies come first, registered by WordPress.
+        self::assertSame([Category::class, Tag::class, PostTypeValid\Genre::class], array_keys($result['taxonomies']));
+        self::assertSame(['name' => 'category', 'builtin' => true, 'args' => null, 'postTypes' => ['post']], $result['taxonomies'][Category::class]);
+        self::assertSame('post_tag', $result['taxonomies'][Tag::class]['name']);
+        self::assertSame(['fixture_genre', false, ['fixture_event', 'post']], [$genre['name'], $genre['builtin'], $genre['postTypes']]);
+        self::assertNotNull($genre['args']);
         self::assertSame(['Genres', 'Add New Genre', true, true, ['slug' => 'genre']], [
             $genre['args']['labels']['name'],
             $genre['args']['labels']['add_new_item'],
@@ -115,14 +122,19 @@ final class PostTypeCollectorTest extends TestCase
             ['type' => 'int', 'nullable' => true, 'reference' => ['target' => 'post', 'subtypes' => ['fixture_event'], 'class' => PostTypeValid\Event::class]],
             $result->getValues()[PostTypeValid\EventTeaserAttributes::class]['event']['value'],
         );
-        self::assertSame(['post_type:fixture_event', 'taxonomy:fixture_genre'], $block->getCache()['tags'] ?? null);
+        // Category is WordPress' category, by class like the taxonomies of the theme.
+        self::assertSame(['post_type:fixture_event', 'taxonomy:fixture_genre', 'taxonomy:category'], $block->getCache()['tags'] ?? null);
+        self::assertSame(
+            ['type' => 'int', 'nullable' => true, 'reference' => ['target' => 'term', 'subtypes' => ['category', 'fixture_genre']]],
+            $result->getValues()[PostTypeValid\EventTeaserAttributes::class]['topic']['value'],
+        );
         self::assertArrayHasKey(PostTypeValid\EventDetails::class, $result->getValues());
 
         $names = new TagNames([], [PostTypeValid\Event::class => 'fixture_event'], [PostTypeValid\Genre::class => 'fixture_genre']);
         self::assertSame(['post_type:fixture_event', null], CachePolicy::tagKey(new PostTypeTag(PostTypeValid\Event::class), $names));
         self::assertSame(['post_type:page', null], CachePolicy::tagKey(new PostTypeTag('page'), $names));
         self::assertSame(
-            [null, sprintf('TaxonomyTag needs a taxonomy name or a taxonomy class of this theme or plugin (#[Taxonomy]), %s given', PostTypeValid\Event::class)],
+            [null, sprintf('TaxonomyTag needs a taxonomy name or a taxonomy class (#[Taxonomy] of this theme or plugin, Category or Tag), %s given', PostTypeValid\Event::class)],
             CachePolicy::tagKey(new TaxonomyTag(PostTypeValid\Event::class), $names),
         );
     }
