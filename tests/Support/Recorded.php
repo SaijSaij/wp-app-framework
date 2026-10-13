@@ -13,6 +13,44 @@ use WP_Block;
 final class Recorded
 {
     /**
+     * @return list<array<string, mixed>> Arguments of WP_Query::query() in the order of the queries.
+     */
+    public static function queries(): array
+    {
+        /** @var list<array<string, mixed>> */
+        return $GLOBALS['wp_app_framework_test_queries'] ?? [];
+    }
+
+    /**
+     * @return list<callable> Callbacks added to a filter or action and not removed.
+     */
+    public static function filters(string $hook): array
+    {
+        /** @var array<string, array<int, callable>> $filters */
+        $filters = $GLOBALS['wp_app_framework_test_filters'] ?? [];
+
+        return array_values($filters[$hook] ?? []);
+    }
+
+    /**
+     * @return list<array<string, string>> SQL clauses of the queries after the filter posts_clauses.
+     */
+    public static function queryClauses(): array
+    {
+        /** @var list<array<string, string>> */
+        return $GLOBALS['wp_app_framework_test_query_clauses'] ?? [];
+    }
+
+    /**
+     * @return list<list<int>> IDs passed to _prime_post_caches().
+     */
+    public static function primed(): array
+    {
+        /** @var list<list<int>> */
+        return $GLOBALS['wp_app_framework_test_primed'] ?? [];
+    }
+
+    /**
      * @return array<string, array<string, mixed>> Arguments of register_block_type() by block name.
      */
     public static function blocks(): array

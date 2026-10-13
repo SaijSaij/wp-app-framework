@@ -67,6 +67,7 @@ export default defineConfig( {
 						{ text: 'Styles', link: '/guides/styles' },
 						{ text: 'Settings', link: '/guides/settings' },
 						{ text: 'Posts', link: '/guides/posts' },
+						{ text: 'Queries', link: '/guides/queries' },
 						{ text: 'Cache', link: '/guides/cache' },
 						{ text: 'Values', link: '/guides/values' },
 						{ text: 'Plugins', link: '/guides/plugins' },

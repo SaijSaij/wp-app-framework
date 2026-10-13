@@ -118,6 +118,8 @@ final readonly class Weather
 
 The key identifies the entry within your theme or plugin; include everything the value depends on, or declare it as a variant. Values must be plain data: `null`, booleans, numbers, strings and arrays of them. If your function throws, nothing is stored and the exception reaches you.
 
+Queries of posts have a shortcut: `Event::query()->…->cache(ttl: 600)` caches their result with the tags of the post type and of the taxonomies they use (see [Queries](./queries.md#caching)).
+
 ## Invalidating entries
 
 Three tags are invalidated by the framework itself:

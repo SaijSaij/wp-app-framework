@@ -68,6 +68,25 @@ final class CacheStore
         if ($key === '') {
             throw new InvalidArgumentException('CacheStore::remember() needs a key that is not empty.');
         }
+        $entry = $this->entry(sprintf('CacheStore::remember("%s")', $key), $ttl, $tags, $vary);
+
+        /** @var T The value $compute returned, possibly in an earlier request. */
+        return $this->fetch('custom', $key, null, $entry, static fn(): array => [$compute(), true])[0];
+    }
+
+    /**
+     * The checked ttl, tags and variants of an entry.
+     *
+     * @internal Used by remember() and queries.
+     *
+     * @param string     $caller Named in the exception.
+     * @param array<mixed> $tags
+     * @param array<mixed> $vary
+     * @return CacheEntry
+     * @throws InvalidArgumentException If a value is invalid.
+     */
+    public function entry(string $caller, int $ttl, array $tags, array $vary): array
+    {
         [$entry, $errors] = CachePolicy::entry(
             $ttl,
             $tags,
@@ -75,12 +94,8 @@ final class CacheStore
             $this->names,
             static fn(string $class): ?string => is_subclass_of($class, VaryProvider::class) ? null : sprintf('%s does not implement VaryProvider', $class),
         );
-        if ($entry === null) {
-            throw new InvalidArgumentException(sprintf('CacheStore::remember("%s"): %s.', $key, implode('; ', $errors)));
-        }
 
-        /** @var T The value $compute returned, possibly in an earlier request. */
-        return $this->fetch('custom', $key, null, $entry, static fn(): array => [$compute(), true])[0];
+        return $entry ?? throw new InvalidArgumentException(sprintf('%s: %s.', $caller, implode('; ', $errors)));
     }
 
     /**
@@ -110,9 +125,9 @@ final class CacheStore
     /**
      * Returns the cached value or computes it; $compute returns the value and whether it may be stored.
      *
-     * @internal Used by the block and REST registrars.
+     * @internal Used by the block and REST registrars and by queries.
      *
-     * @param 'block'|'rest'|'custom'          $kind
+     * @param 'block'|'rest'|'query'|'custom'  $kind
      * @param CacheEntry                       $entry
      * @param Closure(): array{0: mixed, 1: bool} $compute
      * @return array{0: mixed, 1: bool} The value and whether it came from the cache.

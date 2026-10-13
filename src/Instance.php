@@ -155,7 +155,17 @@ final readonly class Instance
         $settings = $settingsGroups === [] ? null : new SettingsStore($this->slug, $settingsGroups, $values);
         $globals = $settings === null ? [] : ['settings' => new SettingsAccessor($settings)];
         $settingsNames = array_column($settingsGroups, 'name', 'class');
-        $postStore = new PostStore($this->slug, $manifest['posts'], $manifest['taxonomies'], $manifest['meta'], $manifest['values'], $values);
+        // Queries with cache() reach the cache of the instance; the container is created below.
+        $container = null;
+        $postStore = new PostStore($this->slug, $manifest['posts'], $manifest['taxonomies'], $manifest['meta'], $manifest['values'], $values, static function () use (&$container): CacheStore {
+            /** @var Container|null $instance The container, assigned below before any query runs. */
+            $instance = $container;
+            if (!$instance instanceof Container) {
+                throw new LogicException('The cache is not available before the container of the instance exists.');
+            }
+
+            return $instance->get(CacheStore::class);
+        });
         PostRegistry::register($postStore);
         $tagNames = new TagNames(
             $settingsNames,

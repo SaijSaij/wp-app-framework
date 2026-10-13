@@ -33,6 +33,7 @@ These parts are ready to use:
 - block supports of your own with `#[BlockSupport]`, `#[UseSupport]` and `registerSupportControl()`;
 - settings with `#[SettingsGroup]`, one option per group, a settings page, injection into services and the template global `settings`;
 - post types, taxonomies and typed post meta with `#[PostType]`, `#[Taxonomy]` and `#[PostMeta]`: post objects that load and save themselves, panels in the block editor and meta boxes on the classic edit screen;
+- queries of post objects with `Event::query()`: conditions on meta fields and terms, groups, sorting, pages and caching, with field classes (`#[MetaFields]`) written by hand or by `wp-app-framework meta-fields`;
 - the editor runtime: inline editing in the canvas, a generated inspector, toolbar buttons, a batch render route and a webpack helper;
 - front-end scripts of blocks and block supports with the base classes `BlockView` and `SupportView`, loaded only with their blocks and previewed in the editor;
 - the release build `wp-app-framework release` (prefixed ZIP), release mode with a versioned Twig cache, and GitHub workflows;

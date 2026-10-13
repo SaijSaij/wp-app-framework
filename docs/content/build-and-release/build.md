@@ -80,6 +80,14 @@ The build reports these errors in block templates, template parts and patterns:
 
 During development, the framework rebuilds the manifest when one of these files changes, so an error shows up on the next request.
 
+## Generating fields for queries
+
+```sh
+vendor/bin/wp-app-framework meta-fields <meta class> [--force]
+```
+
+This command writes the class with `#[MetaFields]` that [queries](../guides/queries.md#meta-fields-in-queries) use to filter and sort by the fields of a meta class: `{MetaClass}Fields.php`, next to the meta class. It does not replace an existing file unless you pass `--force`. Unlike the build, it writes into your source code; the result is yours to change and commit.
+
 ## Writing a manifest
 
 With `--output`, the command writes the manifest to the given file. A written manifest is a release manifest and carries the template version, which names the directory of the release's Twig cache.

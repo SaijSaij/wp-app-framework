@@ -7,7 +7,10 @@ namespace Saij\WpAppFramework\Post;
 use BackedEnum;
 use Closure;
 use LogicException;
+use Saij\WpAppFramework\Cache\CacheStore;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Query\Field\Field;
+use Saij\WpAppFramework\Query\Field\FieldTypes;
 use Saij\WpAppFramework\Value\ValueFactory;
 
 /**
@@ -38,6 +41,7 @@ final class PostStore
      * @param array<class-string, TaxonomyEntry>                $taxonomies
      * @param array<class-string, MetaEntry>                    $meta
      * @param array<class-string, array<string, ValueField>>    $values     Value descriptions of the manifest.
+     * @param (Closure(): CacheStore)|null                       $cache      The cache of the instance (queries with cache()).
      */
     public function __construct(
         private readonly string $slug,
@@ -46,6 +50,7 @@ final class PostStore
         private readonly array $meta,
         private readonly array $values,
         private readonly ValueFactory $factory,
+        private readonly ?Closure $cache = null,
     ) {
         foreach ($posts as $class => $post) {
             $this->classesByType[$post['name']] = $class;
@@ -74,6 +79,42 @@ final class PostStore
     public function getMeta(): array
     {
         return $this->meta;
+    }
+
+    /**
+     * The cache of the instance.
+     */
+    public function getCache(): CacheStore
+    {
+        if ($this->cache === null) {
+            throw new LogicException(sprintf('The post store of the %s instance has no cache.', $this->slug));
+        }
+
+        return ($this->cache)();
+    }
+
+    /**
+     * The meta key and the stored default of a field in a query of a post class; checks that the meta class belongs
+     * to the post class and that the field object fits the field.
+     *
+     * @param class-string<AbstractPost> $postClass
+     * @return array{key: non-empty-string, default: mixed}
+     */
+    public function queryField(string $postClass, Field $field): array
+    {
+        $metaClass = $this->metaClass($postClass, $field->getMetaClass());
+        $entry = $this->metaEntry($metaClass)['fields'][$field->getField()] ?? throw new LogicException(sprintf(
+            '%s has no field $%s (fields: %s); check the class with #[MetaFields].',
+            $metaClass,
+            $field->getField(),
+            implode(', ', array_keys($this->metaEntry($metaClass)['fields'])),
+        ));
+        $error = FieldTypes::mismatch($field, $this->fields($metaClass)[$field->getField()]['value']);
+        if ($error !== null) {
+            throw new LogicException($error . '; check the class with #[MetaFields] (rebuild the manifest after code changes).');
+        }
+
+        return ['key' => $entry['key'], 'default' => $entry['default']];
     }
 
     /**

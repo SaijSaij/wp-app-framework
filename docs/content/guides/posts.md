@@ -145,6 +145,8 @@ The base class provides the data of the post: `getId()`, title, content, excerpt
 
 Post, meta and taxonomy classes are data, not [services](./services.md): they cannot be injected. `get()` and `find()` work once the theme or plugin has booted.
 
+To load a list of posts – filtered by meta fields or terms, sorted, in pages – start a query with `Event::query()`; [Queries](./queries.md) explains it.
+
 ### Invalid stored values
 
 Other code can store anything in a meta key. When a meta object is loaded, each stored value is checked against its schema; an invalid value is logged (`wp-app-framework: post meta: …`), and the field keeps the default of its constructor parameter. A reference to a post that no longer exists, has another type or is not published becomes null or is left out of its list.

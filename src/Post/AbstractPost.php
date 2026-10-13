@@ -9,6 +9,7 @@ use DateTimeZone;
 use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
+use Saij\WpAppFramework\Query\PostQuery;
 use WP_Post;
 use WP_Term;
 
@@ -76,6 +77,16 @@ abstract class AbstractPost
         $post = get_post($id);
 
         return $post instanceof WP_Post && $post->post_type === $type ? static::fromWpPost($post) : null;
+    }
+
+    /**
+     * A query for posts of the type: published posts, unsorted conditions, see PostQuery.
+     *
+     * @return PostQuery<static>
+     */
+    public static function query(): PostQuery
+    {
+        return PostQuery::of(static::class);
     }
 
     /**

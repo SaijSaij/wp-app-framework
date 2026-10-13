@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Console;
 
+use ReflectionClass;
 use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Filesystem\AtomicFile;
@@ -11,6 +12,7 @@ use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
+use Saij\WpAppFramework\Query\MetaFieldsGenerator;
 use Saij\WpAppFramework\Release\ReleaseCommand;
 use Saij\WpAppFramework\Release\ReleaseException;
 use Saij\WpAppFramework\Release\TemplateCompilation;
@@ -26,6 +28,8 @@ use Saij\WpAppFramework\Twig\TemplateVersion;
  *   nothing is written. A source checkout of a theme or plugin must not contain
  *   generated/manifest.php: the framework treats its presence as a release build.
  * - `release [...]` builds the release ZIP (see ReleaseCommand).
+ * - `meta-fields <meta class> [--force]` writes the class with #[MetaFields] for a meta class next to it
+ *   ({MetaClass}Fields.php); an existing file only with --force. The only command that writes source code.
  * - `compile-templates --manifest=<file> --output=<directory>` compiles all
  *   templates as release mode would; internal step of `release`, run with the
  *   prefixed classes of the build copy.
@@ -33,7 +37,7 @@ use Saij\WpAppFramework\Twig\TemplateVersion;
 #[NoService]
 final class Cli
 {
-    private const string USAGE = "Usage:\n  wp-app-framework build [--output=<file>]\n  wp-app-framework release [--output=<zip>] [--expect-version=<version>] [--package-source=<package>=<directory>]...";
+    private const string USAGE = "Usage:\n  wp-app-framework build [--output=<file>]\n  wp-app-framework release [--output=<zip>] [--expect-version=<version>] [--package-source=<package>=<directory>]...\n  wp-app-framework meta-fields <meta class> [--force]";
 
     /**
      * @param list<string> $arguments Command line arguments without the script name.
@@ -48,6 +52,7 @@ final class Cli
             'build' => self::build($arguments, $projectDirectory, $stdout, $stderr),
             'release' => ReleaseCommand::run($arguments, $projectDirectory, $stdout, $stderr),
             'compile-templates' => self::compileTemplates($arguments, $projectDirectory, $stdout, $stderr),
+            'meta-fields' => self::metaFields($arguments, $projectDirectory, $stdout, $stderr),
             default => self::usage($stderr),
         };
     }
@@ -93,6 +98,50 @@ final class Cli
             return 1;
         }
         fwrite($stdout, sprintf("%d templates compiled to %s.\n", $count, $options['output']));
+
+        return 0;
+    }
+
+    /**
+     * @param list<string> $arguments
+     * @param resource     $stdout
+     * @param resource     $stderr
+     */
+    private static function metaFields(array $arguments, string $projectDirectory, $stdout, $stderr): int
+    {
+        $force = false;
+        $metaClass = null;
+        foreach ($arguments as $argument) {
+            if ($argument === '--force') {
+                $force = true;
+            } elseif ($metaClass === null && !str_starts_with($argument, '-')) {
+                $metaClass = ltrim($argument, '\\');
+            } else {
+                return self::usage($stderr, $argument);
+            }
+        }
+        if ($metaClass === null) {
+            fwrite($stderr, "Usage: wp-app-framework meta-fields <meta class> [--force]\n");
+
+            return 2;
+        }
+
+        try {
+            /** @var class-string $metaClass Checked by metaFieldValues(). */
+            $values = ManifestBuilder::forProject($projectDirectory)->metaFieldValues($metaClass);
+        } catch (BuildException $exception) {
+            fwrite($stderr, $exception->getMessage() . "\n");
+
+            return 1;
+        }
+        $file = dirname((string) new ReflectionClass($metaClass)->getFileName()) . '/' . substr($metaClass, (int) strrpos('\\' . $metaClass, '\\')) . MetaFieldsGenerator::SUFFIX . '.php';
+        if (is_file($file) && !$force) {
+            fwrite($stderr, sprintf("%s exists; use --force to replace it.\n", $file));
+
+            return 1;
+        }
+        AtomicFile::write($file, MetaFieldsGenerator::generate($metaClass, $values));
+        fwrite($stdout, sprintf("Written %s.\n", $file));
 
         return 0;
     }

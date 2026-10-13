@@ -22,16 +22,19 @@ use Saij\WpAppFramework\Hook\HookCollector;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Plugin;
+use Saij\WpAppFramework\Post\PostMeta;
 use Saij\WpAppFramework\Post\PostStore;
 use Saij\WpAppFramework\Post\PostTypeCollector;
 use Saij\WpAppFramework\Project\ComposerProject;
 use Saij\WpAppFramework\Project\ProjectKind;
+use Saij\WpAppFramework\Query\MetaFieldsCollector;
 use Saij\WpAppFramework\Rest\RestRouteCollector;
 use Saij\WpAppFramework\Setting\SettingsCollector;
 use Saij\WpAppFramework\Style\StyleAssets;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableCollector;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
+use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
 
@@ -39,6 +42,8 @@ use Throwable;
  * Loads the classes of the PSR-4 sources, lets the entry point collectors find
  * their attributes and resolves the services reachable from them. Runs only in
  * the build and in development mode.
+ *
+ * @phpstan-import-type Value from ValueFactory
  */
 #[NoService]
 final class ManifestBuilder
@@ -160,6 +165,8 @@ final class ManifestBuilder
         $values = new ValueSchemaBuilder($classes, $postClasses, $taxonomyClasses);
         $postTypeCollector = new PostTypeCollector($values, $this->namespace, self::frameworkSource()->getDirectory());
         $posts = $postTypeCollector->collect($classes);
+        $metaFieldsCollector = new MetaFieldsCollector($posts['meta'], $values->values());
+        $metaFieldsCollector->collect($classes);
         $settingsCollector = new SettingsCollector($values, self::frameworkSource()->getDirectory(), $this->namespace, $this->name);
         $settings = $settingsCollector->collect($classes);
         $hookCollector = new HookCollector($resolver);
@@ -212,6 +219,7 @@ final class ManifestBuilder
             ...$markupValidator->errors(),
             ...$settingsCollector->errors(),
             ...$postTypeCollector->errors(),
+            ...$metaFieldsCollector->errors(),
             ...$values->errors(),
             ...$resolver->errors(),
         ];
@@ -243,6 +251,36 @@ final class ManifestBuilder
             $markup,
             $posts,
         );
+    }
+
+    /**
+     * The values of the fields of a meta class (#[PostMeta]) by field, for `wp-app-framework meta-fields`. Checks the
+     * meta class only, so the fields of a changed meta class can be generated while the build reports other errors.
+     *
+     * @param class-string $metaClass
+     * @return array<string, Value>
+     * @throws BuildException If the class is no valid meta class.
+     */
+    public function metaFieldValues(string $metaClass): array
+    {
+        $errors = [];
+        $classes = $this->loadClasses($errors);
+        $reflection = $classes[$metaClass] ?? null;
+        if ($reflection === null || $reflection->getAttributes(PostMeta::class) === []) {
+            throw new BuildException([sprintf('%s is no meta class (#[PostMeta]) of the PSR-4 sources of this theme or plugin.', $metaClass)]);
+        }
+        $values = new ValueSchemaBuilder(
+            $classes,
+            PostTypeCollector::postClasses($classes, $this->namespace),
+            PostTypeCollector::taxonomyClasses($classes, $this->namespace),
+        );
+        $fields = $values->metaFields($metaClass, sprintf('#[PostMeta] on %s', $metaClass));
+        if ($fields === null) {
+            $errors = $values->errors();
+            throw new BuildException($errors !== [] ? $errors : [sprintf('%s is no valid meta class.', $metaClass)]);
+        }
+
+        return array_map(static fn(array $field): array => $field['value'], $fields);
     }
 
     /**

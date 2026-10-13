@@ -1485,3 +1485,95 @@ final class WP_Screen
         return $this->is_block_editor;
     }
 }
+
+function remove_filter(string $hook_name, callable|string|array $callback, int $priority = 10): bool
+{
+    foreach ($GLOBALS['wp_app_framework_test_filters'][$hook_name] ?? [] as $index => $added) {
+        if ($added === $callback) {
+            unset($GLOBALS['wp_app_framework_test_filters'][$hook_name][$index], $GLOBALS['wp_app_framework_test_filter_args'][$hook_name][$index]);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Records the IDs in $GLOBALS['wp_app_framework_test_primed'].
+ *
+ * @param int[] $ids
+ */
+function _prime_post_caches(array $ids, bool $update_term_cache = true, bool $update_meta_cache = true): void
+{
+    $GLOBALS['wp_app_framework_test_primed'][] = $ids;
+}
+
+/**
+ * Like WordPress: query() records its arguments in $GLOBALS['wp_app_framework_test_queries'], passes the clauses
+ * through the filter posts_clauses (recorded in $GLOBALS['wp_app_framework_test_query_clauses']) unless filters are
+ * suppressed and returns the IDs and number of $GLOBALS['wp_app_framework_test_query_result'].
+ */
+final class WP_Query
+{
+    /** @var array<string, mixed> */
+    public array $query_vars = [];
+
+    /** @var array<int|WP_Post> */
+    public array $posts = [];
+
+    public int $found_posts = 0;
+
+    public string $request = '';
+
+    /**
+     * @param array<string, mixed>|string $query
+     * @return array<int|WP_Post>
+     */
+    public function query(array|string $query): array
+    {
+        $this->query_vars = is_array($query) ? $query : [];
+        $GLOBALS['wp_app_framework_test_queries'][] = $this->query_vars;
+        if (($this->query_vars['suppress_filters'] ?? false) !== true) {
+            $GLOBALS['wp_app_framework_test_query_clauses'][] = apply_filters(
+                'posts_clauses',
+                ['where' => ' AND 1=1', 'groupby' => '', 'join' => '', 'orderby' => '', 'distinct' => '', 'fields' => 'wp_posts.ID', 'limits' => ''],
+                $this,
+            );
+        }
+        /** @var array{posts?: list<int>, found_posts?: int} $result */
+        $result = $GLOBALS['wp_app_framework_test_query_result'] ?? [];
+        $this->posts = $result['posts'] ?? [];
+        $this->found_posts = $result['found_posts'] ?? count($this->posts);
+
+        return $this->posts;
+    }
+
+    public function get(string $query_var, mixed $default_value = ''): mixed
+    {
+        return $this->query_vars[$query_var] ?? $default_value;
+    }
+}
+
+/**
+ * Like WordPress: table names and prepare() for %s (quoted) and %d.
+ */
+final class wpdb
+{
+    public string $posts = 'wp_posts';
+
+    public string $postmeta = 'wp_postmeta';
+
+    public function prepare(string $query, mixed ...$args): string
+    {
+        $index = 0;
+
+        return (string) preg_replace_callback('/%[sd]/', static function (array $match) use ($args, &$index): string {
+            $value = $args[$index++] ?? '';
+
+            return $match[0] === '%d' ? (string) (int) $value : "'" . addslashes(is_scalar($value) ? (string) $value : '') . "'";
+        }, $query);
+    }
+}
+
+$GLOBALS['wpdb'] = new wpdb();

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Support;
 
+use Closure;
+use Saij\WpAppFramework\Cache\CacheStore;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
@@ -23,16 +25,17 @@ use WP_Term;
 final class Posts
 {
     /**
+     * @param (Closure(): CacheStore)|null $cache
      * @return array{PostStore, ManifestData}
      */
-    public static function store(?RenderContext $context = null): array
+    public static function store(?RenderContext $context = null, ?Closure $cache = null): array
     {
         $file = (string) tempnam(sys_get_temp_dir(), 'manifest');
         file_put_contents($file, new ManifestGenerator()->generate(PostTypeCollectorTest::buildValid()));
         $manifest = Manifest::load($file);
         unlink($file);
 
-        $store = new PostStore('my-theme', $manifest['posts'], $manifest['taxonomies'], $manifest['meta'], $manifest['values'], new ValueFactory($manifest['values'], $context));
+        $store = new PostStore('my-theme', $manifest['posts'], $manifest['taxonomies'], $manifest['meta'], $manifest['values'], new ValueFactory($manifest['values'], $context), $cache);
         PostRegistry::reset();
         PostRegistry::register($store);
 
@@ -115,6 +118,10 @@ final class Posts
             $GLOBALS['wp_app_framework_test_transients'],
             $GLOBALS['wp_app_framework_test_screen'],
             $GLOBALS['wp_app_framework_test_user'],
+            $GLOBALS['wp_app_framework_test_queries'],
+            $GLOBALS['wp_app_framework_test_query_clauses'],
+            $GLOBALS['wp_app_framework_test_query_result'],
+            $GLOBALS['wp_app_framework_test_primed'],
             $_POST['my-theme-meta-nonce'],
             $_POST['wp-app-framework-meta'],
         );

@@ -81,7 +81,7 @@ final readonly class EntryPointInspector
         /** @var class-string|null $typeName A class: built-in types are left out. */
         $typeName = $type instanceof \ReflectionNamedType && !$type->isBuiltin() ? $type->getName() : null;
         $exclusion = $typeName === null ? null : $this->resolver->exclusion($typeName);
-        if (in_array($exclusion, ['a post class', 'a meta class', 'a taxonomy class'], true)) {
+        if (in_array($exclusion, ['a post class', 'a meta class', 'a taxonomy class', 'a meta fields class'], true)) {
             return sprintf('%s: %s is %s; WordPress passes no such objects to %s.', $parameterLocation, $type, $exclusion, $context);
         }
 

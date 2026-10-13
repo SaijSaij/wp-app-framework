@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Post;
 use ReflectionClass;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Project\ComposerProject;
+use Saij\WpAppFramework\Query\MetaFields;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
 
@@ -134,7 +135,7 @@ final class PostTypeCollector
     }
 
     /**
-     * Post, meta and taxonomy classes: no services.
+     * Post, meta, taxonomy and meta fields classes (#[MetaFields]): no services.
      *
      * @param array<class-string, ReflectionClass<object>> $classes
      * @return array<class-string, string> Class => what it is.
@@ -147,6 +148,7 @@ final class PostTypeCollector
                 $reflection->isSubclassOf(AbstractPost::class) => 'a post class',
                 $reflection->getAttributes(PostMeta::class) !== [] => 'a meta class',
                 $reflection->getAttributes(Taxonomy::class) !== [] => 'a taxonomy class',
+                $reflection->getAttributes(MetaFields::class) !== [] => 'a meta fields class',
                 default => null,
             };
             if ($kind !== null) {
