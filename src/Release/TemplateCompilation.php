@@ -33,6 +33,10 @@ final class TemplateCompilation
         if (file_exists($outputDirectory)) {
             throw new ReleaseException(sprintf('Output directory %s already exists.', $outputDirectory));
         }
+        // Created also without templates: the release checks the compiled templates in this directory.
+        if (!mkdir($outputDirectory, 0777, true)) {
+            throw new ReleaseException(sprintf('Cannot create the output directory %s.', $outputDirectory));
+        }
 
         $manifest = Manifest::load($manifestFile);
         $kind = ProjectKind::from($manifest['kind']);
