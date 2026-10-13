@@ -17,7 +17,7 @@ Fixed design decisions:
 
 - No `block.json`: blocks are PHP classes with attributes; the build derives the attribute schema.
 - Compile only in the build, never at runtime. The manifest is plain data (`var_export`). Release mode uses no reflection, no stat checks, no `composer.json` and never writes into a consumer's directory. Development mode may use reflection but writes only to `wp-content/cache/{slug}/`.
-- Own minimal, internal DI container: constructor autowiring of concrete classes, shared instances, no public `get()`, no aliases, no tags.
+- Own minimal, internal DI container: constructor autowiring of concrete classes, shared instances, no public `get()`, no aliases, no tags. Post classes are active records (`Event::get()`, `save()`): they reach the store of their instance through the internal `Post\PostRegistry`, filled at boot; post, meta and taxonomy classes are no services.
 - Prefixing with Strauss is mandatory in every release; each consumer ships its own prefixed framework.
 - Consumers are themes (`Theme::boot()`), child themes with code (`ChildTheme::boot()`) and plugins (`Plugin::boot(__FILE__)`). Each is an isolated instance: names of content and data (blocks `{ns}/name`, REST routes `{ns}/{version}`, settings options `{ns}_name`) derive from its namespace (`extra.wp-app-framework.namespace`, stored in the manifest), technical names (script handles, JS global, cache paths, editor routes, init action `wp_app_framework/init/{slug}`) from its slug. Instances talk only through the public interface (filters `wp_app_framework/api/{slug}` and `wp_app_framework/template/{slug}`).
 - Twig lookup: child `overrides/{theme-slug}/` → theme `src/` → framework `src/`; plugins: child and theme `overrides/{plugin-slug}/` → plugin `src/` → framework `src/`. Template names are full paths relative to `src/`.
@@ -28,7 +28,7 @@ Fixed design decisions:
 - Fix errors at their cause; no stacked workarounds.
 - Explicit over implicit: no silent fallbacks, no silently failing `file_exists()`, no unmarked placeholders, no undocumented behavior sold as reliable. Missing prerequisites raise clear exceptions or build errors naming class, file and parameter.
 - Minimal: no dependencies or abstractions without demonstrated need.
-- Class properties are never `public`; access through getters (`get…`, booleans `is…`/`has…`). Exceptions: PHP attribute classes, block attribute classes and their value classes (`readonly`, public promoted properties), test doubles of WordPress classes (mirror WordPress' public properties).
+- Class properties are never `public`; access through getters (`get…`, booleans `is…`/`has…`). Exceptions: PHP attribute classes, block attribute classes and their value classes (`readonly`, public promoted properties), meta classes (`#[PostMeta]`, not readonly, promoted properties of any visibility), test doubles of WordPress classes (mirror WordPress' public properties).
 - The consumer-facing API must be fully resolvable by IDEs: enums and classes instead of magic strings, first-class callables instead of method names, required information as required attribute arguments.
 - Everything in this repository is English: code, identifiers, comments, README, commit messages.
 - READMEs link to the other repositories by GitHub URL (`https://github.com/saijsaij/<repo>`), never by relative path. Pages in `docs/content/` link to each other by relative `.md` paths.

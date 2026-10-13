@@ -1,0 +1,16 @@
+/**
+ * Styles of the meta boxes on the classic edit screen. Built by the consumer's
+ * build into build/vendor/wp-app-framework/meta-box.css and loaded on the edit
+ * screens of post types with meta of the theme or plugin.
+ */
+
+@use "controls";
+
+.wp-app-framework-meta-box .wp-app-framework-image__preview {
+	max-width: 240px;
+}
+
+// The combobox has no background of its own.
+.wp-app-framework-meta-box .components-combobox-control__suggestions-container {
+	background-color: #fff;
+}

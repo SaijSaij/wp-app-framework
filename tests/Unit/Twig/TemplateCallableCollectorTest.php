@@ -11,6 +11,7 @@ use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
+use Saij\WpAppFramework\Post\PostTemplateFunctions;
 use Saij\WpAppFramework\Tests\Fixtures\TwigValid;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Theme;
@@ -48,6 +49,7 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Function, 'field', EditorTemplateFunctions::class, 'field', true],
                 [TemplateCallableKind::Function, 'inner_blocks', EditorTemplateFunctions::class, 'innerBlocks', true],
                 [TemplateCallableKind::Function, 'is_editor', EditorTemplateFunctions::class, 'isEditor', false],
+                [TemplateCallableKind::Function, 'post', PostTemplateFunctions::class, 'post', false],
                 [TemplateCallableKind::Function, 'wp_attachment_image', WordPressTemplateFunctions::class, 'attachmentImage', true],
                 [TemplateCallableKind::Function, 'wp_attachment_image_url', WordPressTemplateFunctions::class, 'attachmentImageUrl', false],
                 [TemplateCallableKind::Function, 'wp_attachment_url', WordPressTemplateFunctions::class, 'attachmentUrl', false],

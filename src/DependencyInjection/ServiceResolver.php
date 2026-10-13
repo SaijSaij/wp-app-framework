@@ -64,8 +64,10 @@ final class ServiceResolver
      * @param non-empty-string|null                        $parentTheme Slug of the parent theme of a child theme.
      * @param list<class-string>                           $settingsGroups Classes with `#[SettingsGroup]`: no services, injected
      *                                                                     from their option.
+     * @param array<class-string, string>                  $nonServices    Classes that are data, not services, and what they
+     *                                                                     are (post, meta and taxonomy classes).
      */
-    public static function forClasses(array $classes, array $predefined, ?string $parentTheme = null, array $settingsGroups = []): self
+    public static function forClasses(array $classes, array $predefined, ?string $parentTheme = null, array $settingsGroups = [], array $nonServices = []): self
     {
         $candidates = [];
         $excluded = [];
@@ -73,6 +75,7 @@ final class ServiceResolver
             $reason = match (true) {
                 in_array($name, $predefined, true) => null,
                 in_array($name, $settingsGroups, true) => 'a settings group',
+                isset($nonServices[$name]) => $nonServices[$name],
                 default => self::CONSUMER_CLASSES[$name] ?? self::exclusionReason($class),
             };
             if ($reason === null) {
@@ -349,7 +352,12 @@ final class ServiceResolver
                 '%s is %s and cannot be injected%s.',
                 $name,
                 $this->excluded[$name],
-                $this->excluded[$name] === 'an interface' ? ' (aliases are not supported)' : '',
+                match ($this->excluded[$name]) {
+                    'an interface' => ' (aliases are not supported)',
+                    'a post class' => sprintf('; load posts with %s::get($id)', substr($name, (int) strrpos($name, '\\') + 1)),
+                    'a meta class' => '; meta objects are reached through their post: $post->meta(…)',
+                    default => '',
+                },
             );
         }
 

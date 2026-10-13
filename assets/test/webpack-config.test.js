@@ -56,7 +56,7 @@ afterEach( () => {
 } );
 
 describe( 'webpack helper', () => {
-	it( 'builds the editor runtime, the canvas styles and the settings page', () => {
+	it( 'builds the editor runtime, the canvas styles, the settings page and the meta boxes', () => {
 		const root = consumer( { styles: false, packages: TOOLCHAIN } );
 		const entry = createConfig( { slug: 'my-theme', root } ).entry();
 
@@ -68,6 +68,9 @@ describe( 'webpack helper', () => {
 		);
 		expect( entry[ 'vendor/wp-app-framework/settings' ] ).toBe(
 			path.join( framework, 'assets', 'settings.js' )
+		);
+		expect( entry[ 'vendor/wp-app-framework/meta-box' ] ).toBe(
+			path.join( framework, 'assets', 'meta-box.js' )
 		);
 	} );
 

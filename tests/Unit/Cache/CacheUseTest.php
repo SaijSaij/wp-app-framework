@@ -74,7 +74,6 @@ final class CacheUseTest extends TestCase
             new TagVersions('my_theme_'),
             new CodeGeneration(static fn(): string => 'g1'),
             $container,
-            [],
         );
         add_filter('wp_app_framework/cache/backends/my-theme', static fn(): array => ['transient']);
         $GLOBALS['wp_app_framework_test_blocks'] = [];

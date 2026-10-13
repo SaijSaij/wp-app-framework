@@ -112,6 +112,7 @@ final class ManifestGenerator
             'codeVersion' => $codeVersion,
             'styles' => $result->hasStyles(),
             'settings' => ['title' => $result->getSettingsTitle(), 'groups' => $result->getSettings()],
+            ...$result->getPosts(),
         ];
     }
 }

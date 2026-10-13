@@ -71,7 +71,7 @@ Twig runs with settings that catch mistakes early:
 - **`strict_variables`** is always on, so an undefined variable is an error instead of an empty string.
 - In development mode, **debug**, **auto reload** and **`dump()`** are enabled; in release mode they are off.
 
-A theme or plugin with settings groups has the global `settings` (see [Settings](./settings.md#using-settings)). The framework provides the template functions of blocks (`block_wrapper_attributes()`, see [Blocks](./blocks.md#escaping)), of the editor (`field()`, `inner_blocks()`, `is_editor()`, see [Editor](./editor.md#marking-editable-elements)), `has_plugin()` (see [Plugins](./plugins.md#public-template-functions-and-filters)) and the [WordPress functions](#wordpress-functions) below.
+A theme or plugin with settings groups has the global `settings` (see [Settings](./settings.md#using-settings)). The framework provides the template functions of blocks (`block_wrapper_attributes()`, see [Blocks](./blocks.md#escaping)), of the editor (`field()`, `inner_blocks()`, `is_editor()`, see [Editor](./editor.md#marking-editable-elements)), `has_plugin()` (see [Plugins](./plugins.md#public-template-functions-and-filters)), `post()` for post objects (see [Posts](./posts.md#templates)) and the [WordPress functions](#wordpress-functions) below.
 
 Twig exceptions reach the code that rendered the template, so the error handling of hooks and REST routes applies to them.
 

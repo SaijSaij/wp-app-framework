@@ -122,7 +122,7 @@ The key identifies the entry within your theme or plugin; include everything the
 
 Three tags are invalidated by the framework itself:
 
-- `PostTypeTag('product')` when a post of that type is created, changed, trashed, deleted, changes its status or its post meta. The edit lock the block editor sets while somebody edits a post does not count.
+- `PostTypeTag('product')` when a post of that type is created, changed, trashed, deleted, changes its status or its post meta. The edit lock the block editor sets while somebody edits a post does not count. Name your own post types by their [post class](./posts.md): `new PostTypeTag(Event::class)`.
 - `TaxonomyTag('category')` when a term of that taxonomy is created, changed or deleted, changes its term meta, or is assigned to or removed from a post.
 - `SettingsTag(SiteSettings::class)` when the [settings group](./settings.md) is saved.
 
@@ -184,7 +184,7 @@ Data sent with a `POST` request is no variant. A block that shows the result of 
 | Parameter | Type | Rule |
 |---|---|---|
 | `ttl` | `int` | Required; lifetime in seconds, at least 1. |
-| `tags` | `list<CacheTag>` | `PostTypeTag` (1–20 characters), `TaxonomyTag` (1–32 characters), `SettingsTag` with a class that has `#[SettingsGroup]` in the same theme or plugin, or a case of a string-backed enum implementing `CacheTag`. No tag twice. |
+| `tags` | `list<CacheTag>` | `PostTypeTag` (a name of 1–20 characters or a post class), `TaxonomyTag` (a name of 1–32 characters or a taxonomy class), `SettingsTag` with a class that has `#[SettingsGroup]` in the same theme or plugin, or a case of a string-backed enum implementing `CacheTag`. No tag twice. |
 | `vary` | `list<CacheVary>` | The variants above. `QueryParamVary`, `HeaderVary` and `CookieVary` need a name; the class of a `ServiceVary` must be a service implementing `VaryProvider`. No variant twice. |
 
 Build errors:

@@ -176,12 +176,13 @@ The build writes to `build/`, each file with its `.asset.php`:
 | `build/vendor/wp-app-framework/editor.js` | the runtime, with the styles of its inspector controls (`editor.css`, `editor-rtl.css`) |
 | `build/vendor/wp-app-framework/canvas.css` | the styles of the editor canvas, loaded on `enqueue_block_assets` in the editor only: they reach the canvas iframe, never the front end |
 | `build/vendor/wp-app-framework/settings.js` | the script of the [settings page](./settings.md#settings-page) with its styles (`settings.css`, `settings-rtl.css`), loaded on that page only |
+| `build/vendor/wp-app-framework/meta-box.js` | the forms of [meta classes](./posts.md#editing) on the classic edit screen, with their styles (`meta-box.css`, `meta-box-rtl.css`); in the block editor the runtime shows them as panels |
 | `build/vendor/wp-app-framework/view.js` | the view runtime: base classes of [front-end scripts](./frontend.md), starts their views; loaded with them on the front end and with the runtime in the editor |
 | `build/Block/Hero/Hero.editor.js` | editor scripts, mirrored from `src/` |
 | `build/Block/Faq/Faq.view.js` | front-end scripts (view scripts), mirrored from `src/` |
 | `build/styles.css` | the consumer's `src/styles.css`, if it has one, compiled with Tailwind (see [Styles](./styles.md)) |
 
-Without a build, the editor fails with an exception that names the missing file. A consumer without blocks and settings loads no script and needs no build.
+Without a build, the editor fails with an exception that names the missing file. A consumer without blocks, settings and post meta loads no script and needs no build.
 
 ## Instances
 

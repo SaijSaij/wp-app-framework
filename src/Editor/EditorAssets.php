@@ -8,6 +8,9 @@ use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\Manifest;
+use Saij\WpAppFramework\Post\MetaBoxes;
+use Saij\WpAppFramework\Post\PostStore;
+use Saij\WpAppFramework\Value\FormAssets;
 use Saij\WpAppFramework\View\ViewAssets;
 
 /**
@@ -48,6 +51,7 @@ final readonly class EditorAssets
      * @param bool             $development    Development mode: the runtime warns about template mistakes.
      * @param string           $namespace      Namespace of the blocks; the runtime completes the block names given to
      *                                         registerControl() and the like.
+     * @param PostStore|null   $posts          Meta classes of the instance, edited in panels of the post editor.
      */
     public function __construct(
         private string $slug,
@@ -56,6 +60,7 @@ final readonly class EditorAssets
         private array $blocks,
         private bool $development,
         private string $namespace,
+        private ?PostStore $posts = null,
     ) {
         $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri);
         $this->views = new ViewAssets($slug, $this->assets);
@@ -70,13 +75,18 @@ final readonly class EditorAssets
     }
 
     /**
-     * Without blocks the instance needs no editor runtime, so a theme without
-     * blocks needs no script build either.
+     * Without blocks and meta the instance needs no editor runtime, so a theme
+     * without them needs no script build either.
      */
     public function enqueue(): void
     {
-        if ($this->blocks === []) {
+        $meta = $this->posts?->getMeta() ?? [];
+        if ($this->blocks === [] && $meta === []) {
             return;
+        }
+        // Rich text in meta panels uses the classic editor (like the settings page); images use the block editor's media.
+        if (FormAssets::hasControl(array_column($meta, 'controls'), 'rich')) {
+            wp_enqueue_editor();
         }
 
         $handle = self::runtimeHandle($this->slug);
@@ -115,6 +125,27 @@ final readonly class EditorAssets
         foreach ($this->blocks as $block) {
             $this->views->enqueue($block);
         }
+    }
+
+    /**
+     * The forms of the meta panels by post type.
+     *
+     * @return array<string, list<array<string, mixed>>>
+     */
+    private function metaPanels(): array
+    {
+        if ($this->posts === null) {
+            return [];
+        }
+        $posts = $this->posts->getPosts();
+        $panels = [];
+        foreach ($this->posts->getMeta() as $meta) {
+            foreach ($meta['postTypes'] as $postClass) {
+                $panels[$posts[$postClass]['name']][] = MetaBoxes::form($meta);
+            }
+        }
+
+        return $panels;
     }
 
     /**
@@ -159,6 +190,7 @@ final readonly class EditorAssets
             'maxBlocks' => RenderController::MAX_BLOCKS,
             'development' => $this->development,
             'blocks' => (object) $blocks,
+            'meta' => (object) $this->metaPanels(),
         ];
 
         return sprintf(

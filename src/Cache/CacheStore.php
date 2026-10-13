@@ -39,7 +39,7 @@ final class CacheStore
     /**
      * @param non-empty-string            $slug
      * @param array<value-of<CacheBackend>, Backend> $backends
-     * @param array<class-string, string> $settingsGroups Group name by class of the settings groups.
+     * @param TagNames                    $names    Classes tags may name: settings groups, post and taxonomy classes.
      */
     public function __construct(
         private readonly string $slug,
@@ -47,7 +47,7 @@ final class CacheStore
         private readonly TagVersions $versions,
         private readonly CodeGeneration $generation,
         private readonly Container $container,
-        private readonly array $settingsGroups = [],
+        private readonly TagNames $names = new TagNames(),
     ) {}
 
     /**
@@ -72,7 +72,7 @@ final class CacheStore
             $ttl,
             $tags,
             $vary,
-            fn(string $class): ?string => $this->settingsGroups[$class] ?? null,
+            $this->names,
             static fn(string $class): ?string => is_subclass_of($class, VaryProvider::class) ? null : sprintf('%s does not implement VaryProvider', $class),
         );
         if ($entry === null) {
@@ -89,7 +89,7 @@ final class CacheStore
     public function invalidate(CacheTag ...$tags): void
     {
         foreach ($tags as $tag) {
-            [$key, $error] = CachePolicy::tagKey($tag, fn(string $class): ?string => $this->settingsGroups[$class] ?? null);
+            [$key, $error] = CachePolicy::tagKey($tag, $this->names);
             if ($key === null) {
                 throw new InvalidArgumentException(sprintf('CacheStore::invalidate(): %s.', $error));
             }

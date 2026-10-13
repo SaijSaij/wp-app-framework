@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Setting;
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Project\ProjectKind;
+use Saij\WpAppFramework\Value\FormAssets;
 
 /**
  * The settings page of one framework instance: one admin page with the forms
@@ -104,33 +105,8 @@ final class SettingsPage
         $this->assets->registerStyle($handle, self::SCRIPT, ['wp-components'], $version);
         wp_enqueue_style($handle);
 
-        $controls = array_column($this->groups, 'controls');
         // The media library for #[Image] settings, the classic editor for #[RichText] settings.
-        if (self::hasControl($controls, 'image')) {
-            wp_enqueue_media();
-        }
-        if (self::hasControl($controls, 'rich')) {
-            wp_enqueue_editor();
-        }
-    }
-
-    /**
-     * Whether controls contain a control of the type, also in value classes and lists.
-     *
-     * @param array<mixed> $controls
-     */
-    private static function hasControl(array $controls, string $type): bool
-    {
-        foreach ($controls as $key => $value) {
-            if ($key === 'type' && $value === $type) {
-                return true;
-            }
-            if (is_array($value) && self::hasControl($value, $type)) {
-                return true;
-            }
-        }
-
-        return false;
+        FormAssets::enqueue(array_column($this->groups, 'controls'));
     }
 
     /**

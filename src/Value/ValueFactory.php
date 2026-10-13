@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use LogicException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Editor\RenderContext;
+use Saij\WpAppFramework\Post\AbstractPost;
 use WP_Post;
 use WP_Term;
 use WP_User;
@@ -27,9 +28,13 @@ use WP_User;
  * References (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`)
  * resolve to their ID only if the object exists and is of an allowed type
  * (posts also only if publicly viewable, except in renders for the block
- * editor); otherwise they become null or are left out of their list.
+ * editor); otherwise they become null or are left out of their list. A
+ * reference to a post class (a field typed as the class) becomes the post
+ * object; it resolves if the post has the type of the class and is published,
+ * also for post types that are not public (data types), and in renders for the
+ * block editor in every status.
  *
- * @phpstan-type Reference array{target: 'post'|'term'|'user', subtypes: list<string>|null}
+ * @phpstan-type Reference array{target: 'post'|'term'|'user', subtypes: list<string>|null, class?: class-string<AbstractPost>}
  * @phpstan-type ClassValue array{type: 'enum'|'object', class: class-string, nullable: bool}
  * @phpstan-type ReferenceValue array{type: 'int', nullable: bool, reference: Reference}
  * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool', nullable: bool}
@@ -128,17 +133,26 @@ final readonly class ValueFactory
     }
 
     /**
-     * The ID if the referenced object exists and may be used here, else null.
+     * The ID (the post object for a post class) if the referenced object exists and may be used here, else null.
      *
      * @param Reference $reference
      */
-    private function resolve(array $reference, int $id): ?int
+    private function resolve(array $reference, int $id): int|AbstractPost|null
     {
+        $editor = $this->context?->isEditor() ?? false;
+        if (isset($reference['class'])) {
+            $post = get_post($id);
+            if (!$post instanceof WP_Post || !in_array($post->post_type, $reference['subtypes'] ?? [], true)) {
+                return null;
+            }
+
+            return $editor || is_post_status_viewable($post->post_status) ? $reference['class']::fromWpPost($post) : null;
+        }
         $subtypes = $reference['subtypes'];
         $valid = match ($reference['target']) {
             'post' => ($post = get_post($id)) instanceof WP_Post
                 && ($subtypes === null ? is_post_type_viewable($post->post_type) : in_array($post->post_type, $subtypes, true))
-                && (($this->context?->isEditor() ?? false) || is_post_publicly_viewable($post)),
+                && ($editor || is_post_publicly_viewable($post)),
             'term' => ($term = get_term($id)) instanceof WP_Term
                 && ($subtypes === null ? is_taxonomy_viewable($term->taxonomy) : in_array($term->taxonomy, $subtypes, true)),
             'user' => get_userdata($id) instanceof WP_User,

@@ -15,6 +15,7 @@ use Saij\WpAppFramework\Cache\Backend\TransientBackend;
 use Saij\WpAppFramework\Cache\CacheStore;
 use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\Cache\TagHooks;
+use Saij\WpAppFramework\Cache\TagNames;
 use Saij\WpAppFramework\Cache\TagVersions;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -25,6 +26,10 @@ use Saij\WpAppFramework\Hook\HookRegistrar;
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
+use Saij\WpAppFramework\Post\MetaBoxes;
+use Saij\WpAppFramework\Post\PostRegistry;
+use Saij\WpAppFramework\Post\PostStore;
+use Saij\WpAppFramework\Post\PostTypeRegistrar;
 use Saij\WpAppFramework\Project\ComposerProject;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRegistrar;
@@ -150,6 +155,13 @@ final readonly class Instance
         $settings = $settingsGroups === [] ? null : new SettingsStore($this->slug, $settingsGroups, $values);
         $globals = $settings === null ? [] : ['settings' => new SettingsAccessor($settings)];
         $settingsNames = array_column($settingsGroups, 'name', 'class');
+        $postStore = new PostStore($this->slug, $manifest['posts'], $manifest['taxonomies'], $manifest['meta'], $manifest['values'], $values);
+        PostRegistry::register($postStore);
+        $tagNames = new TagNames(
+            $settingsNames,
+            array_map(static fn(array $post): string => $post['name'], $manifest['posts']),
+            array_map(static fn(array $taxonomy): string => $taxonomy['name'], $manifest['taxonomies']),
+        );
         $prefix = ComposerProject::templatePrefix($this->slug);
         $tagVersions = new TagVersions($prefix);
         $codeVersion = $manifest['codeVersion'];
@@ -175,9 +187,9 @@ final readonly class Instance
         ];
         $container = new Container(
             $manifest['services'],
-            [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext],
+            [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext, PostStore::class => $postStore],
             [
-                CacheStore::class => static fn(Container $container): CacheStore => new CacheStore($slug, $backends, $tagVersions, $generation, $container, $settingsNames),
+                CacheStore::class => static fn(Container $container): CacheStore => new CacheStore($slug, $backends, $tagVersions, $generation, $container, $tagNames),
                 TemplateRenderer::class => static function (Container $container) use (
                     $slug,
                     $directory,
@@ -233,6 +245,8 @@ final readonly class Instance
             $blockRegistrar->register($blocks);
         });
 
+        $this->registerPosts($postStore, $manifest['rewrite'], $prefix);
+
         $editorAssets = new EditorAssets(
             $this->slug,
             $this->directory . '/' . self::BUILD_DIRECTORY,
@@ -240,6 +254,7 @@ final readonly class Instance
             $blocks,
             $development,
             $manifest['namespace'],
+            $postStore,
         );
         add_action('enqueue_block_editor_assets', $editorAssets->enqueue(...));
         add_action('enqueue_block_assets', $editorAssets->enqueueCanvas(...));
@@ -270,6 +285,35 @@ final readonly class Instance
         );
 
         do_action(InstanceBridge::initAction($this->slug));
+    }
+
+    /**
+     * Registers post types, taxonomies and meta on `init`, keeps the rewrite rules up to date and adds the meta boxes
+     * of the classic edit screen.
+     *
+     * @param non-empty-string|null $rewrite Hash of the rewrite-relevant declarations.
+     * @param non-empty-string      $prefix  Technical prefix of the instance's options.
+     */
+    private function registerPosts(PostStore $store, ?string $rewrite, string $prefix): void
+    {
+        $registrar = new PostTypeRegistrar($store, $prefix . 'rewrite', $rewrite);
+        add_action('init', $registrar->register(...));
+        add_action('init', $registrar->flushRewriteRules(...), PHP_INT_MAX);
+        // Another theme or plugin may have flushed the rules without these post types in the meantime.
+        if ($this->kind === ProjectKind::Plugin) {
+            register_activation_hook($this->directory . '/' . $this->slug . '.php', $registrar->resetRewriteRules(...));
+        } else {
+            add_action('after_switch_theme', $registrar->resetRewriteRules(...));
+        }
+
+        if ($store->getMeta() === []) {
+            return;
+        }
+        $boxes = new MetaBoxes($this->slug, $store, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
+        add_action('add_meta_boxes', $boxes->add(...));
+        add_action('save_post', $boxes->save(...), 10, 2);
+        add_action('admin_notices', $boxes->notices(...));
+        add_action('admin_enqueue_scripts', $boxes->enqueue(...));
     }
 
     /**

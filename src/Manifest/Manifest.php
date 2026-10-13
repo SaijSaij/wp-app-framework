@@ -30,6 +30,9 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * @phpstan-import-type BlockExcerpt from BlockDefinition
  * @phpstan-import-type BlockSupportEntry from BlockDefinition
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type PostClassEntry from \Saij\WpAppFramework\Post\PostTypeCollector
+ * @phpstan-import-type TaxonomyEntry from \Saij\WpAppFramework\Post\PostTypeCollector
+ * @phpstan-import-type MetaEntry from \Saij\WpAppFramework\Post\PostTypeCollector
  * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
  * @phpstan-import-type SettingsGroupEntry from \Saij\WpAppFramework\Setting\SettingsCollector
  * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
@@ -75,13 +78,17 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     templateVersion: non-empty-string|null,
  *     codeVersion: non-empty-string|null,
  *     styles: bool,
- *     settings: array{title: string|null, groups: list<SettingsGroupEntry>}
+ *     settings: array{title: string|null, groups: list<SettingsGroupEntry>},
+ *     posts: array<class-string<\Saij\WpAppFramework\Post\AbstractPost>, PostClassEntry>,
+ *     taxonomies: array<class-string, TaxonomyEntry>,
+ *     meta: array<class-string, MetaEntry>,
+ *     rewrite: non-empty-string|null
  * }
  */
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 16;
+    public const int FORMAT = 17;
 
     /**
      * @return ManifestData

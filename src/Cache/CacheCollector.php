@@ -26,12 +26,9 @@ final class CacheCollector
     /** @var list<string> */
     private array $errors = [];
 
-    /**
-     * @param array<class-string, string> $settingsGroups Group name by class of the settings groups.
-     */
     public function __construct(
         private readonly ServiceResolver $resolver,
-        private readonly array $settingsGroups,
+        private readonly TagNames $names,
     ) {}
 
     /**
@@ -105,7 +102,7 @@ final class CacheCollector
             $cache->ttl,
             $cache->tags,
             $cache->vary,
-            fn(string $class): ?string => $this->settingsGroups[$class] ?? null,
+            $this->names,
             fn(string $class): ?string => match (true) {
                 !$this->resolver->isCandidate($class) => sprintf(
                     'the provider must be a service, but %s is %s',

@@ -46,12 +46,11 @@ final class CachePolicy
     /**
      * @param array<mixed>                          $tags
      * @param array<mixed>                          $vary
-     * @param Closure(class-string): ?string        $settingsGroup Name of the settings group of a class; null if the
-     *                                                             class is no settings group of the instance.
+     * @param TagNames                              $names         Classes tags may name.
      * @param Closure(class-string): ?string        $providerError Why a class cannot provide a ServiceVary; null if it can.
      * @return array{0: CacheEntry|null, 1: list<string>} The entry, or null and the errors.
      */
-    public static function entry(int $ttl, array $tags, array $vary, Closure $settingsGroup, Closure $providerError): array
+    public static function entry(int $ttl, array $tags, array $vary, TagNames $names, Closure $providerError): array
     {
         $errors = [];
         if ($ttl < 1) {
@@ -60,7 +59,7 @@ final class CachePolicy
 
         $tagKeys = [];
         foreach ($tags as $tag) {
-            [$key, $error] = self::tagKey($tag, $settingsGroup);
+            [$key, $error] = self::tagKey($tag, $names);
             if ($key === null) {
                 $errors[] = (string) $error;
                 continue;
@@ -94,15 +93,21 @@ final class CachePolicy
     }
 
     /**
-     * The key of a tag, or null and the reason it is invalid.
+     * The key of a tag, or null and the reason it is invalid. Post types and taxonomies may be named by their class.
      *
-     * @param Closure(class-string): ?string $settingsGroup
      * @return array{0: non-empty-string|null, 1: string|null}
      */
-    public static function tagKey(mixed $tag, Closure $settingsGroup): array
+    public static function tagKey(mixed $tag, TagNames $names): array
     {
         if ($tag instanceof PostTypeTag) {
             $postType = $tag->getPostType();
+            if (str_contains($postType, '\\')) {
+                $name = $names->postType($postType);
+                if ($name === null) {
+                    return [null, sprintf('PostTypeTag needs a post type name or a post class of this theme or plugin (#[PostType], Post or Page), %s given', $postType)];
+                }
+                $postType = $name;
+            }
             if ($postType === '' || strlen($postType) > self::MAX_POST_TYPE_LENGTH) {
                 return [null, sprintf('PostTypeTag needs a post type name of 1 to %d characters, "%s" given', self::MAX_POST_TYPE_LENGTH, $postType)];
             }
@@ -111,6 +116,13 @@ final class CachePolicy
         }
         if ($tag instanceof TaxonomyTag) {
             $taxonomy = $tag->getTaxonomy();
+            if (str_contains($taxonomy, '\\')) {
+                $name = $names->taxonomy($taxonomy);
+                if ($name === null) {
+                    return [null, sprintf('TaxonomyTag needs a taxonomy name or a taxonomy class of this theme or plugin (#[Taxonomy]), %s given', $taxonomy)];
+                }
+                $taxonomy = $name;
+            }
             if ($taxonomy === '' || strlen($taxonomy) > self::MAX_TAXONOMY_LENGTH) {
                 return [null, sprintf('TaxonomyTag needs a taxonomy name of 1 to %d characters, "%s" given', self::MAX_TAXONOMY_LENGTH, $taxonomy)];
             }
@@ -118,7 +130,7 @@ final class CachePolicy
             return ['taxonomy:' . $taxonomy, null];
         }
         if ($tag instanceof SettingsTag) {
-            $name = $settingsGroup($tag->getGroup());
+            $name = $names->settingsGroup($tag->getGroup());
             if ($name === null || $name === '') {
                 return [null, sprintf('SettingsTag needs a class with #[SettingsGroup] of this theme or plugin, %s given', $tag->getGroup())];
             }

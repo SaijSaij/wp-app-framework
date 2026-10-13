@@ -5,9 +5,10 @@ import { useEffect, useRef } from '@wordpress/element';
 import { editorSettings } from './classic-editor-settings';
 
 /**
- * A #[RichText] setting, edited with WordPress' classic editor
- * (wp.editor.initialize(), loaded by wp_enqueue_editor()): the RichText of the
- * block editor only works inside a selected block.
+ * A #[RichText] setting or meta field, edited with WordPress' classic editor
+ * (loaded by wp_enqueue_editor()): the RichText of the block editor only works
+ * inside a selected block. WordPress provides the classic editor as
+ * wp.oldEditor, also in the block editor, where wp.editor is the editor package.
  *
  * @param {Object}                  props
  * @param {Object}                  props.control  Control description (`allowedFormats`).
@@ -23,7 +24,7 @@ export function ClassicRichTextControl( { control, value, onChange, label } ) {
 	latest.current = onChange;
 
 	useEffect( () => {
-		window.wp.editor.initialize( id, {
+		window.wp.oldEditor.initialize( id, {
 			tinymce: {
 				...editorSettings( control.allowedFormats ?? null ),
 				setup( editor ) {
@@ -35,7 +36,7 @@ export function ClassicRichTextControl( { control, value, onChange, label } ) {
 			quicktags: false,
 			mediaButtons: false,
 		} );
-		return () => window.wp.editor.remove( id );
+		return () => window.wp.oldEditor.remove( id );
 	}, [ id, control.allowedFormats ] );
 
 	return (

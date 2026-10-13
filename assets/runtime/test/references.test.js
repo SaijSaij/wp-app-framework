@@ -16,6 +16,23 @@ describe( 'reference requests', () => {
 		);
 	} );
 
+	it( 'search the collection of the post type of a post class', () => {
+		const venues = {
+			target: 'post',
+			subtypes: [ 'dev_test_venue' ],
+			restBase: 'dev_test_venue',
+		};
+		expect( searchPath( venues, 'hall' ) ).toBe(
+			'/wp/v2/dev_test_venue?_fields=id%2Ctitle&search=hall&per_page=20'
+		);
+		expect( includePath( venues, [ 4 ] ) ).toBe(
+			'/wp/v2/dev_test_venue?_fields=id%2Ctitle&include=4&per_page=1'
+		);
+		expect(
+			titles( venues, [ { id: 4, title: { rendered: 'Hall' } } ] )
+		).toEqual( { 4: 'Hall' } );
+	} );
+
 	it( 'search users through the users route', () => {
 		expect( searchPath( user, 'ann' ) ).toBe(
 			'/wp/v2/users?_fields=id%2Cname&search=ann&per_page=20'

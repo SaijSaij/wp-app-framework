@@ -77,6 +77,14 @@ final readonly class EntryPointInspector
             return sprintf('%s: settings group %s is injected into constructors of services only, not in %s.', $parameterLocation, $settingsGroup, $context);
         }
 
+        $type = $parameter->getType();
+        /** @var class-string|null $typeName A class: built-in types are left out. */
+        $typeName = $type instanceof \ReflectionNamedType && !$type->isBuiltin() ? $type->getName() : null;
+        $exclusion = $typeName === null ? null : $this->resolver->exclusion($typeName);
+        if (in_array($exclusion, ['a post class', 'a meta class', 'a taxonomy class'], true)) {
+            return sprintf('%s: %s is %s; WordPress passes no such objects to %s.', $parameterLocation, $type, $exclusion, $context);
+        }
+
         foreach ([PluginApi::class => '#[PluginApi]', ThemeApi::class => '#[ThemeApi]'] as $class => $attribute) {
             if ($parameter->getAttributes($class) !== []) {
                 return sprintf('%s: %s is only supported on constructor parameters of services, not in %s.', $parameterLocation, $attribute, $context);

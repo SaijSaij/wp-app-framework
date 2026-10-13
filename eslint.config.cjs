@@ -15,9 +15,11 @@ const PROVIDED_BY_WORDPRESS = [
 	'@wordpress/core-data',
 	'@wordpress/data',
 	'@wordpress/dom-ready',
+	'@wordpress/editor',
 	'@wordpress/element',
 	'@wordpress/media-utils',
 	'@wordpress/notices',
+	'@wordpress/plugins',
 ];
 
 module.exports = [

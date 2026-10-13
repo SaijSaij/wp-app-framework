@@ -13,6 +13,7 @@ use Saij\WpAppFramework\Block\Markup\MarkupFiles;
 use Saij\WpAppFramework\Block\Support\SupportCollector;
 use Saij\WpAppFramework\Cache\CacheCollector;
 use Saij\WpAppFramework\Cache\CacheStore;
+use Saij\WpAppFramework\Cache\TagNames;
 use Saij\WpAppFramework\ChildTheme;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
@@ -21,6 +22,8 @@ use Saij\WpAppFramework\Hook\HookCollector;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Plugin;
+use Saij\WpAppFramework\Post\PostStore;
+use Saij\WpAppFramework\Post\PostTypeCollector;
 use Saij\WpAppFramework\Project\ComposerProject;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRouteCollector;
@@ -144,13 +147,28 @@ final class ManifestBuilder
         $errors = [];
         $classes = $this->loadClasses($errors);
 
-        $resolver = ServiceResolver::forClasses($classes, $this->predefined, $this->parent, SettingsCollector::groupClasses($classes));
-        $values = new ValueSchemaBuilder($classes);
+        // The post store of the instance is provided at run time, also for the framework's own template function post().
+        $resolver = ServiceResolver::forClasses(
+            $classes,
+            [...$this->predefined, PostStore::class],
+            $this->parent,
+            SettingsCollector::groupClasses($classes),
+            PostTypeCollector::nonServices($classes),
+        );
+        $postClasses = PostTypeCollector::postClasses($classes, $this->namespace);
+        $taxonomyClasses = PostTypeCollector::taxonomyClasses($classes, $this->namespace);
+        $values = new ValueSchemaBuilder($classes, $postClasses, $taxonomyClasses);
+        $postTypeCollector = new PostTypeCollector($values, $this->namespace, self::frameworkSource()->getDirectory());
+        $posts = $postTypeCollector->collect($classes);
         $settingsCollector = new SettingsCollector($values, self::frameworkSource()->getDirectory(), $this->namespace, $this->name);
         $settings = $settingsCollector->collect($classes);
         $hookCollector = new HookCollector($resolver);
         $hooks = $hookCollector->collect($classes);
-        $cacheCollector = new CacheCollector($resolver, CacheCollector::settingsGroups($classes));
+        $cacheCollector = new CacheCollector($resolver, new TagNames(
+            CacheCollector::settingsGroups($classes),
+            array_map(static fn(array $post): string => $post['name'], $postClasses),
+            $taxonomyClasses,
+        ));
         $cacheCollector->collect($classes);
         $routeCollector = new RestRouteCollector($resolver, $values, $this->namespace, $cacheCollector);
         $routes = $routeCollector->collect($classes);
@@ -193,6 +211,7 @@ final class ManifestBuilder
             ...$blockCollector->errors(),
             ...$markupValidator->errors(),
             ...$settingsCollector->errors(),
+            ...$postTypeCollector->errors(),
             ...$values->errors(),
             ...$resolver->errors(),
         ];
@@ -222,6 +241,7 @@ final class ManifestBuilder
             $settings,
             $settings === [] ? null : $this->name,
             $markup,
+            $posts,
         );
     }
 

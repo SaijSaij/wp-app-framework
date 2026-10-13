@@ -17,6 +17,7 @@ use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
 use Saij\WpAppFramework\Cache\Tag\SettingsTag;
 use Saij\WpAppFramework\Cache\Tag\TaxonomyTag;
 use Saij\WpAppFramework\Cache\TagHooks;
+use Saij\WpAppFramework\Cache\TagNames;
 use Saij\WpAppFramework\Cache\TagVersions;
 use Saij\WpAppFramework\Cache\Vary\CookieVary;
 use Saij\WpAppFramework\Cache\Vary\HeaderVary;
@@ -93,7 +94,7 @@ final class CacheStoreTest extends TestCase
             $this->versions,
             new CodeGeneration(static fn(): string => $generation),
             new Container([Region::class => []]),
-            [SiteSettings::class => 'site'],
+            new TagNames([SiteSettings::class => 'site']),
         );
     }
 

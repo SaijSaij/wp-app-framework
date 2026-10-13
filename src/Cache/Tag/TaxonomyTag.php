@@ -9,7 +9,9 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Invalidated when a term of the taxonomy is created, changed or deleted,
- * changes its term meta, or is assigned to or removed from an object.
+ * changes its term meta, or is assigned to or removed from an object. The
+ * taxonomy is its name or a taxonomy class of the theme or plugin
+ * (`new TaxonomyTag(Genre::class)`).
  */
 #[NoService]
 final readonly class TaxonomyTag implements CacheTag

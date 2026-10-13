@@ -12,7 +12,7 @@ The framework is a Composer library. A project that includes it is a *consumer*.
 
 Every consumer that boots creates its own *instance* of the framework. Instances are strictly separated, so everything with a global name is derived from one of two names of the consumer.
 
-The **namespace** names what your content and data refer to. You choose it once in `composer.json`, as `extra.wp-app-framework.namespace`, for example `sections`. Your blocks are registered as `sections/hero`, your REST routes live under `sections/v1`, and your settings are stored in options such as `sections_general`. These names end up in posts and in the database, so they must stay the same for as long as the content exists.
+The **namespace** names what your content and data refer to. You choose it once in `composer.json`, as `extra.wp-app-framework.namespace`, for example `sections`. Your blocks are registered as `sections/hero`, your REST routes live under `sections/v1`, your settings are stored in options such as `sections_general`, and your post types, taxonomies and meta keys are named `sections_event` and the like. These names end up in posts and in the database, so they must stay the same for as long as the content exists.
 
 The **slug** is the directory name of the theme or plugin. It names the technical parts: the REST route of the editor, the script handles, the JavaScript global `window.wpAppFramework[slug]`, the cache directory `wp-content/cache/{slug}/` and the init action `wp_app_framework/init/{slug}`. The directory name can change when a theme or plugin is installed under another name; that's why no content depends on it.
 
@@ -22,7 +22,7 @@ The separation goes further in a release. Each consumer ships its own copy of th
 
 ## Build and run time
 
-You declare almost everything with PHP attributes: `#[Hook]` on a method registers a hook, `#[RestRoute]` a REST route, `#[Block]` a block, `#[TemplateFunction]` a Twig function, `#[SettingsGroup]` a group of settings. Nothing reads these attributes while WordPress handles a request in production. Instead, a *build* step reads them once and writes a **manifest**: plain PHP data listing the hooks, routes, blocks with their attribute schemas, template functions, settings and the services with their constructor dependencies.
+You declare almost everything with PHP attributes: `#[Hook]` on a method registers a hook, `#[RestRoute]` a REST route, `#[Block]` a block, `#[TemplateFunction]` a Twig function, `#[SettingsGroup]` a group of settings, `#[PostType]` a post type. Nothing reads these attributes while WordPress handles a request in production. Instead, a *build* step reads them once and writes a **manifest**: plain PHP data listing the hooks, routes, blocks with their attribute schemas, template functions, settings and the services with their constructor dependencies.
 
 This has two benefits. First, mistakes surface early. A REST route without a permission, a constructor parameter the container cannot fill, a template function with the name of a Twig built-in – each is a build error naming the class at fault, not a surprise in production. Second, a release does no extra work at run time: it loads the manifest and calls your classes, without reflection, without checking files, and without ever writing into the theme or plugin directory.
 

@@ -20,6 +20,15 @@ use Saij\WpAppFramework\Twig\TemplateCallableDefinition;
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
  * @phpstan-import-type SettingsGroupEntry from \Saij\WpAppFramework\Setting\SettingsCollector
+ * @phpstan-import-type PostClassEntry from \Saij\WpAppFramework\Post\PostTypeCollector
+ * @phpstan-import-type TaxonomyEntry from \Saij\WpAppFramework\Post\PostTypeCollector
+ * @phpstan-import-type MetaEntry from \Saij\WpAppFramework\Post\PostTypeCollector
+ * @phpstan-type PostData array{
+ *     posts: array<class-string<\Saij\WpAppFramework\Post\AbstractPost>, PostClassEntry>,
+ *     taxonomies: array<class-string, TaxonomyEntry>,
+ *     meta: array<class-string, MetaEntry>,
+ *     rewrite: non-empty-string|null
+ * }
  */
 #[NoService]
 final readonly class BuildResult
@@ -50,6 +59,8 @@ final readonly class BuildResult
      *                                                                         plugin); null without settings groups.
      * @param MarkupFiles|null                                  $markup       Checked block templates, template parts and patterns;
      *                                                                         null for plugins.
+     * @param PostData                                          $posts        Post classes, taxonomies, meta classes and the hash of
+     *                                                                         the rewrite-relevant declarations.
      */
     public function __construct(
         private array $sources,
@@ -73,7 +84,16 @@ final readonly class BuildResult
         private array $settings = [],
         private ?string $settingsTitle = null,
         private ?MarkupFiles $markup = null,
+        private array $posts = ['posts' => [], 'taxonomies' => [], 'meta' => [], 'rewrite' => null],
     ) {}
+
+    /**
+     * @return PostData
+     */
+    public function getPosts(): array
+    {
+        return $this->posts;
+    }
 
     public function getMarkup(): ?MarkupFiles
     {

@@ -22,6 +22,57 @@ final class Recorded
     }
 
     /**
+     * @return array<string, array<string, mixed>> Meta boxes added with add_meta_box() by ID.
+     */
+    public static function metaBoxes(): array
+    {
+        /** @var array<string, array<string, mixed>> */
+        return $GLOBALS['wp_app_framework_test_meta_boxes'] ?? [];
+    }
+
+    /**
+     * @return array<string, array<string, mixed>> Arguments of register_post_type() by post type.
+     */
+    public static function postTypes(): array
+    {
+        /** @var array<string, array<string, mixed>> */
+        return $GLOBALS['wp_app_framework_test_post_types'] ?? [];
+    }
+
+    /**
+     * @return array<string, array{list<string>, array<string, mixed>}> Object types and arguments of register_taxonomy().
+     */
+    public static function taxonomies(): array
+    {
+        /** @var array<string, array{list<string>, array<string, mixed>}> */
+        return $GLOBALS['wp_app_framework_test_taxonomies'] ?? [];
+    }
+
+    /**
+     * @return array<string, array<string, array<string, mixed>>> Arguments of register_post_meta() by post type and key.
+     */
+    public static function registeredMeta(): array
+    {
+        /** @var array<string, array<string, array<string, mixed>>> */
+        return $GLOBALS['wp_app_framework_test_registered_meta'] ?? [];
+    }
+
+    /**
+     * The callback of a meta box added with add_meta_box().
+     *
+     * @return callable(\WP_Post): mixed
+     */
+    public static function metaBoxCallback(string $id): callable
+    {
+        $callback = self::metaBoxes()[$id]['callback'] ?? null;
+        if (!is_callable($callback)) {
+            throw new LogicException(sprintf('No meta box %s was added.', $id));
+        }
+
+        return $callback;
+    }
+
+    /**
      * @return \Closure(array<string, mixed>, string=, WP_Block=): string
      */
     public static function renderCallback(string $block): \Closure

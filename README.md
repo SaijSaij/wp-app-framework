@@ -24,6 +24,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 |---|---|
 | `Theme.php`, `ChildTheme.php`, `Plugin.php` | Boot and paths of the active theme, child theme or of a plugin |
 | `Instance.php` | Boot of one framework instance (internal) |
+| `Post/` | `#[PostType]`, `#[PostMeta]`, `#[Taxonomy]`, post objects (`AbstractPost`, `Post`, `Page`), collector (build), post store and registry, registration, rewrite rules and meta boxes (runtime), template function `post()` |
 | `Project/` | Kind, slug, namespace and settings of a consumer from its `composer.json` (build) |
 | `Api/` | `#[PublicApi]`, `#[PluginApi]`, `#[ThemeApi]` attributes, collector and signature checks (build), hooks between instances and `has_plugin()` (runtime) |
 | `Hook/` | `#[Hook]` attribute, collector (build), definition, registrar (runtime) |
@@ -45,7 +46,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 
 New areas get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
 
-The editor runtime and its styles live in `assets/` (`editor.js` entry, `editor.scss` styles of the inspector, `settings.js` and `settings.scss` of the settings page, `_controls.scss` styles of the controls they share, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`; `view.js` entry of the view runtime with its modules and tests in `view/`); `webpack.config.js` is the helper for the consumer's build, tested in `assets/test/`. The documentation website lives in `docs/` (see Development).
+The editor runtime and its styles live in `assets/` (`editor.js` entry, `editor.scss` styles of the inspector, `settings.js` and `settings.scss` of the settings page, `meta-box.js` and `meta-box.scss` of the meta boxes, `_controls.scss` styles of the controls they share, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`; `view.js` entry of the view runtime with its modules and tests in `view/`); `webpack.config.js` is the helper for the consumer's build, tested in `assets/test/`. The documentation website lives in `docs/` (see Development).
 
 ## Conventions
 

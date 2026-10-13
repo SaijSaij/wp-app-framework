@@ -1,7 +1,9 @@
 /**
  * Requests of the reference controls, without React: posts and terms through
  * /wp/v2/search (published posts only), users through /wp/v2/users (without
- * the capability list_users only authors of published posts).
+ * the capability list_users only authors of published posts). References to a
+ * post class (`restBase`) search the collection of its post type, which also
+ * works for post types that are not public: /wp/v2/search covers public ones only.
  */
 
 /** Results per search. */
@@ -16,6 +18,8 @@ function path( control, query ) {
 	const params = new URLSearchParams();
 	if ( control.target === 'user' ) {
 		params.set( '_fields', 'id,name' );
+	} else if ( control.restBase ) {
+		params.set( '_fields', 'id,title' );
 	} else {
 		params.set( 'type', control.target );
 		params.set( 'subtype', ( control.subtypes ?? [ 'any' ] ).join( ',' ) );
@@ -24,7 +28,12 @@ function path( control, query ) {
 	for ( const [ key, value ] of Object.entries( query ) ) {
 		params.set( key, String( value ) );
 	}
-	const route = control.target === 'user' ? '/wp/v2/users' : '/wp/v2/search';
+	let route = '/wp/v2/search';
+	if ( control.target === 'user' ) {
+		route = '/wp/v2/users';
+	} else if ( control.restBase ) {
+		route = `/wp/v2/${ control.restBase }`;
+	}
 	return `${ route }?${ params.toString() }`;
 }
 
@@ -56,9 +65,12 @@ export function includePath( control, ids ) {
 export function titles( control, items ) {
 	const result = {};
 	for ( const item of items ) {
-		result[ item.id ] =
-			( control.target === 'user' ? item.name : item.title ) ||
-			`#${ item.id }`;
+		// Collections return the title as { rendered }, /wp/v2/search as a string.
+		const title =
+			control.target === 'user'
+				? item.name
+				: ( item.title?.rendered ?? item.title );
+		result[ item.id ] = title || `#${ item.id }`;
 	}
 	return result;
 }

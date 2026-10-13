@@ -72,6 +72,19 @@ On `?int` the parameter holds one reference, or `null` if nothing is chosen. On 
 
 In blocks, a reference counts as content (`role: content`), like `#[Image]`.
 
+### Post objects
+
+A parameter typed as a [post class](./posts.md) – a class with `#[PostType]`, or the framework's `Post` and `Page` – is a reference too, without an attribute: it stores the ID and gives you the post object.
+
+```php
+public ?Event $event = null,                         // the event, null without
+#[ListOf(Venue::class)] public array $venues = [],   // a list of venues (list<Venue>)
+```
+
+The single reference must be nullable. It resolves if the post has the type of the class and is published, also for post types that are not public, such as data types. The search in the editor uses the REST collection of the post type, so it finds posts of these types too.
+
+`postTypes` and `taxonomies` also take post and taxonomy classes instead of names: `#[PostReference(postTypes: [Event::class, 'page'])]`, `#[TermReference(taxonomies: [Genre::class])]`.
+
 ### Editing
 
 References are edited with a search, in the block inspector and on the settings page. Posts and terms are searched through `/wp/v2/search`, which finds published posts only. Users are searched through `/wp/v2/users`; users without the capability `list_users` see only authors of published posts. A list shows its entries as cards that can be moved up, moved down and removed.

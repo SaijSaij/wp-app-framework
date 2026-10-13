@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Setting;
 use LogicException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Project\ComposerProject;
+use Saij\WpAppFramework\Value\HtmlFilter;
 use Saij\WpAppFramework\Value\ValueFactory;
 
 /**
@@ -177,38 +178,9 @@ final class SettingsStore
 
         /** @var array<string, mixed> $value */
         $value += $group['default'];
-        // Like WordPress for block attributes (filter_block_kses()): HTML of users without unfiltered_html is filtered.
-        if (!current_user_can('unfiltered_html')) {
-            foreach ($group['richText'] as $path) {
-                /** @var array<string, mixed> $value filterHtml() keeps the shape of an array. */
-                $value = self::filterHtml($value, explode('.', $path));
-            }
-        }
 
-        return $value;
-    }
-
-    /**
-     * Filters the rich text at a path ("footer", "links.*.text") with wp_kses_post().
-     *
-     * @param list<string> $path
-     */
-    private static function filterHtml(mixed $value, array $path): mixed
-    {
-        if ($path === []) {
-            return is_string($value) ? wp_kses_post($value) : $value;
-        }
-        if (!is_array($value)) {
-            return $value;
-        }
-        $segment = array_shift($path);
-        foreach ($value as $key => $item) {
-            if ($segment === '*' ? is_int($key) : $key === $segment) {
-                $value[$key] = self::filterHtml($item, $path);
-            }
-        }
-
-        return $value;
+        /** @var array<string, mixed> The filter keeps the shape of an array. */
+        return HtmlFilter::filter($value, $group['richText']);
     }
 
     private static function log(string $message): void

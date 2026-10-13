@@ -4,12 +4,13 @@ import { getBlockType, registerBlockType } from '@wordpress/blocks';
 import { RawHTML } from '@wordpress/element';
 
 import { PortalEdit } from './portal-edit';
+import { registerMetaPanels } from './meta-panels';
 import { createRegistry } from './registry';
 import { createRenderer } from './renderer';
 
 /**
- * Starts the runtime of one framework instance: registers its blocks with the
- * editor and adds the API for its editor scripts to the instance global wpAppFramework[slug],
+ * Starts the runtime of one framework instance: registers its blocks and the
+ * panels of its meta classes with the editor and adds the API for its editor scripts to the instance global wpAppFramework[slug],
  * which the server prefilled with the configuration.
  *
  * @param {string} slug Slug of the instance.
@@ -45,6 +46,8 @@ export function startRuntime( slug ) {
 			save: saveFunction( block ),
 		} );
 	}
+
+	registerMetaPanels( slug, config.meta );
 
 	instance.registerControl = runtime.registry.registerControl;
 	instance.registerSupportControl = runtime.registry.registerSupportControl;

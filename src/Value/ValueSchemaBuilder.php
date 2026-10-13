@@ -17,6 +17,7 @@ use Saij\WpAppFramework\Block\Labeled;
 use Saij\WpAppFramework\Block\PlainText;
 use Saij\WpAppFramework\Block\RichText;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Post\AbstractPost;
 use Throwable;
 
 /**
@@ -36,6 +37,11 @@ use Throwable;
  * IDs on `?int` (one) or `array` (a list of IDs) with a search control; in
  * blocks they count as content.
  *
+ * A parameter whose type is a post class (a subclass of AbstractPost: a class with
+ * `#[PostType]`, Post or Page) is a reference to a post of that type: stored as ID,
+ * created as the post object. `#[PostReference]` and `#[TermReference]` also take
+ * post and taxonomy classes instead of names.
+ *
  * Settings groups use the same derivation in settings mode: there is no canvas,
  * so `#[PlainText]`, `#[RichText]` and `#[Image]` get a control on the settings
  * page (rich text with the formats the classic editor offers); `#[Content]` and
@@ -50,6 +56,7 @@ use Throwable;
  * @phpstan-type Field array{schema: array<string, mixed>, value: Value, content: bool, fields: list<EditorField>, control: Control|null}
  * @phpstan-type ClassField array{schema: array<string, mixed>, value: ClassValue, content: bool, fields: list<EditorField>, control: Control|null}
  * @phpstan-import-type Reference from ValueFactory
+ * @phpstan-type PostClass array{name: non-empty-string, restBase: non-empty-string}
  * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, label: string, hidden: bool, reference: Reference|null}
  */
 #[NoService]
@@ -71,6 +78,9 @@ final class ValueSchemaBuilder
     /** @var array<class-string, array<string, Field>|null> The same for settings groups (settings mode). */
     private array $settingsObjects = [];
 
+    /** @var array<class-string, array<string, Field>|null> Fields of checked meta classes (#[PostMeta]). */
+    private array $metaObjects = [];
+
     /** @var list<class-string> Value classes being checked, to detect recursion. */
     private array $pending = [];
 
@@ -78,9 +88,16 @@ final class ValueSchemaBuilder
     private array $errors = [];
 
     /**
-     * @param array<class-string, ReflectionClass<object>> $classes All scanned classes.
+     * @param array<class-string, ReflectionClass<object>> $classes    All scanned classes.
+     * @param array<class-string, PostClass>               $posts      Post classes (#[PostType], Post, Page) with the name
+     *                                                                 and REST base of their post type.
+     * @param array<class-string, non-empty-string>        $taxonomies Taxonomy classes (#[Taxonomy]) with their name.
      */
-    public function __construct(private readonly array $classes) {}
+    public function __construct(
+        private readonly array $classes,
+        private readonly array $posts = [],
+        private readonly array $taxonomies = [],
+    ) {}
 
     /**
      * Schema, runtime description and content flag of a typed parameter.
@@ -126,6 +143,20 @@ final class ValueSchemaBuilder
                 $this->errors[] = sprintf('%s is an array and needs #[ListOf(Item::class)] with a backed enum or a value class.', $location);
 
                 return null;
+            }
+            if (is_subclass_of($listOf, AbstractPost::class)) {
+                $item = $this->postClassField($listOf, false, $markers, sprintf('%s: #[ListOf]', $location), true);
+                if ($item === null || !isset($item['value']['reference'])) {
+                    return null;
+                }
+
+                return [
+                    'schema' => ['type' => self::type('array', $nullable), 'items' => ['type' => 'integer']],
+                    'value' => ['type' => 'list', 'items' => ['type' => 'int', 'nullable' => false, 'reference' => $item['value']['reference']], 'nullable' => $nullable],
+                    'content' => true,
+                    'fields' => [],
+                    'control' => $markers['hidden'] ? null : ['type' => 'references', 'label' => $markers['label'], 'nullable' => $nullable] + array_diff_key((array) $item['control'], ['type' => true, 'label' => true, 'nullable' => true]),
+                ];
             }
             $item = $this->classField($listOf, false, sprintf('%s: #[ListOf]', $location), $settings);
             if ($item === null) {
@@ -202,6 +233,10 @@ final class ValueSchemaBuilder
             return null;
         }
 
+        if (is_subclass_of($name, AbstractPost::class)) {
+            return $this->postClassField($name, $nullable, $markers, $location);
+        }
+
         $field = $this->classField($name, $nullable, $location, $settings);
         if ($field === null) {
             return null;
@@ -267,6 +302,115 @@ final class ValueSchemaBuilder
     }
 
     /**
+     * The fields of a meta class (#[PostMeta]), by parameter name, derived like a settings group (form mode). Unlike a
+     * value class, a meta class is not readonly and its promoted parameters may be private or protected: the post
+     * object changes the values through the class's own setters.
+     *
+     * @param class-string $class
+     * @return array<string, Field>|null Null if the class is invalid; the errors are recorded.
+     */
+    public function metaFields(string $class, string $location): ?array
+    {
+        if (array_key_exists($class, $this->metaObjects)) {
+            return $this->metaObjects[$class];
+        }
+        $reflection = $this->classes[$class];
+        $error = self::metaClassError($reflection);
+        if ($error !== null) {
+            $this->errors[] = sprintf('%s: %s', $location, $error);
+
+            return $this->metaObjects[$class] = null;
+        }
+
+        $fields = [];
+        $valid = true;
+        foreach ($reflection->getConstructor()?->getParameters() ?? [] as $parameter) {
+            $field = $this->parameter($parameter, sprintf('parameter $%s of meta class %s::__construct()', $parameter->getName(), $class), true);
+            if ($field === null) {
+                $valid = false;
+                continue;
+            }
+            $fields[$parameter->getName()] = $field;
+        }
+
+        return $this->metaObjects[$class] = $valid ? $fields : null;
+    }
+
+    /**
+     * @param ReflectionClass<object> $class
+     */
+    private static function metaClassError(ReflectionClass $class): ?string
+    {
+        $name = $class->getName();
+        if ($class->isInterface() || $class->isTrait() || $class->isAbstract() || $class->isEnum()) {
+            return sprintf('meta class %s must be a concrete class.', $name);
+        }
+        if ($class->isReadOnly()) {
+            return sprintf('meta class %s must not be readonly: the post object changes its values, and save() stores them.', $name);
+        }
+        $constructor = $class->getConstructor();
+        if ($constructor !== null && !$constructor->isPublic()) {
+            return sprintf('meta class %s needs a public constructor.', $name);
+        }
+
+        $promoted = [];
+        foreach ($constructor?->getParameters() ?? [] as $parameter) {
+            if (!$parameter->isPromoted()) {
+                return sprintf('parameter $%s of meta class %s::__construct() must be a promoted property.', $parameter->getName(), $name);
+            }
+            $promoted[] = $parameter->getName();
+        }
+        foreach ($class->getProperties() as $property) {
+            if (!$property->isStatic() && !in_array($property->getName(), $promoted, true)) {
+                return sprintf('meta class %s declares the property $%s outside the constructor; it would not be stored. All fields are promoted constructor parameters.', $name, $property->getName());
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * A reference to a post of a post class: stored as ID, created as the post object.
+     *
+     * @param class-string<AbstractPost> $class
+     * @param Markers      $markers
+     * @param bool         $item     An item of a list (never null; a missing post is left out).
+     * @return Field|null
+     */
+    private function postClassField(string $class, bool $nullable, array $markers, string $location, bool $item = false): ?array
+    {
+        $post = $this->posts[$class] ?? null;
+        $error = match (true) {
+            $post === null => sprintf('%s: %s is no post class of this theme or plugin; post classes have #[PostType] (or are Post or Page) and extend AbstractPost.', $location, $class),
+            !$nullable && !$item => sprintf('%s: a reference to a %s must be nullable (null without post).', $location, self::shortName($class)),
+            $markers['reference'] !== null || $markers['kind'] !== null || $markers['content'] || $markers['url'] => sprintf('%s: a reference to a %s takes no #[PostReference], #[TermReference], #[UserReference], #[PlainText], #[RichText], #[Image], #[Content] or #[Url].', $location, self::shortName($class)),
+            default => null,
+        };
+        if ($error !== null || $post === null) {
+            $this->errors[] = (string) $error;
+
+            return null;
+        }
+
+        $reference = ['target' => 'post', 'subtypes' => [$post['name']], 'class' => $class];
+
+        return [
+            'schema' => ['type' => $item ? 'integer' : ['integer', 'null']],
+            'value' => ['type' => 'int', 'nullable' => !$item, 'reference' => $reference],
+            'content' => true,
+            'fields' => [],
+            'control' => $markers['hidden'] ? null : [
+                'type' => 'reference',
+                'label' => $markers['label'],
+                'nullable' => true,
+                'target' => 'post',
+                'subtypes' => [$post['name']],
+                'restBase' => $post['restBase'],
+            ],
+        ];
+    }
+
+    /**
      * @param class-string              $class
      * @param array<string, Field>|null $fields
      * @return array<string, Field>|null
@@ -327,7 +471,7 @@ final class ValueSchemaBuilder
     {
         $values = [];
         // The value descriptions do not depend on the mode.
-        foreach ([...$this->settingsObjects, ...$this->objects] as $class => $fields) {
+        foreach ([...$this->metaObjects, ...$this->settingsObjects, ...$this->objects] as $class => $fields) {
             if ($fields === null) {
                 continue;
             }
@@ -385,7 +529,7 @@ final class ValueSchemaBuilder
                 self::shortName($referenceAttributes[0]->getName()),
                 $kind ?? ($content ? 'Content' : 'Url'),
             ),
-            $settings && $content => 'has #[Content], which marks the content of blocks; settings groups have no block content',
+            $settings && $content => 'has #[Content], which marks the content of blocks; settings groups and post meta have no block content',
             count($kinds) > 1 => sprintf('has #[%s]; use only one of #[PlainText], #[RichText] and #[Image]', implode('] and #[', $kinds)),
             $kind !== null && $content => sprintf('has #[%s] and #[Content]; #[%1$s] already marks the field as content', $kind),
             ($plain || $rich) && !$isString => sprintf('has #[%s], which is only allowed on strings', $kind),
@@ -402,7 +546,10 @@ final class ValueSchemaBuilder
         }
 
         try {
-            $reference = $referenceAttributes === [] ? null : self::reference($referenceAttributes[0]->newInstance());
+            $reference = $referenceAttributes === [] ? null : $this->reference($referenceAttributes[0]->newInstance(), $location);
+            if ($reference === false) {
+                return null;
+            }
             $kindAttribute = ($plainAttributes[0] ?? $richAttributes[0] ?? $imageAttributes[0] ?? null)?->newInstance();
             $allowedFormats = $kindAttribute instanceof RichText ? $kindAttribute->allowedFormats : null;
             $inspector = $kindAttribute->inspector ?? false;
@@ -434,9 +581,9 @@ final class ValueSchemaBuilder
         $error = match (true) {
             $invalidSlugs && $reference['target'] === 'post' => sprintf('%s: postTypes of #[PostReference] must be a non-empty list of post type keys (lowercase letters, digits, "-" and "_"), or null for all.', $location),
             $invalidSlugs => sprintf('%s: taxonomies of #[TermReference] must be a non-empty list of taxonomy keys (lowercase letters, digits, "-" and "_"), or null for all.', $location),
-            $settings && $postContent => sprintf('%s has #[RichText(postContent: true)], which stores the value in the post content of a block; settings groups have no post content.', $location),
+            $settings && $postContent => sprintf('%s has #[RichText(postContent: true)], which stores the value in the post content of a block; settings groups and post meta have no post content.', $location),
             $unknownFormats !== [] => sprintf(
-                '%s: allowedFormats of #[RichText] in a settings group may only contain the formats of the settings page (%s), not %s.',
+                '%s: allowedFormats of #[RichText] in a settings group or post meta may only contain the formats of the classic editor (%s), not %s.',
                 $location,
                 implode(', ', self::SETTINGS_FORMATS),
                 implode(', ', $unknownFormats),
@@ -470,15 +617,40 @@ final class ValueSchemaBuilder
     }
 
     /**
-     * @return Reference
+     * The reference of an attribute; post and taxonomy classes in its list become their names.
+     *
+     * @return Reference|false False if the list names a class that is no post or taxonomy class; the error is recorded.
      */
-    private static function reference(PostReference|TermReference|UserReference $attribute): array
+    private function reference(PostReference|TermReference|UserReference $attribute, string $location): array|false
     {
-        return match (true) {
-            $attribute instanceof PostReference => ['target' => 'post', 'subtypes' => $attribute->postTypes],
-            $attribute instanceof TermReference => ['target' => 'term', 'subtypes' => $attribute->taxonomies],
-            default => ['target' => 'user', 'subtypes' => null],
+        [$target, $subtypes, $classes, $argument] = match (true) {
+            $attribute instanceof PostReference => ['post', $attribute->postTypes, $this->posts, 'postTypes of #[PostReference]'],
+            $attribute instanceof TermReference => ['term', $attribute->taxonomies, $this->taxonomies, 'taxonomies of #[TermReference]'],
+            default => ['user', null, [], ''],
         };
+        if (is_array($subtypes)) {
+            foreach ($subtypes as $index => $subtype) {
+                if (!is_string($subtype) || !str_contains($subtype, '\\')) {
+                    continue;
+                }
+                $known = $classes[$subtype] ?? null;
+                if ($known === null) {
+                    $this->errors[] = sprintf(
+                        '%s: %s contains %s, which is no %s of this theme or plugin.',
+                        $location,
+                        $argument,
+                        $subtype,
+                        $target === 'post' ? 'post class (#[PostType], Post or Page)' : 'taxonomy class (#[Taxonomy])',
+                    );
+
+                    return false;
+                }
+                $subtypes[$index] = is_array($known) ? $known['name'] : $known;
+            }
+        }
+
+        /** @var Reference */
+        return ['target' => $target, 'subtypes' => $subtypes];
     }
 
     private static function shortName(string $class): string

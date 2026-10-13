@@ -370,8 +370,12 @@ function get_post(int|WP_Post|null $post = null, string $output = 'OBJECT', stri
     if ($post instanceof WP_Post) {
         return $post;
     }
+    // Like WordPress: without an argument, the global post.
+    if ($post === null) {
+        return ($GLOBALS['post'] ?? null) instanceof WP_Post ? $GLOBALS['post'] : null;
+    }
 
-    return $GLOBALS['wp_app_framework_test_posts'][(int) $post] ?? null;
+    return $GLOBALS['wp_app_framework_test_posts'][$post] ?? null;
 }
 
 function setup_postdata(object $post): bool
@@ -661,7 +665,13 @@ final class WP_Post
     public string $post_status = 'publish';
     public string $post_title = '';
     public string $post_excerpt = '';
+    public string $post_content = '';
+    public string $post_name = '';
+    public string $post_author = '0';
+    public int $post_parent = 0;
     public string $post_date = '0000-00-00 00:00:00';
+    public string $post_date_gmt = '0000-00-00 00:00:00';
+    public string $post_modified_gmt = '0000-00-00 00:00:00';
 
     public function __construct(object $post)
     {
@@ -1169,4 +1179,309 @@ function wp_script_modules(): WP_Script_Modules
 function wp_enqueue_script_module(string $id, string $src = '', array $deps = [], string|false|null $version = false, array $args = []): void
 {
     $GLOBALS['wp_app_framework_test_modules'][$id] = true;
+}
+
+const MINUTE_IN_SECONDS = 60;
+
+function register_activation_hook(string $file, callable $callback): void
+{
+    $GLOBALS['wp_app_framework_test_activation'][$file] = $callback;
+}
+
+/**
+ * Registered post types in $GLOBALS['wp_app_framework_test_post_types'] (name => args).
+ *
+ * @param array<string, mixed> $args
+ */
+function register_post_type(string $post_type, array|string $args = []): WP_Post_Type|WP_Error
+{
+    $GLOBALS['wp_app_framework_test_post_types'][$post_type] = $args;
+
+    return new WP_Post_Type($post_type);
+}
+
+final class WP_Post_Type
+{
+    public function __construct(public string $name) {}
+}
+
+/**
+ * Registered taxonomies in $GLOBALS['wp_app_framework_test_taxonomies'] (name => [object types, args]).
+ *
+ * @param array<string, mixed> $args
+ */
+function register_taxonomy(string $taxonomy, array|string $object_type, array|string $args = []): WP_Taxonomy|WP_Error
+{
+    $GLOBALS['wp_app_framework_test_taxonomies'][$taxonomy] = [(array) $object_type, $args];
+
+    return new WP_Taxonomy($taxonomy);
+}
+
+final class WP_Taxonomy
+{
+    public function __construct(public string $name) {}
+}
+
+/**
+ * Registered meta in $GLOBALS['wp_app_framework_test_registered_meta'] (post type => key => args).
+ *
+ * @param array<string, mixed> $args
+ */
+function register_post_meta(string $post_type, string $meta_key, array $args): bool
+{
+    $GLOBALS['wp_app_framework_test_registered_meta'][$post_type][$meta_key] = $args;
+
+    return true;
+}
+
+/**
+ * The supports of post types registered with register_post_type(); "post" and "page" support revisions.
+ */
+function post_type_supports(string $post_type, string $feature): bool
+{
+    if (in_array($post_type, ['post', 'page'], true)) {
+        return in_array($feature, ['title', 'editor', 'revisions', 'custom-fields'], true);
+    }
+    $supports = $GLOBALS['wp_app_framework_test_post_types'][$post_type]['supports'] ?? [];
+
+    return is_array($supports) && in_array($feature, $supports, true);
+}
+
+/**
+ * Counts the flushes in $GLOBALS['wp_app_framework_test_flushes'].
+ */
+function flush_rewrite_rules(bool $hard = true): void
+{
+    $GLOBALS['wp_app_framework_test_flushes'] = ($GLOBALS['wp_app_framework_test_flushes'] ?? 0) + 1;
+}
+
+function delete_option(string $option): bool
+{
+    if (!array_key_exists($option, $GLOBALS['wp_app_framework_test_options'] ?? [])) {
+        return false;
+    }
+    unset($GLOBALS['wp_app_framework_test_options'][$option]);
+    do_action('delete_option_' . $option, $option);
+
+    return true;
+}
+
+/**
+ * Meta boxes in $GLOBALS['wp_app_framework_test_meta_boxes'] (id => box).
+ */
+function add_meta_box(string $id, string $title, callable $callback, string|array|WP_Screen|null $screen = null, string $context = 'advanced', string $priority = 'default', ?array $callback_args = null): void
+{
+    $GLOBALS['wp_app_framework_test_meta_boxes'][$id] = ['title' => $title, 'callback' => $callback, 'screen' => $screen, 'context' => $context, 'args' => $callback_args];
+}
+
+/**
+ * Removed meta boxes in $GLOBALS['wp_app_framework_test_removed_meta_boxes'] as "id screen context".
+ */
+function remove_meta_box(string $id, string|array|WP_Screen $screen, string $context): void
+{
+    $GLOBALS['wp_app_framework_test_removed_meta_boxes'][] = sprintf('%s %s %s', $id, is_string($screen) ? $screen : '', $context);
+}
+
+/**
+ * Adds a post to $GLOBALS['wp_app_framework_test_posts'] with the next ID (from 1000); the data is unslashed like
+ * WordPress does. An empty title and content is an error, like WordPress with $wp_error.
+ *
+ * @param array<string, mixed> $postarr
+ */
+function wp_insert_post(array $postarr, bool $wp_error = false, bool $fire_after_hooks = true): int|WP_Error
+{
+    $data = wp_unslash($postarr);
+    if (($data['post_title'] ?? '') === '' && ($data['post_content'] ?? '') === '' && ($data['post_excerpt'] ?? '') === '') {
+        return $wp_error ? new WP_Error('empty_content', 'Content, title, and excerpt are empty.') : 0;
+    }
+    $id = max(999, ...array_keys($GLOBALS['wp_app_framework_test_posts'] ?? [0 => null])) + 1;
+    $GLOBALS['wp_app_framework_test_posts'][$id] = new WP_Post((object) [
+        ...$data,
+        'ID' => $id,
+        'post_author' => (string) ($data['post_author'] ?? '0'),
+        'post_date_gmt' => '2026-10-13 12:00:00',
+        'post_modified_gmt' => '2026-10-13 12:00:00',
+    ]);
+
+    return $id;
+}
+
+/**
+ * Updates a post of $GLOBALS['wp_app_framework_test_posts']; the data is unslashed like WordPress does.
+ *
+ * @param array<string, mixed> $postarr
+ */
+function wp_update_post(array|object $postarr = [], bool $wp_error = false, bool $fire_after_hooks = true): int|WP_Error
+{
+    $data = wp_unslash((array) $postarr);
+    $id = (int) ($data['ID'] ?? 0);
+    $post = $GLOBALS['wp_app_framework_test_posts'][$id] ?? null;
+    if (!$post instanceof WP_Post) {
+        return $wp_error ? new WP_Error('invalid_post', 'Invalid post ID.') : 0;
+    }
+    $GLOBALS['wp_app_framework_test_posts'][$id] = new WP_Post((object) [...get_object_vars($post), ...$data, 'post_author' => (string) ($data['post_author'] ?? $post->post_author)]);
+
+    return $id;
+}
+
+function wp_delete_post(int $post_id = 0, bool $force_delete = false): WP_Post|false|null
+{
+    $post = $GLOBALS['wp_app_framework_test_posts'][$post_id] ?? null;
+    if (!$post instanceof WP_Post) {
+        return null;
+    }
+    if ($force_delete) {
+        unset($GLOBALS['wp_app_framework_test_posts'][$post_id]);
+    } else {
+        $post->post_status = 'trash';
+    }
+
+    return $post;
+}
+
+/**
+ * Stores meta in $GLOBALS['wp_app_framework_test_meta'] unslashed and sanitized by the registered sanitize callback,
+ * like update_metadata().
+ */
+function update_post_meta(int $post_id, string $meta_key, mixed $meta_value, mixed $prev_value = ''): int|bool
+{
+    $value = is_string($meta_value) || is_array($meta_value) ? wp_unslash($meta_value) : $meta_value;
+    $type = get_post_type($post_id);
+    $sanitize = $GLOBALS['wp_app_framework_test_registered_meta'][$type][$meta_key]['sanitize_callback'] ?? null;
+    $GLOBALS['wp_app_framework_test_meta'][$post_id][$meta_key] = is_callable($sanitize) ? $sanitize($value) : $value;
+
+    return true;
+}
+
+function delete_post_meta(int $post_id, string $meta_key, mixed $meta_value = ''): bool
+{
+    $exists = isset($GLOBALS['wp_app_framework_test_meta'][$post_id]) && array_key_exists($meta_key, $GLOBALS['wp_app_framework_test_meta'][$post_id]);
+    unset($GLOBALS['wp_app_framework_test_meta'][$post_id][$meta_key]);
+
+    return $exists;
+}
+
+function metadata_exists(string $meta_type, int $object_id, string $meta_key): bool
+{
+    return $meta_type === 'post'
+        && isset($GLOBALS['wp_app_framework_test_meta'][$object_id])
+        && array_key_exists($meta_key, $GLOBALS['wp_app_framework_test_meta'][$object_id]);
+}
+
+/**
+ * @template T
+ * @param T $value
+ * @return T
+ */
+function wp_slash(mixed $value): mixed
+{
+    if (is_array($value)) {
+        /** @var T */
+        return array_map(wp_slash(...), $value);
+    }
+
+    /** @var T */
+    return is_string($value) ? addslashes($value) : $value;
+}
+
+/**
+ * Terms of objects in $GLOBALS['wp_app_framework_test_object_terms'] (object ID => taxonomy => term IDs).
+ *
+ * @param string|int|list<string|int> $terms
+ * @return list<int>|WP_Error
+ */
+function wp_set_object_terms(int $object_id, string|int|array $terms, string $taxonomy, bool $append = false): array|WP_Error
+{
+    $ids = array_map('intval', (array) $terms);
+    $GLOBALS['wp_app_framework_test_object_terms'][$object_id][$taxonomy] = $ids;
+
+    return $ids;
+}
+
+/**
+ * The terms of $GLOBALS['wp_app_framework_test_object_terms'] as WP_Term from $GLOBALS['wp_app_framework_test_terms'].
+ *
+ * @param int|list<int>          $object_ids
+ * @param string|list<string>    $taxonomies
+ * @param array<string, mixed>   $args
+ * @return list<WP_Term>|WP_Error
+ */
+function wp_get_object_terms(int|array $object_ids, string|array $taxonomies, array $args = []): array|WP_Error
+{
+    $terms = [];
+    foreach ((array) $object_ids as $id) {
+        foreach ((array) $taxonomies as $taxonomy) {
+            foreach ($GLOBALS['wp_app_framework_test_object_terms'][$id][$taxonomy] ?? [] as $termId) {
+                $term = $GLOBALS['wp_app_framework_test_terms'][$termId] ?? null;
+                if ($term instanceof WP_Term) {
+                    $terms[] = $term;
+                }
+            }
+        }
+    }
+
+    return $terms;
+}
+
+/**
+ * Simplified: only "publish" is viewable.
+ */
+function is_post_status_viewable(string|object $post_status): bool
+{
+    return $post_status === 'publish';
+}
+
+/**
+ * A nonce is "nonce-{action}" here.
+ */
+function wp_nonce_field(int|string $action = -1, string $name = '_wpnonce', bool $referer = true, bool $display = true): string
+{
+    $field = sprintf('<input type="hidden" name="%s" value="nonce-%s">', $name, $action);
+    if ($display) {
+        echo $field;
+    }
+
+    return $field;
+}
+
+function wp_verify_nonce(string $nonce, int|string $action = -1): int|false
+{
+    return $nonce === 'nonce-' . $action ? 1 : false;
+}
+
+function wp_is_post_revision(int|WP_Post $post): int|false
+{
+    return false;
+}
+
+function delete_transient(string $transient): bool
+{
+    $exists = isset($GLOBALS['wp_app_framework_test_transients'][$transient]);
+    unset($GLOBALS['wp_app_framework_test_transients'][$transient]);
+
+    return $exists;
+}
+
+/**
+ * The current screen: $GLOBALS['wp_app_framework_test_screen'].
+ */
+function get_current_screen(): ?WP_Screen
+{
+    return $GLOBALS['wp_app_framework_test_screen'] ?? null;
+}
+
+final class WP_Screen
+{
+    public string $base = '';
+    public string $post_type = '';
+    private bool $is_block_editor = false;
+
+    public function is_block_editor(?bool $set = null): bool
+    {
+        if ($set !== null) {
+            $this->is_block_editor = $set;
+        }
+
+        return $this->is_block_editor;
+    }
 }

@@ -38,6 +38,7 @@ const RUNTIME_ENTRY = 'vendor/wp-app-framework/editor';
 const VIEW_ENTRY = 'vendor/wp-app-framework/view';
 const CANVAS_ENTRY = 'vendor/wp-app-framework/canvas';
 const SETTINGS_ENTRY = 'vendor/wp-app-framework/settings';
+const META_BOX_ENTRY = 'vendor/wp-app-framework/meta-box';
 const IMPORT_NAME = '@saij/wp-app-framework';
 const VIEW_IMPORT_NAME = '@saij/wp-app-framework/view';
 const STYLES_ENTRY = 'styles';
@@ -245,6 +246,8 @@ module.exports = function createConfig( { slug, root } = {} ) {
 			[ CANVAS_ENTRY ]: path.join( __dirname, 'assets', 'canvas.scss' ),
 			// The settings page of the instance (admin page with the forms of its settings groups).
 			[ SETTINGS_ENTRY ]: path.join( __dirname, 'assets', 'settings.js' ),
+			// The meta boxes of the classic edit screen (forms of the meta classes).
+			[ META_BOX_ENTRY ]: path.join( __dirname, 'assets', 'meta-box.js' ),
 			// The view runtime: base classes of view scripts, mounts their views.
 			[ VIEW_ENTRY ]: path.join( __dirname, 'assets', 'view.js' ),
 			...scripts( path.join( root, 'src' ), EDITOR_SCRIPT_SUFFIX ),
