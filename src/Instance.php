@@ -214,10 +214,7 @@ final readonly class Instance
         new HookRegistrar($container, $debug)->register($manifest['hooks']);
 
         $cache = $container->get(CacheStore::class);
-        $settingsOptions = [];
-        foreach ($settingsNames as $name) {
-            $settingsOptions[SettingsStore::optionName($this->slug, $name)] = $name;
-        }
+        $settingsOptions = array_column($settingsGroups, 'name', 'option');
         new TagHooks($tagVersions, $settingsOptions)->register();
         $this->scheduleCacheCleanUp($cache);
 

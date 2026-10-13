@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Saij\WpAppFramework\Api\InstanceBridge;
 use Saij\WpAppFramework\Instance;
+use Saij\WpAppFramework\Manifest\BuildResult;
+use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Plugin;
 use Saij\WpAppFramework\Project\ProjectKind;
@@ -17,6 +19,7 @@ use Saij\WpAppFramework\Tests\Support\Files;
 use Saij\WpAppFramework\Tests\Support\Hooks;
 use Saij\WpAppFramework\Tests\Support\Recorded;
 use Saij\WpAppFramework\Tests\Unit\Api\PublicApiBuildTest;
+use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableKind;
 
@@ -55,10 +58,10 @@ final class InstanceTest extends TestCase
         );
     }
 
-    private function writeReleaseManifest(bool $styles = false): void
+    private function writeReleaseManifest(bool $styles = false, ?BuildResult $build = null): void
     {
         mkdir($this->root . '/my-plugin/generated');
-        $code = new ManifestGenerator()->generate(PublicApiBuildTest::buildValid(), 'abc123');
+        $code = new ManifestGenerator()->generate($build ?? PublicApiBuildTest::buildValid(), 'abc123');
         if ($styles) {
             $code = str_replace("'styles' => false,", "'styles' => true,", $code);
         }
@@ -85,6 +88,23 @@ final class InstanceTest extends TestCase
         $this->expectExceptionMessage('The plugin my-plugin uses the namespace "fixture" (extra.wp-app-framework.namespace in its composer.json), but another theme or plugin using the framework has already booted with it; each needs a namespace of its own.');
 
         $this->instance(ProjectKind::Plugin)->boot();
+    }
+
+    public function testSettingsChangesInvalidateTheTagOfTheirGroupByTheOptionOfTheNamespace(): void
+    {
+        $this->writeReleaseManifest(build: new ManifestBuilder(
+            [ManifestBuilderTest::fixture('SettingsValid'), ManifestBuilder::frameworkSource()],
+            kind: ProjectKind::Plugin,
+            slug: 'my-plugin',
+            name: 'My Plugin',
+            namespace: 'my-namespace',
+        )->build());
+        $this->instance(ProjectKind::Plugin)->boot();
+
+        // The option is named after the namespace, not after the slug my-plugin: the settings store forgets the
+        // group object, and the cache invalidates the tag of the group.
+        self::assertCount(2, Recorded::listFilters('update_option_my_namespace_general'));
+        self::assertSame([], Recorded::listFilters('update_option_my_plugin_general'));
     }
 
     public function testReleaseBootProvidesThePublicApiAndFiresTheInitAction(): void
