@@ -24,6 +24,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  * @phpstan-type BlockExcerpt array{fields: array<string, 'plain'|'rich'>, wrapper: bool}
  * @phpstan-type BlockSupportEntry array{attribute: string, class: class-string, value: Value, editorScript: string|null, viewScript: string|null}
  * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
  */
 #[NoService]
 final readonly class BlockDefinition
@@ -44,6 +45,7 @@ final readonly class BlockDefinition
      *                                        editor and view scripts below the script directory, without extension.
      * @param string|null          $viewScript The block's view script (front end) below the script directory,
      *                                        without extension.
+     * @param CacheEntry|null      $cache     Ttl, tags and variants of `#[Cache]`; null if the block is not cached.
      */
     public function __construct(
         private string $name,
@@ -54,6 +56,7 @@ final readonly class BlockDefinition
         private array $excerpt,
         private array $supports = [],
         private ?string $viewScript = null,
+        private ?array $cache = null,
     ) {}
 
     public function getName(): string
@@ -112,5 +115,13 @@ final readonly class BlockDefinition
     public function getViewScript(): ?string
     {
         return $this->viewScript;
+    }
+
+    /**
+     * @return CacheEntry|null
+     */
+    public function getCache(): ?array
+    {
+        return $this->cache;
     }
 }

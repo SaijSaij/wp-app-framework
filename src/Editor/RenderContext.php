@@ -8,13 +8,14 @@ use Closure;
 use LogicException;
 
 /**
- * Tracks the framework block being rendered and whether the current render
- * request comes from the block editor. One instance per framework instance,
- * provided by the framework at runtime.
+ * Tracks the framework block being rendered, whether the current render
+ * request comes from the block editor or its preview of the front end, and
+ * which variants a cached block declares. One instance per framework
+ * instance, provided by the framework at runtime.
  *
  * @internal Theme code uses the template functions field(), inner_blocks() and is_editor().
  *
- * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, innerBlocks: bool, classes: list<string>, attributes: array<string, string>, wrapper: bool}
+ * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, innerBlocks: bool, classes: list<string>, attributes: array<string, string>, wrapper: bool, cached: list<string>|null}
  */
 final class RenderContext
 {
@@ -22,6 +23,8 @@ final class RenderContext
     private array $blocks = [];
 
     private bool $editor = false;
+
+    private bool $preview = false;
 
     /**
      * Runs a block's render callback with the block as current block.
@@ -34,11 +37,13 @@ final class RenderContext
      *                                                            no view scripts).
      * @param array<string, string>               $attributes     Further attributes of the root element (the marker of
      *                                                            the view scripts).
+     * @param list<string>|null                   $cached         Types of the variants of a block whose output is
+     *                                                            cached (#[Cache]); null if it is not cached.
      */
-    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render, array $classes = [], ?string $missingWrapper = null, array $attributes = []): string
+    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render, array $classes = [], ?string $missingWrapper = null, array $attributes = [], ?array $cached = null): string
     {
         $index = count($this->blocks);
-        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'innerBlocks' => $innerBlocks, 'classes' => $classes, 'attributes' => $attributes, 'wrapper' => false];
+        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'innerBlocks' => $innerBlocks, 'classes' => $classes, 'attributes' => $attributes, 'wrapper' => false, 'cached' => $cached];
         try {
             $html = $render();
             if ($missingWrapper !== null && !$this->blocks[$index]['wrapper']) {
@@ -90,6 +95,60 @@ final class RenderContext
     public function isEditor(): bool
     {
         return $this->editor;
+    }
+
+    /**
+     * Runs a render for the preview of the front end in the block editor: rendered like the front end, never cached.
+     *
+     * @template T
+     * @param Closure(): T $render
+     * @return T
+     */
+    public function renderForPreview(Closure $render): mixed
+    {
+        $previous = $this->preview;
+        $this->preview = true;
+        try {
+            return $render();
+        } finally {
+            $this->preview = $previous;
+        }
+    }
+
+    public function isPreview(): bool
+    {
+        return $this->preview;
+    }
+
+    /**
+     * Checks a template function that depends on the request while the current block is cached: it needs one of the
+     * accepted variants; with none accepted, it cannot be used in cached blocks at all.
+     *
+     * @param list<string> $accepted Types of the variants (CachePolicy) that make the function safe, e.g. "logged_in".
+     * @param string       $reason   What the function depends on, e.g. "whether the visitor is logged in".
+     */
+    public function checkCached(string $function, array $accepted, string $reason): void
+    {
+        $current = array_key_last($this->blocks);
+        $cached = $current === null ? null : $this->blocks[$current]['cached'];
+        if ($cached === null || array_intersect($accepted, $cached) !== []) {
+            return;
+        }
+
+        throw new LogicException(sprintf(
+            'Block %s is cached (#[Cache]), but its template calls %s(), which depends on %s; %s.',
+            $this->blocks[$current]['name'],
+            $function,
+            $reason,
+            $accepted === []
+                ? 'it cannot be used in cached blocks'
+                : 'add ' . implode(' or ', array_map(static fn(string $type): string => match ($type) {
+                    'logged_in' => 'new LoggedInVary()',
+                    'role' => 'new RoleVary()',
+                    'user' => 'new UserVary()',
+                    default => $type,
+                }, $accepted)) . ' to vary of #[Cache]',
+        ));
     }
 
     /**

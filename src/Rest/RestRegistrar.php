@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Rest;
 
 use Closure;
+use Saij\WpAppFramework\Cache\CacheStore;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\Manifest;
@@ -17,7 +18,8 @@ use WP_REST_Response;
 /**
  * Registers the REST routes of the manifest with WordPress (on rest_api_init).
  *
- * Services are resolved only when a route is called. A RestException becomes a
+ * Services are resolved only when a route is called. A route with #[Cache]
+ * answers from the cache store; errors are not stored. A RestException becomes a
  * WP_Error with its status; any other exception is logged and answered with
  * 500 – including details and stack trace only when debugging is enabled.
  *
@@ -35,6 +37,7 @@ final readonly class RestRegistrar
         private Container $container,
         private ValueFactory $values,
         private bool $debug,
+        private ?CacheStore $cache = null,
     ) {}
 
     /**
@@ -89,17 +92,55 @@ final readonly class RestRegistrar
      */
     public function respond(array $route, WP_REST_Request $request): mixed
     {
-        $result = $this->call(
+        $call = fn(): mixed => $this->call(
             $route,
             'callback',
             fn(): mixed => $this->container->get($route['class'])->{$route['method']}(...$this->arguments($route['arguments'], $request, null)),
         );
+        if ($route['cache'] !== null && $this->cache !== null) {
+            // Errors are answered, but not stored.
+            return $this->cache->fetch(
+                'rest',
+                implode(',', $route['methods']) . ' /' . $route['namespace'] . $route['route'],
+                self::cacheInputs($route['arguments'], $request),
+                $route['cache'],
+                static function () use ($call): array {
+                    $result = $call();
+
+                    return [$result, !$result instanceof WP_Error];
+                },
+            )[0];
+        }
+
+        $result = $call();
 
         if ($route['void'] && !$result instanceof WP_Error) {
             return new WP_REST_Response(null, 204);
         }
 
         return $result;
+    }
+
+    /**
+     * The request arguments a cached route depends on: the URL parameters and the arguments the request passes.
+     *
+     * @param list<RestArgument> $arguments
+     * @return array<string, mixed>
+     */
+    private static function cacheInputs(array $arguments, WP_REST_Request $request): array
+    {
+        $url = $request->get_url_params();
+        $inputs = [];
+        foreach ($arguments as $argument) {
+            $param = $argument['param'];
+            if ($argument['kind'] === 'url') {
+                $inputs[$param] = $url[$param] ?? null;
+            } elseif ($argument['kind'] === 'param' && $request->has_param($param)) {
+                $inputs[$param] = $request->get_param($param);
+            }
+        }
+
+        return $inputs;
     }
 
     /**

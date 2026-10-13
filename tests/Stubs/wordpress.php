@@ -162,6 +162,9 @@ final class WP_Block
 
     public string $inner_html;
 
+    /** @var array<string, mixed> Simplified: all available context (WordPress keeps only the block type's uses_context). */
+    public array $context = [];
+
     /**
      * @param array{blockName: string, attrs?: array<string, mixed>, innerHTML?: string} $block
      * @param array<string, mixed>                                                      $available_context
@@ -171,6 +174,7 @@ final class WP_Block
         $this->name = $block['blockName'];
         $this->attributes = $block['attrs'] ?? [];
         $this->inner_html = $block['innerHTML'] ?? '';
+        $this->context = $available_context;
     }
 
     /**
@@ -669,6 +673,8 @@ final class WP_User
 {
     public int $ID = 0;
     public string $display_name = '';
+    /** @var list<string> */
+    public array $roles = [];
 
     public function __construct(int|object $id = 0, string $name = '', string $site_id = '')
     {
@@ -898,4 +904,247 @@ function size_format(int|string $bytes, int $decimals = 0): string|false
     $bytes = (int) $bytes;
 
     return $bytes < 0 ? false : ($bytes < 1024 ? $bytes . ' B' : number_format($bytes / 1024, $decimals) . ' KB');
+}
+
+/**
+ * Records deactivation hooks in $GLOBALS['wp_app_framework_test_deactivation'] by plugin file.
+ */
+function register_deactivation_hook(string $file, callable $callback): void
+{
+    $GLOBALS['wp_app_framework_test_deactivation'][$file] = $callback;
+}
+
+/**
+ * Scheduled events in $GLOBALS['wp_app_framework_test_cron'] (hook => [timestamp, recurrence]).
+ *
+ * @param array<mixed> $args
+ */
+function wp_next_scheduled(string $hook, array $args = []): int|false
+{
+    return $GLOBALS['wp_app_framework_test_cron'][$hook][0] ?? false;
+}
+
+/**
+ * @param array<mixed> $args
+ */
+function wp_schedule_event(int $timestamp, string $recurrence, string $hook, array $args = [], bool $wp_error = false): bool|WP_Error
+{
+    $GLOBALS['wp_app_framework_test_cron'][$hook] = [$timestamp, $recurrence];
+
+    return true;
+}
+
+/**
+ * @param array<mixed> $args
+ */
+function wp_clear_scheduled_hook(string $hook, array $args = [], bool $wp_error = false): int|false|WP_Error
+{
+    $scheduled = isset($GLOBALS['wp_app_framework_test_cron'][$hook]);
+    unset($GLOBALS['wp_app_framework_test_cron'][$hook]);
+
+    return $scheduled ? 1 : 0;
+}
+
+/**
+ * $GLOBALS['wp_app_framework_test_blog_id'], 1 by default.
+ */
+function get_current_blog_id(): int
+{
+    return $GLOBALS['wp_app_framework_test_blog_id'] ?? 1;
+}
+
+/**
+ * $GLOBALS['wp_app_framework_test_object_cache_enabled']; like WordPress (load.php), the global is returned unchanged,
+ * null without a drop-in that set it.
+ */
+function wp_using_ext_object_cache(?bool $using = null): ?bool
+{
+    return $GLOBALS['wp_app_framework_test_object_cache_enabled'] ?? null;
+}
+
+/**
+ * The object cache in $GLOBALS['wp_app_framework_test_object_cache'][$group][$key] (expiration is recorded, not applied).
+ */
+function wp_cache_get(int|string $key, string $group = '', bool $force = false, ?bool &$found = null): mixed
+{
+    $found = isset($GLOBALS['wp_app_framework_test_object_cache'][$group]) && array_key_exists($key, $GLOBALS['wp_app_framework_test_object_cache'][$group]);
+
+    return $found ? $GLOBALS['wp_app_framework_test_object_cache'][$group][$key]['data'] : false;
+}
+
+function wp_cache_set(int|string $key, mixed $data, string $group = '', int $expire = 0): bool
+{
+    $GLOBALS['wp_app_framework_test_object_cache'][$group][$key] = ['data' => $data, 'expire' => $expire];
+
+    return true;
+}
+
+/**
+ * Transients in $GLOBALS['wp_app_framework_test_transients'] (expiration is recorded, not applied).
+ */
+function get_transient(string $transient): mixed
+{
+    return $GLOBALS['wp_app_framework_test_transients'][$transient]['value'] ?? false;
+}
+
+function set_transient(string $transient, mixed $value, int $expiration = 0): bool
+{
+    $GLOBALS['wp_app_framework_test_transients'][$transient] = ['value' => $value, 'expiration' => $expiration];
+
+    return true;
+}
+
+/**
+ * Like WordPress: false if the option exists; fires add_option_{$option}. Autoload is recorded in
+ * $GLOBALS['wp_app_framework_test_autoload'].
+ */
+function add_option(string $option, mixed $value = '', string $deprecated = '', bool|string|null $autoload = null): bool
+{
+    if (array_key_exists($option, $GLOBALS['wp_app_framework_test_options'] ?? [])) {
+        return false;
+    }
+    $GLOBALS['wp_app_framework_test_options'][$option] = $value;
+    $GLOBALS['wp_app_framework_test_autoload'][$option] = $autoload;
+    do_action('add_option_' . $option, $option, $value);
+
+    return true;
+}
+
+/**
+ * Like WordPress: adds a missing option; fires update_option_{$option} if the value changed.
+ */
+function update_option(string $option, mixed $value, bool|string|null $autoload = null): bool
+{
+    if (!array_key_exists($option, $GLOBALS['wp_app_framework_test_options'] ?? [])) {
+        return add_option($option, $value, '', $autoload);
+    }
+    $old = $GLOBALS['wp_app_framework_test_options'][$option];
+    if ($old === $value) {
+        return false;
+    }
+    $GLOBALS['wp_app_framework_test_options'][$option] = $value;
+    do_action('update_option_' . $option, $old, $value, $option);
+
+    return true;
+}
+
+/**
+ * $GLOBALS['wp_app_framework_test_user']: the current user; a user with ID 0 if nobody is logged in.
+ */
+function wp_get_current_user(): WP_User
+{
+    return $GLOBALS['wp_app_framework_test_user'] ?? new WP_User(0);
+}
+
+function get_current_user_id(): int
+{
+    return wp_get_current_user()->ID;
+}
+
+function wp_parse_url(string $url, int $component = -1): mixed
+{
+    return parse_url($url, $component);
+}
+
+/**
+ * @template T of string|array<mixed>
+ * @param T $value
+ * @return T
+ */
+function wp_unslash(string|array $value): string|array
+{
+    return is_array($value) ? array_map(static fn(mixed $item): mixed => is_string($item) || is_array($item) ? wp_unslash($item) : $item, $value) : stripslashes($value);
+}
+
+/**
+ * The post type of a post from $GLOBALS['wp_app_framework_test_posts'].
+ */
+function get_post_type(int|WP_Post|null $post = null): string|false
+{
+    $post = get_post($post);
+
+    return $post === null ? false : $post->post_type;
+}
+
+/**
+ * Like WP_Scripts and WP_Styles: the handles enqueued in $GLOBALS['wp_app_framework_test_scripts'] or
+ * $GLOBALS['wp_app_framework_test_styles'], in the order they were registered.
+ */
+abstract class WP_Dependencies
+{
+    /** @var list<string> */
+    public array $queue = [];
+
+    /**
+     * @param array<string, array<string, mixed>> $registered
+     */
+    public function __construct(array $registered)
+    {
+        foreach ($registered as $handle => $item) {
+            if ((bool) ($item['enqueued'] ?? false)) {
+                $this->queue[] = $handle;
+            }
+        }
+    }
+}
+
+final class WP_Scripts extends WP_Dependencies {}
+
+final class WP_Styles extends WP_Dependencies {}
+
+function wp_scripts(): WP_Scripts
+{
+    return new WP_Scripts($GLOBALS['wp_app_framework_test_scripts'] ?? []);
+}
+
+function wp_styles(): WP_Styles
+{
+    return new WP_Styles($GLOBALS['wp_app_framework_test_styles'] ?? []);
+}
+
+function wp_style_is(string $handle, string $status = 'enqueued'): bool
+{
+    $style = $GLOBALS['wp_app_framework_test_styles'][$handle] ?? null;
+
+    return match ($status) {
+        'registered' => $style !== null,
+        'enqueued' => (bool) ($style['enqueued'] ?? false),
+        default => false,
+    };
+}
+
+/**
+ * Script modules in $GLOBALS['wp_app_framework_test_modules'] (id => enqueued).
+ */
+final class WP_Script_Modules
+{
+    /**
+     * @return list<string>
+     */
+    public function get_queue(): array
+    {
+        return array_keys(array_filter($GLOBALS['wp_app_framework_test_modules'] ?? []));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function get_registered(string $id): ?array
+    {
+        return array_key_exists($id, $GLOBALS['wp_app_framework_test_modules'] ?? []) ? ['id' => $id] : null;
+    }
+}
+
+function wp_script_modules(): WP_Script_Modules
+{
+    return new WP_Script_Modules();
+}
+
+/**
+ * @param list<string>|array<array<string, mixed>> $deps
+ * @param array<string, mixed>                     $args
+ */
+function wp_enqueue_script_module(string $id, string $src = '', array $deps = [], string|false|null $version = false, array $args = []): void
+{
+    $GLOBALS['wp_app_framework_test_modules'][$id] = true;
 }

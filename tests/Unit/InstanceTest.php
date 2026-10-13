@@ -38,7 +38,7 @@ final class InstanceTest extends TestCase
     {
         Hooks::reset();
         Files::remove($this->root);
-        unset($GLOBALS['wp_app_framework_test_styles']);
+        unset($GLOBALS['wp_app_framework_test_styles'], $GLOBALS['wp_app_framework_test_cron'], $GLOBALS['wp_app_framework_test_deactivation']);
     }
 
     private function instance(ProjectKind $kind): Instance
@@ -107,6 +107,28 @@ final class InstanceTest extends TestCase
             ['my-plugin-styles' => ['src' => 'https://example.test/wp-content/plugins/my-plugin/build/styles.css', 'deps' => [], 'ver' => 'v1', 'enqueued' => true]],
             Recorded::styles(),
         );
+    }
+
+    public function testSchedulesTheCleanUpOfCacheFilesUntilThePluginIsDeactivated(): void
+    {
+        $this->writeReleaseManifest();
+        $this->instance(ProjectKind::Plugin)->boot();
+        $event = Instance::cacheCleanUpEvent('my-plugin');
+
+        // Only the instance's own callbacks: init also resolves services of the fixture that need other plugins.
+        foreach (Recorded::listFilters('init') as $callback) {
+            if ($callback instanceof \Closure && new \ReflectionFunction($callback)->getClosureScopeClass()?->getName() === Instance::class) {
+                $callback();
+            }
+        }
+        $cron = $GLOBALS['wp_app_framework_test_cron'] ?? [];
+        self::assertSame('daily', is_array($cron) && is_array($cron[$event] ?? null) ? $cron[$event][1] ?? null : null);
+
+        $hooks = $GLOBALS['wp_app_framework_test_deactivation'] ?? [];
+        $deactivate = is_array($hooks) ? $hooks[$this->root . '/my-plugin/my-plugin.php'] ?? null : null;
+        self::assertIsCallable($deactivate);
+        $deactivate();
+        self::assertFalse(wp_next_scheduled($event));
     }
 
     public function testManifestOfAnotherKindIsAnError(): void

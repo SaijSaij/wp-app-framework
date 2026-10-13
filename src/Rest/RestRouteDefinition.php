@@ -16,6 +16,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  * @phpstan-type RestPermission array{type: 'public'}
  *     |array{type: 'capability', capability: string}
  *     |array{type: 'callback', class: class-string, method: string, arguments: list<RestArgument>}
+ * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
  */
 #[NoService]
 final readonly class RestRouteDefinition
@@ -28,6 +29,7 @@ final readonly class RestRouteDefinition
      * @param RestPermission                      $permission
      * @param class-string                        $class
      * @param list<RestArgument>                  $arguments Method parameters in declaration order.
+     * @param CacheEntry|null                     $cache     Ttl, tags and variants of `#[Cache]`; null if not cached.
      */
     public function __construct(
         private string $namespace,
@@ -39,6 +41,7 @@ final readonly class RestRouteDefinition
         private string $method,
         private array $arguments,
         private bool $void,
+        private ?array $cache = null,
     ) {}
 
     /**
@@ -110,5 +113,13 @@ final readonly class RestRouteDefinition
     public function isVoid(): bool
     {
         return $this->void;
+    }
+
+    /**
+     * @return CacheEntry|null
+     */
+    public function getCache(): ?array
+    {
+        return $this->cache;
     }
 }

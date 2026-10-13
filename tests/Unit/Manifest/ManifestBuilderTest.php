@@ -111,13 +111,14 @@ final class ManifestBuilderTest extends TestCase
 
     public function testFrameworkServicesAreThePredefinedOnesAndItsTemplateFunctions(): void
     {
-        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class, \Saij\WpAppFramework\Editor\RenderContext::class];
+        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class, \Saij\WpAppFramework\Editor\RenderContext::class, \Saij\WpAppFramework\Cache\CacheStore::class];
         $result = new ManifestBuilder([ManifestBuilder::frameworkSource()], [], $predefined)->build();
 
         self::assertSame(
             [
                 \Saij\WpAppFramework\Api\PluginTemplateFunctions::class,
                 \Saij\WpAppFramework\Block\BlockTemplateFunctions::class,
+                \Saij\WpAppFramework\Cache\CacheStore::class,
                 \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class,
                 \Saij\WpAppFramework\Editor\RenderContext::class,
                 \Saij\WpAppFramework\Theme::class,

@@ -9,6 +9,13 @@ use LogicException;
 use Saij\WpAppFramework\Api\InstanceBridge;
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Block\BlockRegistrar;
+use Saij\WpAppFramework\Cache\Backend\FileBackend;
+use Saij\WpAppFramework\Cache\Backend\ObjectBackend;
+use Saij\WpAppFramework\Cache\Backend\TransientBackend;
+use Saij\WpAppFramework\Cache\CacheStore;
+use Saij\WpAppFramework\Cache\CodeGeneration;
+use Saij\WpAppFramework\Cache\TagHooks;
+use Saij\WpAppFramework\Cache\TagVersions;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Editor\EditorAssets;
@@ -18,6 +25,7 @@ use Saij\WpAppFramework\Hook\HookRegistrar;
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
+use Saij\WpAppFramework\Project\ComposerProject;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRegistrar;
 use Saij\WpAppFramework\Setting\SettingsAccessor;
@@ -107,9 +115,10 @@ final readonly class Instance
         $releaseManifest = $this->directory . '/' . self::RELEASE_MANIFEST;
         $development = !is_file($releaseManifest);
         $cacheDirectory = WP_CONTENT_DIR . '/cache/' . $this->slug;
+        $sourceDirectories = [];
         if ($development) {
             $this->checkSharedClasses($frameworkDirectory);
-            $manifest = $this->loadDevelopmentManifest($cacheDirectory . '/manifest', $frameworkDirectory);
+            [$manifest, $sourceDirectories] = $this->loadDevelopmentManifest($cacheDirectory . '/manifest', $frameworkDirectory);
         } else {
             $manifest = Manifest::load($releaseManifest);
         }
@@ -131,10 +140,35 @@ final readonly class Instance
         $settingsGroups = $manifest['settings']['groups'];
         $settings = $settingsGroups === [] ? null : new SettingsStore($this->slug, $settingsGroups, $values);
         $globals = $settings === null ? [] : ['settings' => new SettingsAccessor($settings)];
+        $settingsNames = array_column($settingsGroups, 'name', 'class');
+        $prefix = ComposerProject::templatePrefix($this->slug);
+        $tagVersions = new TagVersions($prefix);
+        $codeVersion = $manifest['codeVersion'];
+        $templateVersion = $manifest['templateVersion'];
+        $generation = new CodeGeneration(static function () use ($development, $sourceDirectories, $templateSetup, $codeVersion, $templateVersion, $releaseManifest): string {
+            $setup = $templateSetup();
+            if ($development) {
+                return CodeGeneration::ofFiles([...$sourceDirectories, ...$setup['overrides']]);
+            }
+            if ($codeVersion === null || $templateVersion === null) {
+                throw new LogicException(sprintf(
+                    'The release manifest %s has no code or template version; build it with `wp-app-framework build --output=…` (done by `wp-app-framework release`).',
+                    $releaseManifest,
+                ));
+            }
+
+            return $codeVersion . ':' . $templateVersion . ':' . ($setup['cacheKey'] ?? '');
+        });
+        $backends = [
+            'object' => new ObjectBackend($this->slug),
+            'file' => new FileBackend($cacheDirectory . '/data'),
+            'transient' => new TransientBackend($prefix),
+        ];
         $container = new Container(
             $manifest['services'],
             [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext],
             [
+                CacheStore::class => static fn(Container $container): CacheStore => new CacheStore($slug, $backends, $tagVersions, $generation, $container, $settingsNames),
                 TemplateRenderer::class => static function (Container $container) use (
                     $slug,
                     $directory,
@@ -170,7 +204,15 @@ final readonly class Instance
         );
         new HookRegistrar($container, $debug)->register($manifest['hooks']);
 
-        $restRegistrar = new RestRegistrar($container, $values, $debug);
+        $cache = $container->get(CacheStore::class);
+        $settingsOptions = [];
+        foreach ($settingsNames as $name) {
+            $settingsOptions[SettingsStore::optionName($this->slug, $name)] = $name;
+        }
+        new TagHooks($tagVersions, $settingsOptions)->register();
+        $this->scheduleCacheCleanUp($cache);
+
+        $restRegistrar = new RestRegistrar($container, $values, $debug, $cache);
         $routes = $manifest['routes'];
         $blocks = $manifest['blocks'];
         $renderController = new RenderController($this->slug, array_column($blocks, 'name'), $renderContext, $debug);
@@ -180,7 +222,7 @@ final readonly class Instance
         });
 
         $buildAssets = new BuildAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
-        $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug, $this->slug, new ViewAssets($this->slug, $buildAssets));
+        $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug, $this->slug, new ViewAssets($this->slug, $buildAssets), $cache);
         add_action('init', static function () use ($blockRegistrar, $blocks): void {
             $blockRegistrar->register($blocks);
         });
@@ -221,6 +263,39 @@ final readonly class Instance
         );
 
         do_action(InstanceBridge::initAction($this->slug));
+    }
+
+    /**
+     * Name of the WP-Cron event that deletes expired cache files of an instance.
+     *
+     * @param non-empty-string $slug
+     */
+    public static function cacheCleanUpEvent(string $slug): string
+    {
+        return 'wp_app_framework/cache/clean_up/' . $slug;
+    }
+
+    /**
+     * Schedules the daily clean-up of expired cache files and removes it when the theme is switched or the plugin
+     * is deactivated.
+     */
+    private function scheduleCacheCleanUp(CacheStore $cache): void
+    {
+        $event = self::cacheCleanUpEvent($this->slug);
+        add_action($event, $cache->cleanUp(...));
+        add_action('init', static function () use ($event): void {
+            if (wp_next_scheduled($event) === false) {
+                wp_schedule_event(time(), 'daily', $event);
+            }
+        });
+        $unschedule = static function () use ($event): void {
+            wp_clear_scheduled_hook($event);
+        };
+        if ($this->kind === ProjectKind::Plugin) {
+            register_deactivation_hook($this->directory . '/' . $this->slug . '.php', $unschedule);
+        } else {
+            add_action('switch_theme', $unschedule);
+        }
     }
 
     /**
@@ -310,7 +385,7 @@ final readonly class Instance
     /**
      * Builds the manifest by reflection, cached until a source changes.
      *
-     * @return ManifestData
+     * @return array{0: ManifestData, 1: list<string>} The manifest and the directories it was built from.
      */
     private function loadDevelopmentManifest(string $cacheDirectory, string $frameworkDirectory): array
     {
@@ -331,6 +406,8 @@ final readonly class Instance
             ManifestBuilder::forProject($projectRoot),
         );
 
-        return $cache->load();
+        $manifest = $cache->load();
+
+        return [$manifest, $cache->getSourceDirectories()];
     }
 }

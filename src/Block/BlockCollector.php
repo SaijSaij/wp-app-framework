@@ -11,6 +11,7 @@ use ReflectionNamedType;
 use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\Block\Support\SupportCollector;
 use Saij\WpAppFramework\Block\Support\UseSupport;
+use Saij\WpAppFramework\Cache\CacheCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Manifest\EntryPointInspector;
@@ -64,6 +65,7 @@ final class BlockCollector
         private readonly SupportCollector $supports,
         private readonly string $frameworkDirectory,
         private readonly ?string $scriptDirectory = null,
+        private readonly ?CacheCollector $cache = null,
     ) {
         $this->inspector = new EntryPointInspector($resolver);
     }
@@ -143,7 +145,8 @@ final class BlockCollector
 
         $alignments = $this->alignments($supports, $name);
         $render = $this->render($class);
-        if ($alignments === null || $render === null) {
+        $cache = $this->cache?->entry($class, $name);
+        if ($alignments === null || $render === null || $cache === false) {
             return null;
         }
 
@@ -234,7 +237,7 @@ final class BlockCollector
         ], [
             'fields' => $excerptFields,
             'wrapper' => $block->excerptWrapper,
-        ], $supportEntries, $viewScript);
+        ], $supportEntries, $viewScript, $cache);
     }
 
     /**

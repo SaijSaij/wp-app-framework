@@ -6,9 +6,9 @@ declare(strict_types=1);
  * Runs the dev cache against a temporary project in a fresh PHP process, because
  * classes changed by a test cannot be reloaded in the PHPUnit process.
  *
- * Usage: php dev-cache-probe.php <check|load|load-styles|load-without-project-base> <cache dir> <project dir>
- * Prints "fresh"/"stale" (check), whether the loaded manifest has styles (load-styles) or the hook names of the
- * loaded manifest (load).
+ * Usage: php dev-cache-probe.php <check|load|load-styles|load-sources|load-without-project-base> <cache dir> <project dir>
+ * Prints "fresh"/"stale" (check), whether the loaded manifest has styles (load-styles), the directories the
+ * manifest was built from (load-sources) or the hook names of the loaded manifest (load).
  */
 
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
@@ -42,6 +42,9 @@ $cache = new DevCache($cacheDirectory, $bases, ManifestBuilder::forProject($them
 try {
     if ($mode === 'check') {
         echo $cache->isFresh() ? 'fresh' : 'stale';
+    } elseif ($mode === 'load-sources') {
+        $cache->load();
+        echo implode(',', $cache->getSourceDirectories());
     } elseif ($mode === 'load-styles') {
         echo $cache->load()['styles'] ? 'styles' : 'no styles';
     } else {

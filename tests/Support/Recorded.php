@@ -85,4 +85,36 @@ final class Recorded
         /** @var array<string, array<string, mixed>> */
         return $GLOBALS['wp_app_framework_test_pages'] ?? [];
     }
+
+    /**
+     * @phpstan-impure Changes with each write.
+     * @return array<string, array{value: mixed, expiration: int}> Transients by name.
+     */
+    public static function transients(): array
+    {
+        /** @var array<string, array{value: mixed, expiration: int}> */
+        return $GLOBALS['wp_app_framework_test_transients'] ?? [];
+    }
+
+    /**
+     * @phpstan-impure Changes with each write.
+     * @return array<string, array{data: mixed, expire: int}> Entries of the object cache group by key.
+     */
+    public static function objectCache(string $group): array
+    {
+        /** @var array<string, array<string, array{data: mixed, expire: int}>> $cache */
+        $cache = $GLOBALS['wp_app_framework_test_object_cache'] ?? [];
+
+        return $cache[$group] ?? [];
+    }
+
+    /**
+     * @phpstan-impure Changes with each write.
+     * @return array<string, mixed> Options by name.
+     */
+    public static function options(): array
+    {
+        /** @var array<string, mixed> */
+        return $GLOBALS['wp_app_framework_test_options'] ?? [];
+    }
 }

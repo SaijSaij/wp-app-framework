@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Block;
 
 use LogicException;
+use Saij\WpAppFramework\Cache\CacheStore;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Editor\RenderContext;
@@ -49,6 +50,11 @@ use WP_Block_Type_Registry;
  * (WP_Block::render()). A template without block_wrapper_attributes() is an
  * error.
  *
+ * A block with #[Cache] renders from the cache store, except in renders for
+ * the block editor and its preview: the entry holds the HTML and the scripts,
+ * styles and script modules render() enqueued; a cache hit enqueues them and
+ * the view scripts again. Errors are not cached.
+ *
  * A block name another framework instance or plugin already registered is an
  * error (WordPress itself only reports it as "doing it wrong"): with WP_DEBUG
  * it is thrown, otherwise logged and the block is skipped.
@@ -56,6 +62,7 @@ use WP_Block_Type_Registry;
  * @internal
  *
  * @phpstan-import-type BlockEntry from Manifest
+ * @phpstan-import-type Queues from RenderedAssets
  */
 #[NoService]
 final readonly class BlockRegistrar
@@ -67,6 +74,7 @@ final readonly class BlockRegistrar
         private bool $debug,
         private string $slug,
         private ViewAssets $views,
+        private ?CacheStore $cache = null,
     ) {}
 
     /**
@@ -136,37 +144,28 @@ final readonly class BlockRegistrar
                 return $this->renderExcerpt($block, $attributes);
             }
 
-            $named = [];
-            foreach ($block['arguments'] as $argument) {
-                $named[$argument['param']] = match ($argument['kind']) {
-                    'attributes' => $this->values->createAttributes($argument['class'], $attributes, $block['args']['attributes']),
-                    'content' => $content,
-                    'block' => $instance ?? throw new LogicException(sprintf(
-                        'Block %s was rendered without a WP_Block instance, but %s::render() needs one.',
-                        $block['name'],
-                        $block['class'],
-                    )),
-                };
+            $cache = $block['cache'];
+            if ($cache !== null && $this->cache !== null && !$this->context->isEditor() && !$this->context->isPreview()) {
+                $vary = array_column($cache['vary'], 'type');
+                [$entry, $hit] = $this->cache->fetch(
+                    'block',
+                    $block['name'],
+                    [$attributes, $content, self::contextValues($block, $instance)],
+                    $cache,
+                    fn(): array => [$this->renderRecorded($block, $attributes, $content, $instance, $vary), true],
+                );
+                /** @var array{html: string, assets: Queues} $entry Stored by renderRecorded(). */
+                if ($hit) {
+                    if (ViewAssets::hasViews($block)) {
+                        $this->views->enqueue($block);
+                    }
+                    RenderedAssets::enqueue($entry['assets'], $block['name']);
+                }
+
+                return $entry['html'];
             }
 
-            ['classes' => $classes, 'values' => $supportValues] = $this->supportValues($block, $attributes);
-            $views = ViewAssets::hasViews($block) && !$this->context->isEditor();
-            $html = $this->context->renderBlock(
-                $block['name'],
-                $block['editor']['fields'],
-                $block['editor']['innerBlocks'],
-                // The build checked that the block class has a public render(): string.
-                // @phpstan-ignore method.notFound, return.type
-                fn(): string => $this->container->get($block['class'])->render(...$named),
-                $classes,
-                self::missingWrapper($block),
-                $views ? $this->views->marker($block, $supportValues) : [],
-            );
-            if ($views) {
-                $this->views->enqueue($block);
-            }
-
-            return $html;
+            return $this->renderTemplate($block, $attributes, $content, $instance, null);
         } catch (Throwable $exception) {
             if ($this->debug) {
                 throw $exception;
@@ -184,6 +183,84 @@ final readonly class BlockRegistrar
 
             return '';
         }
+    }
+
+    /**
+     * Runs render() with the block as current block of the render context and enqueues its view scripts.
+     *
+     * @param BlockEntry           $block
+     * @param array<string, mixed> $attributes
+     * @param list<string>|null    $cached Types of the variants if the output is cached.
+     */
+    private function renderTemplate(array $block, array $attributes, string $content, ?WP_Block $instance, ?array $cached): string
+    {
+        $named = [];
+        foreach ($block['arguments'] as $argument) {
+            $named[$argument['param']] = match ($argument['kind']) {
+                'attributes' => $this->values->createAttributes($argument['class'], $attributes, $block['args']['attributes']),
+                'content' => $content,
+                'block' => $instance ?? throw new LogicException(sprintf(
+                    'Block %s was rendered without a WP_Block instance, but %s::render() needs one.',
+                    $block['name'],
+                    $block['class'],
+                )),
+            };
+        }
+
+        ['classes' => $classes, 'values' => $supportValues] = $this->supportValues($block, $attributes);
+        $views = ViewAssets::hasViews($block) && !$this->context->isEditor();
+        $html = $this->context->renderBlock(
+            $block['name'],
+            $block['editor']['fields'],
+            $block['editor']['innerBlocks'],
+            // The build checked that the block class has a public render(): string.
+            // @phpstan-ignore method.notFound, return.type
+            fn(): string => $this->container->get($block['class'])->render(...$named),
+            $classes,
+            self::missingWrapper($block),
+            $views ? $this->views->marker($block, $supportValues) : [],
+            $cached,
+        );
+        if ($views) {
+            $this->views->enqueue($block);
+        }
+
+        return $html;
+    }
+
+    /**
+     * Renders the block for its cache entry: the HTML and what render() enqueued besides the view scripts.
+     *
+     * @param BlockEntry           $block
+     * @param array<string, mixed> $attributes
+     * @param list<string>         $vary
+     * @return array{html: string, assets: Queues}
+     */
+    private function renderRecorded(array $block, array $attributes, string $content, ?WP_Block $instance, array $vary): array
+    {
+        $before = RenderedAssets::snapshot();
+        $html = $this->renderTemplate($block, $attributes, $content, $instance, $vary);
+
+        return ['html' => $html, 'assets' => RenderedAssets::added($before, RenderedAssets::snapshot(), $this->views->handles($block))];
+    }
+
+    /**
+     * The values of the context the block uses (`usesContext`), part of its cache key.
+     *
+     * @param BlockEntry $block
+     * @return array<string, mixed>
+     */
+    private static function contextValues(array $block, ?WP_Block $instance): array
+    {
+        $names = $block['args']['uses_context'] ?? [];
+        $values = [];
+        foreach (is_array($names) ? $names : [] as $name) {
+            if (is_string($name)) {
+                $values[$name] = $instance?->context[$name] ?? null;
+            }
+        }
+
+        return $values;
     }
 
     /**

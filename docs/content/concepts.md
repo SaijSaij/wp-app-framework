@@ -60,6 +60,8 @@ Two optional scripts can sit next to them: `Teaser.editor.js` extends the block 
 
 **In the editor**, the framework's editor runtime asks the server to render the block from the same template. The template marks editable elements with `field('title')`. In the editor these marks become attributes on the element, and the runtime replaces the marked elements with text editors, image pickers and inner blocks. Content editors type into the real markup; there is no second template for the editor. Typing does not re-render the block, but every other change, such as a different option in the inspector, does.
 
+**With `#[Cache]`**, the front end renders the block once and reads its HTML from the [cache](./guides/cache.md) until a tag of the block is invalidated or the entry expires. The editor always renders it fresh.
+
 **With a front-end script**, the block also gets behavior on the page. The framework loads the script only on pages that render the block and starts one instance of its class per block. In the editor, a **Preview** button in the block's toolbar shows the front-end markup and runs the script on it.
 
 ```

@@ -32,6 +32,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
  * @phpstan-import-type SettingsGroupEntry from \Saij\WpAppFramework\Setting\SettingsCollector
+ * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
  * @phpstan-type HookEntry array{name: string, priority: int, acceptedArgs: int, filter: bool, class: class-string, method: string, arguments: list<HookArgument>}
  * @phpstan-type RouteEntry array{
  *     namespace: non-falsy-string,
@@ -42,7 +43,8 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     class: class-string,
  *     method: string,
  *     arguments: list<RestArgument>,
- *     void: bool
+ *     void: bool,
+ *     cache: CacheEntry|null
  * }
  * @phpstan-type BlockEntry array{
  *     name: string,
@@ -52,7 +54,8 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     editor: BlockEditor,
  *     excerpt: BlockExcerpt,
  *     supports: list<BlockSupportEntry>,
- *     viewScript: string|null
+ *     viewScript: string|null,
+ *     cache: CacheEntry|null
  * }
  * @phpstan-type ManifestData array{
  *     format: int,
@@ -69,6 +72,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     publicApis: list<class-string>,
  *     templateProviders: array<non-empty-string, non-empty-string>,
  *     templateVersion: non-empty-string|null,
+ *     codeVersion: non-empty-string|null,
  *     styles: bool,
  *     settings: array{title: string|null, groups: list<SettingsGroupEntry>}
  * }
@@ -76,7 +80,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 14;
+    public const int FORMAT = 15;
 
     /**
      * @return ManifestData

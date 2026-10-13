@@ -86,6 +86,14 @@ final class DevCacheTest extends TestCase
         self::assertSame('fresh', $this->probe('check'));
     }
 
+    public function testListsTheSourceDirectoriesOfTheManifest(): void
+    {
+        self::assertSame(
+            implode(',', [realpath($this->theme . '/src'), realpath(__DIR__ . '/../../../../src')]),
+            $this->probe('load-sources'),
+        );
+    }
+
     public function testMetaFileContainsNoAbsolutePaths(): void
     {
         $this->probe('load');

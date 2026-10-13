@@ -7,9 +7,13 @@ namespace Saij\WpAppFramework\Rest;
 use BackedEnum;
 use ReflectionClass;
 use ReflectionFunction;
+use ReflectionIntersectionType;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
+use ReflectionType;
+use ReflectionUnionType;
+use Saij\WpAppFramework\Cache\CacheCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Manifest\EntryPointInspector;
@@ -27,6 +31,7 @@ use Throwable;
  * @phpstan-import-type RestArgument from RestRouteDefinition
  * @phpstan-import-type RestPermission from RestRouteDefinition
  * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
  * @phpstan-type ServiceParameter array{param: string, kind: 'service', class: class-string}
  * @phpstan-type RequestParameter array{param: string, kind: 'request'}
  * @phpstan-type ArgumentParameter array{
@@ -55,6 +60,7 @@ final class RestRouteCollector
     public function __construct(
         private readonly ServiceResolver $resolver,
         private readonly ValueSchemaBuilder $values,
+        private readonly ?CacheCollector $cache = null,
     ) {
         $this->inspector = new EntryPointInspector($resolver);
     }
@@ -96,7 +102,11 @@ final class RestRouteCollector
                 }
 
                 $parameters = $this->parameters($method, $location);
-                if ($parameters === null) {
+                $cache = $this->cache?->entry($method, $location);
+                if ($cache !== null && $cache !== false) {
+                    $cache = $this->cacheError($method, $attributes, $location) === null ? $cache : false;
+                }
+                if ($parameters === null || $cache === false) {
                     continue;
                 }
 
@@ -115,7 +125,7 @@ final class RestRouteCollector
                         continue;
                     }
 
-                    $definition = $this->route($route, $controller, $parameters, $classes, $name, $method, $location, $services);
+                    $definition = $this->route($route, $controller, $parameters, $classes, $name, $method, $location, $services, $cache);
                     if ($definition === null) {
                         continue;
                     }
@@ -412,6 +422,7 @@ final class RestRouteCollector
      * @param array<class-string, ReflectionClass<object>> $classes
      * @param class-string                                 $class
      * @param list<class-string>                           $services   Receives the services of a permission callback.
+     * @param CacheEntry|null                              $cache
      */
     private function route(
         RestRoute $route,
@@ -422,6 +433,7 @@ final class RestRouteCollector
         ReflectionMethod $method,
         string $location,
         array &$services,
+        ?array $cache,
     ): ?RestRouteDefinition {
         $methods = $this->httpMethods($route, $location);
 
@@ -469,7 +481,74 @@ final class RestRouteCollector
             $method->getName(),
             $arguments,
             EntryPointInspector::isVoid($method),
+            $cache,
         );
+    }
+
+    /**
+     * Checks a cached route method: it answers only GET and returns plain data.
+     *
+     * @param list<\ReflectionAttribute<RestRoute>> $attributes
+     */
+    private function cacheError(ReflectionMethod $method, array $attributes, string $location): ?string
+    {
+        foreach ($attributes as $attribute) {
+            $methods = $attribute->getArguments()[1] ?? $attribute->getArguments()['methods'] ?? null;
+            $list = $methods instanceof HttpMethod ? [$methods] : (is_array($methods) ? $methods : []);
+            if ($list === [] || array_filter($list, static fn(mixed $httpMethod): bool => $httpMethod !== HttpMethod::Get) !== []) {
+                $error = sprintf('#[Cache] on %s: a cached route must answer only GET; other methods change data.', $location);
+                $this->errors[] = $error;
+
+                return $error;
+            }
+        }
+
+        foreach ($method->getParameters() as $parameter) {
+            $type = $parameter->getType();
+            if ($type instanceof ReflectionNamedType && $type->getName() === self::REQUEST_CLASS) {
+                $error = sprintf(
+                    '#[Cache] on %s: a cached route must not take the %s ($%s); the cache key holds only the arguments of the route, add variants such as new HeaderVary(\'…\') for anything else.',
+                    $location,
+                    self::REQUEST_CLASS,
+                    $parameter->getName(),
+                );
+                $this->errors[] = $error;
+
+                return $error;
+            }
+        }
+
+        $returnType = $method->getReturnType();
+        if ($returnType !== null && !self::isPlainDataType($returnType)) {
+            $error = sprintf(
+                '#[Cache] on %s: a cached route must return plain data (array, string, int, float, bool or null), %s given.',
+                $location,
+                (string) $returnType,
+            );
+            $this->errors[] = $error;
+
+            return $error;
+        }
+
+        return null;
+    }
+
+    private static function isPlainDataType(ReflectionType $type): bool
+    {
+        if ($type instanceof ReflectionIntersectionType) {
+            return false;
+        }
+        if ($type instanceof ReflectionUnionType) {
+            foreach ($type->getTypes() as $member) {
+                if (!self::isPlainDataType($member)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return $type instanceof ReflectionNamedType && in_array($type->getName(), ['array', 'string', 'int', 'float', 'bool', 'true', 'false', 'null'], true);
     }
 
     /**

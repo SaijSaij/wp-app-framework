@@ -115,6 +115,17 @@ final readonly class ViewAssets
     }
 
     /**
+     * Handles of the scripts enqueue() enqueues for the block: the view runtime and the view scripts.
+     *
+     * @param BlockEntry $block
+     * @return list<string>
+     */
+    public function handles(array $block): array
+    {
+        return array_keys($this->scripts($block));
+    }
+
+    /**
      * @param BlockEntry $block
      * @return array<non-empty-string, string> Script below the build directory by handle; empty without view scripts.
      */

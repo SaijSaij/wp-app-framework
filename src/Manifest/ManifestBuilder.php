@@ -11,6 +11,8 @@ use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\Block\Markup\BlockMarkupValidator;
 use Saij\WpAppFramework\Block\Markup\MarkupFiles;
 use Saij\WpAppFramework\Block\Support\SupportCollector;
+use Saij\WpAppFramework\Cache\CacheCollector;
+use Saij\WpAppFramework\Cache\CacheStore;
 use Saij\WpAppFramework\ChildTheme;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
@@ -104,6 +106,7 @@ final class ManifestBuilder
                 },
                 TemplateRenderer::class,
                 RenderContext::class,
+                CacheStore::class,
             ],
             $scriptDirectory === false ? null : $scriptDirectory,
             $project->getKind(),
@@ -140,11 +143,13 @@ final class ManifestBuilder
         $settings = $settingsCollector->collect($classes);
         $hookCollector = new HookCollector($resolver);
         $hooks = $hookCollector->collect($classes);
-        $routeCollector = new RestRouteCollector($resolver, $values);
+        $cacheCollector = new CacheCollector($resolver, CacheCollector::settingsGroups($classes));
+        $cacheCollector->collect($classes);
+        $routeCollector = new RestRouteCollector($resolver, $values, $cacheCollector);
         $routes = $routeCollector->collect($classes);
         $supportCollector = new SupportCollector($resolver, $values, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
         $supportCollector->collect($classes);
-        $blockCollector = new BlockCollector($resolver, $values, $supportCollector, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
+        $blockCollector = new BlockCollector($resolver, $values, $supportCollector, self::frameworkSource()->getDirectory(), $this->scriptDirectory, $cacheCollector);
         $blocks = $blockCollector->collect($classes);
         $markup = $this->markupDirectory !== null ? MarkupFiles::scan($this->markupDirectory) : null;
         $markupValidator = new BlockMarkupValidator($blocks);
@@ -174,6 +179,7 @@ final class ManifestBuilder
             ...$errors,
             ...$hookCollector->errors(),
             ...$routeCollector->errors(),
+            ...$cacheCollector->errors(),
             ...$templateCallableCollector->errors(),
             ...$publicApiCollector->errors(),
             ...$supportCollector->errors(),

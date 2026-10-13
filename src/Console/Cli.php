@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Console;
 
-use RuntimeException;
+use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Filesystem\AtomicFile;
 use Saij\WpAppFramework\Manifest\BuildException;
+use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Release\ReleaseCommand;
@@ -116,8 +118,10 @@ final class Cli
             $result = ManifestBuilder::forProject($projectDirectory)->build();
 
             if ($output !== null) {
-                // A written manifest is a release manifest: its Twig cache directory is named after the templates.
-                self::write($output, new ManifestGenerator()->generate($result, self::templateVersion($projectDirectory)));
+                // A written manifest is a release manifest: its Twig cache directory is named after the templates, its
+                // cache entries after the templates and the PHP code.
+                $codeVersion = CodeGeneration::codeVersion(array_map(static fn(Source $source): string => $source->getDirectory(), $result->getSources()));
+                AtomicFile::write($output, new ManifestGenerator()->generate($result, self::templateVersion($projectDirectory), $codeVersion), true);
             }
         } catch (BuildException $exception) {
             fwrite($stderr, $exception->getMessage() . "\n");
@@ -179,25 +183,5 @@ final class Cli
         $directories[] = ManifestBuilder::frameworkSource()->getDirectory();
 
         return TemplateVersion::compute($directories);
-    }
-
-    private static function write(string $file, string $code): void
-    {
-        $directory = dirname($file);
-        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            throw new RuntimeException(sprintf('Cannot create directory %s.', $directory));
-        }
-
-        $temporary = tempnam($directory, basename($file));
-        if ($temporary === false || file_put_contents($temporary, $code) === false) {
-            throw new RuntimeException(sprintf('Cannot write a temporary file for %s.', $file));
-        }
-
-        chmod($temporary, 0644);
-
-        if (!rename($temporary, $file)) {
-            unlink($temporary);
-            throw new RuntimeException(sprintf('Cannot move the temporary file to %s.', $file));
-        }
     }
 }

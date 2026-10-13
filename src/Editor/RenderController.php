@@ -132,7 +132,8 @@ final readonly class RenderController
         }
 
         try {
-            return new WP_REST_Response(['html' => self::withPost($post['post'], static fn(): string => render_block($block))]);
+            // Rendered like the front end, but never from or into the cache: the preview shows the current attributes.
+            return new WP_REST_Response(['html' => self::withPost($post['post'], fn(): string => $this->context->renderForPreview(static fn(): string => render_block($block)))]);
         } catch (Throwable $exception) {
             $error = $this->renderError((string) $block['blockName'], $exception, 'preview');
 

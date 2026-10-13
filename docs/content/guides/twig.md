@@ -175,5 +175,5 @@ Text is escaped by Twig. Some values come from WordPress already escaped: term a
 | `wp_size_format(bytes, decimals = 0)` | `size_format()` | text, e.g. "2 KB" |
 
 :::warning
-The output of `wp_logout_url()`, `wp_is_user_logged_in()` and `wp_avatar()` depends on the request (a nonce, the login state), not only on the attributes of a block. Keep that in mind wherever output is cached.
+The output of `wp_logout_url()` (a nonce), `wp_is_user_logged_in()` (the login state), `wp_date()` without a timestamp and `wp_human_time_diff()` without a second timestamp (the current time) depends on the request, not only on the attributes of a block. In [cached blocks](./cache.md#template-functions-that-depend-on-the-request) the framework checks them.
 :::

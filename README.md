@@ -34,6 +34,8 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 | `View/` | Loading of the front-end scripts (view scripts) of blocks and block supports and the marker of their root elements (runtime) |
 | `Setting/` | `#[SettingsGroup]` attribute, collector (build), settings store, template global and settings page (runtime) |
 | `Style/` | Loading of the consumer's built stylesheet (runtime) |
+| `Cache/` | `#[Cache]` attribute, tags (`Tag/`), variants (`Vary/`), collector (build), `CacheStore` with backends (`Backend/`), tag versions and their hooks (runtime) |
+| `Filesystem/` | Atomic file writes (build and runtime) |
 | `Asset/` | Scripts next to classes (`ScriptKind`: editor and view scripts, build) and registration of scripts and styles from the consumer's build (runtime) |
 | `Value/` | `#[ListOf]`, `#[Url]` attributes, schema derivation of typed values (build), value factory (runtime) |
 | `DependencyInjection/` | `#[NoService]` attribute, service candidates and resolver (build), container (runtime) |
@@ -41,7 +43,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 | `Console/` | Command line entry point of `bin/wp-app-framework` (and `bin/wp-app-framework-prefixed.php`) |
 | `Release/` | Release build: project copy, Strauss settings, Twig patch, prefix check, archive (build only) |
 
-New areas (block cache) get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
+New areas get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
 
 The editor runtime and its styles live in `assets/` (`editor.js` entry, `editor.scss` styles of the inspector, `settings.js` and `settings.scss` of the settings page, `_controls.scss` styles of the controls they share, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`; `view.js` entry of the view runtime with its modules and tests in `view/`); `webpack.config.js` is the helper for the consumer's build, tested in `assets/test/`. The documentation website lives in `docs/` (see Development).
 

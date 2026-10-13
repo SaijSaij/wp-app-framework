@@ -187,6 +187,8 @@ final readonly class WordPressTemplateFunctions
     #[TemplateFunction('wp_logout_url')]
     public function logoutUrl(string $redirect = ''): string
     {
+        $this->context->checkCached('wp_logout_url', [], 'the session of the user (its nonce)');
+
         // wp_nonce_url() escapes the URL with esc_html().
         return wp_specialchars_decode(wp_logout_url($redirect), ENT_QUOTES);
     }
@@ -194,6 +196,8 @@ final readonly class WordPressTemplateFunctions
     #[TemplateFunction('wp_is_user_logged_in')]
     public function isUserLoggedIn(): bool
     {
+        $this->context->checkCached('wp_is_user_logged_in', ['logged_in', 'role', 'user'], 'whether the visitor is logged in');
+
         return is_user_logged_in();
     }
 
@@ -205,6 +209,10 @@ final readonly class WordPressTemplateFunctions
     #[TemplateFunction('wp_date')]
     public function date(string $format, ?int $timestamp = null): string
     {
+        if ($timestamp === null) {
+            $this->context->checkCached('wp_date', [], 'the current time without a timestamp');
+        }
+
         return (string) wp_date($format, $timestamp);
     }
 
@@ -216,6 +224,10 @@ final readonly class WordPressTemplateFunctions
     #[TemplateFunction('wp_human_time_diff')]
     public function humanTimeDiff(int $from, int $to = 0): string
     {
+        if ($to === 0) {
+            $this->context->checkCached('wp_human_time_diff', [], 'the current time without a second timestamp');
+        }
+
         return human_time_diff($from, $to);
     }
 

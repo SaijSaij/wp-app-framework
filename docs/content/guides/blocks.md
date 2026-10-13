@@ -244,6 +244,10 @@ Search is unchanged. WordPress searches the raw post content, and it finds singl
 
 WordPress validates the attributes against the schema before rendering: an invalid value falls back to the default. It does not sanitize them, though. The framework's value factory therefore sanitizes each attribute against its schema (`rest_sanitize_value_from_schema()`) and only then creates the attribute object. Attributes of block supports, WordPress' and [your own](./supports.md), are not part of the attribute object.
 
+## Caching
+
+A block that queries data can keep its output with `#[Cache]`: it renders once per attribute set and is read from the cache until a tag is invalidated or its lifetime ends. See [Cache](./cache.md).
+
 ## Errors
 
 An exception in `render()` or while the attribute object is created is rethrown if `WP_DEBUG` is enabled. Otherwise it is logged with `error_log()`, and the block renders nothing. The rest of the page still renders.

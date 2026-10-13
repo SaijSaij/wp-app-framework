@@ -12,7 +12,7 @@ When WordPress renders a block that has a view script, the framework does two th
 
 Once the page has been parsed, the view runtime finds the marked root elements and creates one instance of the script's class for each, then calls its `mount()` method. Two FAQ blocks on a page are two independent instances, each working only inside its own block.
 
-The scripts load deferred, at the end of the page, so they never block rendering. They are ordinary scripts and may import WordPress' packages such as `@wordpress/dom-ready` or `@wordpress/api-fetch`.
+A block read from the [cache](./cache.md) enqueues its view scripts as well. The scripts load deferred, at the end of the page, so they never block rendering. They are ordinary scripts and may import WordPress' packages such as `@wordpress/dom-ready` or `@wordpress/api-fetch`.
 
 ## An FAQ, step by step
 
