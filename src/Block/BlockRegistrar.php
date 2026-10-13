@@ -55,6 +55,13 @@ use WP_Block_Type_Registry;
  * styles and script modules render() enqueued; a cache hit enqueues them and
  * the view scripts again. Errors are not cached.
  *
+ * Values of ancestors (#[Context] parameters) come from the block context:
+ * sanitized against the schema of the providing attribute and created like
+ * attributes; without a providing ancestor the parameter keeps its default.
+ *
+ * Custom block categories are added before those of WordPress
+ * (`block_categories_all`).
+ *
  * A block name another framework instance or plugin already registered is an
  * error (WordPress itself only reports it as "doing it wrong"): with WP_DEBUG
  * it is thrown, otherwise logged and the block is skipped.
@@ -62,6 +69,7 @@ use WP_Block_Type_Registry;
  * @internal
  *
  * @phpstan-import-type BlockEntry from Manifest
+ * @phpstan-import-type BlockCategoryEntry from Manifest
  * @phpstan-import-type Queues from RenderedAssets
  */
 #[NoService]
@@ -78,10 +86,22 @@ final readonly class BlockRegistrar
     ) {}
 
     /**
-     * @param list<BlockEntry> $blocks
+     * @param list<BlockEntry>         $blocks
+     * @param list<BlockCategoryEntry> $categories Custom block categories, added before those of WordPress.
      */
-    public function register(array $blocks): void
+    public function register(array $blocks, array $categories = []): void
     {
+        if ($categories !== []) {
+            add_filter('block_categories_all', static function (array $existing) use ($categories): array {
+                $added = [];
+                foreach ($categories as $category) {
+                    $added[] = ['slug' => $category['slug'], 'title' => $category['title'], 'icon' => $category['icon']];
+                }
+
+                return [...$added, ...$existing];
+            });
+        }
+
         $registry = WP_Block_Type_Registry::get_instance();
         $registered = [];
         foreach ($blocks as $block) {
@@ -196,6 +216,19 @@ final readonly class BlockRegistrar
     {
         $named = [];
         foreach ($block['arguments'] as $argument) {
+            if ($argument['kind'] === 'context') {
+                if ($instance !== null && array_key_exists($argument['name'], $instance->context)) {
+                    $raw = $instance->context[$argument['name']];
+                    if ($raw !== null) {
+                        $raw = rest_sanitize_value_from_schema($raw, $argument['schema'], $argument['param']);
+                    }
+                    $named[$argument['param']] = $this->values->create($argument['value'], $raw, $argument['param']);
+                } elseif (!$argument['hasDefault']) {
+                    // Without a providing ancestor the parameter keeps its default; the build requires one or null.
+                    $named[$argument['param']] = null;
+                }
+                continue;
+            }
             $named[$argument['param']] = match ($argument['kind']) {
                 'attributes' => $this->values->createAttributes($argument['class'], $attributes, $block['args']['attributes']),
                 'content' => $content,

@@ -11,12 +11,14 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  *
  * @phpstan-type BlockArgument array{param: string, kind: 'attributes', class: class-string}
  *     |array{param: string, kind: 'content'|'block'}
+ *     |array{param: string, kind: 'context', name: string, schema: array<string, mixed>, value: Value, hasDefault: bool}
  * @phpstan-type BlockArgs array{attributes: array<string, array<string, mixed>>, ...<string, mixed>}
  * @phpstan-type BlockField array{kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true, postContent?: true, excerpt?: true}
  * @phpstan-type BlockEditor array{
  *     fields: array<string, BlockField>,
  *     controls: array<string, array<string, mixed>>,
  *     innerBlocks: bool,
+ *     innerBlockOptions: array<string, mixed>,
  *     postContentField: string|null,
  *     editorScript: string|null,
  *     supports: list<string>
@@ -35,6 +37,7 @@ final readonly class BlockDefinition
      * @param list<BlockArgument>  $arguments Parameters of render() in declaration order.
      * @param BlockEditor          $editor    Data of the editor runtime: inline fields by path (list items as `*`),
      *                                        inspector controls by attribute, whether the block has inner blocks,
+     *                                        the options of its inner blocks for useInnerBlocksProps(),
      *                                        the attribute stored in the post content, its editor script below
      *                                        the script directory, without extension, and the attributes of its
      *                                        block supports.
@@ -58,6 +61,19 @@ final readonly class BlockDefinition
         private ?string $viewScript = null,
         private ?array $cache = null,
     ) {}
+
+    /**
+     * The definition with the parts the build completes once all blocks are known: references to other blocks,
+     * context, example and variations.
+     *
+     * @param BlockArgs           $args
+     * @param list<BlockArgument> $arguments
+     * @param BlockEditor         $editor
+     */
+    public function withResolved(array $args, array $arguments, array $editor): self
+    {
+        return new self($this->name, $args, $this->class, $arguments, $editor, $this->excerpt, $this->supports, $this->viewScript, $this->cache);
+    }
 
     public function getName(): string
     {

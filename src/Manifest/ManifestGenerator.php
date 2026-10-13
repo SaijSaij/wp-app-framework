@@ -104,6 +104,7 @@ final class ManifestGenerator
             'routes' => $routes,
             'templateCallables' => $templateCallables,
             'blocks' => $blocks,
+            'blockCategories' => $result->getBlockCategories(),
             'values' => $result->getValues(),
             'parent' => $result->getParent(),
             'publicApis' => $result->getPublicApis(),

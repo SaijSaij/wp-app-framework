@@ -10,7 +10,7 @@ use Attribute;
  * Declares a server-side rendered block. The class is a service with a public
  * `render()` method returning the block's HTML; its parameters are matched by
  * type: the block attribute class, `string` (the rendered inner blocks) and
- * `WP_Block`.
+ * `WP_Block`, besides values of ancestors marked with `#[Context]`.
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class Block
@@ -18,24 +18,31 @@ final readonly class Block
     /**
      * @param string       $name        Block name without namespace, e.g. "hero"; registered in the namespace of the
      *                                  theme or plugin (`extra.wp-app-framework.namespace`), e.g. "sections/hero".
+     * @param BlockCategory|CustomBlockCategory $category A category of WordPress or a case of an enum of the theme
+     *                                  or plugin that implements CustomBlockCategory.
      * @param list<string> $keywords    Search terms for the inserter.
-     * @param list<string> $usesContext Context values the block reads from WP_Block::$context, e.g. "postId".
-     * @param list<string>|null $allowedBlocks Blocks that may be inserted as inner blocks: own blocks by name
-     *                                         ("hero"), other blocks in full ("core/paragraph"); null allows all.
-     *                                         Requires render() to accept string $content.
-     * @param bool              $excerptWrapper Add the block to `excerpt_allowed_wrapper_blocks`: automatic excerpts
-     *                                          include its allowed inner blocks, as for core/group. Requires
-     *                                          render() to accept string $content.
+     * @param list<string> $usesContext Context values of other blocks the block reads from WP_Block::$context, e.g.
+     *                                  "postId"; values of blocks of the same theme or plugin are read with
+     *                                  #[Context] parameters of render().
+     * @param bool         $excerptWrapper Add the block to `excerpt_allowed_wrapper_blocks`: automatic excerpts
+     *                                  include its allowed inner blocks, as for core/group. Requires render() to
+     *                                  accept string $content.
+     * @param list<class-string|CoreBlock|string>|null $parent   The block can only be inserted directly into these
+     *                                  blocks: block classes of the same theme or plugin, core blocks, other blocks
+     *                                  by full name; null for anywhere.
+     * @param list<class-string|CoreBlock|string>|null $ancestor The block can only be inserted somewhere inside these
+     *                                  blocks; same values as $parent.
      */
     public function __construct(
         public string $name,
         public string $title,
-        public BlockCategory $category,
+        public BlockCategory|CustomBlockCategory $category,
         public string $icon = '',
         public string $description = '',
         public array $keywords = [],
         public array $usesContext = [],
-        public ?array $allowedBlocks = null,
         public bool $excerptWrapper = false,
+        public ?array $parent = null,
+        public ?array $ancestor = null,
     ) {}
 }

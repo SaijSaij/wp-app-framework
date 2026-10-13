@@ -1,11 +1,23 @@
-import { BlockControls, useBlockProps } from '@wordpress/block-editor';
+import {
+	BlockControls,
+	InnerBlocks,
+	useBlockProps,
+} from '@wordpress/block-editor';
+import { getBlockType } from '@wordpress/blocks';
 import { Notice, ToolbarButton } from '@wordpress/components';
 import { useRegistry, useSelect } from '@wordpress/data';
 import { useEffect, useMemo, useState } from '@wordpress/element';
 
 import { analyzeMarkup, missingFields } from './analyze';
+import {
+	innerContext,
+	providedContext,
+	renderContext,
+	usedContext,
+} from './block-context';
 import { BlockDataContext } from './context';
 import { Inspector } from './inspector';
+import { innerBlocksOptions } from './inner-blocks';
 import { BlockMarkup } from './markup';
 import { blankInlineText, stableStringify } from './paths';
 import { parsePreview } from './parse-preview';
@@ -36,22 +48,31 @@ function usePostId( context ) {
 
 /**
  * Cache key and request entry of a block. Inline text values are blanked:
- * typing never re-renders, every other change does.
+ * typing never re-renders, every other change does, including a change of
+ * the context values the block uses.
  *
  * @param {string}           name
  * @param {Object}           attributes
  * @param {Object}           fields     Inline fields of the block.
  * @param {number|undefined} postId
+ * @param {Object}           context    Context values from renderContext().
  * @return {{key: string, entry: Object}} Render job.
  */
-function renderJob( name, attributes, fields, postId ) {
+function renderJob( name, attributes, fields, postId, context ) {
 	const renderAttributes = blankInlineText( attributes, fields );
+	const hasContext = Object.keys( context ).length > 0;
 	return {
-		key: stableStringify( { name, attributes: renderAttributes, postId } ),
+		key: stableStringify( {
+			name,
+			attributes: renderAttributes,
+			postId,
+			...( hasContext ? { context } : {} ),
+		} ),
 		entry: {
 			name,
 			attributes: renderAttributes,
 			...( postId ? { postId } : {} ),
+			...( hasContext ? { context } : {} ),
 		},
 	};
 }
@@ -67,22 +88,32 @@ function renderJob( name, attributes, fields, postId ) {
  * @param {number|undefined} postId
  */
 function prefetchInnerBlocks( registry, clientId, runtime, postId ) {
-	const pending = [
-		...registry.select( 'core/block-editor' ).getBlocks( clientId ),
-	];
+	const select = registry.select( 'core/block-editor' );
+	const available = innerContext( select, getBlockType, clientId );
+	const pending = select
+		.getBlocks( clientId )
+		.map( ( block ) => ( { block, available } ) );
 	while ( pending.length > 0 ) {
-		const inner = pending.shift();
+		const { block: inner, available: context } = pending.shift();
+		const blockType = getBlockType( inner.name );
 		const config = runtime.config.blocks[ inner.name ];
 		if ( config ) {
 			const { key, entry } = renderJob(
 				inner.name,
 				inner.attributes,
 				config.fields,
-				postId
+				postId,
+				renderContext( usedContext( context, blockType ) )
 			);
 			runtime.renderer.prefetch( key, entry );
 		}
-		pending.push( ...inner.innerBlocks );
+		const next = providedContext( context, blockType, inner.attributes );
+		pending.push(
+			...inner.innerBlocks.map( ( block ) => ( {
+				block,
+				available: next,
+			} ) )
+		);
 	}
 }
 
@@ -158,7 +189,7 @@ function Toolbar( { buttons, hasView, isPreview, setPreview, buttonProps } ) {
  * @param {string}                       props.clientId      Client ID of the block.
  * @param {Object}                       props.attributes    Block attributes.
  * @param {(attributes: Object) => void} props.setAttributes Updates attributes.
- * @param {Object}                       props.context       Block context (postId in query loops).
+ * @param {Object}                       props.context       Block context (postId in query loops, values of ancestors).
  * @param {Object}                       props.runtime       Renderer, registry and configuration of the instance.
  */
 export function PortalEdit( {
@@ -172,9 +203,20 @@ export function PortalEdit( {
 	const block = runtime.config.blocks[ name ];
 	const registry = useRegistry();
 	const postId = usePostId( context );
+	// The context object may change identity on every render; the values are compared by content.
+	const contextKey = stableStringify( renderContext( context ) );
+	const values = useMemo( () => JSON.parse( contextKey ), [ contextKey ] );
 	const { key, entry } = useMemo(
-		() => renderJob( name, attributes, block.fields, postId ),
-		[ name, attributes, block.fields, postId ]
+		() => renderJob( name, attributes, block.fields, postId, values ),
+		[ name, attributes, block.fields, postId, values ]
+	);
+	const innerOptions = useMemo(
+		() =>
+			innerBlocksOptions(
+				block.innerBlockOptions,
+				InnerBlocks.ButtonBlockAppender
+			),
+		[ block.innerBlockOptions ]
 	);
 
 	const [ state, setState ] = useState( () => ( {
@@ -241,6 +283,7 @@ export function PortalEdit( {
 	const preview = usePreview( {
 		clientId,
 		postId,
+		context: values,
 		path: runtime.config.previewPath,
 		enabled: isPreview,
 	} );
@@ -289,6 +332,7 @@ export function PortalEdit( {
 			<BlockMarkup
 				node={ analysis.root }
 				fields={ block.fields }
+				innerBlocksOptions={ innerOptions }
 				extraProps={
 					loading || ( isPreview && preview.loading )
 						? LOADING_PROPS

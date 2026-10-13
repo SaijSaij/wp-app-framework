@@ -312,6 +312,9 @@ final class WP_Block_Type
     /** @var (callable(array<string, mixed>, string, WP_Block=): string)|null */
     public $render_callback;
 
+    /** @var string[] */
+    private array $uses_context;
+
     /**
      * @param array<string, mixed> $args
      */
@@ -320,6 +323,15 @@ final class WP_Block_Type
         $this->name = $block_type;
         $this->attributes = $args['attributes'] ?? null;
         $this->render_callback = $args['render_callback'] ?? null;
+        $this->uses_context = $args['uses_context'] ?? [];
+    }
+
+    /**
+     * @return string[]
+     */
+    public function get_uses_context(): array
+    {
+        return $this->uses_context;
     }
 
     /**
@@ -348,7 +360,10 @@ function parse_blocks(string $content): array
 
 function render_block(array $parsed_block, ?WP_Block $parent_block = null): string
 {
-    return new WP_Block($parsed_block)->render();
+    /** @var array<string, mixed> $context Like WordPress: the default context passes the filter render_block_context. */
+    $context = apply_filters('render_block_context', [], $parsed_block, $parent_block);
+
+    return new WP_Block($parsed_block, $context)->render();
 }
 
 /**

@@ -250,6 +250,7 @@ final class ManifestBuilder
             $settings === [] ? null : $this->name,
             $markup,
             $posts,
+            $blockCollector->categories(),
         );
     }
 

@@ -69,7 +69,7 @@ final class BlockMarkupValidator
                 MarkupKind::Template => null,
             };
             foreach ($blocks as $block) {
-                $this->block($file, $section, $block);
+                $this->block($file, $section, $block, []);
             }
         }
     }
@@ -83,9 +83,10 @@ final class BlockMarkupValidator
     }
 
     /**
-     * @param string|null $section What makes the file a contentOnly section in the editor, if it is one.
+     * @param string|null  $section   What makes the file a contentOnly section in the editor, if it is one.
+     * @param list<string> $ancestors Names of the enclosing blocks, the parent last.
      */
-    private function block(string $file, ?string $section, ParsedBlock $block): void
+    private function block(string $file, ?string $section, ParsedBlock $block, array $ancestors): void
     {
         $definition = $this->blocks[$block->getName()] ?? null;
         $prefix = sprintf('%s:%d: block %s: ', $file, $block->getLine(), $block->getName());
@@ -97,13 +98,22 @@ final class BlockMarkupValidator
                 $this->errors[] = $prefix . 'invalid JSON in the block comment; WordPress ignores all attributes.';
             }
             foreach ($block->getInnerBlocks() as $inner) {
-                $this->block($file, $section, $inner);
+                $this->block($file, $section, $inner, [...$ancestors, $block->getName()]);
             }
 
             return;
         }
 
         $editor = $definition->getEditor();
+        $args = $definition->getArgs();
+        $parent = is_array($args['parent'] ?? null) ? array_filter($args['parent'], is_string(...)) : null;
+        if ($parent !== null && !in_array($ancestors === [] ? null : $ancestors[array_key_last($ancestors)], $parent, true)) {
+            $this->errors[] = $prefix . sprintf('the block can only be placed directly in %s (parent).', implode(', ', $parent));
+        }
+        $ancestor = is_array($args['ancestor'] ?? null) ? array_filter($args['ancestor'], is_string(...)) : null;
+        if ($ancestor !== null && array_intersect($ancestors, $ancestor) === []) {
+            $this->errors[] = $prefix . sprintf('the block can only be placed inside %s (ancestor).', implode(', ', $ancestor));
+        }
         if ($block->hasPhp()) {
             $this->errors[] = $prefix . 'PHP code in the block comment; the build cannot check attributes computed at run time. Write the attributes as JSON.';
         } elseif ($block->getAttributes() === null) {
@@ -127,7 +137,7 @@ final class BlockMarkupValidator
             foreach ($inner as $child) {
                 if (!in_array($child->getName(), $allowed, true)) {
                     $this->errors[] = sprintf(
-                        '%s:%d: block %s: not in allowedBlocks of %s (%s).',
+                        '%s:%d: block %s: not in #[InnerBlocks(allowed)] of %s (%s).',
                         $file,
                         $child->getLine(),
                         $child->getName(),
@@ -151,20 +161,76 @@ final class BlockMarkupValidator
             }
         }
 
-        foreach ($inner as $child) {
-            $this->block($file, $section, $child);
+        $options = $editor['innerBlockOptions'];
+        $template = $options['template'] ?? null;
+        if (is_array($template) && in_array($options['templateLock'] ?? null, ['all', 'contentOnly'], true)) {
+            $difference = self::templateDifference($inner, $template, $block->getName());
+            if ($difference !== null) {
+                $this->errors[] = $prefix . sprintf(
+                    'the inner blocks differ from the template of the block (%s), which is locked (templateLock %s): the editor replaces them with the template.',
+                    $difference,
+                    $options['templateLock'],
+                );
+            }
         }
+
+        foreach ($inner as $child) {
+            $this->block($file, $section, $child, [...$ancestors, $block->getName()]);
+        }
+    }
+
+    /**
+     * Where the inner blocks differ from a locked template, compared by name like synchronizeBlocksWithTemplate() of
+     * the block editor; null if they match.
+     *
+     * @param list<ParsedBlock> $blocks
+     * @param array<mixed>      $template Template nodes (name, attributes, innerBlocks).
+     */
+    private static function templateDifference(array $blocks, array $template, string $path): ?string
+    {
+        $expected = array_values(array_map(static fn(mixed $node): string => is_array($node) && is_string($node['name'] ?? null) ? $node['name'] : '', $template));
+        $actual = array_map(static fn(ParsedBlock $block): string => $block->getName(), $blocks);
+        if ($expected !== $actual) {
+            return sprintf('%s: expected [%s], found [%s]', $path, implode(', ', $expected), implode(', ', $actual));
+        }
+        foreach ($blocks as $index => $block) {
+            $node = $template[$index] ?? null;
+            $innerTemplate = is_array($node) && is_array($node['innerBlocks'] ?? null) ? $node['innerBlocks'] : [];
+            // A template block without inner blocks leaves the inner blocks of the block alone.
+            if ($innerTemplate === []) {
+                continue;
+            }
+            $difference = self::templateDifference($block->getInnerBlocks(), $innerTemplate, $path . ' > ' . $block->getName());
+            if ($difference !== null) {
+                return $difference;
+            }
+        }
+
+        return null;
     }
 
     private function attribute(string $prefix, BlockDefinition $definition, string $name, mixed $value): void
     {
+        foreach (self::attributeErrors($definition, $name, $value, false) as $error) {
+            $this->errors[] = $prefix . $error;
+        }
+    }
+
+    /**
+     * Checks an attribute value of a block of the instance: attributes of its class, of the block supports it
+     * enables and those the editor adds to every block.
+     *
+     * @param bool $postContent Whether the attribute stored in the post content (#[RichText(postContent: true)]) may
+     *                          be given, as in templates of the editor, which serializes it as HTML.
+     * @return list<string>
+     */
+    public static function attributeErrors(BlockDefinition $definition, string $name, mixed $value, bool $postContent): array
+    {
         $args = $definition->getArgs();
         $supports = is_array($args['supports'] ?? null) ? $args['supports'] : [];
 
-        if ($name === $definition->getEditor()['postContentField']) {
-            $this->errors[] = $prefix . sprintf('attribute "%s" is stored as HTML between the block comments, not in the JSON.', $name);
-
-            return;
+        if ($name === $definition->getEditor()['postContentField'] && !$postContent) {
+            return [sprintf('attribute "%s" is stored as HTML between the block comments, not in the JSON.', $name)];
         }
 
         $schema = $args['attributes'][$name] ?? self::EDITOR_ATTRIBUTES[$name] ?? match (true) {
@@ -177,14 +243,10 @@ final class BlockMarkupValidator
         };
 
         if ($schema === null) {
-            $this->errors[] = $prefix . sprintf('unknown attribute "%s".', $name);
-
-            return;
+            return [sprintf('unknown attribute "%s".', $name)];
         }
 
-        foreach (AttributeValidator::validate($value, $schema, $name) as $error) {
-            $this->errors[] = $prefix . $error;
-        }
+        return AttributeValidator::validate($value, $schema, $name);
     }
 
     /**

@@ -53,11 +53,12 @@ final class BlockCollectorTest extends TestCase
                 'description' => 'A hero.',
                 'keywords' => ['banner'],
                 'supports' => ['html' => false, 'anchor' => true, 'multiple' => false, 'align' => ['wide', 'full']],
+                'example' => ['innerBlocks' => []],
             ],
             $hero,
         );
         self::assertSame(
-            ['api_version' => 3, 'title' => 'Section', 'category' => 'design', 'supports' => ['html' => false, 'contentRole' => true, 'customCSS' => false], 'attributes' => []],
+            ['api_version' => 3, 'title' => 'Section', 'category' => 'design', 'supports' => ['html' => false, 'contentRole' => true, 'customCSS' => false], 'attributes' => [], 'example' => ['innerBlocks' => []]],
             $blocks['fixture/section']->getArgs(),
         );
         self::assertSame(['postId'], $blocks['fixture/post-title']->getArgs()['uses_context'] ?? null);
@@ -168,7 +169,7 @@ final class BlockCollectorTest extends TestCase
             $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\BlockBroken\\';
             $a = "parameter \$%s of {$ns}BrokenAttributes::__construct()";
             $supported = 'use int, float, string, bool, a backed enum, a value class or array with #[ListOf]';
-            $render = 'is not supported: render() accepts the block attribute class, string $content and WP_Block $block, each at most once and not nullable; inject services through the constructor.';
+            $render = 'is not supported: render() accepts the block attribute class, string $content, WP_Block $block, each at most once and not nullable, and values of ancestors marked with #[Context]; inject services through the constructor.';
             $expected = [
                 "parameter \$number of {$ns}BadParameter::render() {$render}",
                 "parameter \$block of {$ns}BadParameter::render() {$render}",

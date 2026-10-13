@@ -16,11 +16,12 @@ const BLOCK_CLASS = 'wp-app-framework-block';
  * @param {Object}           options
  * @param {string}           options.clientId
  * @param {number|undefined} options.postId
+ * @param {Object}           options.context  Context values from renderContext().
  * @param {string}           options.path     Preview route of the instance.
  * @param {boolean}          options.enabled  Whether the preview is on.
  * @return {{html: string|undefined, error: Error|null, loading: boolean}} Preview state.
  */
-export function usePreview( { clientId, postId, path, enabled } ) {
+export function usePreview( { clientId, postId, context, path, enabled } ) {
 	const block = useSelect(
 		( select ) =>
 			enabled ? select( 'core/block-editor' ).getBlock( clientId ) : null,
@@ -44,7 +45,11 @@ export function usePreview( { clientId, postId, path, enabled } ) {
 		apiFetch( {
 			path,
 			method: 'POST',
-			data: { content, ...( postId ? { postId } : {} ) },
+			data: {
+				content,
+				...( postId ? { postId } : {} ),
+				...( Object.keys( context ).length > 0 ? { context } : {} ),
+			},
 			signal: controller.signal,
 		} ).then(
 			( response ) =>
@@ -60,7 +65,7 @@ export function usePreview( { clientId, postId, path, enabled } ) {
 			}
 		);
 		return () => controller.abort();
-	}, [ content, path, postId ] );
+	}, [ content, path, postId, context ] );
 
 	return {
 		html: enabled ? state.html : undefined,

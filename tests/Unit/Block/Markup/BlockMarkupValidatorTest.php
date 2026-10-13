@@ -41,6 +41,7 @@ final class BlockMarkupValidatorTest extends TestCase
                 'patterns/sub/teaser.php' => MarkupKind::Pattern,
                 'templates/index.html' => MarkupKind::Template,
                 'templates/nested/Archive.HTML' => MarkupKind::Template,
+                'templates/slides.html' => MarkupKind::Template,
             ],
             $markup->getFiles(),
         );
@@ -114,8 +115,11 @@ final class BlockMarkupValidatorTest extends TestCase
             'templates/index.html:9: block fixture/divider: unknown attribute "className".',
             'templates/index.html:9: block fixture/divider: unknown attribute "style".',
             'templates/index.html:11: block fixture/paragraph: attribute "text" is stored as HTML between the block comments, not in the JSON.',
-            'templates/index.html:15: block fixture/group: not in allowedBlocks of fixture/section (fixture/card, core/paragraph).',
-            'templates/index.html:17: block core/heading: not in allowedBlocks of fixture/section (fixture/card, core/paragraph).',
+            'templates/index.html:15: block fixture/group: not in #[InnerBlocks(allowed)] of fixture/section (fixture/card, core/paragraph).',
+            'templates/index.html:17: block core/heading: not in #[InnerBlocks(allowed)] of fixture/section (fixture/card, core/paragraph).',
+            'templates/slides.html:1: block fixture/slide: the block can only be placed directly in fixture/slides (parent).',
+            'templates/slides.html:2: block fixture/slide-caption: the block can only be placed inside fixture/slides (ancestor).',
+            'templates/slides.html:3: block fixture/slides: the inner blocks differ from the template of the block (fixture/slides: expected [fixture/slide, fixture/slide], found [fixture/slide]), which is locked (templateLock all): the editor replaces them with the template.',
         ];
 
         try {

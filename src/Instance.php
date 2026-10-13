@@ -243,7 +243,16 @@ final readonly class Instance
         $restRegistrar = new RestRegistrar($container, $values, $debug, $cache);
         $routes = $manifest['routes'];
         $blocks = $manifest['blocks'];
-        $renderController = new RenderController($this->slug, array_column($blocks, 'name'), $renderContext, $debug);
+        $blockCategories = $manifest['blockCategories'];
+        $contexts = [];
+        foreach ($blocks as $block) {
+            foreach ($block['arguments'] as $argument) {
+                if ($argument['kind'] === 'context') {
+                    $contexts[$block['name']][$argument['name']] = $argument['schema'];
+                }
+            }
+        }
+        $renderController = new RenderController($this->slug, array_column($blocks, 'name'), $renderContext, $debug, $contexts);
         add_action('rest_api_init', static function () use ($restRegistrar, $routes, $renderController): void {
             $restRegistrar->register($routes);
             $renderController->register();
@@ -251,8 +260,8 @@ final readonly class Instance
 
         $buildAssets = new BuildAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
         $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug, $this->slug, new ViewAssets($this->slug, $buildAssets), $cache);
-        add_action('init', static function () use ($blockRegistrar, $blocks): void {
-            $blockRegistrar->register($blocks);
+        add_action('init', static function () use ($blockRegistrar, $blocks, $blockCategories): void {
+            $blockRegistrar->register($blocks, $blockCategories);
         });
 
         $this->registerPosts($postStore, $manifest['rewrite'], $prefix);

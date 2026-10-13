@@ -48,7 +48,7 @@ final class Hero
 
 `#[Block]` names the block and describes it for the inserter. `#[Supports]` switches on WordPress features: here an HTML anchor and the wide and full alignments.
 
-`render()` receives what it asks for. `HeroAttributes` is the attribute object, `string $content` the rendered inner blocks, and `WP_Block $block` WordPress' block instance. A block that asks for `$content` can contain inner blocks.
+`render()` receives what it asks for. `HeroAttributes` is the attribute object, `string $content` the rendered inner blocks, and `WP_Block $block` WordPress' block instance. A block that asks for `$content` can contain inner blocks (see [Container blocks](./containers.md)).
 
 ### The attribute class
 
@@ -116,15 +116,15 @@ On the front end `field()`, `inner_blocks()` and `is_editor()` print nothing; th
 
 ## `#[Block]`
 
-`#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [], allowedBlocks: null, excerptWrapper: false)]` goes on a service class.
+`#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [], excerptWrapper: false, parent: null, ancestor: null)]` goes on a service class.
 
 The **name** is the name of the block without namespace, in lowercase letters, digits and `-`, for example `hero`. The framework registers it in the namespace of your theme or plugin (`extra.wp-app-framework.namespace` in `composer.json`, see [Concepts](../concepts.md#consumers-and-instances)): with the namespace `sections`, `hero` becomes `sections/hero`. That full name is what WordPress stores in posts and what you write in templates, patterns and filters. A name with `/` and duplicate names are build errors. The framework itself declares no blocks.
 
-The **category** is a `BlockCategory` case; an enum instead of a string lets your IDE complete it.
+The **category** is a `BlockCategory` case for the categories of WordPress, or a case of an enum of your own (see [Categories](#categories)); an enum instead of a string lets your IDE complete it.
 
-**`usesContext`** lists the context values the block reads from `WP_Block::$context`. The typical case is `postId` in a query loop, where a block shows data of the current post.
+**`usesContext`** lists the context values of other blocks the block reads from `WP_Block::$context`. The typical case is `postId` in a query loop, where a block shows data of the current post. Values of your own containers are read with [`#[Context]`](./containers.md#passing-values-to-inner-blocks) instead.
 
-**`allowedBlocks`** limits which blocks can be inserted as inner blocks (`allowed_blocks` in WordPress). Name your own blocks without namespace (`'hero'`) and other blocks in full (`'core/paragraph'`); an own block that doesn't exist is a build error. It requires `render()` to accept `string $content`.
+**`parent`** and **`ancestor`** limit where the block can be inserted: directly into one of the named blocks, or anywhere inside them (see [Container blocks](./containers.md#restricting-where-a-block-goes)). Which blocks a container accepts, its template and its lock are declared with [`#[InnerBlocks]`](./containers.md#inner-blocks).
 
 **`excerptWrapper`** adds a container to WordPress' `excerpt_allowed_wrapper_blocks` (see [Excerpts](#excerpts)). It also requires `string $content`.
 
@@ -150,7 +150,8 @@ Settings of your own that several blocks share, such as a color scheme, are [blo
 
 - the attribute class,
 - `string` – the rendered inner blocks,
-- `WP_Block` – WordPress' block instance.
+- `WP_Block` – WordPress' block instance,
+- parameters marked with [`#[Context]`](./containers.md#passing-values-to-inner-blocks) – values an enclosing block passes on.
 
 Services come through the constructor. The block service is created when the block renders for the first time, not when WordPress registers it.
 
@@ -239,6 +240,73 @@ WordPress never renders blocks with inner blocks for excerpts, so `excerpt: true
 ### Search
 
 Search is unchanged. WordPress searches the raw post content, and it finds single words of values in the block comment JSON, which stores non-ASCII characters as they are. It does not find phrases across formatting, nor values with `&`, `<`, `>` or `"` (stored as `&` etc.). Attribute names and enum values match, too.
+
+## Categories
+
+The inserter groups blocks by category. WordPress brings six (`BlockCategory`: text, media, design, widgets, theme, embed). A theme with many blocks of its own usually wants its own categories, so editors find them at once.
+
+Declare them as a string backed enum that implements `CustomBlockCategory`. Each case is a category; `label()` is its title in the inserter and `icon()` the name of a [dashicon](https://developer.wordpress.org/resource/dashicons/) shown next to it, or `null`:
+
+```php
+enum Category: string implements CustomBlockCategory
+{
+    case Sections = 'sections';
+    case Teasers = 'teasers';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Sections => 'Sections',
+            self::Teasers => 'Teasers',
+        };
+    }
+
+    public function icon(): ?string
+    {
+        return $this === self::Sections ? 'layout' : null;
+    }
+}
+
+#[Block('hero', title: 'Hero', category: Category::Sections)]
+```
+
+The framework registers every case of each enum a block uses, before the categories of WordPress: enums in the order of their class names, the cases in their order. The slug of a category is `{namespace}-{value}`, here `sections-sections` for the namespace `sections`. The build reports a value other than lowercase letters, digits and `-`, an empty label and an empty icon (return `null` instead).
+
+## Inserter preview
+
+When an editor hovers a block in the inserter, WordPress shows a preview of it. The preview renders the block like the canvas does.
+
+Without further declarations the preview shows the block with its default attributes, and a container with the template of its [`#[InnerBlocks]`](./containers.md#inner-blocks). `#[Example]` sets the values instead:
+
+```php
+#[Block('hero', title: 'Hero', category: Category::Sections)]
+#[Example(attributes: ['headline' => 'Spring sale', 'tone' => Tone::Dark], viewportWidth: 1200)]
+```
+
+`#[Example(attributes: [], innerBlocks: [], viewportWidth: null)]` takes the attribute values (a backed enum stands for its value), the inner blocks as [`TemplateBlock`](./containers.md#referring-to-blocks) and the width in pixels the preview is rendered at (WordPress uses 500). `#[Example(false)]` shows no preview. The build checks the attribute values against the attribute class and reports inner blocks for a block without inner blocks.
+
+## Variations
+
+Some blocks come in a few typical setups: a dark hero, tabs with three tabs. A *variation* offers such a setup in the editor under a title of its own, without a block of its own. The post stores the block with the preset attributes, so the variation is just a starting point.
+
+```php
+#[Block('hero', title: 'Hero', category: Category::Sections)]
+#[Variation('dark', 'Dark hero', attributes: ['tone' => Tone::Dark], isActive: ['tone'])]
+```
+
+`#[Variation]` is repeatable. Its arguments are WordPress' own:
+
+| Argument | Meaning |
+|---|---|
+| `name` | unique within the block; lowercase letters, digits and `-` |
+| `title`, `description`, `icon`, `keywords` | how the inserter shows the variation |
+| `attributes` | preset attribute values; a backed enum stands for its value |
+| `innerBlocks` | preset inner blocks as `TemplateBlock`, for containers |
+| `scope` | where the editor offers it: `VariationScope::Inserter` (an item of its own), `VariationScope::Block` (the placeholder, like the layouts of `core/columns`), `VariationScope::Transform` (a switch in the toolbar); default inserter and block |
+| `isDefault` | replaces the block itself in the inserter |
+| `isActive` | the attributes by which the editor recognizes the variation of a block, to show its title and icon in the block card and the list view; each must be preset in `attributes` |
+
+The build checks the attribute values against the attribute class and the inner blocks against the container, and reports invalid or duplicate names and an empty title.
 
 ## Attributes at render time
 

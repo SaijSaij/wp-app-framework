@@ -4,6 +4,19 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.10
+
+**Inner blocks are declared with `#[InnerBlocks]`.** Before 0.10, `#[Block]` had one argument for containers, `allowedBlocks`, with block names as strings. 0.10 adds templates, locks and more for containers (see [Container blocks](../guides/containers.md)); they live in an attribute of their own, `#[InnerBlocks]`, and `allowedBlocks` moved there as `allowed`. Blocks are named so that your IDE can resolve them: blocks of your own by class, core blocks by `CoreBlock`.
+
+| Before | Since 0.10 |
+|---|---|
+| `#[Block('section', …, allowedBlocks: ['hero', 'core/paragraph'])]` | `#[Block('section', …)]` and `#[InnerBlocks(allowed: [Hero::class, CoreBlock::Paragraph])]` |
+| `usesContext: ['sections/…']` for context of your own blocks | `#[ProvidesContext]` on the attribute and a `render()` parameter with `#[Context(Block::class, 'attribute')]` |
+
+`allowedBlocks` is removed without alias, so PHP reports the unknown argument. The build reports a block name in your own namespace (name the block by class) and a core block named as string. Other blocks stay strings with their full name.
+
+**Every block has an inserter preview.** Without `#[Example]` the inserter now previews a block with its default attributes. Add `#[Example(false)]` to a block that should show none.
+
 ## 0.9
 
 **Each theme and plugin declares a namespace.** Before 0.9, block names carried their namespace in `#[Block]` (`sections/hero`), REST controllers named their full REST namespace (`sections/v1`), and settings options were named after the slug, the directory name of the theme or plugin. The directory name changes when a theme is installed under another name, and its settings would be lost with it. Since 0.9 the namespace in `composer.json` names everything content and data refer to (see [Concepts](../concepts.md#consumers-and-instances)).

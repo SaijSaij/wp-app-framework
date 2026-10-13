@@ -23,6 +23,7 @@ use Saij\WpAppFramework\Twig\TemplateCallableDefinition;
  * @phpstan-import-type PostClassEntry from \Saij\WpAppFramework\Post\PostTypeCollector
  * @phpstan-import-type TaxonomyEntry from \Saij\WpAppFramework\Post\PostTypeCollector
  * @phpstan-import-type MetaEntry from \Saij\WpAppFramework\Post\PostTypeCollector
+ * @phpstan-import-type BlockCategoryEntry from \Saij\WpAppFramework\Manifest\Manifest
  * @phpstan-type PostData array{
  *     posts: array<class-string<\Saij\WpAppFramework\Post\AbstractPost>, PostClassEntry>,
  *     taxonomies: array<class-string, TaxonomyEntry>,
@@ -61,6 +62,7 @@ final readonly class BuildResult
      *                                                                         null for plugins.
      * @param PostData                                          $posts        Post classes, taxonomies, meta classes and the hash of
      *                                                                         the rewrite-relevant declarations.
+     * @param list<BlockCategoryEntry>                          $blockCategories Custom block categories, in registration order.
      */
     public function __construct(
         private array $sources,
@@ -85,7 +87,16 @@ final readonly class BuildResult
         private ?string $settingsTitle = null,
         private ?MarkupFiles $markup = null,
         private array $posts = ['posts' => [], 'taxonomies' => [], 'meta' => [], 'rewrite' => null],
+        private array $blockCategories = [],
     ) {}
+
+    /**
+     * @return list<BlockCategoryEntry>
+     */
+    public function getBlockCategories(): array
+    {
+        return $this->blockCategories;
+    }
 
     /**
      * @return PostData

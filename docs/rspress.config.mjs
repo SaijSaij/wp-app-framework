@@ -58,6 +58,10 @@ export default defineConfig( {
 						{ text: 'REST routes', link: '/guides/rest' },
 						{ text: 'Twig templates', link: '/guides/twig' },
 						{ text: 'Blocks', link: '/guides/blocks' },
+						{
+							text: 'Container blocks',
+							link: '/guides/containers',
+						},
 						{ text: 'Block supports', link: '/guides/supports' },
 						{ text: 'Editor', link: '/guides/editor' },
 						{

@@ -36,11 +36,11 @@ function fieldProps( node ) {
 	return { ...props, className: classNames( props.className, FIELD_CLASS ) };
 }
 
-function InnerBlocksElement( { tagName: Tag, props } ) {
-	return <Tag { ...useInnerBlocksProps( props ) } />;
+function InnerBlocksElement( { tagName: Tag, props, options } ) {
+	return <Tag { ...useInnerBlocksProps( props, options ) } />;
 }
 
-function createOptions( fields ) {
+function createOptions( fields, innerBlocksOptions ) {
 	const options = {
 		replace( node ) {
 			if ( ! isElement( node ) ) {
@@ -52,6 +52,7 @@ function createOptions( fields ) {
 						<InnerBlocksElement
 							tagName={ node.name }
 							props={ elementProps( node ) }
+							options={ innerBlocksOptions }
 						/>
 					</FieldBoundary>
 				);
@@ -98,11 +99,15 @@ function rootProps( node, extraProps ) {
 	};
 }
 
-function RootElement( { node, fields, extraProps } ) {
+function RootElement( { node, fields, extraProps, innerBlocksOptions } ) {
 	const Tag = node.name;
 	const children = useMemo(
-		() => domToReact( node.children, createOptions( fields ) ),
-		[ node, fields ]
+		() =>
+			domToReact(
+				node.children,
+				createOptions( fields, innerBlocksOptions )
+			),
+		[ node, fields, innerBlocksOptions ]
 	);
 	return (
 		<Tag { ...useBlockProps( rootProps( node, extraProps ) ) }>
@@ -140,12 +145,13 @@ function RootTextElement( { node, fields, extraProps } ) {
 	);
 }
 
-function RootInnerBlocksElement( { node, extraProps } ) {
+function RootInnerBlocksElement( { node, extraProps, innerBlocksOptions } ) {
 	const Tag = node.name;
 	return (
 		<Tag
 			{ ...useInnerBlocksProps(
-				useBlockProps( rootProps( node, extraProps ) )
+				useBlockProps( rootProps( node, extraProps ) ),
+				innerBlocksOptions
 			) }
 		/>
 	);
@@ -156,11 +162,17 @@ function RootInnerBlocksElement( { node, extraProps } ) {
  * descendants are replaced by inline editors, a marked root element by a text field.
  *
  * @param {Object} props
- * @param {Object} props.node       Root node from analyzeMarkup().
- * @param {Object} props.fields     Inline fields by pattern.
- * @param {Object} props.extraProps Additional props of the root element (loading state).
+ * @param {Object} props.node               Root node from analyzeMarkup().
+ * @param {Object} props.fields             Inline fields by pattern.
+ * @param {Object} props.extraProps         Additional props of the root element (loading state).
+ * @param {Object} props.innerBlocksOptions Options of useInnerBlocksProps() (#[InnerBlocks]).
  */
-export function BlockMarkup( { node, fields, extraProps } ) {
+export function BlockMarkup( {
+	node,
+	fields,
+	extraProps,
+	innerBlocksOptions,
+} ) {
 	if ( FIELD in node.attribs ) {
 		return (
 			<RootTextElement
@@ -171,12 +183,17 @@ export function BlockMarkup( { node, fields, extraProps } ) {
 		);
 	}
 	return INNER_BLOCKS in node.attribs ? (
-		<RootInnerBlocksElement node={ node } extraProps={ extraProps } />
+		<RootInnerBlocksElement
+			node={ node }
+			extraProps={ extraProps }
+			innerBlocksOptions={ innerBlocksOptions }
+		/>
 	) : (
 		<RootElement
 			node={ node }
 			fields={ fields }
 			extraProps={ extraProps }
+			innerBlocksOptions={ innerBlocksOptions }
 		/>
 	);
 }

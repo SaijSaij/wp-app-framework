@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Editor;
 use Closure;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Throwable;
+use WP_Block;
 use WP_Block_Type_Registry;
 use WP_Error;
 use WP_Post;
@@ -15,7 +16,7 @@ use WP_REST_Response;
 
 /**
  * Batch render route of one framework instance for the block editor:
- * POST /wp-app-framework/v1/{slug}/render with `{blocks: [{name, attributes, postId?}]}`.
+ * POST /wp-app-framework/v1/{slug}/render with `{blocks: [{name, attributes, postId?, context?}]}`.
  *
  * Renders like WordPress' block renderer (render_block() with empty inner
  * blocks, so block supports apply), but many blocks per request and with the
@@ -28,9 +29,15 @@ use WP_REST_Response;
  * front end (without the editor flag, inner blocks included) and answers
  * `{html}`.
  *
+ * Both routes take the block context the editor provides (`context`): only
+ * names the block uses (`usesContext`); values of blocks of this instance are
+ * validated and sanitized against the schema of the providing attribute,
+ * values of other blocks are passed as they are. They are added to the
+ * context of the rendered block (`render_block_context`) while it renders.
+ *
  * @internal
  *
- * @phpstan-type RenderEntry array{name: string, attributes?: array<string, mixed>, postId?: int}
+ * @phpstan-type RenderEntry array{name: string, attributes?: array<string, mixed>, postId?: int, context?: array<string, mixed>}
  */
 #[NoService]
 final readonly class RenderController
@@ -41,14 +48,17 @@ final readonly class RenderController
     public const int MAX_BLOCKS = 100;
 
     /**
-     * @param string       $slug   Slug of the framework instance (the theme's template).
-     * @param list<string> $blocks Names of the blocks of this instance; the route renders only these.
+     * @param string       $slug     Slug of the framework instance (the theme's template).
+     * @param list<string> $blocks   Names of the blocks of this instance; the route renders only these.
+     * @param array<string, array<string, array<string, mixed>>> $contexts Schemas of the context values the blocks of
+     *                                                                   this instance provide, by block and context name.
      */
     public function __construct(
         private string $slug,
         private array $blocks,
         private RenderContext $context,
         private bool $debug,
+        private array $contexts = [],
     ) {}
 
     /**
@@ -76,6 +86,7 @@ final readonly class RenderController
             'args' => [
                 'content' => ['type' => 'string', 'required' => true],
                 'postId' => ['type' => 'integer', 'minimum' => 1],
+                'context' => ['type' => 'object', 'default' => []],
             ],
         ]);
         register_rest_route(self::NAMESPACE, self::route($this->slug), [
@@ -93,6 +104,7 @@ final readonly class RenderController
                             'name' => ['type' => 'string', 'required' => true],
                             'attributes' => ['type' => 'object', 'default' => []],
                             'postId' => ['type' => 'integer', 'minimum' => 1],
+                            'context' => ['type' => 'object', 'default' => []],
                         ],
                         'additionalProperties' => false,
                     ],
@@ -130,10 +142,18 @@ final readonly class RenderController
         if (isset($post['error'])) {
             return new WP_Error($post['error']['code'], $post['error']['message'], ['status' => $post['error']['code'] === 'wp_app_framework_forbidden' ? 403 : 404]);
         }
+        /** @var array<string, mixed>|null $values Validated by WordPress against the route schema; null without its default. */
+        $values = $request->get_param('context');
+        $context = $this->contextValues((string) $block['blockName'], $values ?? []);
+        if (isset($context['error'])) {
+            return new WP_Error($context['error']['code'], $context['error']['message'], ['status' => 400]);
+        }
 
         try {
             // Rendered like the front end, but never from or into the cache: the preview shows the current attributes.
-            return new WP_REST_Response(['html' => self::withPost($post['post'], fn(): string => $this->context->renderForPreview(static fn(): string => render_block($block)))]);
+            return new WP_REST_Response(['html' => self::withPost($post['post'], fn(): string => $this->context->renderForPreview(
+                static fn(): string => self::withContext($context['values'], static fn(): string => render_block($block)),
+            ))]);
         } catch (Throwable $exception) {
             $error = $this->renderError((string) $block['blockName'], $exception, 'preview');
 
@@ -236,6 +256,10 @@ final readonly class RenderController
         if (isset($post['error'])) {
             return $post;
         }
+        $context = $this->contextValues($name, $entry['context'] ?? []);
+        if (isset($context['error'])) {
+            return $context;
+        }
 
         $schema = ['type' => 'object', 'properties' => $blockType->get_attributes(), 'additionalProperties' => false];
         $valid = rest_validate_value_from_schema($attributes, $schema, 'attributes');
@@ -256,15 +280,66 @@ final readonly class RenderController
         }
 
         try {
-            return ['html' => self::withPost($post['post'], fn(): string => $this->context->renderForEditor(static fn(): string => render_block([
+            return ['html' => self::withPost($post['post'], fn(): string => $this->context->renderForEditor(static fn(): string => self::withContext($context['values'], static fn(): string => render_block([
                 'blockName' => $name,
                 'attrs' => $attributes,
                 'innerBlocks' => [],
                 'innerHTML' => $innerHtml,
                 'innerContent' => $innerHtml === '' ? [] : [$innerHtml],
-            ])))];
+            ]))))];
         } catch (Throwable $exception) {
             return $this->renderError($name, $exception, 'render');
+        }
+    }
+
+    /**
+     * Checks the context the editor sent for a block: only names the block uses, values of this instance against
+     * the schema of the providing attribute.
+     *
+     * @param array<string, mixed> $context
+     * @return array{values: array<string, mixed>}|array{error: array{code: string, message: string}}
+     */
+    private function contextValues(string $name, array $context): array
+    {
+        $uses = WP_Block_Type_Registry::get_instance()->get_registered($name)?->get_uses_context() ?? [];
+        $values = [];
+        foreach ($context as $key => $value) {
+            $key = (string) $key;
+            if (!in_array($key, $uses, true)) {
+                return self::error('wp_app_framework_invalid_context', sprintf('Block %s does not use the context "%s".', $name, $key));
+            }
+            $schema = $this->contexts[$name][$key] ?? null;
+            if ($schema !== null) {
+                $valid = rest_validate_value_from_schema($value, $schema, $key);
+                if ($valid instanceof WP_Error) {
+                    return self::error('wp_app_framework_invalid_context', $valid->get_error_message());
+                }
+                $value = rest_sanitize_value_from_schema($value, $schema, $key);
+            }
+            $values[$key] = $value;
+        }
+
+        return ['values' => $values];
+    }
+
+    /**
+     * Renders with additional context values for the rendered block (not for blocks nested in it, which receive
+     * them through their ancestors).
+     *
+     * @param array<string, mixed> $values
+     * @param Closure(): string    $render
+     */
+    private static function withContext(array $values, Closure $render): string
+    {
+        if ($values === []) {
+            return $render();
+        }
+        $filter = static fn(array $context, array $parsedBlock, ?WP_Block $parent = null): array => $parent === null ? [...$context, ...$values] : $context;
+        add_filter('render_block_context', $filter, 10, 3);
+        try {
+            return $render();
+        } finally {
+            remove_filter('render_block_context', $filter, 10);
         }
     }
 

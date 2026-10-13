@@ -70,11 +70,13 @@ In the canvas, the fields edited there are outlined while their block is hovered
 
 All blocks of an instance render through its batch route, `POST /wp-app-framework/v1/{slug}/render`. It requires `edit_posts`, and `edit_post` for a block's `postId`. The route renders like WordPress' own block renderer: with `render_block()`, with empty inner blocks and with the value of a `postContent` field as inner HTML, and the block supports apply. Each block gets its own result, so one failing block shows an error while the others render.
 
+Unlike WordPress' block renderer, the route also renders with the block context of the editor: the values the block reads from enclosing blocks, such as the active tab of [tabs](./containers.md#passing-values-to-inner-blocks). The runtime sends the values the block uses, except `postId` and `postType`, which the route derives from the post. The route accepts only names the block uses. It validates values of your own blocks against the attribute that provides them; values of other blocks, such as `queryId` of a query loop, are passed as they are.
+
 The runtime keeps requests few and the editor calm:
 
 - **Batching.** Requests of the same moment are sent together, including the framework blocks inside a container. Opening a page with many blocks takes one request per 100 blocks.
 - **No re-render while typing.** Text values edited in the canvas are blanked in the request, so typing in the canvas never re-renders the block. Every other change does: images, enums, list items and fields with `inspector: true`, applied after a short pause.
-- **Cache.** Results are cached for the editor session by block name, attributes and post. Undo, redo and duplicated blocks need no request.
+- **Cache.** Results are cached for the editor session by block name, attributes, post and context. Undo, redo and duplicated blocks need no request.
 - **No jumps.** While new markup loads, the old markup stays in place, dimmed.
 
 ## Inspector

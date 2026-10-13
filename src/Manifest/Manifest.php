@@ -49,6 +49,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     void: bool,
  *     cache: CacheEntry|null
  * }
+ * @phpstan-type BlockCategoryEntry array{slug: string, title: string, icon: string|null}
  * @phpstan-type BlockEntry array{
  *     name: string,
  *     args: BlockArgs,
@@ -72,6 +73,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     routes: list<RouteEntry>,
  *     templateCallables: list<TemplateCallableEntry>,
  *     blocks: list<BlockEntry>,
+ *     blockCategories: list<BlockCategoryEntry>,
  *     values: array<class-string, array<string, ValueField>>,
  *     publicApis: list<class-string>,
  *     templateProviders: array<non-empty-string, non-empty-string>,
@@ -88,7 +90,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 18;
+    public const int FORMAT = 19;
 
     /**
      * @return ManifestData
