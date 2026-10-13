@@ -30,7 +30,7 @@ When the editor renders a block, the template functions `field()` and `inner_blo
 {% endfor %}
 ```
 
-The path names a `#[PlainText]`, `#[RichText]` or `#[Image]` field of the block: a name, a dotted path into a value class, or a list with indexes for list items. Anything else throws an exception, in the editor and on the front end, so a typo never goes unnoticed.
+The path names a `#[PlainText]`, `#[RichText]` or `#[Image]` field of the block: a name, a dotted path into a value class, or a list with indexes for list items. Anything else throws an exception when the block renders in the editor, so a typo shows up as soon as you insert the block. On the front end `field()` returns an empty string at once and checks nothing, so it costs nothing there.
 
 Text fields become WordPress' `RichText` with the element's tag. An image field keeps the server markup and adds buttons to select, replace and reset the image. Put `field()` on an element around the image, such as a `<figure>`, not on the `<img>` itself.
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Unit\Editor;
 
+use Closure;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -215,15 +216,19 @@ final class RenderControllerTest extends TestCase
 
     public function testPreviewErrorsAreLogged(): void
     {
-        $error = $this->preview([self::parsed('fixture/wrong-field')]);
+        // The preview renders like the front end, where field() checks no path.
+        self::assertInstanceOf(\WP_REST_Response::class, $this->preview([self::parsed('fixture/wrong-field')]));
+        self::unregisterBlockTypes();
+
+        $error = $this->preview([self::parsed('fixture/teaser', ['ctas' => 'none'])]);
 
         self::assertInstanceOf(\WP_Error::class, $error);
         self::assertSame('wp_app_framework_render_failed', $error->get_error_code());
-        self::assertSame('field() in block fixture/wrong-field: "missing" is not an inline field of the block (it has none).', $error->get_error_message());
+        self::assertStringContainsString('ctas', $error->get_error_message());
         $data = $error->get_error_data();
         self::assertIsArray($data);
         self::assertSame(500, $data['status'] ?? null);
-        self::assertStringContainsString('editor preview of block fixture/wrong-field failed', (string) file_get_contents($this->log));
+        self::assertStringContainsString('editor preview of block fixture/teaser failed', (string) file_get_contents($this->log));
     }
 
     public function testTemplateFunctionsCheckTheCurrentBlock(): void
@@ -235,6 +240,11 @@ final class RenderControllerTest extends TestCase
             fn(): string => $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field(['ctas', 3, 'label'])),
         ));
         self::assertSame('', $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field('caption.text')));
+        // Outside of the editor field() returns '' without checking the path.
+        self::assertSame('', $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field('missing')));
+        self::assertSame('', $functions->field('kicker'));
+        /** @param Closure(): string $render */
+        $editor = fn(Closure $render): string => $this->context->renderForEditor(fn(): string => $this->context->renderBlock('fixture/teaser', $teaserFields, false, $render));
 
         try {
             $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->innerBlocks());
@@ -244,21 +254,21 @@ final class RenderControllerTest extends TestCase
         }
 
         try {
-            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field('ctas.*.label'));
+            $editor(static fn(): string => $functions->field('ctas.*.label'));
             self::fail('Expected an exception.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame("field() in block fixture/teaser: path segments must be attribute names or list indexes, '*' given.", $exception->getMessage());
         }
 
         try {
-            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field('ctas.0'));
+            $editor(static fn(): string => $functions->field('ctas.0'));
             self::fail('Expected an exception.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame('field() in block fixture/teaser: "ctas.0" is not an inline field of the block (inline fields: kicker, title, imageId, ctas.*.label, ctas.*.iconId, caption.text, note).', $exception->getMessage());
         }
 
         try {
-            $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->field(['ctas', 1, 'iconId']));
+            $editor(static fn(): string => $functions->field(['ctas', 1, 'iconId']));
             self::fail('Expected an exception.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame('field() in block fixture/teaser: "ctas.1.iconId" is edited in the inspector (inspector: true); do not mark it with field().', $exception->getMessage());
@@ -266,7 +276,7 @@ final class RenderControllerTest extends TestCase
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('field() is only available in templates of blocks rendered by the framework.');
-        $functions->field('kicker');
+        $this->context->renderForEditor(static fn(): string => $functions->field('kicker'));
     }
 
     /**

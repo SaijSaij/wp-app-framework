@@ -19,15 +19,20 @@ final readonly class EditorTemplateFunctions
     /**
      * Marks the element of an inline field (#[PlainText], #[RichText], #[Image]):
      * `<h1{{ field('headline') }}>` or, in a list, `field(['buttons', loop.index0, 'label'])`.
-     * The path must name an inline field of the rendered block that is edited
+     * Outside of renders for the block editor it returns '' at once, without
+     * looking at the path, so it costs nothing on the front end. In the editor
+     * the path must name an inline field of the rendered block that is edited
      * in the canvas (not with inspector: true); otherwise an exception is
-     * thrown, in the editor and on the front end alike.
+     * thrown.
      *
      * @param string|list<string|int> $path
      */
     #[TemplateFunction('field', html: true)]
     public function field(string|array $path): string
     {
+        if (!$this->context->isEditor()) {
+            return '';
+        }
         $block = $this->context->getBlock('field()');
         $segments = is_string($path) ? explode('.', $path) : $path;
         if ($segments === [] || !array_is_list($segments)) {
@@ -63,7 +68,7 @@ final readonly class EditorTemplateFunctions
             ));
         }
 
-        return $this->context->isEditor() ? sprintf(' data-field="%s"', esc_attr($name)) : '';
+        return sprintf(' data-field="%s"', esc_attr($name));
     }
 
     /**

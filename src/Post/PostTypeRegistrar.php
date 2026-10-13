@@ -18,6 +18,12 @@ use Saij\WpAppFramework\Value\HtmlFilter;
  * the theme and activating the plugin delete the option: another theme or
  * plugin may have flushed the rules in between without these post types.
  *
+ * The check costs no database query: the option is autoloaded, and without
+ * rewrite-relevant declarations only the autoloaded options are looked at –
+ * get_option() would query the database for a missing option on every request
+ * without a persistent object cache. The option exists then only if the
+ * declarations were removed; one flush removes their rules.
+ *
  * @internal
  */
 #[NoService]
@@ -72,6 +78,9 @@ final readonly class PostTypeRegistrar
      */
     public function flushRewriteRules(): void
     {
+        if ($this->rewrite === null && !array_key_exists($this->option, wp_load_alloptions())) {
+            return;
+        }
         $stored = get_option($this->option);
         if (($stored === false ? null : $stored) === $this->rewrite) {
             return;

@@ -15,6 +15,8 @@ The documentation is published for each minor version. The version switcher in t
 
 `allowedBlocks` is removed without alias, so PHP reports the unknown argument. The build reports a block name in your own namespace (name the block by class) and a core block named as string. Other blocks stay strings with their full name.
 
+**`field()` checks its path only in the editor.** Before 0.10, a wrong path also threw on the front end. Since 0.10 `field()` returns an empty string outside the editor without looking at the path, so it costs nothing on the front end. A wrong path still fails when the block renders in the editor.
+
 **Every block has an inserter preview.** Without `#[Example]` the inserter now previews a block with its default attributes. Add `#[Example(false)]` to a block that should show none.
 
 ## 0.9

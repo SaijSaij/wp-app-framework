@@ -634,13 +634,18 @@ function register_setting(string $option_group, string $option_name, array $args
 }
 
 /**
- * Options from $GLOBALS['wp_app_framework_test_options'].
+ * Options from $GLOBALS['wp_app_framework_test_options']. Reading a missing option, which WordPress answers with a
+ * database query without a persistent object cache, is recorded in $GLOBALS['wp_app_framework_test_option_misses'].
  */
 function get_option(string $option, mixed $default_value = false): mixed
 {
-    return array_key_exists($option, $GLOBALS['wp_app_framework_test_options'] ?? [])
-        ? $GLOBALS['wp_app_framework_test_options'][$option]
-        : $default_value;
+    if (!array_key_exists($option, $GLOBALS['wp_app_framework_test_options'] ?? [])) {
+        $GLOBALS['wp_app_framework_test_option_misses'][] = $option;
+
+        return $default_value;
+    }
+
+    return $GLOBALS['wp_app_framework_test_options'][$option];
 }
 
 /**
@@ -1270,12 +1275,26 @@ function flush_rewrite_rules(bool $hard = true): void
     $GLOBALS['wp_app_framework_test_flushes'] = ($GLOBALS['wp_app_framework_test_flushes'] ?? 0) + 1;
 }
 
+/**
+ * Like WordPress: the options that are not stored with autoload off ($GLOBALS['wp_app_framework_test_autoload']).
+ *
+ * @return array<string, mixed>
+ */
+function wp_load_alloptions(bool $force_cache = false): array
+{
+    return array_filter(
+        $GLOBALS['wp_app_framework_test_options'] ?? [],
+        static fn(string $option): bool => !in_array($GLOBALS['wp_app_framework_test_autoload'][$option] ?? null, [false, 'off', 'no'], true),
+        ARRAY_FILTER_USE_KEY,
+    );
+}
+
 function delete_option(string $option): bool
 {
     if (!array_key_exists($option, $GLOBALS['wp_app_framework_test_options'] ?? [])) {
         return false;
     }
-    unset($GLOBALS['wp_app_framework_test_options'][$option]);
+    unset($GLOBALS['wp_app_framework_test_options'][$option], $GLOBALS['wp_app_framework_test_autoload'][$option]);
     do_action('delete_option_' . $option, $option);
 
     return true;

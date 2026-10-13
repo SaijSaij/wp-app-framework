@@ -179,7 +179,7 @@ Scalar meta fields also work with the post meta source of block bindings in temp
 
 ## Rewrite rules
 
-WordPress builds the URLs of post types and taxonomies only when its rewrite rules are flushed; usually you would visit the permalink settings after adding a post type. The framework does it for you: it keeps a hash of the declarations that affect URLs and flushes the rules when it changes. It also flushes after the theme was switched to and after the plugin was activated, since another theme or plugin may have flushed the rules without your post types in between. After a theme switch or deactivation, the old rules stay until the next flush; their URLs answer with "not found".
+WordPress builds the URLs of post types and taxonomies only when its rewrite rules are flushed; usually you would visit the permalink settings after adding a post type. The framework does it for you: it keeps a hash of the declarations that affect URLs and flushes the rules when it changes. It also flushes after the theme was switched to and after the plugin was activated, since another theme or plugin may have flushed the rules without your post types in between. The check costs no database query: the hash is stored in an autoloaded option, and a theme or plugin without post types and taxonomies only looks whether such an option is left over from earlier declarations. After a theme switch or deactivation, the old rules stay until the next flush; their URLs answer with "not found".
 
 ## Rules
 

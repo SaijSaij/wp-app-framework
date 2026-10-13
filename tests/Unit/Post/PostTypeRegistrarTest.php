@@ -17,6 +17,7 @@ final class PostTypeRegistrarTest extends TestCase
     protected function tearDown(): void
     {
         Posts::reset();
+        unset($GLOBALS['wp_app_framework_test_option_misses'], $GLOBALS['wp_app_framework_test_autoload']);
     }
 
     public function testRegistersPostTypesTaxonomiesAndOneMetaKeyPerField(): void
@@ -64,6 +65,7 @@ final class PostTypeRegistrarTest extends TestCase
         $registrar->flushRewriteRules();
         self::assertSame(1, $GLOBALS['wp_app_framework_test_flushes'] ?? 0);
         self::assertSame('hash-1', get_option('my_theme_rewrite'));
+        self::assertArrayHasKey('my_theme_rewrite', wp_load_alloptions(), 'The hash is autoloaded, so reading it costs no query.');
 
         new PostTypeRegistrar($store, 'my_theme_rewrite', 'hash-2')->flushRewriteRules();
         self::assertSame(2, $GLOBALS['wp_app_framework_test_flushes']);
@@ -78,5 +80,20 @@ final class PostTypeRegistrarTest extends TestCase
         new PostTypeRegistrar($store, 'my_theme_rewrite', null)->flushRewriteRules();
         self::assertSame(4, $GLOBALS['wp_app_framework_test_flushes']);
         self::assertFalse(get_option('my_theme_rewrite'));
+    }
+
+    public function testWithoutDeclarationsOnlyTheAutoloadedOptionsAreChecked(): void
+    {
+        [$store] = Posts::store();
+
+        // get_option() would query the database for the missing option on every request.
+        new PostTypeRegistrar($store, 'my_theme_rewrite', null)->flushRewriteRules();
+        self::assertSame(0, $GLOBALS['wp_app_framework_test_flushes'] ?? 0);
+        self::assertSame([], $GLOBALS['wp_app_framework_test_option_misses'] ?? [], 'No missing option was read.');
+
+        // A hash that is not autoloaded is not looked at either.
+        add_option('my_theme_rewrite', 'hash-1', '', false);
+        new PostTypeRegistrar($store, 'my_theme_rewrite', null)->flushRewriteRules();
+        self::assertSame(0, $GLOBALS['wp_app_framework_test_flushes'] ?? 0);
     }
 }
