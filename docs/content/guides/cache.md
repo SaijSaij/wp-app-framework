@@ -84,7 +84,11 @@ public function stats(int $limit = 10): array
 
 The arguments of the request are part of the key: `?limit=5` and `?limit=20` get entries of their own. The permission check runs on every request, also when the response comes from the cache. Errors – a `RestException` or any other exception – are answered as usual and never stored.
 
-A cached route answers only `GET`, returns plain data and does not take the `WP_REST_Request`: everything it depends on must be an argument or a variant.
+A route may return a `WP_REST_Response` as well. The cache keeps its data, status and headers, but only for a status below 400: a deliberate 404 is answered every time, like an error.
+
+A route may also take the `WP_REST_Request`. Only the arguments of the method are part of the key, though: whatever the route reads from the request beyond them – a header, a parameter it does not declare – must be declared as a variant, such as `new HeaderVary('Accept-Language')`.
+
+A cached route answers only `GET`.
 
 ## Data of your own
 
@@ -187,11 +191,11 @@ Build errors:
 
 - `#[Cache]` on a class without `#[Block]` or on a method without `#[RestRoute]`.
 - A ttl below 1, an invalid tag or variant, a tag or variant listed twice.
-- A cached route that answers another method than `GET`, takes the `WP_REST_Request`, or declares a return type other than `array`, `string`, `int`, `float`, `bool`, `null` or a union of them (`void`, objects and `mixed` are errors).
+- A cached route that answers another method than `GET`, or declares a return type other than `array`, `string`, `int`, `float`, `bool`, `null`, `WP_REST_Response` or a union of them (`void`, other objects and `mixed` are errors).
 
 At run time:
 
-- `CacheStore::remember(string $key, Closure $compute, int $ttl, array $tags = [], array $vary = [])` checks its arguments like the build; an empty key, an invalid ttl, tag or variant throws an `InvalidArgumentException`. A value that is not plain data throws a `LogicException`; so does a cached REST response with objects.
+- `CacheStore::remember(string $key, Closure $compute, int $ttl, array $tags = [], array $vary = [])` checks its arguments like the build; an empty key, an invalid ttl, tag or variant throws an `InvalidArgumentException`. A value that is not plain data throws a `LogicException`. A cached REST route whose data or headers are not plain data answers with status 500, like any other exception.
 - `CacheStore::invalidate(CacheTag ...$tags)` invalidates the tags of this theme or plugin.
 - The filter `wp_app_framework/cache/backends/{slug}` returns a list of `'object'`, `'file'` and `'transient'`; another value throws a `LogicException`.
-- Blocks are never cached in renders for the block editor, its preview or excerpts. Errors are never cached.
+- Blocks are never cached in renders for the block editor, its preview or excerpts. Errors and REST responses with a status of 400 or more are never cached.

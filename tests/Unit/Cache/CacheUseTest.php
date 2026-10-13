@@ -29,6 +29,7 @@ use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\View\ViewAssets;
 use WP_Block;
 use WP_Error;
+use WP_REST_Response;
 use WP_User;
 
 /**
@@ -262,9 +263,29 @@ final class CacheUseTest extends TestCase
         }
     }
 
+    public function testACachedRouteKeepsStatusAndHeadersOfAResponseBelow400(): void
+    {
+        $routes = array_column($this->manifest['routes'], null, 'method');
+        $registrar = new RestRegistrar(new Container($this->manifest['services']), new ValueFactory($this->manifest['values']), false, $this->cache);
+
+        $first = self::respond($registrar, $routes['detail']);
+        $hit = self::respond($registrar, $routes['detail']);
+        self::assertInstanceOf(WP_REST_Response::class, $hit);
+        self::assertSame([['id' => 1, 'count' => 1, 'method' => 'GET'], 203, ['X-Count' => '1']], [$hit->get_data(), $hit->get_status(), $hit->get_headers()]);
+        self::assertInstanceOf(WP_REST_Response::class, $first);
+        self::assertSame($first->get_data(), $hit->get_data());
+
+        $missing = self::respond($registrar, $routes['detail'], ['id' => 0]);
+        self::assertInstanceOf(WP_REST_Response::class, $missing);
+        self::assertSame([404, ['X-Count' => '2']], [$missing->get_status(), $missing->get_headers()]);
+        $again = self::respond($registrar, $routes['detail'], ['id' => 0]);
+        self::assertInstanceOf(WP_REST_Response::class, $again);
+        self::assertSame(['X-Count' => '3'], $again->get_headers(), 'A response with status 404 is not stored.');
+    }
+
     public function testACachedRouteRespondsOncePerArgumentsAndVariant(): void
     {
-        $route = $this->manifest['routes'][0];
+        $route = array_column($this->manifest['routes'], null, 'method')['index'];
         $registrar = new RestRegistrar(new Container($this->manifest['services']), new ValueFactory($this->manifest['values']), false, $this->cache);
 
         self::assertSame(['limit' => 5, 'count' => 1], self::respond($registrar, $route));

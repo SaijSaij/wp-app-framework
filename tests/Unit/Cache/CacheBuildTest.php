@@ -68,9 +68,7 @@ final class CacheBuildTest extends TestCase
         $routes = '#[Cache] on ' . CacheBroken\BrokenRoutes::class . '::';
         $expected = [
             $routes . 'write(): a cached route must answer only GET; other methods change data.',
-            $routes . 'response(): a cached route must return plain data (array, string, int, float, bool or null), WP_REST_Response given.',
-            $routes . 'none(): a cached route must return plain data (array, string, int, float, bool or null), void given.',
-            $routes . "request(): a cached route must not take the WP_REST_Request (\$request); the cache key holds only the arguments of the route, add variants such as new HeaderVary('…') for anything else.",
+            $routes . 'none(): a cached route must return plain data (array, string, int, float, bool or null) or a WP_REST_Response, void given.',
             CacheBroken\NotABlock::class . ' has #[Cache], but no #[Block]; #[Cache] belongs on a block class or a #[RestRoute] method.',
             CacheBroken\NotABlock::class . '::data() has #[Cache], but no #[RestRoute]; #[Cache] belongs on a block class or a #[RestRoute] method.',
             $block . 'the ttl must be at least 1 second, 0 given.',

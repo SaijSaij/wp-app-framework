@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Rest;
 
 use Closure;
+use LogicException;
 use Saij\WpAppFramework\Cache\CacheStore;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -19,7 +20,9 @@ use WP_REST_Response;
  * Registers the REST routes of the manifest with WordPress (on rest_api_init).
  *
  * Services are resolved only when a route is called. A route with #[Cache]
- * answers from the cache store; errors are not stored. A RestException becomes a
+ * answers from the cache store: data as returned, a WP_REST_Response with its
+ * status and headers; errors and responses with a status of 400 or more are
+ * not stored. A RestException becomes a
  * WP_Error with its status; any other exception is logged and answered with
  * 500 – including details and stack trace only when debugging is enabled.
  *
@@ -92,33 +95,59 @@ final readonly class RestRegistrar
      */
     public function respond(array $route, WP_REST_Request $request): mixed
     {
-        $call = fn(): mixed => $this->call(
-            $route,
-            'callback',
-            fn(): mixed => $this->container->get($route['class'])->{$route['method']}(...$this->arguments($route['arguments'], $request, null)),
-        );
+        $handler = fn(): mixed => $this->container->get($route['class'])->{$route['method']}(...$this->arguments($route['arguments'], $request, null));
         if ($route['cache'] !== null && $this->cache !== null) {
-            // Errors are answered, but not stored.
-            return $this->cache->fetch(
+            $cache = $this->cache;
+            $entry = $route['cache'];
+
+            // Exceptions (also of a value that cannot be cached) become errors like without the cache.
+            return $this->call($route, 'callback', static fn(): mixed => self::fromCache($cache->fetch(
                 'rest',
                 implode(',', $route['methods']) . ' /' . $route['namespace'] . $route['route'],
                 self::cacheInputs($route['arguments'], $request),
-                $route['cache'],
-                static function () use ($call): array {
-                    $result = $call();
-
-                    return [$result, !$result instanceof WP_Error];
-                },
-            )[0];
+                $entry,
+                static fn(): array => self::toCache($handler()),
+            )[0]));
         }
 
-        $result = $call();
+        $result = $this->call($route, 'callback', $handler);
 
         if ($route['void'] && !$result instanceof WP_Error) {
             return new WP_REST_Response(null, 204);
         }
 
         return $result;
+    }
+
+    /**
+     * The cache entry of a response and whether it may be stored: data as returned, a WP_REST_Response as its data,
+     * status and headers, stored only with a status below 400.
+     *
+     * @return array{0: array{data: mixed, status?: int, headers?: array<string, string>}, 1: bool}
+     */
+    private static function toCache(mixed $result): array
+    {
+        if (!$result instanceof WP_REST_Response) {
+            return [['data' => $result], true];
+        }
+
+        /** @var array<string, string> $headers */
+        $headers = $result->get_headers();
+
+        return [['data' => $result->get_data(), 'status' => $result->get_status(), 'headers' => $headers], $result->get_status() < 400];
+    }
+
+    private static function fromCache(mixed $entry): mixed
+    {
+        if (!is_array($entry) || !array_key_exists('data', $entry)) {
+            throw new LogicException('A cached REST response has an unexpected format.');
+        }
+        if (!isset($entry['status'])) {
+            return $entry['data'];
+        }
+
+        /** @var array{data: mixed, status: int, headers: array<string, string>} $entry Written by toCache(). */
+        return new WP_REST_Response($entry['data'], $entry['status'], $entry['headers']);
     }
 
     /**

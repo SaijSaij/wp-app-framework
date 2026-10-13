@@ -36,10 +36,22 @@ final class WP_Error
 
 final class WP_REST_Response
 {
+    /**
+     * @param array<string, string> $headers
+     */
     public function __construct(
         private mixed $data = null,
         private int $status = 200,
+        private array $headers = [],
     ) {}
+
+    /**
+     * @return array<string, string>
+     */
+    public function get_headers(): array
+    {
+        return $this->headers;
+    }
 
     public function get_data(): mixed
     {
@@ -64,10 +76,20 @@ final class WP_REST_Request
     /** @var array<string, mixed> */
     private array $urlParams = [];
 
+    private string $method;
+
     /**
      * @param array<string, mixed> $attributes
      */
-    public function __construct(string $method = '', string $route = '', array $attributes = []) {}
+    public function __construct(string $method = '', string $route = '', array $attributes = [])
+    {
+        $this->method = strtoupper($method);
+    }
+
+    public function get_method(): string
+    {
+        return $this->method;
+    }
 
     /**
      * @param array<string, mixed> $params

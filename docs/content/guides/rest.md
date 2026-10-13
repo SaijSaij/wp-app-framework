@@ -114,4 +114,4 @@ Like hooks, the controller and its services are created only when the route is c
 
 ## Caching
 
-A `GET` route that returns plain data can keep its response with `#[Cache]`: the arguments of the request are part of the key, the permission check still runs on every request, and errors are never stored. See [Cache](./cache.md#a-rest-route).
+A `GET` route can keep its response with `#[Cache]`, plain data or a `WP_REST_Response` with a status below 400: the arguments of the method are part of the key, the permission check still runs on every request, and errors are never stored. See [Cache](./cache.md#a-rest-route).

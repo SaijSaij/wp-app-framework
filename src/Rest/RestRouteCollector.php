@@ -50,6 +50,8 @@ final class RestRouteCollector
 {
     private const string REQUEST_CLASS = 'WP_REST_Request';
 
+    private const string RESPONSE_CLASS = 'WP_REST_Response';
+
     private const string PERMISSION_HINT = "new PublicAccess(), new Capability('…') or new Callback(self::method(...))";
 
     /** @var list<string> */
@@ -486,7 +488,7 @@ final class RestRouteCollector
     }
 
     /**
-     * Checks a cached route method: it answers only GET and returns plain data.
+     * Checks a cached route method: it answers only GET and returns plain data or a WP_REST_Response.
      *
      * @param list<\ReflectionAttribute<RestRoute>> $attributes
      */
@@ -503,26 +505,12 @@ final class RestRouteCollector
             }
         }
 
-        foreach ($method->getParameters() as $parameter) {
-            $type = $parameter->getType();
-            if ($type instanceof ReflectionNamedType && $type->getName() === self::REQUEST_CLASS) {
-                $error = sprintf(
-                    '#[Cache] on %s: a cached route must not take the %s ($%s); the cache key holds only the arguments of the route, add variants such as new HeaderVary(\'…\') for anything else.',
-                    $location,
-                    self::REQUEST_CLASS,
-                    $parameter->getName(),
-                );
-                $this->errors[] = $error;
-
-                return $error;
-            }
-        }
-
         $returnType = $method->getReturnType();
-        if ($returnType !== null && !self::isPlainDataType($returnType)) {
+        if ($returnType !== null && !self::isCacheableType($returnType)) {
             $error = sprintf(
-                '#[Cache] on %s: a cached route must return plain data (array, string, int, float, bool or null), %s given.',
+                '#[Cache] on %s: a cached route must return plain data (array, string, int, float, bool or null) or a %s, %s given.',
                 $location,
+                self::RESPONSE_CLASS,
                 (string) $returnType,
             );
             $this->errors[] = $error;
@@ -533,14 +521,14 @@ final class RestRouteCollector
         return null;
     }
 
-    private static function isPlainDataType(ReflectionType $type): bool
+    private static function isCacheableType(ReflectionType $type): bool
     {
         if ($type instanceof ReflectionIntersectionType) {
             return false;
         }
         if ($type instanceof ReflectionUnionType) {
             foreach ($type->getTypes() as $member) {
-                if (!self::isPlainDataType($member)) {
+                if (!self::isCacheableType($member)) {
                     return false;
                 }
             }
@@ -548,7 +536,7 @@ final class RestRouteCollector
             return true;
         }
 
-        return $type instanceof ReflectionNamedType && in_array($type->getName(), ['array', 'string', 'int', 'float', 'bool', 'true', 'false', 'null'], true);
+        return $type instanceof ReflectionNamedType && in_array($type->getName(), ['array', 'string', 'int', 'float', 'bool', 'true', 'false', 'null', self::RESPONSE_CLASS], true);
     }
 
     /**
