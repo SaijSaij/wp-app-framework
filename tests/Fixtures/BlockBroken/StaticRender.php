@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Fixtures\BlockBroken;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('broken/static-render', title: 'X', category: BlockCategory::Text)]
+#[Block('static-render', title: 'X', category: BlockCategory::Text)]
 final class StaticRender
 {
     public static function render(): string

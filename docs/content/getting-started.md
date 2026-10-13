@@ -44,7 +44,7 @@ Composer installs the framework and tells it where your classes are. The framewo
     ],
     "require": {
         "php": ">=8.5",
-        "saij/wp-app-framework": "^0.8"
+        "saij/wp-app-framework": "^0.9"
     },
     "autoload": {
         "psr-4": { "Acme\\MyTheme\\": "src/" }
@@ -54,6 +54,9 @@ Composer installs the framework and tells it where your classes are. The framewo
         "release": "wp-app-framework release"
     },
     "extra": {
+        "wp-app-framework": {
+            "namespace": "my-theme"
+        },
         "strauss": {
             "target_directory": "vendor-prefixed",
             "namespace_prefix": "Acme\\MyTheme\\Vendor\\",
@@ -73,6 +76,7 @@ A few entries deserve a closer look:
 
 - `type` tells the framework's build what kind of project this is. `wordpress-theme` covers themes and child themes, `wordpress-plugin` plugins.
 - The two scripts give you short commands for the framework's tools: `composer build-manifest` checks your code, and `composer release` builds a ZIP for production.
+- `extra.wp-app-framework.namespace` names your blocks, REST routes and settings: the block `teaser` below is registered as `my-theme/teaser`. Choose it once; content refers to it ([Concepts](./concepts.md#consumers-and-instances) explains why it is separate from the directory name).
 - `extra.strauss` configures the prefixing of the release build. A release renames the framework and all dependencies into your own namespace (here `Acme\MyTheme\Vendor\`), so they cannot collide with other themes or plugins. [Release](./build-and-release/release.md#strauss-settings) explains each value.
 
 ### style.css
@@ -169,7 +173,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 
-#[Block('my-theme/teaser', title: 'Teaser', category: BlockCategory::Text, icon: 'text')]
+#[Block('teaser', title: 'Teaser', category: BlockCategory::Text, icon: 'text')]
 final readonly class Teaser
 {
     public function __construct(private TemplateRenderer $renderer) {}

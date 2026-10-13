@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
 /** Has a view script (Bare.view.js), but prints its root element without block_wrapper_attributes(). */
-#[Block('fixture/bare', title: 'Bare', category: BlockCategory::Text)]
+#[Block('bare', title: 'Bare', category: BlockCategory::Text)]
 final class Bare
 {
     public function render(): string

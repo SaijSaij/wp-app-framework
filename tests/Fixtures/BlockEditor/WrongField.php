@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
 
-#[Block('fixture/wrong-field', title: 'Wrong field', category: BlockCategory::Text)]
+#[Block('wrong-field', title: 'Wrong field', category: BlockCategory::Text)]
 final readonly class WrongField
 {
     public function __construct(private EditorTemplateFunctions $editor) {}

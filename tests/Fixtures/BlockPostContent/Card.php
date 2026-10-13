@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Fixtures\BlockPostContent;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('fixture/card', title: 'Card', category: BlockCategory::Text)]
+#[Block('card', title: 'Card', category: BlockCategory::Text)]
 final readonly class Card
 {
     public function render(CardAttributes $attrs): string

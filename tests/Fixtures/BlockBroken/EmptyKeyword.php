@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Fixtures\BlockBroken;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('broken/empty-keyword', title: 'X', category: BlockCategory::Text, keywords: [''])]
+#[Block('empty-keyword', title: 'X', category: BlockCategory::Text, keywords: [''])]
 final class EmptyKeyword
 {
     public function render(): string

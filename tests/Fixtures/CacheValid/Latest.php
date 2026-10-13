@@ -15,7 +15,7 @@ use Saij\WpAppFramework\Cache\Vary\ServiceVary;
 use WP_Block;
 
 /** Counts its renders and shows the count. */
-#[Block('fixture/latest', title: 'Latest', category: BlockCategory::Design, usesContext: ['postId'])]
+#[Block('latest', title: 'Latest', category: BlockCategory::Design, usesContext: ['postId'])]
 #[Cache(
     ttl: 60,
     tags: [new PostTypeTag('post'), new SettingsTag(SiteSettings::class), Feed::Weather],

@@ -15,7 +15,7 @@ The overrides can use the classes in the parent theme's stylesheet, or plain CSS
 As soon as a child theme brings code of its own – blocks, hooks, REST routes – it becomes a framework instance of its own, just like a plugin. It has:
 
 - its own `composer.json` with `type: wordpress-theme`, while its `style.css` names the parent theme in `Template:`;
-- its own PSR-4 namespace and its own block namespace;
+- its own PSR-4 namespace and its own namespace for blocks, REST routes and settings (`extra.wp-app-framework.namespace`);
 - its own release, prefixed with its own namespace;
 - `ChildTheme::boot()` in its `functions.php` (see [Boot and modes](./boot.md)).
 

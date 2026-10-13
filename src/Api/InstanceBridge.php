@@ -18,6 +18,7 @@ use Saij\WpAppFramework\Twig\TemplateCallableKind;
  * their results are a contract across versions; they may only be extended.
  *
  * - `wp_app_framework/init/{slug}` (action): fired once at the end of the boot.
+ * - `wp_app_framework/namespace/{namespace}` (action): fired once when an instance with that namespace boots.
  * - `wp_app_framework/api/{slug}` (filter, `null, class-string`): the public
  *   API object of a plugin or theme, or null.
  * - `wp_app_framework/template/{slug}` (filter, `null, 'function'|'filter', name`):
@@ -32,6 +33,7 @@ use Saij\WpAppFramework\Twig\TemplateCallableKind;
 final class InstanceBridge
 {
     private const string INIT_ACTION = 'wp_app_framework/init/';
+    private const string NAMESPACE_ACTION = 'wp_app_framework/namespace/';
     private const string API_FILTER = 'wp_app_framework/api/';
     private const string TEMPLATE_FILTER = 'wp_app_framework/template/';
 
@@ -51,6 +53,22 @@ final class InstanceBridge
     public static function isBooted(string $slug): bool
     {
         return did_action(self::initAction($slug)) > 0;
+    }
+
+    /**
+     * Claims a namespace for the booting instance: fires its action, unless an instance with the
+     * namespace has already booted in this request.
+     *
+     * @return bool False if the namespace was claimed before.
+     */
+    public static function claimNamespace(string $namespace): bool
+    {
+        if (did_action(self::NAMESPACE_ACTION . $namespace) > 0) {
+            return false;
+        }
+        do_action(self::NAMESPACE_ACTION . $namespace);
+
+        return true;
     }
 
     /**

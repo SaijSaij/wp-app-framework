@@ -12,7 +12,7 @@ use Saij\WpAppFramework\Rest\Permission\PublicAccess;
 use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestRoute;
 
-#[RestController('broken/v1')]
+#[RestController('v1')]
 final class BrokenRoutes
 {
     #[RestRoute('/empty-methods', [], new PublicAccess())]

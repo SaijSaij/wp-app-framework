@@ -139,7 +139,7 @@ final class RestRouteCollectorTest extends TestCase
             $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\RestBroken\\';
             $supported = 'use int, float, string, bool, a backed enum, a value class or array with #[ListOf]';
             $expected = [
-                "#[RestController] on {$ns}BadController has the invalid namespace \"/broken/\": use letters, digits, \".\", \"_\", \"-\" and \"/\" without leading or trailing slash, e.g. \"sections/v1\".",
+                "#[RestController] on {$ns}BadController has the invalid version \"/broken/\": use letters, digits, \".\", \"_\", \"-\" and \"/\" without leading or trailing slash, e.g. \"v1\"; the routes are registered under \"fixture/{version}\".",
                 "#[RestController] on {$ns}BadController has the invalid base path \"items/\": it must be empty or start with \"/\" and not end with \"/\".",
                 "#[RestRoute] on {$c}::emptyMethods() has no HTTP method.",
                 "#[RestRoute] on {$c}::anonymous(): the permission callback must be a first-class callable of a public static method, e.g. new Callback(self::canEdit(...)); anonymous closures are not supported.",
@@ -156,7 +156,7 @@ final class RestRouteCollectorTest extends TestCase
                 "#[Param] on parameter \$name of {$c}::paramMismatch(): minimum does not apply to string arguments.",
                 "#[RestRoute] on {$c}::invalidCharacters(): route \"/invalid path\" contains characters other than letters, digits, \".\", \"_\", \"~\", \"-\", \"/\" and {name} placeholders.",
                 "#[RestRoute] on {$c}::noLeadingSlash() has the invalid path \"no-slash\": it must be empty or start with \"/\".",
-                "Duplicate REST route GET /broken/v1/duplicate in {$c}::first() and {$c}::second().",
+                "Duplicate REST route GET /fixture/v1/duplicate in {$c}::first() and {$c}::second().",
                 "{$c}::staticRoute() has #[RestRoute] and must be public and non-static.",
                 "{$ns}NoController has #[RestRoute] methods, but no #[RestController] attribute defining their REST namespace.",
                 "#[RestRoute] on {$ns}NoPermission::a() has no permission. Pass new PublicAccess(), new Capability('…') or new Callback(self::method(...)) as permission.",

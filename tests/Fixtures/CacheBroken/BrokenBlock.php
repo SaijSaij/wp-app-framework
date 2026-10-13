@@ -16,7 +16,7 @@ use Saij\WpAppFramework\Cache\Vary\QueryParamVary;
 use Saij\WpAppFramework\Cache\Vary\ServiceVary;
 use Saij\WpAppFramework\Cache\Vary\UserVary;
 
-#[Block('fixture/broken-cache', title: 'Broken cache', category: BlockCategory::Design)]
+#[Block('broken-cache', title: 'Broken cache', category: BlockCategory::Design)]
 #[Cache(
     ttl: 0,
     // @phpstan-ignore argument.type (wrong on purpose: a string is no tag)

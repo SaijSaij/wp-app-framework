@@ -10,7 +10,7 @@ use Saij\WpAppFramework\Block\BlockTemplateFunctions;
 use Saij\WpAppFramework\Cache\Cache;
 
 /** A cached block with a view script (Accordion.view.js). */
-#[Block('fixture/accordion', title: 'Accordion', category: BlockCategory::Design)]
+#[Block('accordion', title: 'Accordion', category: BlockCategory::Design)]
 #[Cache(ttl: 60)]
 final class Accordion
 {

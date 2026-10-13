@@ -6,7 +6,7 @@ PHP/JS framework for building standalone full site editing themes, child themes 
 - PHP namespace: `Saij\WpAppFramework`
 - JS import name: `@saij/wp-app-framework`, runtime global: `window.wpAppFramework[slug]` (one per framework instance)
 
-The framework is a library that themes, child themes and plugins (its *consumers*) include via Composer. It is neither a theme nor a plugin and registers no blocks itself. Each consumer runs its own framework instance; everything global – REST route, script handles, JS global, cache directory, init action – is named after the consumer's slug, so a theme and several plugins with different framework versions run side by side.
+The framework is a library that themes, child themes and plugins (its *consumers*) include via Composer. It is neither a theme nor a plugin and registers no blocks itself. Each consumer runs its own framework instance; blocks, REST routes and settings are named after the consumer's namespace (`extra.wp-app-framework.namespace`), technical names – script handles, JS global, cache directory, init action – after its slug, so a theme and several plugins with different framework versions run side by side.
 
 ## Documentation
 
@@ -24,7 +24,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 |---|---|
 | `Theme.php`, `ChildTheme.php`, `Plugin.php` | Boot and paths of the active theme, child theme or of a plugin |
 | `Instance.php` | Boot of one framework instance (internal) |
-| `Project/` | Kind, slug and settings of a consumer from its `composer.json` (build) |
+| `Project/` | Kind, slug, namespace and settings of a consumer from its `composer.json` (build) |
 | `Api/` | `#[PublicApi]`, `#[PluginApi]`, `#[ThemeApi]` attributes, collector and signature checks (build), hooks between instances and `has_plugin()` (runtime) |
 | `Hook/` | `#[Hook]` attribute, collector (build), definition, registrar (runtime) |
 | `Rest/` | `#[RestController]`, `#[RestRoute]`, `#[Param]` attributes, `HttpMethod`/`Format` enums, `Permission/` (`PublicAccess`, `Capability`, `Callback`), `RestException`, collector (build), definition, registrar (runtime) |

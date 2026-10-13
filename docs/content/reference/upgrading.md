@@ -4,6 +4,29 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.9
+
+**Each theme and plugin declares a namespace.** Before 0.9, block names carried their namespace in `#[Block]` (`sections/hero`), REST controllers named their full REST namespace (`sections/v1`), and settings options were named after the slug, the directory name of the theme or plugin. The directory name changes when a theme is installed under another name, and its settings would be lost with it. Since 0.9 the namespace in `composer.json` names everything content and data refer to (see [Concepts](../concepts.md#consumers-and-instances)).
+
+Add the namespace to `composer.json`. Use the namespace your blocks already have, so posts, templates and patterns keep working unchanged:
+
+```json
+"extra": { "wp-app-framework": { "namespace": "sections" } }
+```
+
+Then change your code:
+
+| Before | Since 0.9 |
+|---|---|
+| `#[Block('sections/hero', …)]` | `#[Block('hero', …)]` |
+| `allowedBlocks: ['sections/hero', 'core/paragraph']` | `allowedBlocks: ['hero', 'core/paragraph']` |
+| `registerControl( 'sections/hero', … )`, also `registerPanel()` and `registerToolbarButton()` | `registerControl( 'hero', … )` |
+| `#[RestController('sections/v1', …)]` | `#[RestController('v1', …)]` |
+
+The build reports a missing namespace, a block name with `/` and an unknown own block in `allowedBlocks`; the register functions warn in the console about names with a namespace. Block markup in templates, parts and patterns keeps the full names.
+
+**Settings options are named after the namespace.** The option of a settings group is now `{namespace}_{name}` instead of `{slug}_{name}`, with `_` instead of `-`. If the two differ – the theme `my-theme` with the namespace `sections` stores the group `general` in `sections_general` instead of `my_theme_general` – the saved settings are not moved. Copy them once, for example with WP-CLI: `wp option get my_theme_general --format=json | wp option update sections_general --format=json`.
+
 ## 0.8
 
 **The build checks block templates, template parts and patterns.** Before 0.8 the build looked at your PHP classes only. Mistakes in the block markup of your theme – a misspelled attribute, a value outside an enum, HTML in a block without a `postContent` field – went unnoticed, and WordPress dropped what it could not use. Since 0.8 the build checks these files against your blocks (see [Checking templates, parts and patterns](../build-and-release/build.md#checking-templates-parts-and-patterns)).
@@ -35,6 +58,6 @@ Move each override from the child theme's `src/` to `overrides/{theme}/`, keepin
 
 ## 0.2
 
-**The init action is named after the consumer.** Since 0.2 plugins can use the framework next to a theme, and each runs its own instance. The single action `wp_app_framework/init` could not tell them apart, so it became `wp_app_framework/init/{slug}` (see [Boot and modes](../guides/boot.md#slug-and-init-action)).
+**The init action is named after the consumer.** Since 0.2 plugins can use the framework next to a theme, and each runs its own instance. The single action `wp_app_framework/init` could not tell them apart, so it became `wp_app_framework/init/{slug}` (see [Boot and modes](../guides/boot.md#slug-namespace-and-init-action)).
 
 Replace `add_action('wp_app_framework/init', …)` with the action of the instance you mean, for example `wp_app_framework/init/my-theme`.

@@ -10,7 +10,7 @@ use Saij\WpAppFramework\Block\BlockTemplateFunctions;
 use Saij\WpAppFramework\Block\Support\UseSupport;
 
 /** A view script of its own (Faq.view.js) and the one of the Reveal support. */
-#[Block('fixture/faq', title: 'FAQ', category: BlockCategory::Text)]
+#[Block('faq', title: 'FAQ', category: BlockCategory::Text)]
 #[UseSupport(Reveal::class)]
 final class Faq
 {

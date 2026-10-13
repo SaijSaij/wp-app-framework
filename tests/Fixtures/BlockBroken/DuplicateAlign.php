@@ -9,7 +9,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Supports;
 
-#[Block('broken/duplicate-align', title: 'X', category: BlockCategory::Text)]
+#[Block('duplicate-align', title: 'X', category: BlockCategory::Text)]
 #[Supports(align: [Align::Wide, Align::Wide])]
 final class DuplicateAlign
 {

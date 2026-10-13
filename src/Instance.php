@@ -39,8 +39,9 @@ use Twig\Environment;
 
 /**
  * Boots one framework instance: a theme (Theme::boot()) or a plugin
- * (Plugin::boot()). Everything global is named after the slug of the instance:
- * REST route, script handles, JS global, cache directory, init action.
+ * (Plugin::boot()). Technical global names derive from the slug of the instance
+ * (script handles, JS global, cache directory, init action), names of content and
+ * data from its namespace (blocks, REST routes, settings options).
  *
  * @internal
  *
@@ -123,6 +124,14 @@ final readonly class Instance
             $manifest = Manifest::load($releaseManifest);
         }
         $this->checkManifest($manifest, $development ? $cacheDirectory . '/manifest' : $releaseManifest);
+        if (!InstanceBridge::claimNamespace($manifest['namespace'])) {
+            throw new LogicException(sprintf(
+                'The %s %s uses the namespace "%s" (extra.wp-app-framework.namespace in its composer.json), but another theme or plugin using the framework has already booted with it; each needs a namespace of its own.',
+                $this->kind->getLabel(),
+                $this->slug,
+                $manifest['namespace'],
+            ));
+        }
 
         $renderContext = new RenderContext();
         $templateCallables = $manifest['templateCallables'];
@@ -233,6 +242,7 @@ final readonly class Instance
             $this->directoryUri . '/' . self::BUILD_DIRECTORY,
             $blocks,
             $development,
+            $manifest['namespace'],
         );
         add_action('enqueue_block_editor_assets', $editorAssets->enqueue(...));
         add_action('enqueue_block_assets', $editorAssets->enqueueCanvas(...));

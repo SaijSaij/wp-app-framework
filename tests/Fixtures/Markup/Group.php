@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Supports;
 
-#[Block('fixture/group', title: 'Group', category: BlockCategory::Design)]
+#[Block('group', title: 'Group', category: BlockCategory::Design)]
 #[Supports(contentRole: true)]
 final readonly class Group
 {

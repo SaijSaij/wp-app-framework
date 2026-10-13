@@ -32,7 +32,11 @@ export function startRuntime( slug ) {
 			path: config.renderPath,
 			maxBlocks: config.maxBlocks,
 		} ),
-		registry: createRegistry( config.blocks, getBlockType ),
+		registry: createRegistry(
+			config.blocks,
+			getBlockType,
+			config.namespace
+		),
 	};
 
 	for ( const [ name, block ] of Object.entries( config.blocks ) ) {

@@ -9,7 +9,7 @@ use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\BlockTemplateFunctions;
 use Saij\WpAppFramework\Block\Support\UseSupport;
 
-#[Block('fixture/card', title: 'Card', category: BlockCategory::Design)]
+#[Block('card', title: 'Card', category: BlockCategory::Design)]
 #[UseSupport(Surface::class, default: Tone::Dark)]
 #[UseSupport(Framed::class)]
 #[UseSupport(Accent::class)]

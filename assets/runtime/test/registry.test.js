@@ -21,7 +21,7 @@ describe( 'registerSupportControl', () => {
 	} );
 
 	it( 'replaces the control of the support in the blocks that use it', () => {
-		const registry = createRegistry( blocks, getBlockType );
+		const registry = createRegistry( blocks, getBlockType, 'test' );
 		registry.registerSupportControl( 'surface', SupportControl );
 
 		expect( registry.getControl( 'test/card', 'surface' ) ).toBe(
@@ -36,9 +36,9 @@ describe( 'registerSupportControl', () => {
 	} );
 
 	it( 'lets a control registered for the block win', () => {
-		const registry = createRegistry( blocks, getBlockType );
+		const registry = createRegistry( blocks, getBlockType, 'test' );
 		registry.registerSupportControl( 'surface', SupportControl );
-		registry.registerControl( 'test/card', 'surface', BlockControl );
+		registry.registerControl( 'card', 'surface', BlockControl );
 
 		expect( registry.getControl( 'test/card', 'surface' ) ).toBe(
 			BlockControl
@@ -50,7 +50,7 @@ describe( 'registerSupportControl', () => {
 
 	it( 'warns about supports no block uses', () => {
 		const warn = vi.spyOn( console, 'warn' ).mockImplementation( () => {} );
-		const registry = createRegistry( blocks, getBlockType );
+		const registry = createRegistry( blocks, getBlockType, 'test' );
 		registry.registerSupportControl( 'framed', SupportControl );
 
 		expect( warn ).toHaveBeenCalledWith(
@@ -60,17 +60,31 @@ describe( 'registerSupportControl', () => {
 	} );
 } );
 
+describe( 'registerPanel and registerControl', () => {
+	it( 'add the namespace to the block name', () => {
+		const registry = createRegistry( blocks, getBlockType, 'test' );
+		const Panel = () => null;
+		registry.registerPanel( 'hero', Panel );
+		registry.registerControl( 'hero', 'topline', BlockControl );
+
+		expect( registry.getPanels( 'test/hero' ) ).toEqual( [ Panel ] );
+		expect( registry.getControl( 'test/hero', 'topline' ) ).toBe(
+			BlockControl
+		);
+	} );
+} );
+
 describe( 'registerToolbarButton', () => {
 	afterEach( () => {
 		vi.restoreAllMocks();
 	} );
 
 	it( 'adds buttons to the toolbar of a block in order', () => {
-		const registry = createRegistry( blocks, getBlockType );
+		const registry = createRegistry( blocks, getBlockType, 'test' );
 		const First = () => null;
 		const Second = () => null;
-		registry.registerToolbarButton( 'test/card', First );
-		registry.registerToolbarButton( 'test/card', Second );
+		registry.registerToolbarButton( 'card', First );
+		registry.registerToolbarButton( 'card', Second );
 
 		expect( registry.getToolbarButtons( 'test/card' ) ).toEqual( [
 			First,
@@ -81,12 +95,23 @@ describe( 'registerToolbarButton', () => {
 
 	it( 'warns about unknown blocks', () => {
 		const warn = vi.spyOn( console, 'warn' ).mockImplementation( () => {} );
-		const registry = createRegistry( blocks, getBlockType );
-		registry.registerToolbarButton( 'test/missing', () => null );
+		const registry = createRegistry( blocks, getBlockType, 'test' );
+		registry.registerToolbarButton( 'missing', () => null );
 
 		expect( warn ).toHaveBeenCalledWith(
-			'wp-app-framework: registerToolbarButton( "test/missing" ): no block of this theme or plugin has that name.'
+			'wp-app-framework: registerToolbarButton( "missing" ): no block of this theme or plugin has that name.'
 		);
 		expect( registry.getToolbarButtons( 'test/missing' ) ).toEqual( [] );
+	} );
+
+	it( 'warns about names with a namespace', () => {
+		const warn = vi.spyOn( console, 'warn' ).mockImplementation( () => {} );
+		const registry = createRegistry( blocks, getBlockType, 'test' );
+		registry.registerToolbarButton( 'test/card', () => null );
+
+		expect( warn ).toHaveBeenCalledWith(
+			'wp-app-framework: registerToolbarButton( "test/card" ): use the block name without namespace, e.g. "card"; the namespace of this theme or plugin is added.'
+		);
+		expect( registry.getToolbarButtons( 'test/card' ) ).toEqual( [] );
 	} );
 } );

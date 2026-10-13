@@ -17,14 +17,15 @@ use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 final class SettingsCollectorTest extends TestCase
 {
     /**
-     * @param non-empty-string $slug
+     * @param non-empty-string $namespace
      */
-    public static function buildValid(?string $name = 'Fixture Theme', string $slug = 'my-theme'): BuildResult
+    public static function buildValid(?string $name = 'Fixture Theme', string $namespace = 'my-theme'): BuildResult
     {
         return new ManifestBuilder(
             [ManifestBuilderTest::fixture('SettingsValid'), ManifestBuilder::frameworkSource()],
-            slug: $slug,
+            slug: 'my-theme',
             name: $name,
+            namespace: $namespace,
         )->build();
     }
 
@@ -33,6 +34,9 @@ final class SettingsCollectorTest extends TestCase
         $result = self::buildValid();
 
         self::assertSame(['layout', 'general'], array_column($result->getSettings(), 'name'));
+        // The option belongs to the namespace, not to the slug.
+        self::assertSame(['my_theme_layout', 'my_theme_general'], array_column($result->getSettings(), 'option'));
+        self::assertSame(['dev_test_layout', 'dev_test_general'], array_column(self::buildValid(namespace: 'dev-test')->getSettings(), 'option'));
         self::assertSame('Fixture Theme', $result->getSettingsTitle());
     }
 
@@ -85,7 +89,7 @@ final class SettingsCollectorTest extends TestCase
 
         // A block using the same value class edits the image in the canvas: no inspector control.
         $block = $result->getBlocks()[0];
-        self::assertSame('fixture/links', $block->getName());
+        self::assertSame('my-theme/links', $block->getName());
         self::assertSame(['links.*.icon'], array_keys($block->getEditor()['fields']));
         /** @var array{item: array{fields: array<string, mixed>}} $blockLinks */
         $blockLinks = $block->getEditor()['controls']['links'];
@@ -121,15 +125,15 @@ final class SettingsCollectorTest extends TestCase
 
     public function testOptionNamesFitTheOptionsTable(): void
     {
-        $slug = str_repeat('a', 184);
+        $namespace = str_repeat('a', 184);
         try {
-            self::buildValid('Fixture Theme', $slug);
+            self::buildValid('Fixture Theme', $namespace);
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
             self::assertSame([sprintf(
                 '#[SettingsGroup] on %s results in the option name "%s_general", which is longer than 191 characters (the limit of WordPress\' options table); use a shorter name.',
                 SettingsValid\General::class,
-                $slug,
+                $namespace,
             )], $exception->getErrors());
         }
     }

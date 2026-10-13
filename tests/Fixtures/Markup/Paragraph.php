@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Fixtures\Markup;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('fixture/paragraph', title: 'Paragraph', category: BlockCategory::Text)]
+#[Block('paragraph', title: 'Paragraph', category: BlockCategory::Text)]
 final readonly class Paragraph
 {
     public function render(ParagraphAttributes $attrs): string

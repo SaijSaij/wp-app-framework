@@ -10,7 +10,7 @@ use Saij\WpAppFramework\Block\BlockCategory;
 /**
  * A container without content: in a pattern or template part nothing can be inserted into it.
  */
-#[Block('fixture/section', title: 'Section', category: BlockCategory::Design, allowedBlocks: ['fixture/card', 'core/paragraph'])]
+#[Block('section', title: 'Section', category: BlockCategory::Design, allowedBlocks: ['card', 'core/paragraph'])]
 final readonly class Section
 {
     public function render(string $content): string

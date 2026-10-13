@@ -2,13 +2,15 @@
  * Inspector controls, panels and toolbar buttons registered by the consumer's
  * editor scripts (`registerControl`, `registerSupportControl`, `registerPanel`,
  * `registerToolbarButton` of `@saij/wp-app-framework`). A control registered for a block wins over a
- * control registered for a block support.
+ * control registered for a block support. The register functions take block names
+ * without namespace (`hero`); the registry adds the namespace of the instance.
  *
- * @param {Object}                               blocks       Block configuration of the instance by name.
+ * @param {Object}                               blocks       Block configuration of the instance by full name.
  * @param {(name: string) => (Object|undefined)} getBlockType getBlockType() of `@wordpress/blocks`.
+ * @param {string}                               namespace    Namespace of the blocks of the instance.
  * @return {Object} Registry.
  */
-export function createRegistry( blocks, getBlockType ) {
+export function createRegistry( blocks, getBlockType, namespace ) {
 	const controls = new Map();
 	const supportControls = new Map();
 	const panels = new Map();
@@ -18,27 +20,45 @@ export function createRegistry( blocks, getBlockType ) {
 		return ( blocks[ name ]?.supports ?? [] ).includes( attribute );
 	}
 
-	function knownBlock( name, caller ) {
-		if ( ! ( name in blocks ) ) {
+	/**
+	 * The full name of an own block, or null after a warning.
+	 *
+	 * @param {string} name   Block name without namespace.
+	 * @param {string} caller Name of the register function.
+	 * @return {string|null} Full block name.
+	 */
+	function ownBlock( name, caller ) {
+		if ( name.includes( '/' ) ) {
+			// eslint-disable-next-line no-console
+			console.warn(
+				`wp-app-framework: ${ caller }( "${ name }" ): use the block name without namespace, e.g. "${ name.slice(
+					name.indexOf( '/' ) + 1
+				) }"; the namespace of this theme or plugin is added.`
+			);
+			return null;
+		}
+		const fullName = `${ namespace }/${ name }`;
+		if ( ! ( fullName in blocks ) ) {
 			// eslint-disable-next-line no-console
 			console.warn(
 				`wp-app-framework: ${ caller }( "${ name }" ): no block of this theme or plugin has that name.`
 			);
-			return false;
+			return null;
 		}
-		return true;
+		return fullName;
 	}
 
 	return {
 		/**
 		 * Replaces the generated control of a top-level attribute.
 		 *
-		 * @param {string}                                name      Block name.
+		 * @param {string}                                localName Block name without namespace.
 		 * @param {string}                                attribute Attribute name.
 		 * @param {import('react').ComponentType<Object>} Component Receives {value, onChange, attributes, setAttributes}.
 		 */
-		registerControl( name, attribute, Component ) {
-			if ( ! knownBlock( name, 'registerControl' ) ) {
+		registerControl( localName, attribute, Component ) {
+			const name = ownBlock( localName, 'registerControl' );
+			if ( name === null ) {
 				return;
 			}
 			if (
@@ -46,7 +66,7 @@ export function createRegistry( blocks, getBlockType ) {
 			) {
 				// eslint-disable-next-line no-console
 				console.warn(
-					`wp-app-framework: registerControl( "${ name }", "${ attribute }" ): the block has no attribute with that name.`
+					`wp-app-framework: registerControl( "${ localName }", "${ attribute }" ): the block has no attribute with that name.`
 				);
 				return;
 			}
@@ -77,11 +97,12 @@ export function createRegistry( blocks, getBlockType ) {
 		/**
 		 * Adds a panel to the inspector of a block.
 		 *
-		 * @param {string}                                name      Block name.
+		 * @param {string}                                localName Block name without namespace.
 		 * @param {import('react').ComponentType<Object>} Component Receives {attributes, setAttributes}.
 		 */
-		registerPanel( name, Component ) {
-			if ( ! knownBlock( name, 'registerPanel' ) ) {
+		registerPanel( localName, Component ) {
+			const name = ownBlock( localName, 'registerPanel' );
+			if ( name === null ) {
 				return;
 			}
 			panels.set( name, [ ...( panels.get( name ) ?? [] ), Component ] );
@@ -90,11 +111,12 @@ export function createRegistry( blocks, getBlockType ) {
 		/**
 		 * Adds a button to the toolbar of a block.
 		 *
-		 * @param {string}                                name      Block name.
+		 * @param {string}                                localName Block name without namespace.
 		 * @param {import('react').ComponentType<Object>} Component Receives {attributes, setAttributes, clientId, isPreview}; renders toolbar buttons (`ToolbarButton` of `@wordpress/components`).
 		 */
-		registerToolbarButton( name, Component ) {
-			if ( ! knownBlock( name, 'registerToolbarButton' ) ) {
+		registerToolbarButton( localName, Component ) {
+			const name = ownBlock( localName, 'registerToolbarButton' );
+			if ( name === null ) {
 				return;
 			}
 			toolbarButtons.set( name, [

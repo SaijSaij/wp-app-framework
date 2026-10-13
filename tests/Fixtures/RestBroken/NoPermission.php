@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Rest\HttpMethod;
 use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestRoute;
 
-#[RestController('broken/v1', base: '/no-permission')]
+#[RestController('v1', base: '/no-permission')]
 final class NoPermission
 {
     // The permission argument is missing on purpose.

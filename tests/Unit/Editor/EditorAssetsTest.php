@@ -38,7 +38,7 @@ final class EditorAssetsTest extends TestCase
         $manifest = Manifest::load($file);
         unlink($file);
 
-        return new EditorAssets('my-theme', $this->build, 'https://example.test/build', $manifest['blocks'], true);
+        return new EditorAssets('my-theme', $this->build, 'https://example.test/build', $manifest['blocks'], true, 'fixture');
     }
 
     private function writeAsset(string $script, string $dependencies): void
@@ -51,7 +51,7 @@ final class EditorAssetsTest extends TestCase
 
     public function testWithoutBlocksNothingIsLoaded(): void
     {
-        new EditorAssets('my-theme', $this->build, 'https://example.test/build', [], true)->enqueue();
+        new EditorAssets('my-theme', $this->build, 'https://example.test/build', [], true, 'fixture')->enqueue();
 
         self::assertArrayNotHasKey('wp_app_framework_test_scripts', $GLOBALS);
     }
@@ -76,7 +76,7 @@ final class EditorAssetsTest extends TestCase
         self::assertArrayNotHasKey('wp_app_framework_test_styles', $GLOBALS, 'Not on the front end.');
 
         $GLOBALS['wp_app_framework_test_admin'] = true;
-        new EditorAssets('my-theme', $this->build, 'https://example.test/build', [], true)->enqueueCanvas();
+        new EditorAssets('my-theme', $this->build, 'https://example.test/build', [], true, 'fixture')->enqueueCanvas();
         self::assertArrayNotHasKey('wp_app_framework_test_styles', $GLOBALS, 'Not without blocks.');
 
         $this->assets()->enqueueCanvas();
@@ -139,10 +139,11 @@ final class EditorAssetsTest extends TestCase
         [$before] = $scripts['my-theme-wp-app-framework']['before'];
         $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = { config: ';
         self::assertStringStartsWith($prefix, $before);
-        /** @var array{slug: string, renderPath: string, maxBlocks: int, development: bool, blocks: array<string, array{fields: array<string, array<string, mixed>>, controls: array<string, mixed>, innerBlocks: bool}>} $config */
+        /** @var array{slug: string, namespace: string, renderPath: string, maxBlocks: int, development: bool, blocks: array<string, array{fields: array<string, array<string, mixed>>, controls: array<string, mixed>, innerBlocks: bool}>} $config */
         $config = json_decode(substr($before, strlen($prefix), -strlen(' };')), true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame('my-theme', $config['slug']);
+        self::assertSame('fixture', $config['namespace']);
         self::assertSame('/wp-app-framework/v1/my-theme/render', $config['renderPath']);
         self::assertSame(100, $config['maxBlocks']);
         self::assertTrue($config['development']);

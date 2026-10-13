@@ -10,7 +10,7 @@ use Saij\WpAppFramework\Rest\Permission\PublicAccess;
 use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestRoute;
 
-#[RestController('fixture/v1', base: '/broken')]
+#[RestController('v1', base: '/broken')]
 final class BrokenRoutes
 {
     /**

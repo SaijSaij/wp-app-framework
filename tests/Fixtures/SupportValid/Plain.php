@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
 /** Without supports, it needs no block_wrapper_attributes(). */
-#[Block('fixture/plain', title: 'Plain', category: BlockCategory::Design)]
+#[Block('plain', title: 'Plain', category: BlockCategory::Design)]
 final class Plain
 {
     public function render(): string

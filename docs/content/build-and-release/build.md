@@ -52,7 +52,7 @@ Template parts and patterns with a single top-level block open in contentOnly mo
 
 The build knows only the blocks of your own theme. Core blocks, blocks of plugins and, in a child theme, the blocks of the parent theme are not checked, because their definitions are not part of your build. Only their JSON must be valid.
 
-A block name in the namespace of your own blocks must be one of your blocks: `my-theme/crad` is reported as an unknown block. Use a namespace of its own for each theme and plugin, so that the build can tell your blocks from those of others.
+A block name in the namespace of your theme (`extra.wp-app-framework.namespace`) must be one of your blocks: with the namespace `my-theme`, `my-theme/crad` is reported as an unknown block. Each theme and plugin has a namespace of its own, so the build can tell your blocks from those of others.
 
 Plugins are not checked, because WordPress reads block templates, template parts and patterns from themes only. A child theme without code has no build, so nothing checks its files.
 

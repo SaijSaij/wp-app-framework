@@ -10,7 +10,13 @@ The framework is a Composer library. A project that includes it is a *consumer*.
 - a **plugin**, which boots it with `Plugin::boot(__FILE__)`;
 - a **child theme with code of its own** (blocks, hooks, REST routes), which boots it with `ChildTheme::boot()`. A child theme that only overrides templates and adjusts `theme.json` needs no framework code at all.
 
-Every consumer that boots creates its own *instance* of the framework. Instances are strictly separated. Everything with a global name is derived from the consumer's slug, its directory name: the REST route of the editor, the script handles, the JavaScript global `window.wpAppFramework[slug]`, the cache directory `wp-content/cache/{slug}/`, the init action `wp_app_framework/init/{slug}` and the option names of settings.
+Every consumer that boots creates its own *instance* of the framework. Instances are strictly separated, so everything with a global name is derived from one of two names of the consumer.
+
+The **namespace** names what your content and data refer to. You choose it once in `composer.json`, as `extra.wp-app-framework.namespace`, for example `sections`. Your blocks are registered as `sections/hero`, your REST routes live under `sections/v1`, and your settings are stored in options such as `sections_general`. These names end up in posts and in the database, so they must stay the same for as long as the content exists.
+
+The **slug** is the directory name of the theme or plugin. It names the technical parts: the REST route of the editor, the script handles, the JavaScript global `window.wpAppFramework[slug]`, the cache directory `wp-content/cache/{slug}/` and the init action `wp_app_framework/init/{slug}`. The directory name can change when a theme or plugin is installed under another name; that's why no content depends on it.
+
+Two consumers that boot with the same slug or the same namespace are an error.
 
 The separation goes further in a release. Each consumer ships its own copy of the framework and its dependencies, prefixed with its own namespace. A theme built with framework 0.6 and a plugin built with 0.7 load different classes and don't interfere with each other. The flip side is that instances cannot pass framework objects to each other. When a plugin wants to offer something to the theme, it does so through a *public interface* made of WordPress filters named after its slug (see [Plugins](./guides/plugins.md)).
 

@@ -8,7 +8,7 @@ use RuntimeException;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('fixture/failing', title: 'Failing', category: BlockCategory::Widgets)]
+#[Block('failing', title: 'Failing', category: BlockCategory::Widgets)]
 final class Failing
 {
     public function render(): string

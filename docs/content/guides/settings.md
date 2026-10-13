@@ -70,11 +70,11 @@ A group class is not a service. It is created from the stored values, never auto
 
 ## Storage
 
-Each group is stored in its own option, named `{slug}_{name}`, where `{slug}` is the slug of the theme or plugin with `_` instead of `-`. The theme `my-theme` stores the group `general` in `my_theme_general`. The option holds an object with every setting of the group; settings missing from a saved object get their default.
+Each group is stored in its own option, named `{namespace}_{name}`, where `{namespace}` is the namespace of the theme or plugin (`extra.wp-app-framework.namespace`) with `_` instead of `-`. A theme with the namespace `my-theme` stores the group `general` in `my_theme_general`. The option holds an object with every setting of the group; settings missing from a saved object get their default.
 
 The framework registers the option with `register_setting()` on `init`, with its schema and `show_in_rest`. That makes it readable and writable through `/wp/v2/settings` under the same name. WordPress validates and sanitizes saved values against the schema there, and requires the capability `manage_options` for reading and saving.
 
-The option belongs to the theme's slug, not to the active stylesheet. A child theme without code therefore uses the settings of its parent theme, and switching to a child theme keeps them. A child theme with code and each plugin have their own groups and options.
+The option belongs to the theme's namespace, not to its directory name or the active stylesheet. A child theme without code therefore uses the settings of its parent theme, and switching to a child theme keeps them. A child theme with code and each plugin have their own groups and options.
 
 ## Using settings
 

@@ -34,7 +34,7 @@ final class SettingsStore
     private array $objects = [];
 
     /**
-     * @param non-empty-string         $slug
+     * @param non-empty-string         $slug   The option group of register_setting().
      * @param list<SettingsGroupEntry> $groups
      */
     public function __construct(
@@ -48,14 +48,14 @@ final class SettingsStore
     }
 
     /**
-     * The option (and REST field) of a group: the slug with "_" instead of "-", "_" and the group name.
+     * The option (and REST field) of a group: the namespace with "_" instead of "-", "_" and the group name.
      *
-     * @param non-empty-string $slug
+     * @param non-empty-string $namespace
      * @return non-empty-string
      */
-    public static function optionName(string $slug, string $name): string
+    public static function optionName(string $namespace, string $name): string
     {
-        return ComposerProject::templatePrefix($slug) . $name;
+        return ComposerProject::dataPrefix($namespace) . $name;
     }
 
     /**
@@ -65,7 +65,7 @@ final class SettingsStore
     {
         add_action('init', $this->register(...));
         foreach ($this->groups as $class => $group) {
-            $option = self::optionName($this->slug, $group['name']);
+            $option = $group['option'];
             $forget = function () use ($class): void {
                 unset($this->objects[$class]);
             };
@@ -82,7 +82,7 @@ final class SettingsStore
     public function register(): void
     {
         foreach ($this->groups as $group) {
-            $option = self::optionName($this->slug, $group['name']);
+            $option = $group['option'];
             register_setting($this->slug, $option, [
                 'type' => 'object',
                 'label' => $group['title'],
@@ -128,7 +128,7 @@ final class SettingsStore
             $this->slug,
         ));
 
-        $option = self::optionName($this->slug, $group['name']);
+        $option = $group['option'];
         // False until the option is saved and before register() added its default.
         $stored = get_option($option);
         if ($stored !== false && !is_array($stored)) {
@@ -168,7 +168,7 @@ final class SettingsStore
         if (!is_array($value)) {
             self::log(sprintf(
                 'the option %s was saved with %s instead of an object; the defaults are stored instead.',
-                self::optionName($this->slug, $group['name']),
+                $group['option'],
                 get_debug_type($value),
             ));
 

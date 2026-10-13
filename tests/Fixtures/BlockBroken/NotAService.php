@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 
-#[Block('broken/not-a-service', title: 'X', category: BlockCategory::Text)]
+#[Block('not-a-service', title: 'X', category: BlockCategory::Text)]
 #[NoService]
 final class NotAService
 {

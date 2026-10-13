@@ -142,7 +142,7 @@ final class SettingsPage
         foreach ($this->groups as $group) {
             $groups[] = [
                 'name' => $group['name'],
-                'option' => SettingsStore::optionName($this->slug, $group['name']),
+                'option' => $group['option'],
                 'title' => $group['title'],
                 'description' => $group['description'],
                 'schema' => $group['schema'],

@@ -36,6 +36,7 @@ final readonly class BuildResult
      * @param list<BlockDefinition>                             $blocks
      * @param array<class-string, array<string, ValueField>>    $values       Value classes used by blocks and REST arguments.
      * @param non-empty-string|null                             $slug         Slug of the project; null for builds of fixtures.
+     * @param non-empty-string                                  $namespace    Namespace of blocks, REST routes and settings options.
      * @param list<class-string>                                $publicApis   `#[PublicApi]` services of a plugin or theme.
      * @param array<non-empty-string, non-empty-string>         $templateProviders Template prefix => slug of the plugins and
      *                                                                         the parent theme whose public template callables
@@ -63,6 +64,7 @@ final readonly class BuildResult
         private array $values,
         private ProjectKind $kind,
         private ?string $slug,
+        private string $namespace,
         private array $publicApis,
         private array $templateProviders,
         private ?string $parent = null,
@@ -112,6 +114,14 @@ final readonly class BuildResult
     public function getSlug(): ?string
     {
         return $this->slug;
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    public function getNamespace(): string
+    {
+        return $this->namespace;
     }
 
     /**

@@ -9,7 +9,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Supports;
 
-#[Block('fixture/card', title: 'Card', category: BlockCategory::Text)]
+#[Block('card', title: 'Card', category: BlockCategory::Text)]
 #[Supports(anchor: true, align: [Align::Wide, Align::Full])]
 final readonly class Card
 {

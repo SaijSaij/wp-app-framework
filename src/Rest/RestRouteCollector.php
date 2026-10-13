@@ -59,9 +59,13 @@ final class RestRouteCollector
 
     private readonly EntryPointInspector $inspector;
 
+    /**
+     * @param non-empty-string $namespace Namespace of the project; routes are registered under `{namespace}/{version}`.
+     */
     public function __construct(
         private readonly ServiceResolver $resolver,
         private readonly ValueSchemaBuilder $values,
+        private readonly string $namespace,
         private readonly ?CacheCollector $cache = null,
     ) {
         $this->inspector = new EntryPointInspector($resolver);
@@ -189,16 +193,13 @@ final class RestRouteCollector
         }
 
         $valid = true;
-        if (preg_match('~^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$~', $controller->namespace) !== 1) {
+        if (preg_match('~^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$~', $controller->version) !== 1) {
             $this->errors[] = sprintf(
-                '#[RestController] on %s has the invalid namespace "%s": use letters, digits, ".", "_", "-" and "/" without leading or trailing slash, e.g. "sections/v1".',
+                '#[RestController] on %s has the invalid version "%s": use letters, digits, ".", "_", "-" and "/" without leading or trailing slash, e.g. "v1"; the routes are registered under "%s/{version}".',
                 $name,
-                $controller->namespace,
+                $controller->version,
+                $this->namespace,
             );
-            $valid = false;
-        } elseif ($controller->namespace === '0') {
-            // register_rest_route() rejects an empty() namespace.
-            $this->errors[] = sprintf('#[RestController] on %s has the namespace "0", which WordPress treats as empty.', $name);
             $valid = false;
         }
         if ($controller->base !== '' && (!str_starts_with($controller->base, '/') || str_ends_with($controller->base, '/'))) {
@@ -468,8 +469,8 @@ final class RestRouteCollector
             }
         }
 
-        /** @var non-falsy-string $namespace Checked by controller(): a valid namespace, not "0". */
-        $namespace = $controller->namespace;
+        /** @var non-falsy-string $namespace The project namespace is not empty. */
+        $namespace = $this->namespace . '/' . $controller->version;
         /** @var non-falsy-string $regex The path is not empty and starts with "/". */
         $regex = $compiled['regex'];
 

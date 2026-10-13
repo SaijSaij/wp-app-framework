@@ -15,7 +15,7 @@ use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestException;
 use Saij\WpAppFramework\Rest\RestRoute;
 
-#[RestController('sections/v1', base: '/items')]
+#[RestController('v1', base: '/items')]
 final class ItemController
 {
     #[RestRoute('/{id}', HttpMethod::Get, new PublicAccess())]
@@ -26,7 +26,7 @@ final class ItemController
 }
 ```
 
-This registers `GET /wp-json/sections/v1/items/{id}`. Read the method signature from left to right:
+With the namespace `sections` (`extra.wp-app-framework.namespace` in `composer.json`), this registers `GET /wp-json/sections/v1/items/{id}`. Read the method signature from left to right:
 
 - `int $id` matches the placeholder `{id}` in the path. Because it is an `int`, the route only matches digits.
 - `ItemRepository $items` is a [service](./services.md), so the framework injects it.
@@ -34,7 +34,7 @@ This registers `GET /wp-json/sections/v1/items/{id}`. Read the method signature 
 
 The method returns an array, which becomes a JSON response with status 200. If the item does not exist, it throws a `RestException` with status 404.
 
-`#[RestController(namespace, base: '')]` takes the namespace without leading or trailing slash; the value may be a class constant. A `#[RestRoute]` in a class without `#[RestController]` is a build error.
+`#[RestController(version, base: '')]` takes the version without leading or trailing slash, for example `v1`; the value may be a class constant. The routes are registered under `{namespace}/{version}`, where the namespace is the one of your theme or plugin (see [Concepts](../concepts.md#consumers-and-instances)). A `#[RestRoute]` in a class without `#[RestController]` is a build error.
 
 `#[RestRoute(path, methods, permission)]` is repeatable, and all three arguments are required, so the IDE and the build both report a missing permission. `path` is empty or starts with `/`. `methods` is an `HttpMethod` case or a list of them.
 

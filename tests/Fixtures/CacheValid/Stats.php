@@ -14,7 +14,7 @@ use Saij\WpAppFramework\Rest\RestRoute;
 use WP_REST_Request;
 use WP_REST_Response;
 
-#[RestController('fixture/v1', base: '/stats')]
+#[RestController('v1', base: '/stats')]
 final class Stats
 {
     /**

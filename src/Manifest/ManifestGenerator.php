@@ -97,6 +97,7 @@ final class ManifestGenerator
             'format' => Manifest::FORMAT,
             'kind' => $result->getKind()->value,
             'slug' => $result->getSlug(),
+            'namespace' => $result->getNamespace(),
             'candidates' => $result->getCandidates(),
             'services' => $result->getServices(),
             'hooks' => $hooks,

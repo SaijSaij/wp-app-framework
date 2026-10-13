@@ -10,7 +10,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 /**
  * Checks the block templates, template parts and patterns of a theme or child theme against the blocks of the
  * same instance. Blocks of other instances, of plugins and of WordPress are not checked: their schemas are not
- * part of the build. A block name in a namespace of the instance's own blocks must be one of them.
+ * part of the build. A block name in the namespace of the instance must be one of its blocks.
  */
 #[NoService]
 final class BlockMarkupValidator
@@ -23,20 +23,19 @@ final class BlockMarkupValidator
     /** @var array<string, BlockDefinition> */
     private array $blocks = [];
 
-    /** @var array<string, true> */
-    private array $namespaces = [];
-
     /** @var list<string> */
     private array $errors = [];
 
     /**
+     * @param non-empty-string      $namespace Namespace of the instance (`extra.wp-app-framework.namespace`).
      * @param list<BlockDefinition> $blocks
      */
-    public function __construct(array $blocks)
-    {
+    public function __construct(
+        private readonly string $namespace,
+        array $blocks,
+    ) {
         foreach ($blocks as $block) {
             $this->blocks[$block->getName()] = $block;
-            $this->namespaces[strstr($block->getName(), '/', true) ?: $block->getName()] = true;
         }
     }
 
@@ -92,8 +91,8 @@ final class BlockMarkupValidator
         $prefix = sprintf('%s:%d: block %s: ', $file, $block->getLine(), $block->getName());
 
         if ($definition === null) {
-            if (isset($this->namespaces[strstr($block->getName(), '/', true) ?: ''])) {
-                $this->errors[] = $prefix . 'unknown block; the namespace is used by the blocks of this theme.';
+            if (str_starts_with($block->getName(), $this->namespace . '/')) {
+                $this->errors[] = $prefix . sprintf('unknown block; "%s" is the namespace of this theme (extra.wp-app-framework.namespace).', $this->namespace);
             } elseif ($block->getAttributes() === null && !$block->hasPhp()) {
                 $this->errors[] = $prefix . 'invalid JSON in the block comment; WordPress ignores all attributes.';
             }

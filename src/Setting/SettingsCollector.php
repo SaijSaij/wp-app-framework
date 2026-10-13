@@ -16,6 +16,7 @@ use Throwable;
  * @phpstan-import-type Control from ValueSchemaBuilder
  * @phpstan-type SettingsGroupEntry array{
  *     name: non-empty-string,
+ *     option: non-empty-string,
  *     title: string,
  *     description: string,
  *     position: int,
@@ -39,13 +40,13 @@ final class SettingsCollector
 
     /**
      * @param string                $frameworkDirectory Source directory of the framework, which must not declare settings.
-     * @param non-empty-string|null $slug               Slug of the project, for the option names; null for builds of fixtures.
+     * @param non-empty-string      $namespace          Namespace of the project, for the option names.
      * @param string|null           $title              Name of the theme or plugin, the title of its settings page.
      */
     public function __construct(
         private readonly ValueSchemaBuilder $values,
         private readonly string $frameworkDirectory,
-        private readonly ?string $slug = null,
+        private readonly string $namespace,
         private readonly ?string $title = null,
     ) {}
 
@@ -87,7 +88,7 @@ final class SettingsCollector
             }
 
             $file = (string) realpath((string) $class->getFileName());
-            $option = $this->slug === null ? null : SettingsStore::optionName($this->slug, $group->name);
+            $option = SettingsStore::optionName($this->namespace, $group->name);
             $error = match (true) {
                 str_starts_with($file, $this->frameworkDirectory . '/') => sprintf('%s has #[SettingsGroup], but the framework declares no settings; they belong to the theme or plugin.', $name),
                 preg_match(self::NAME_PATTERN, $group->name) !== 1 => sprintf(
@@ -97,7 +98,7 @@ final class SettingsCollector
                 ),
                 isset($names[$group->name]) => sprintf('#[SettingsGroup] on %s uses the name "%s", which %s already uses.', $name, $group->name, $names[$group->name]),
                 trim($group->title) === '' => sprintf('#[SettingsGroup] on %s has an empty title.', $name),
-                $option !== null && strlen($option) > self::MAX_OPTION_LENGTH => sprintf(
+                strlen($option) > self::MAX_OPTION_LENGTH => sprintf(
                     '#[SettingsGroup] on %s results in the option name "%s", which is longer than %d characters (the limit of WordPress\' options table); use a shorter name.',
                     $name,
                     $option,
@@ -111,7 +112,7 @@ final class SettingsCollector
             }
             $names[$group->name] = $name;
 
-            $entry = $this->entry($name, $group);
+            $entry = $this->entry($name, $group, $option);
             if ($entry !== null) {
                 $entries[] = $entry;
             }
@@ -135,10 +136,11 @@ final class SettingsCollector
     }
 
     /**
-     * @param class-string $class
+     * @param class-string     $class
+     * @param non-empty-string $option
      * @return SettingsGroupEntry|null
      */
-    private function entry(string $class, SettingsGroup $group): ?array
+    private function entry(string $class, SettingsGroup $group, string $option): ?array
     {
         $location = sprintf('#[SettingsGroup] on %s', $class);
         $fields = $this->values->objectFields($class, $location, true);
@@ -186,6 +188,7 @@ final class SettingsCollector
 
         return [
             'name' => $group->name,
+            'option' => $option,
             'title' => $group->title,
             'description' => $group->description,
             'position' => $group->position,

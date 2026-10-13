@@ -107,15 +107,15 @@ import { registerControl, registerPanel } from '@saij/wp-app-framework';
 import { PanelBody, RangeControl } from '@wordpress/components';
 
 // Replaces the generated control of an attribute.
-registerControl( 'sections/hero', 'count', ( { value, onChange } ) => (
+registerControl( 'hero', 'count', ( { value, onChange } ) => (
 	<RangeControl label="Count" value={ value } onChange={ onChange } min={ 1 } max={ 6 } />
 ) );
 
 // Adds a panel to the default group of the inspector, after the "Settings" panel.
-registerPanel( 'sections/hero', ( { attributes, setAttributes } ) => <PanelBody title="Hero">…</PanelBody> );
+registerPanel( 'hero', ( { attributes, setAttributes } ) => <PanelBody title="Hero">…</PanelBody> );
 ```
 
-`registerControl()` replaces the generated control of one attribute. `registerPanel()` adds a panel of your own. Both warn in the console about unknown blocks and attributes.
+`registerControl()` replaces the generated control of one attribute. `registerPanel()` adds a panel of your own. Like `registerToolbarButton()` below, they take the block name without namespace, as in `#[Block]`. All of them warn in the console about unknown blocks and attributes, and about names with a namespace.
 
 ### Toolbar buttons
 
@@ -125,7 +125,7 @@ registerPanel( 'sections/hero', ( { attributes, setAttributes } ) => <PanelBody 
 import { registerToolbarButton } from '@saij/wp-app-framework';
 import { ToolbarButton } from '@wordpress/components';
 
-registerToolbarButton( 'sections/faq', ( { attributes, setAttributes } ) => (
+registerToolbarButton( 'faq', ( { attributes, setAttributes } ) => (
 	<ToolbarButton
 		icon="arrow-down-alt2"
 		label="Open by default"

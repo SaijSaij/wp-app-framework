@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Fixtures\BlockEditorBroken;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('fixture/allowed-without-content', title: 'Allowed', category: BlockCategory::Design, allowedBlocks: ['fixture/x'])]
+#[Block('allowed-without-content', title: 'Allowed', category: BlockCategory::Design, allowedBlocks: ['fixture/x'])]
 final class AllowedWithoutContent
 {
     public function render(): string

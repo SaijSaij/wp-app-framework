@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Support\UseSupport;
 
-#[Block('broken/uses-broken', title: 'X', category: BlockCategory::Text)]
+#[Block('uses-broken', title: 'X', category: BlockCategory::Text)]
 #[UseSupport(Broken::class)]
 final class UsesBroken
 {

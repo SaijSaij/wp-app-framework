@@ -26,7 +26,7 @@ A block that shows the latest posts queries the database each time it renders. W
 use Saij\WpAppFramework\Cache\Cache;
 use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
 
-#[Block('sections/latest-posts', title: 'Latest posts', category: BlockCategory::Widgets)]
+#[Block('latest-posts', title: 'Latest posts', category: BlockCategory::Widgets)]
 #[Cache(ttl: 3600, tags: [new PostTypeTag('post')])]
 final class LatestPosts
 {

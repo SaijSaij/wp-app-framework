@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use WP_Block;
 
-#[Block('broken/bad-parameter', title: 'X', category: BlockCategory::Text)]
+#[Block('bad-parameter', title: 'X', category: BlockCategory::Text)]
 final class BadParameter
 {
     public function render(int $number, ?WP_Block $block): string

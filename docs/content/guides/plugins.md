@@ -61,7 +61,7 @@ The name must start with the provider's template prefix: its slug with underscor
 A consumer lists the plugins whose callables it uses in its `composer.json`:
 
 ```json
-"extra": { "wp-app-framework": { "template-plugins": ["my-plugin"] } }
+"extra": { "wp-app-framework": { "namespace": "my-theme", "template-plugins": ["my-plugin"] } }
 ```
 
 Its templates then call them by name:

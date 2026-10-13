@@ -46,6 +46,8 @@ final readonly class EditorAssets
      * @param string           $buildUri       URL of the consumer's build directory.
      * @param list<BlockEntry> $blocks
      * @param bool             $development    Development mode: the runtime warns about template mistakes.
+     * @param string           $namespace      Namespace of the blocks; the runtime completes the block names given to
+     *                                         registerControl() and the like.
      */
     public function __construct(
         private string $slug,
@@ -53,6 +55,7 @@ final readonly class EditorAssets
         string $buildUri,
         private array $blocks,
         private bool $development,
+        private string $namespace,
     ) {
         $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri);
         $this->views = new ViewAssets($slug, $this->assets);
@@ -150,6 +153,7 @@ final readonly class EditorAssets
 
         $config = [
             'slug' => $this->slug,
+            'namespace' => $this->namespace,
             'renderPath' => '/' . RenderController::NAMESPACE . RenderController::route($this->slug),
             'previewPath' => '/' . RenderController::NAMESPACE . RenderController::previewRoute($this->slug),
             'maxBlocks' => RenderController::MAX_BLOCKS,

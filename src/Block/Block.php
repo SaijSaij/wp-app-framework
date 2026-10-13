@@ -16,11 +16,13 @@ use Attribute;
 final readonly class Block
 {
     /**
-     * @param string       $name        Block name, e.g. "sections/hero".
+     * @param string       $name        Block name without namespace, e.g. "hero"; registered in the namespace of the
+     *                                  theme or plugin (`extra.wp-app-framework.namespace`), e.g. "sections/hero".
      * @param list<string> $keywords    Search terms for the inserter.
      * @param list<string> $usesContext Context values the block reads from WP_Block::$context, e.g. "postId".
-     * @param list<string>|null $allowedBlocks Blocks that may be inserted as inner blocks, e.g. ["sections/hero"];
-     *                                         null allows all. Requires render() to accept string $content.
+     * @param list<string>|null $allowedBlocks Blocks that may be inserted as inner blocks: own blocks by name
+     *                                         ("hero"), other blocks in full ("core/paragraph"); null allows all.
+     *                                         Requires render() to accept string $content.
      * @param bool              $excerptWrapper Add the block to `excerpt_allowed_wrapper_blocks`: automatic excerpts
      *                                          include its allowed inner blocks, as for core/group. Requires
      *                                          render() to accept string $content.

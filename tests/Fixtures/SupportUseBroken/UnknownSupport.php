@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Support\UseSupport;
 
-#[Block('broken/unknown-support', title: 'X', category: BlockCategory::Text)]
+#[Block('unknown-support', title: 'X', category: BlockCategory::Text)]
 #[UseSupport(Helper::class)]
 final class UnknownSupport
 {

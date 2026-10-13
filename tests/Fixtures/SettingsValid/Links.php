@@ -10,7 +10,7 @@ use Saij\WpAppFramework\Block\BlockCategory;
 /**
  * A block with the value class Link of a settings group: its image is edited in the canvas here.
  */
-#[Block('fixture/links', title: 'Links', category: BlockCategory::Design)]
+#[Block('links', title: 'Links', category: BlockCategory::Design)]
 final class Links
 {
     public function render(LinksAttributes $attrs): string

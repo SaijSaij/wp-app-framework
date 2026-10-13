@@ -32,8 +32,8 @@ use Throwable;
 #[NoService]
 final class BlockCollector
 {
-    /** Same rule as WP_Block_Type_Registry::register(). */
-    private const string NAME_PATTERN = '~^[a-z0-9-]+/[a-z0-9-]+$~';
+    /** The part after the namespace; same rule as WP_Block_Type_Registry::register(). */
+    private const string NAME_PATTERN = '~^[a-z0-9-]+$~';
 
     private const string BLOCK_CLASS = 'WP_Block';
 
@@ -49,12 +49,16 @@ final class BlockCollector
     /** @var list<string> */
     private array $errors = [];
 
-    /** @var array<string, class-string> Block name => class, to find duplicates. */
+    /** @var array<string, class-string> Full block name => class, to find duplicates. */
     private array $names = [];
+
+    /** @var list<array{class-string, string}> Class and local name of each own block in an allowedBlocks list. */
+    private array $allowedOwnBlocks = [];
 
     private readonly EntryPointInspector $inspector;
 
     /**
+     * @param non-empty-string $namespace     Namespace of the project; blocks are registered as `{namespace}/{name}`.
      * @param string      $frameworkDirectory Source directory of the framework, which must not declare blocks.
      * @param string|null $scriptDirectory    Directory the consumer's build compiles scripts from (its `src/`);
      *                                        editor and view scripts must be below it. Null if the consumer has none.
@@ -63,6 +67,7 @@ final class BlockCollector
         private readonly ServiceResolver $resolver,
         private readonly ValueSchemaBuilder $values,
         private readonly SupportCollector $supports,
+        private readonly string $namespace,
         private readonly string $frameworkDirectory,
         private readonly ?string $scriptDirectory = null,
         private readonly ?CacheCollector $cache = null,
@@ -94,6 +99,18 @@ final class BlockCollector
             if ($definition !== null) {
                 $blocks[] = $definition;
                 $this->resolver->resolve($name);
+            }
+        }
+
+        foreach ($this->allowedOwnBlocks as [$class, $local]) {
+            if (!isset($this->names[$this->namespace . '/' . $local])) {
+                $this->errors[] = sprintf(
+                    '#[Block] on %s: allowedBlocks contains "%s", but no block of this theme or plugin is named "%s/%s"; name blocks of other namespaces in full, e.g. "core/paragraph".',
+                    $class,
+                    $local,
+                    $this->namespace,
+                    $local,
+                );
             }
         }
 
@@ -195,6 +212,7 @@ final class BlockCollector
 
             return null;
         }
+        $blockName = $this->namespace . '/' . $block->name;
         [$editorScript, $editorError] = ScriptKind::Editor->locate($file, $name, $this->scriptDirectory);
         [$viewScript, $viewError] = ScriptKind::View->locate($file, $name, $this->scriptDirectory);
         if ($editorError !== null || $viewError !== null) {
@@ -202,7 +220,7 @@ final class BlockCollector
 
             return null;
         }
-        $this->names[$block->name] = $name;
+        $this->names[$blockName] = $name;
 
         $args = [
             'api_version' => 3,
@@ -222,12 +240,19 @@ final class BlockCollector
             $args['uses_context'] = $block->usesContext;
         }
         if ($block->allowedBlocks !== null) {
-            $args['allowed_blocks'] = $block->allowedBlocks;
+            $args['allowed_blocks'] = [];
+            foreach ($block->allowedBlocks as $allowed) {
+                if (!str_contains($allowed, '/')) {
+                    $this->allowedOwnBlocks[] = [$name, $allowed];
+                    $allowed = $this->namespace . '/' . $allowed;
+                }
+                $args['allowed_blocks'][] = $allowed;
+            }
         }
         $args['supports'] = self::supports($supports, $alignments);
         $args['attributes'] = $attributeSchemas;
 
-        return new BlockDefinition($block->name, $args, $name, $arguments, [
+        return new BlockDefinition($blockName, $args, $name, $arguments, [
             'fields' => $fields,
             'controls' => $controls,
             'innerBlocks' => $innerBlocks,
@@ -260,14 +285,20 @@ final class BlockCollector
 
     private function nameError(Block $block, string $class): ?string
     {
+        if (str_contains($block->name, '/')) {
+            return sprintf(
+                '#[Block] on %s has the name "%s" with a namespace; declare the name without it, e.g. "hero": the block is registered in the namespace of the theme or plugin (extra.wp-app-framework.namespace, here "%s").',
+                $class,
+                $block->name,
+                $this->namespace,
+            );
+        }
         if (preg_match(self::NAME_PATTERN, $block->name) !== 1) {
-            return sprintf('#[Block] on %s has the invalid name "%s": use "namespace/name" with lowercase letters, digits and "-", e.g. "sections/hero".', $class, $block->name);
+            return sprintf('#[Block] on %s has the invalid name "%s": use lowercase letters, digits and "-", e.g. "hero".', $class, $block->name);
         }
-        if (str_starts_with($block->name, 'core/')) {
-            return sprintf('#[Block] on %s uses the name "%s"; the namespace "core" belongs to WordPress.', $class, $block->name);
-        }
-        if (isset($this->names[$block->name])) {
-            return sprintf('#[Block] on %s uses the name "%s", which %s already declares.', $class, $block->name, $this->names[$block->name]);
+        $blockName = $this->namespace . '/' . $block->name;
+        if (isset($this->names[$blockName])) {
+            return sprintf('#[Block] on %s uses the name "%s", which %s already declares.', $class, $block->name, $this->names[$blockName]);
         }
         if (trim($block->title) === '') {
             return sprintf('#[Block] on %s has an empty title.', $class);

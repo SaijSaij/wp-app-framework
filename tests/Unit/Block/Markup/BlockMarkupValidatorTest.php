@@ -64,7 +64,7 @@ final class BlockMarkupValidatorTest extends TestCase
         try {
             foreach (['wordpress-theme' => true, 'wordpress-plugin' => false] as $type => $checked) {
                 file_put_contents($project . '/composer.json', json_encode(
-                    ['type' => $type, 'autoload' => ['psr-4' => ['MarkupProbe\\' => 'src/']]],
+                    ['type' => $type, 'autoload' => ['psr-4' => ['MarkupProbe\\' => 'src/']], 'extra' => ['wp-app-framework' => ['namespace' => 'probe']]],
                     JSON_THROW_ON_ERROR,
                 ));
                 try {
@@ -98,7 +98,7 @@ final class BlockMarkupValidatorTest extends TestCase
             'patterns/hero.php:10: block fixture/divider: HTML between the block comments; only a block with a #[RichText(postContent: true)] field stores HTML in the post content.',
             'patterns/single.php:9: block fixture/section: in a pattern it is edited in contentOnly mode, where blocks can only be inserted into containers that are content blocks; set #[Supports(contentRole: true)] or give it a content attribute.',
             'templates/index.html:21: malformed block comment; WordPress treats it as HTML.',
-            'templates/index.html:1: block fixture/crad: unknown block; the namespace is used by the blocks of this theme.',
+            'templates/index.html:1: block fixture/crad: unknown block; "fixture" is the namespace of this theme (extra.wp-app-framework.namespace).',
             'templates/index.html:2: block fixture/card: unknown attribute "titel".',
             'templates/index.html:2: block fixture/card: attribute "tone": "pink" is not one of "light", "dark".',
             'templates/index.html:2: block fixture/card: attribute "count": expected integer, got string.',

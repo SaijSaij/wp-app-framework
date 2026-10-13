@@ -10,7 +10,7 @@ use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestRoute;
 use Saij\WpAppFramework\Value\PostReference;
 
-#[RestController('fixture/v1')]
+#[RestController('v1')]
 final class ReferenceRoute
 {
     #[RestRoute('/post', HttpMethod::Get, new PublicAccess())]

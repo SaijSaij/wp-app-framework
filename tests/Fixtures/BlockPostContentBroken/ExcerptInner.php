@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Fixtures\BlockPostContentBroken;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('fixture/excerpt-inner', title: 'ExcerptInner', category: BlockCategory::Text)]
+#[Block('excerpt-inner', title: 'ExcerptInner', category: BlockCategory::Text)]
 final readonly class ExcerptInner
 {
     public function render(ExcerptInnerAttributes $attrs, string $content): string

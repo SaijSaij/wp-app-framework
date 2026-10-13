@@ -4,7 +4,7 @@ wp-app-framework is a PHP and JavaScript framework for building standalone full 
 
 The framework is a library, not a theme or a plugin. Your theme, child theme or plugin includes it through Composer; the documentation calls these projects *consumers*. The framework registers no blocks itself; the blocks, hooks and routes you see in WordPress come from your code.
 
-Each consumer runs its own copy of the framework, called an *instance*. Everything with a global name – the REST route, script handles, the JavaScript global, the cache directory, the init action – is named after the consumer's slug (its directory name). That is why a theme and several plugins can run side by side, even with different framework versions. [Concepts](./concepts.md) explains this and the other ideas the guides build on.
+Each consumer runs its own copy of the framework, called an *instance*. Its blocks, REST routes and settings are named after the consumer's namespace from `composer.json`; technical names – script handles, the JavaScript global, the cache directory, the init action – after its slug (its directory name). That is why a theme and several plugins can run side by side, even with different framework versions. [Concepts](./concepts.md) explains this and the other ideas the guides build on.
 
 ## Principles
 

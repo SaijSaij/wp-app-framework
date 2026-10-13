@@ -9,7 +9,7 @@ use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Support\UseSupport;
 
 /** Uses a support, but prints its root element without block_wrapper_attributes(). */
-#[Block('fixture/unwrapped', title: 'Unwrapped', category: BlockCategory::Design)]
+#[Block('unwrapped', title: 'Unwrapped', category: BlockCategory::Design)]
 #[UseSupport(Framed::class, default: true)]
 final class Unwrapped
 {

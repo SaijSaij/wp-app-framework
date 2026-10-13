@@ -20,7 +20,7 @@ final class DevCacheTest extends TestCase
         $this->cache = $root . '/cache';
 
         file_put_contents($this->theme . '/composer.json', json_encode(
-            ['type' => 'wordpress-theme', 'autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src/']]],
+            ['type' => 'wordpress-theme', 'autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src/']], 'extra' => ['wp-app-framework' => ['namespace' => 'probe']]],
             JSON_THROW_ON_ERROR,
         ));
         file_put_contents($this->theme . '/style.css', "/*\nTheme Name: Probe\n*/\n");
@@ -144,7 +144,7 @@ final class DevCacheTest extends TestCase
             use Saij\\WpAppFramework\\Rest\\RestController;
             use Saij\\WpAppFramework\\Rest\\RestRoute;
 
-            #[RestController('probe/v1')]
+            #[RestController('v1')]
             final class Controller
             {
                 #[RestRoute('/check', HttpMethod::Get, new Callback(self::{$callback}(...)))]
@@ -315,7 +315,7 @@ final class DevCacheTest extends TestCase
     {
         $this->probe('load');
         file_put_contents($this->theme . '/composer.json', json_encode(
-            ['type' => 'wordpress-theme', 'autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src']]],
+            ['type' => 'wordpress-theme', 'autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src']], 'extra' => ['wp-app-framework' => ['namespace' => 'probe']]],
             JSON_THROW_ON_ERROR,
         ));
         touch($this->theme . '/composer.json', time() + 10);

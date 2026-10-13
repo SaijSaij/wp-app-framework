@@ -49,7 +49,7 @@ The class is a [service](./services.md). It can depend on other services through
 A block adds a support with `#[UseSupport]`. It is repeatable, one per support:
 
 ```php
-#[Block('sections/card', title: 'Card', category: BlockCategory::Design)]
+#[Block('card', title: 'Card', category: BlockCategory::Design)]
 #[UseSupport(Surface::class, default: SurfaceTone::Dark)]
 final class Card
 {

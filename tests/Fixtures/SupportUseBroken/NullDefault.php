@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Support\UseSupport;
 
-#[Block('broken/null-default', title: 'X', category: BlockCategory::Text)]
+#[Block('null-default', title: 'X', category: BlockCategory::Text)]
 #[UseSupport(Flag::class, default: null)]
 final class NullDefault
 {

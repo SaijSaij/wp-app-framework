@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Support\UseSupport;
 
-#[Block('broken/collision', title: 'X', category: BlockCategory::Text)]
+#[Block('collision', title: 'X', category: BlockCategory::Text)]
 #[UseSupport(Surface::class)]
 final class Collision
 {

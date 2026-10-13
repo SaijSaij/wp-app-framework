@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
 
-#[Block('fixture/teaser', title: 'Teaser', category: BlockCategory::Text)]
+#[Block('teaser', title: 'Teaser', category: BlockCategory::Text)]
 final readonly class Teaser
 {
     public function __construct(private EditorTemplateFunctions $editor) {}

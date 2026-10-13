@@ -13,7 +13,7 @@ use Attribute;
  * constructor parameter with a default, like a block attribute class: the
  * types and markers of values (`#[ListOf]`, `#[Url]`, `#[Label]`, `#[Hidden]`,
  * `#[Image]` for an attachment ID) derive the schema and the form. The framework stores the group in the option
- * `{slug}_{name}` (slug with "_" instead of "-"), edits it on the settings page
+ * `{namespace}_{name}` (namespace of the theme or plugin with "_" instead of "-"), edits it on the settings page
  * of the theme or plugin and injects it into the constructor of services that
  * declare a parameter of its type; templates read it as `settings.{name}`.
  */

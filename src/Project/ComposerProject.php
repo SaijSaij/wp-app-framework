@@ -18,7 +18,10 @@ use Saij\WpAppFramework\Release\FileHeader;
  * theme uses those of its parent theme without declaring them.
  *
  * The slug is the name of the project directory, as WordPress names themes and
- * plugins after their directory.
+ * plugins after their directory; technical names derive from it. The namespace
+ * (`extra.wp-app-framework.namespace`) names what content and data refer to:
+ * blocks, REST routes and settings options. It must not depend on the directory
+ * name, which changes when a theme or plugin is installed under another name.
  */
 #[NoService]
 final readonly class ComposerProject
@@ -26,9 +29,16 @@ final readonly class ComposerProject
     /** Allowed slugs: the directory names WordPress and the webpack helper accept for framework instances. */
     public const string SLUG_PATTERN = '/^[a-z0-9_-]+$/';
 
+    /** Allowed namespaces: valid as block namespace (WP_Block_Type_Registry) and REST namespace. */
+    public const string NAMESPACE_PATTERN = '/^[a-z][a-z0-9-]*$/';
+
+    /** Namespaces of WordPress (blocks `core/…`, REST `wp/…`) and of the framework's own REST routes. */
+    public const array RESERVED_NAMESPACES = ['core', 'wp', 'wp-app-framework'];
+
     /**
      * @param non-empty-string      $directory       Real path of the project.
      * @param non-empty-string      $slug
+     * @param non-empty-string      $namespace       `extra.wp-app-framework.namespace`.
      * @param list<Source>          $sources         PSR-4 directories.
      * @param non-empty-string|null  $parent          Slug of the parent theme of a child theme.
      * @param list<non-empty-string> $templateProviders Slugs of the plugins and the parent theme whose public template callables
@@ -39,6 +49,7 @@ final readonly class ComposerProject
         private string $directory,
         private string $composerFile,
         private string $slug,
+        private string $namespace,
         private ProjectKind $kind,
         private ?string $parent,
         private array $sources,
@@ -80,12 +91,13 @@ final readonly class ComposerProject
         [$kind, $parent] = self::kind($root, $composerFile, $composer, $slug, $errors);
         $sources = self::sources($root, $composerFile, $composer, $errors);
         $templateProviders = self::templateProviders($composerFile, $composer, $slug, $parent, $errors);
+        $namespace = self::projectNamespace($composerFile, $composer, $errors);
 
-        if ($errors !== [] || $kind === null) {
+        if ($errors !== [] || $kind === null || $namespace === null) {
             throw new BuildException($errors === [] ? [sprintf('%s is invalid.', $composerFile)] : $errors);
         }
 
-        return new self($root, $composerFile, $slug, $kind, $parent, $sources, $templateProviders, self::foreignNamespaces($root, $composer));
+        return new self($root, $composerFile, $slug, $namespace, $kind, $parent, $sources, $templateProviders, self::foreignNamespaces($root, $composer));
     }
 
     /**
@@ -107,6 +119,16 @@ final readonly class ComposerProject
     public function getSlug(): string
     {
         return $this->slug;
+    }
+
+    /**
+     * The namespace of blocks, REST routes and settings options (`extra.wp-app-framework.namespace`).
+     *
+     * @return non-empty-string
+     */
+    public function getNamespace(): string
+    {
+        return $this->namespace;
     }
 
     public function getKind(): ProjectKind
@@ -185,6 +207,70 @@ final readonly class ComposerProject
     public static function templatePrefix(string $slug): string
     {
         return str_replace('-', '_', $slug) . '_';
+    }
+
+    /**
+     * Prefix of the data names of a namespace – settings options, post types, taxonomies and meta keys: the
+     * namespace with underscores instead of hyphens, followed by an underscore (`dev-test` → `dev_test_`).
+     *
+     * @param non-empty-string $namespace
+     * @return non-empty-string
+     */
+    public static function dataPrefix(string $namespace): string
+    {
+        return str_replace('-', '_', $namespace) . '_';
+    }
+
+    /**
+     * The validation error of a namespace, null if it is valid.
+     */
+    public static function namespaceError(string $namespace): ?string
+    {
+        if (preg_match(self::NAMESPACE_PATTERN, $namespace) !== 1) {
+            return sprintf('"%s" is not a valid namespace: start with a lowercase letter, then use lowercase letters, digits and "-".', $namespace);
+        }
+        if (in_array($namespace, self::RESERVED_NAMESPACES, true)) {
+            return sprintf('the namespace "%s" is reserved (%s).', $namespace, implode(', ', self::RESERVED_NAMESPACES));
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<mixed> $composer
+     * @param list<string> $errors
+     * @return non-empty-string|null
+     */
+    private static function projectNamespace(string $composerFile, array $composer, array &$errors): ?string
+    {
+        $extra = is_array($composer['extra'] ?? null) ? $composer['extra'] : [];
+        $settings = $extra['wp-app-framework'] ?? [];
+        // templateProviders() reports a value that is not an object.
+        if (!is_array($settings)) {
+            return null;
+        }
+        $namespace = $settings['namespace'] ?? null;
+        if ($namespace === null) {
+            $errors[] = sprintf(
+                '%s declares no extra.wp-app-framework.namespace; the namespace names the blocks, REST routes and settings options of the theme or plugin, e.g. "sections" for blocks "sections/hero".',
+                $composerFile,
+            );
+
+            return null;
+        }
+        if (!is_string($namespace) || $namespace === '') {
+            $errors[] = sprintf('extra.wp-app-framework.namespace in %s must be a non-empty string, found %s.', $composerFile, json_encode($namespace));
+
+            return null;
+        }
+        $error = self::namespaceError($namespace);
+        if ($error !== null) {
+            $errors[] = sprintf('extra.wp-app-framework.namespace in %s: %s', $composerFile, $error);
+
+            return null;
+        }
+
+        return $namespace;
     }
 
     /**

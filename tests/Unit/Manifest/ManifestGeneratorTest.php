@@ -32,6 +32,7 @@ final class ManifestGeneratorTest extends TestCase
 
         self::assertStringNotContainsString('function', $code);
         self::assertSame(Manifest::FORMAT, $manifest['format']);
+        self::assertSame('fixture', $manifest['namespace']);
         self::assertContains(Valid\Dto::class, $manifest['candidates']);
         self::assertSame(
             [

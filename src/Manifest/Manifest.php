@@ -61,6 +61,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     format: int,
  *     kind: value-of<\Saij\WpAppFramework\Project\ProjectKind>,
  *     slug: non-empty-string|null,
+ *     namespace: non-empty-string,
  *     parent: non-empty-string|null,
  *     candidates: list<class-string>,
  *     services: array<class-string, array<string, ServiceArgument>>,
@@ -80,7 +81,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 15;
+    public const int FORMAT = 16;
 
     /**
      * @return ManifestData

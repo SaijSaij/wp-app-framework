@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Supports;
 
-#[Block('fixture/divider', title: 'Divider', category: BlockCategory::Design)]
+#[Block('divider', title: 'Divider', category: BlockCategory::Design)]
 #[Supports(customClassName: false, customCSS: false)]
 final readonly class Divider
 {

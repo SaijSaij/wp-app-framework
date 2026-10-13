@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Unit\Project;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Project\ComposerProject;
@@ -27,11 +28,16 @@ final class ComposerProjectTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $composer
+     * @param array<string, mixed> $composer Without extra.wp-app-framework.namespace, which is added as "my".
      * @param string|null          $style    Contents of style.css; null for none.
      */
-    private function project(string $slug, array $composer, ?string $style = "/*\nTheme Name: Test\n*/\n"): string
+    private function project(string $slug, array $composer, ?string $style = "/*\nTheme Name: Test\n*/\n", bool $namespace = true): string
     {
+        if ($namespace) {
+            $extra = is_array($composer['extra'] ?? null) ? $composer['extra'] : [];
+            $settings = is_array($extra['wp-app-framework'] ?? null) ? $extra['wp-app-framework'] : [];
+            $composer['extra'] = [...$extra, 'wp-app-framework' => [...$settings, 'namespace' => 'my']];
+        }
         $directory = $this->root . '/' . $slug;
         mkdir($directory . '/src', 0777, true);
         file_put_contents($directory . '/composer.json', (string) json_encode($composer));
@@ -46,10 +52,10 @@ final class ComposerProjectTest extends TestCase
      * @param array<string, mixed> $composer
      * @return list<string>
      */
-    private function errors(string $slug, array $composer, ?string $style = "/*\nTheme Name: Test\n*/\n"): array
+    private function errors(string $slug, array $composer, ?string $style = "/*\nTheme Name: Test\n*/\n", bool $namespace = true): array
     {
         try {
-            ComposerProject::load($this->project($slug, $composer, $style));
+            ComposerProject::load($this->project($slug, $composer, $style, $namespace));
         } catch (BuildException $exception) {
             return $exception->getErrors();
         }
@@ -79,6 +85,7 @@ final class ComposerProjectTest extends TestCase
         $project = ComposerProject::load($directory);
 
         self::assertSame('my-plugin', $project->getSlug());
+        self::assertSame('my', $project->getNamespace());
         self::assertSame(ProjectKind::Plugin, $project->getKind());
         self::assertSame('My\\Plugin\\', $project->getSources()[0]->getPrefix());
         self::assertSame(realpath($directory . '/src'), $project->getSources()[0]->getDirectory());
@@ -90,6 +97,50 @@ final class ComposerProjectTest extends TestCase
     public function testTemplatePrefixReplacesHyphens(): void
     {
         self::assertSame('plugin_dev_test_', ComposerProject::templatePrefix('plugin-dev-test'));
+    }
+
+    public function testDataPrefixReplacesHyphens(): void
+    {
+        self::assertSame('dev_test_', ComposerProject::dataPrefix('dev-test'));
+    }
+
+    public function testNamespaceIsRequired(): void
+    {
+        self::assertSame(
+            [sprintf('%s/my-theme/composer.json declares no extra.wp-app-framework.namespace; the namespace names the blocks, REST routes and settings options of the theme or plugin, e.g. "sections" for blocks "sections/hero".', $this->root)],
+            $this->errors('my-theme', ['type' => 'wordpress-theme', 'autoload' => ['psr-4' => ['My\\' => 'src/']]], namespace: false),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{mixed, string}>
+     */
+    public static function invalidNamespaces(): iterable
+    {
+        yield 'not a string' => [['my'], 'must be a non-empty string, found ["my"].'];
+        yield 'empty' => ['', 'must be a non-empty string, found "".'];
+        yield 'uppercase' => ['My', ': "My" is not a valid namespace: start with a lowercase letter, then use lowercase letters, digits and "-".'];
+        yield 'digit first' => ['1st', ': "1st" is not a valid namespace: start with a lowercase letter, then use lowercase letters, digits and "-".'];
+        yield 'underscore' => ['my_theme', ': "my_theme" is not a valid namespace: start with a lowercase letter, then use lowercase letters, digits and "-".'];
+        yield 'reserved' => ['core', ': the namespace "core" is reserved (core, wp, wp-app-framework).'];
+    }
+
+    #[DataProvider('invalidNamespaces')]
+    public function testInvalidNamespacesAreReported(mixed $namespace, string $message): void
+    {
+        $file = $this->root . '/my-theme/composer.json';
+        $prefix = str_starts_with($message, ':')
+            ? sprintf('extra.wp-app-framework.namespace in %s', $file)
+            : sprintf('extra.wp-app-framework.namespace in %s ', $file);
+
+        self::assertSame(
+            [$prefix . $message],
+            $this->errors('my-theme', [
+                'type' => 'wordpress-theme',
+                'autoload' => ['psr-4' => ['My\\' => 'src/']],
+                'extra' => ['wp-app-framework' => ['namespace' => $namespace]],
+            ], namespace: false),
+        );
     }
 
     public function testTypeIsRequired(): void

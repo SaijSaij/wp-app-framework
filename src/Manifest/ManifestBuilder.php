@@ -40,6 +40,9 @@ use Throwable;
 #[NoService]
 final class ManifestBuilder
 {
+    /** Namespace of builds of fixtures, which have no composer.json. */
+    public const string FIXTURE_NAMESPACE = 'fixture';
+
     /**
      * @param list<Source>       $sources
      * @param list<string>       $trackedFiles Absolute paths of files whose content affects the build.
@@ -52,6 +55,8 @@ final class ManifestBuilder
      * @param string|null            $name              Name of the theme or plugin (header), the title of its settings page.
      * @param string|null            $markupDirectory   Theme or child theme whose block templates, template parts and
      *                                                  patterns are checked against its blocks; null for plugins.
+     * @param non-empty-string       $namespace         Namespace of the blocks, REST routes and settings options
+     *                                                  (`extra.wp-app-framework.namespace`); fixtures use `fixture`.
      */
     public function __construct(
         private readonly array $sources,
@@ -65,6 +70,7 @@ final class ManifestBuilder
         private readonly ?string $parent = null,
         private readonly ?string $name = null,
         private readonly ?string $markupDirectory = null,
+        private readonly string $namespace = self::FIXTURE_NAMESPACE,
     ) {}
 
     /**
@@ -117,6 +123,7 @@ final class ManifestBuilder
             $project->getName(),
             // WordPress reads templates, template parts and patterns only from themes.
             $project->getKind() === ProjectKind::Plugin ? null : $root,
+            $project->getNamespace(),
         );
     }
 
@@ -139,20 +146,20 @@ final class ManifestBuilder
 
         $resolver = ServiceResolver::forClasses($classes, $this->predefined, $this->parent, SettingsCollector::groupClasses($classes));
         $values = new ValueSchemaBuilder($classes);
-        $settingsCollector = new SettingsCollector($values, self::frameworkSource()->getDirectory(), $this->slug, $this->name);
+        $settingsCollector = new SettingsCollector($values, self::frameworkSource()->getDirectory(), $this->namespace, $this->name);
         $settings = $settingsCollector->collect($classes);
         $hookCollector = new HookCollector($resolver);
         $hooks = $hookCollector->collect($classes);
         $cacheCollector = new CacheCollector($resolver, CacheCollector::settingsGroups($classes));
         $cacheCollector->collect($classes);
-        $routeCollector = new RestRouteCollector($resolver, $values, $cacheCollector);
+        $routeCollector = new RestRouteCollector($resolver, $values, $this->namespace, $cacheCollector);
         $routes = $routeCollector->collect($classes);
         $supportCollector = new SupportCollector($resolver, $values, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
         $supportCollector->collect($classes);
-        $blockCollector = new BlockCollector($resolver, $values, $supportCollector, self::frameworkSource()->getDirectory(), $this->scriptDirectory, $cacheCollector);
+        $blockCollector = new BlockCollector($resolver, $values, $supportCollector, $this->namespace, self::frameworkSource()->getDirectory(), $this->scriptDirectory, $cacheCollector);
         $blocks = $blockCollector->collect($classes);
         $markup = $this->markupDirectory !== null ? MarkupFiles::scan($this->markupDirectory) : null;
-        $markupValidator = new BlockMarkupValidator($blocks);
+        $markupValidator = new BlockMarkupValidator($this->namespace, $blocks);
         // Checked only against complete block definitions; otherwise the markup would report follow-up errors.
         if ($markup !== null && $blockCollector->errors() === [] && $supportCollector->errors() === [] && $values->errors() === []) {
             $markupValidator->validate($markup);
@@ -206,6 +213,7 @@ final class ManifestBuilder
             $values->values(),
             $this->kind,
             $this->slug,
+            $this->namespace,
             $publicApis,
             $templateProviders,
             $this->parent,

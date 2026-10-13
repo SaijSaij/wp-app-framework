@@ -143,6 +143,7 @@ final class EditorBuildTest extends TestCase
             sprintf($a, 'labeledValue') . ': value class ' . BlockEditorBroken\LabeledValue::class . ' implements Saij\WpAppFramework\Block\Labeled, which only labels the cases of backed enums.',
             '#[Block] on ' . BlockEditorBroken\AllowedWithoutContent::class . ' has allowedBlocks, but ' . BlockEditorBroken\AllowedWithoutContent::class . '::render() accepts no string $content, so the block has no inner blocks.',
             '#[Block] on ' . BlockEditorBroken\AllowedInvalid::class . ': allowedBlocks must contain non-empty strings only.',
+            '#[Block] on ' . BlockEditorBroken\AllowedUnknown::class . ': allowedBlocks contains "missing", but no block of this theme or plugin is named "fixture/missing"; name blocks of other namespaces in full, e.g. "core/paragraph".',
             sprintf(
                 'The editor script %s/ScriptOutside.editor.js of %s is outside the script directory (none), which the build of the project compiles.',
                 ManifestBuilderTest::fixture('BlockEditorBroken')->getDirectory(),

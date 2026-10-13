@@ -61,6 +61,7 @@ final class ReleaseCommandTest extends TestCase
         file_put_contents($project . '/composer.json', (string) json_encode(array_filter([
             'type' => $type,
             'autoload' => ['psr-4' => ['Test\\' => 'src/']],
+            'extra' => ['wp-app-framework' => ['namespace' => 'test']],
         ])));
         foreach ($files as $name => $content) {
             file_put_contents($project . '/' . $name, $content);

@@ -11,7 +11,7 @@ use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestRoute;
 use Saij\WpAppFramework\Value\ListOf;
 
-#[RestController('lists/v1')]
+#[RestController('v1')]
 final class ListController
 {
     /**

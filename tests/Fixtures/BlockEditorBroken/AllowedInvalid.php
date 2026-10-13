@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Fixtures\BlockEditorBroken;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('fixture/allowed-invalid', title: 'Allowed invalid', category: BlockCategory::Design, allowedBlocks: [''])]
+#[Block('allowed-invalid', title: 'Allowed invalid', category: BlockCategory::Design, allowedBlocks: [''])]
 final class AllowedInvalid
 {
     public function render(string $content): string

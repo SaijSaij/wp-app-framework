@@ -14,7 +14,7 @@ use Saij\WpAppFramework\Rest\RestRoute;
 use Saij\WpAppFramework\Value\ListOf;
 use Saij\WpAppFramework\Value\Url;
 
-#[RestController('broken-lists/v1')]
+#[RestController('v1')]
 final class BrokenListController
 {
     #[RestRoute('/single', HttpMethod::Post, new PublicAccess())]

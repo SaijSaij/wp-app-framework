@@ -153,7 +153,7 @@ final class BlockCollectorTest extends TestCase
 
         $resolver = ServiceResolver::forClasses($classes, []);
         $values = new ValueSchemaBuilder($classes);
-        $collector = new BlockCollector($resolver, $values, new SupportCollector($resolver, $values, $source->getDirectory()), $source->getDirectory());
+        $collector = new BlockCollector($resolver, $values, new SupportCollector($resolver, $values, $source->getDirectory()), ManifestBuilder::FIXTURE_NAMESPACE, $source->getDirectory());
         self::assertSame([], $collector->collect($classes));
         self::assertContains(BlockValid\Hero::class . ' has #[Block], but the framework registers no blocks; blocks belong to the theme or plugin.', $collector->errors());
         self::assertCount(4, $collector->errors());
@@ -172,12 +172,12 @@ final class BlockCollectorTest extends TestCase
             $expected = [
                 "parameter \$number of {$ns}BadParameter::render() {$render}",
                 "parameter \$block of {$ns}BadParameter::render() {$render}",
-                "#[Block] on {$ns}CoreName uses the name \"core/paragraph\"; the namespace \"core\" belongs to WordPress.",
+                "#[Block] on {$ns}CoreName has the name \"core/paragraph\" with a namespace; declare the name without it, e.g. \"hero\": the block is registered in the namespace of the theme or plugin (extra.wp-app-framework.namespace, here \"fixture\").",
                 "#[Supports] on {$ns}DuplicateAlign lists the alignment Wide twice.",
-                "#[Block] on {$ns}DuplicateB uses the name \"broken/duplicate\", which {$ns}DuplicateA already declares.",
+                "#[Block] on {$ns}DuplicateB uses the name \"duplicate\", which {$ns}DuplicateA already declares.",
                 "#[Block] on {$ns}EmptyKeyword: keywords must contain non-empty strings only.",
                 "#[Block] on {$ns}EmptyTitle has an empty title.",
-                "#[Block] on {$ns}InvalidName has the invalid name \"Invalid\": use \"namespace/name\" with lowercase letters, digits and \"-\", e.g. \"sections/hero\".",
+                "#[Block] on {$ns}InvalidName has the invalid name \"Invalid\": use lowercase letters, digits and \"-\", e.g. \"hero\".",
                 "{$ns}NoRender has #[Block], but no render() method returning the block HTML.",
                 "{$ns}NotAService has #[Block], but {$ns}NotAService is marked #[NoService] and therefore not a service.",
                 "{$ns}NullableReturn::render() of a #[Block] class must return string.",

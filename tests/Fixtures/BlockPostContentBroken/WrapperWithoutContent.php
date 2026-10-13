@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Fixtures\BlockPostContentBroken;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('fixture/wrapper-without-content', title: 'WrapperWithoutContent', category: BlockCategory::Text, excerptWrapper: true)]
+#[Block('wrapper-without-content', title: 'WrapperWithoutContent', category: BlockCategory::Text, excerptWrapper: true)]
 final readonly class WrapperWithoutContent
 {
     public function render(): string

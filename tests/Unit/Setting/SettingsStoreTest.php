@@ -67,7 +67,7 @@ final class SettingsStoreTest extends TestCase
 
     public function testOptionNamesUseTheSlugWithUnderscores(): void
     {
-        self::assertSame('my_theme_general', SettingsStore::optionName('my-theme', 'general'));
+        self::assertSame('dev_test_general', SettingsStore::optionName('dev-test', 'general'));
     }
 
     public function testRegistersEachGroupAsOptionWithSchemaInTheRestApi(): void

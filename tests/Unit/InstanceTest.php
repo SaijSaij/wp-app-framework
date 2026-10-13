@@ -75,6 +75,18 @@ final class InstanceTest extends TestCase
         $this->instance(ProjectKind::Plugin)->boot();
     }
 
+    public function testANamespaceBootsOnlyOnce(): void
+    {
+        $this->writeReleaseManifest();
+        // Another theme or plugin booted with the namespace of the manifest.
+        do_action('wp_app_framework/namespace/fixture');
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('The plugin my-plugin uses the namespace "fixture" (extra.wp-app-framework.namespace in its composer.json), but another theme or plugin using the framework has already booted with it; each needs a namespace of its own.');
+
+        $this->instance(ProjectKind::Plugin)->boot();
+    }
+
     public function testReleaseBootProvidesThePublicApiAndFiresTheInitAction(): void
     {
         $this->writeReleaseManifest();
@@ -83,6 +95,7 @@ final class InstanceTest extends TestCase
         do_action('plugins_loaded');
 
         self::assertSame(1, did_action('wp_app_framework/init/my-plugin'));
+        self::assertSame(1, did_action('wp_app_framework/namespace/fixture'));
         self::assertInstanceOf(NoteApi::class, InstanceBridge::api(ProjectKind::Plugin, 'my-plugin', NoteApi::class));
         self::assertSame('2', (InstanceBridge::templateCallable('my-plugin', TemplateCallableKind::Function, 'my_plugin_note_count')['callable'])());
     }

@@ -10,7 +10,7 @@ use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Supports;
 use WP_Block;
 
-#[Block('fixture/hero', title: 'Hero', category: BlockCategory::Design, icon: 'cover-image', description: 'A hero.', keywords: ['banner'])]
+#[Block('hero', title: 'Hero', category: BlockCategory::Design, icon: 'cover-image', description: 'A hero.', keywords: ['banner'])]
 #[Supports(anchor: true, align: [Align::Wide, Align::Full], multiple: false)]
 final class Hero
 {

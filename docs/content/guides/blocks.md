@@ -31,7 +31,7 @@ use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Supports;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 
-#[Block('sections/hero', title: 'Hero', category: BlockCategory::Design, icon: 'cover-image')]
+#[Block('hero', title: 'Hero', category: BlockCategory::Design, icon: 'cover-image')]
 #[Supports(anchor: true, align: [Align::Wide, Align::Full])]
 final class Hero
 {
@@ -118,13 +118,13 @@ On the front end `field()`, `inner_blocks()` and `is_editor()` print nothing; th
 
 `#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [], allowedBlocks: null, excerptWrapper: false)]` goes on a service class.
 
-The **name** is `namespace/name` in lowercase letters, digits and `-`. The namespace belongs to the theme or plugin, for example `sections/hero`. The namespace `core` and duplicate names are build errors. The framework itself declares no blocks.
+The **name** is the name of the block without namespace, in lowercase letters, digits and `-`, for example `hero`. The framework registers it in the namespace of your theme or plugin (`extra.wp-app-framework.namespace` in `composer.json`, see [Concepts](../concepts.md#consumers-and-instances)): with the namespace `sections`, `hero` becomes `sections/hero`. That full name is what WordPress stores in posts and what you write in templates, patterns and filters. A name with `/` and duplicate names are build errors. The framework itself declares no blocks.
 
 The **category** is a `BlockCategory` case; an enum instead of a string lets your IDE complete it.
 
 **`usesContext`** lists the context values the block reads from `WP_Block::$context`. The typical case is `postId` in a query loop, where a block shows data of the current post.
 
-**`allowedBlocks`** limits which blocks can be inserted as inner blocks (`allowed_blocks` in WordPress). It requires `render()` to accept `string $content`.
+**`allowedBlocks`** limits which blocks can be inserted as inner blocks (`allowed_blocks` in WordPress). Name your own blocks without namespace (`'hero'`) and other blocks in full (`'core/paragraph'`); an own block that doesn't exist is a build error. It requires `render()` to accept `string $content`.
 
 **`excerptWrapper`** adds a container to WordPress' `excerpt_allowed_wrapper_blocks` (see [Excerpts](#excerpts)). It also requires `string $content`.
 

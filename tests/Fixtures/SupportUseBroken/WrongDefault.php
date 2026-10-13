@@ -8,7 +8,7 @@ use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 use Saij\WpAppFramework\Block\Support\UseSupport;
 
-#[Block('broken/wrong-default', title: 'X', category: BlockCategory::Text)]
+#[Block('wrong-default', title: 'X', category: BlockCategory::Text)]
 #[UseSupport(Surface::class, default: 'dark')]
 final class WrongDefault
 {

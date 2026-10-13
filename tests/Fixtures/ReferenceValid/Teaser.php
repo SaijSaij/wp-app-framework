@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Tests\Fixtures\ReferenceValid;
 use Saij\WpAppFramework\Block\Block;
 use Saij\WpAppFramework\Block\BlockCategory;
 
-#[Block('fixture/teaser', title: 'Teaser', category: BlockCategory::Design)]
+#[Block('teaser', title: 'Teaser', category: BlockCategory::Design)]
 final class Teaser
 {
     public function render(TeaserAttributes $attrs): string
