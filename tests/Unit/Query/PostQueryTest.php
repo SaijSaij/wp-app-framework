@@ -247,7 +247,7 @@ final class PostQueryTest extends TestCase
         }
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage(sprintf('%s has no field $capacityy (fields: capacity, startDate, venue, tickets, density, note, photo, alternatives, related); check the class with #[MetaFields].', EventDetails::class));
+        $this->expectExceptionMessage(sprintf('%s has no field $capacityy (fields: capacity, startDate, venue, tickets, density, note, photo, alternatives, related, registration); check the class with #[MetaFields].', EventDetails::class));
         Event::query()->where(new StringField(EventDetails::class, 'capacityy')->equals('1'))->toArgs();
     }
 

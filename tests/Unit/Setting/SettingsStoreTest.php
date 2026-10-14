@@ -81,7 +81,7 @@ final class SettingsStoreTest extends TestCase
         self::assertSame('object', $general['type']);
         self::assertSame('General', $general['label']);
         self::assertSame('Main settings.', $general['description']);
-        self::assertSame(['tagline' => '', 'density' => 'normal', 'contactUrl' => '', 'count' => 3, 'ratio' => null, 'links' => [], 'secret' => 'x', 'logo' => null, 'footer' => '', 'notice' => '', 'privacyPage' => null, 'featured' => []], $general['default']);
+        self::assertSame(['tagline' => '', 'density' => 'normal', 'contactUrl' => '', 'count' => 3, 'ratio' => null, 'links' => [], 'secret' => 'x', 'logo' => null, 'footer' => '', 'notice' => '', 'privacyPage' => null, 'featured' => [], 'imprint' => ['url' => '', 'opensInNewTab' => false, 'kind' => 'url', 'id' => 0], 'address' => ''], $general['default']);
         self::assertSame(['name' => 'my_theme_general', 'schema' => $this->manifest['settings']['groups'][1]['schema']], $general['show_in_rest']);
     }
 

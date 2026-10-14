@@ -18,6 +18,7 @@ use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableKind;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Twig\WordPressTemplateFunctions;
+use Saij\WpAppFramework\Value\LinkTemplateFunctions;
 
 final class TemplateCallableCollectorTest extends TestCase
 {
@@ -75,6 +76,7 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Function, 'wp_human_time_diff', WordPressTemplateFunctions::class, 'humanTimeDiff', false],
                 [TemplateCallableKind::Function, 'wp_number_format', WordPressTemplateFunctions::class, 'numberFormat', false],
                 [TemplateCallableKind::Function, 'wp_size_format', WordPressTemplateFunctions::class, 'sizeFormat', false],
+                [TemplateCallableKind::Function, 'link_attributes', LinkTemplateFunctions::class, 'linkAttributes', true],
             ],
             $collected,
         );

@@ -61,3 +61,27 @@
 	height: auto;
 	border-radius: 2px;
 }
+
+// Compact display of a link in the inspector: full width, URL on one line.
+.wp-app-framework-link {
+	justify-content: flex-start;
+	width: 100%;
+	max-width: 100%;
+}
+
+.wp-app-framework-link__url {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.wp-app-framework-link-form {
+	gap: 8px;
+}
+
+.wp-app-framework-link-form__title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 500;
+}

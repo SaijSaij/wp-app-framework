@@ -13,15 +13,18 @@ import { store as noticesStore } from '@wordpress/notices';
 import { ClassicRichTextControl } from './classic-rich-text';
 import { ValueControl } from './controls';
 import { createImageControl } from './image-control';
+import { LinkFormControl } from './link-form-control';
 import { editedGroups, groupValue, saveErrorMessage } from './settings-data';
 
 /**
- * Controls of #[Image] settings (media library of `@wordpress/media-utils`) and
- * #[RichText] settings (classic editor).
+ * Controls of #[Image] settings (media library of `@wordpress/media-utils`),
+ * #[RichText] settings (classic editor) and links (a search form; the block
+ * editor's LinkControl is not available here).
  */
 const FIELD_CONTROLS = {
 	image: createImageControl( { MediaUpload } ),
 	rich: ClassicRichTextControl,
+	link: LinkFormControl,
 };
 
 /** Marks the tab of a group with unsaved changes. */

@@ -757,21 +757,29 @@ function get_userdata(int $user_id): WP_User|false
 }
 
 /**
- * Viewable post types: post and page (like a default installation).
+ * Viewable post types: post, page and attachment (like a default installation).
  */
 function is_post_type_viewable(string|object $post_type): bool
 {
-    return in_array($post_type, ['post', 'page'], true);
+    return in_array($post_type, ['post', 'page', 'attachment'], true);
 }
 
 /**
- * Published posts of viewable post types.
+ * Published posts of viewable post types. Like get_post_status(), an attachment with the status "inherit" has the
+ * status of its parent, without parent "publish".
  */
 function is_post_publicly_viewable(int|WP_Post|null $post = null): bool
 {
     $post = get_post($post);
+    if ($post === null) {
+        return false;
+    }
+    $status = $post->post_status;
+    if ($post->post_type === 'attachment' && $status === 'inherit') {
+        $status = $post->post_parent === 0 ? 'publish' : (get_post($post->post_parent)?->post_status ?? 'publish');
+    }
 
-    return $post !== null && $post->post_status === 'publish' && is_post_type_viewable($post->post_type);
+    return $status === 'publish' && is_post_type_viewable($post->post_type);
 }
 
 /**
@@ -789,9 +797,33 @@ function get_permalink(int|WP_Post $post = 0, bool $leavename = false): string|f
     return $post === null ? false : 'https://example.test/?p=' . $post->ID;
 }
 
+/**
+ * Terms whose ID is in $GLOBALS['wp_app_framework_test_term_link_errors'] fail like a term of a taxonomy that is not
+ * registered.
+ */
 function get_term_link(WP_Term|int|string $term, string $taxonomy = ''): string|WP_Error
 {
+    if ($term instanceof WP_Term && in_array($term->term_id, $GLOBALS['wp_app_framework_test_term_link_errors'] ?? [], true)) {
+        return new WP_Error('invalid_taxonomy', 'Invalid taxonomy.');
+    }
+
     return $term instanceof WP_Term ? 'https://example.test/?cat=' . $term->term_id : new WP_Error('invalid_term', 'Empty Term.');
+}
+
+/**
+ * Simplified: an empty string for disallowed protocols, removes characters URLs may not contain and encodes "&"
+ * and "'" like WordPress for display.
+ *
+ * @param list<string>|null $protocols
+ */
+function esc_url(string $url, ?array $protocols = null, string $_context = 'display'): string
+{
+    if ($url === '' || preg_match('~^\s*(javascript|data|vbscript):~i', $url) === 1) {
+        return '';
+    }
+    $url = (string) preg_replace('|[^a-z0-9-~+_.?#=!&;,/:%@$\|*\'()\[\]\x80-\xff]|i', '', $url);
+
+    return str_replace(['&', "'"], ['&#038;', '&#039;'], $url);
 }
 
 function wp_specialchars_decode(string $text, int|string $quote_style = ENT_NOQUOTES): string

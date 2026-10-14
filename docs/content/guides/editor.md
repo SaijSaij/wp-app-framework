@@ -91,12 +91,14 @@ The runtime generates the block inspector from the attribute class. Each type ge
 | `string` | text; with `#[Url]` a URL field |
 | value class | the controls of its values |
 | field with `inspector: true` | text, rich text or image selection |
+| `#[PlainText(inspector: true, multiline: true)]` | text area |
+| [`Link`](./values.md#links) | the label and the shortened URL; a click opens the link control of the block editor (search of posts, terms and media files, "Open in new tab") |
 | [reference](./values.md#references) | search; a list shows cards with move and remove |
 | list | one card per item with its title (its first text value, else "Item n"), an actions menu (move up, move down, remove) and the item's controls, plus "Add item" |
 
 Fields of list items that are edited in the canvas stay in the canvas. Typed text is applied after a short pause.
 
-The controls use only stable components of `@wordpress/components`, so they keep working across WordPress updates. Their styles (`assets/editor.scss`) are part of the runtime build.
+The controls use only stable components of `@wordpress/components`, plus `LinkControl` of `@wordpress/block-editor` for links, so they keep working across WordPress updates. The settings page and classic meta boxes do not load the block editor; there a link has a form of its own, whose search finds posts only (see [Links](./values.md#links)). Their styles (`assets/editor.scss`) are part of the runtime build.
 
 Content attributes (`role: content`) appear in the "Content" group, which stays available in contentOnly mode. All other attributes appear in "Settings". Controls of [block supports](./supports.md) appear in the "Styles" tab (panel "Appearance") or in "Settings", depending on the support's group; like "Settings", they show only in the default editing mode.
 

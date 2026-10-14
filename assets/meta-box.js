@@ -12,15 +12,20 @@ import { MediaUpload } from '@wordpress/media-utils';
 
 import { ClassicRichTextControl } from './runtime/classic-rich-text';
 import { createImageControl } from './runtime/image-control';
+import { LinkFormControl } from './runtime/link-form-control';
 import { MetaForm } from './runtime/meta-form';
 import { formValue } from './runtime/meta-data';
 
 import './meta-box.scss';
 
-/** Controls of rich text (classic editor) and images (media library of `@wordpress/media-utils`). */
+/**
+ * Controls of rich text (classic editor), images (media library of
+ * `@wordpress/media-utils`) and links (a search form).
+ */
 const FIELD_CONTROLS = {
 	rich: ClassicRichTextControl,
 	image: createImageControl( { MediaUpload } ),
+	link: LinkFormControl,
 };
 
 /**

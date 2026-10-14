@@ -42,6 +42,10 @@ use Throwable;
  * created as the post object. `#[PostReference]` and `#[TermReference]` also take
  * post and taxonomy classes instead of names.
  *
+ * A `Link` is a value class of the framework with a control of its own (the
+ * link control of the block editor, a search form elsewhere); it is never
+ * null and counts as content in blocks.
+ *
  * Settings groups use the same derivation in settings mode: there is no canvas,
  * so `#[PlainText]`, `#[RichText]` and `#[Image]` get a control on the settings
  * page (rich text with the formats the classic editor offers); `#[Content]` and
@@ -51,13 +55,13 @@ use Throwable;
  * @phpstan-import-type ClassValue from ValueFactory
  * @phpstan-import-type Value from ValueFactory
  * @phpstan-import-type ValueField from ValueFactory
- * @phpstan-type EditorField array{path: string, kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true, postContent?: true, excerpt?: true}
+ * @phpstan-type EditorField array{path: string, kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true, postContent?: true, excerpt?: true, multiline?: true}
  * @phpstan-type Control array<string, mixed>
  * @phpstan-type Field array{schema: array<string, mixed>, value: Value, content: bool, fields: list<EditorField>, control: Control|null}
  * @phpstan-type ClassField array{schema: array<string, mixed>, value: ClassValue, content: bool, fields: list<EditorField>, control: Control|null}
  * @phpstan-import-type Reference from ValueFactory
  * @phpstan-type PostClass array{name: non-empty-string, restBase: non-empty-string}
- * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, label: string, hidden: bool, reference: Reference|null}
+ * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, multiline: bool, label: string, hidden: bool, reference: Reference|null}
  */
 #[NoService]
 final class ValueSchemaBuilder
@@ -129,6 +133,11 @@ final class ValueSchemaBuilder
 
         $nullable = $type->allowsNull();
         $name = $type->getName();
+        if ($name === Link::class && $nullable) {
+            $this->errors[] = sprintf('%s: a link is never null; use Link $%s = new Link(), an empty URL means no link.', $location, $parameter->getName());
+
+            return null;
+        }
         $listOf = $this->listOf($parameter, $location);
         if ($listOf === false) {
             return null;
@@ -210,6 +219,10 @@ final class ValueSchemaBuilder
                 }
                 if ($markers['excerpt']) {
                     $field['excerpt'] = true;
+                }
+                if ($markers['multiline']) {
+                    $field['multiline'] = true;
+                    $control['multiline'] = true;
                 }
                 $fields[] = $field;
             }
@@ -524,6 +537,10 @@ final class ValueSchemaBuilder
 
         $error = match (true) {
             count($referenceAttributes) > 1 => 'has several references; use one of #[PostReference], #[TermReference] and #[UserReference]',
+            $type->getName() === Link::class && ($referenceAttributes !== [] || $kind !== null || $content || $url) => sprintf(
+                'is a Link and has #[%s]; a link is content with its own control',
+                $referenceAttributes !== [] ? self::shortName($referenceAttributes[0]->getName()) : ($kind ?? ($content ? 'Content' : 'Url')),
+            ),
             $referenceAttributes !== [] && ($kind !== null || $content || $url) => sprintf(
                 'has #[%s] together with #[%s]; a reference is an ID with its own control and counts as content in blocks',
                 self::shortName($referenceAttributes[0]->getName()),
@@ -555,6 +572,7 @@ final class ValueSchemaBuilder
             $inspector = $kindAttribute->inspector ?? false;
             $postContent = $kindAttribute instanceof RichText && $kindAttribute->postContent;
             $excerpt = ($kindAttribute instanceof RichText || $kindAttribute instanceof PlainText) && $kindAttribute->excerpt;
+            $multiline = $kindAttribute instanceof PlainText && $kindAttribute->multiline;
             $label = $labelAttributes !== [] ? $labelAttributes[0]->newInstance()->label : self::humanize($parameter->getName());
         } catch (Throwable $exception) {
             $this->errors[] = sprintf('Invalid #[RichText], #[Label] or reference on %s: %s', $location, $exception->getMessage());
@@ -610,6 +628,7 @@ final class ValueSchemaBuilder
             'inspector' => $inspector,
             'postContent' => $postContent,
             'excerpt' => $excerpt,
+            'multiline' => $multiline,
             'label' => $label,
             'hidden' => $hidden,
             'reference' => $reference,
@@ -830,9 +849,12 @@ final class ValueSchemaBuilder
         return [
             'schema' => ['type' => self::type('object', $nullable), 'properties' => $properties],
             'value' => ['type' => 'object', 'class' => $class, 'nullable' => $nullable],
-            'content' => $content,
+            // A link is content with a control of its own instead of the controls of its values.
+            'content' => $content || $class === Link::class,
             'fields' => $editorFields,
-            'control' => ['type' => 'object', 'nullable' => $nullable, 'fields' => $controls],
+            'control' => $class === Link::class
+                ? ['type' => 'link', 'nullable' => false]
+                : ['type' => 'object', 'nullable' => $nullable, 'fields' => $controls],
         ];
     }
 

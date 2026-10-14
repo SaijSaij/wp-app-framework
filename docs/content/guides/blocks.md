@@ -173,6 +173,16 @@ Most blocks hold text and images that content editors should change directly whe
 
 Some values are not visible in the markup, or are better edited in a form. With `inspector: true` – `#[RichText(inspector: true)]`, also on `#[PlainText]` and `#[Image]` – a field is edited in the block inspector instead of the canvas.
 
+An address or a short poem needs line breaks. `#[PlainText(multiline: true)]` allows them: in the canvas, Enter and Shift+Enter insert a line break, and with `inspector: true` the inspector shows a text area. The value contains `\n`; print it with `|nl2br`, which escapes the text before it adds `<br />`:
+
+```twig
+<p class="teaser__address"{{ field('address') }}>{{ attrs.address|nl2br }}</p>
+```
+
+The canvas shows a line break at the very end of the text as an empty line, the front end does not.
+
+A [`Link`](./values.md#links) is a link to a post, term or media file, or a free URL. It has its own control in the inspector and counts as content.
+
 **`#[Content]`** marks other content, such as the URL of a link. It is edited in the inspector like any other value, but it counts as content: its control appears in the inspector's "Content" group, and WordPress keeps it editable in contentOnly mode (see below).
 
 [References](./values.md#references) to posts, terms and users (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are edited with a search in the inspector, and they count as content too.
@@ -181,7 +191,7 @@ Some values are not visible in the markup, or are better edited in a form. With 
 
 In WordPress 7, template parts and inserted patterns open in contentOnly mode. Content editors can change the content of blocks there, but not their design. A pattern becomes such a section only if it has a single top-level block, such as a group around its content; WordPress inserts a pattern with several top-level blocks as ordinary blocks. A block without content attributes is still shown, but it cannot be selected.
 
-WordPress decides by the attribute's `role: content`. The build sets it for you: an attribute gets `role: content` if it, or a field nested in it, carries `#[PlainText]`, `#[RichText]`, `#[Image]` or `#[Content]`, or is a reference. In the example, `buttons` is content because each button has a label and a URL.
+WordPress decides by the attribute's `role: content`. The build sets it for you: an attribute gets `role: content` if it, or a field nested in it, carries `#[PlainText]`, `#[RichText]`, `#[Image]` or `#[Content]`, or is a reference or a `Link`. In the example, `buttons` is content because each button has a label and a URL.
 
 The marks have no effect on REST arguments.
 
@@ -346,9 +356,11 @@ Twig escapes every value unless you say otherwise. This table shows how each kin
 | Value | Output |
 |---|---|
 | `#[PlainText]` and other strings | `{{ attrs.topline }}` – Twig's autoescaping |
+| `#[PlainText(multiline: true)]` | `{{ attrs.address\|nl2br }}` – escaped, then line breaks as `<br />` |
 | `#[RichText]` | `{{ attrs.headline\|raw }}` – exactly as stored; WordPress filters it with `wp_kses` when a user without `unfiltered_html` saves |
 | `#[Url]` strings | `{{ button.url }}` – the schema has `format: uri`, so the value is sanitized with `sanitize_url()` (disallowed protocols such as `javascript:` become empty) and then autoescaped |
 | Images | `#[Image]` attachment ID with `{{ wp_attachment_image(attrs.imageId, size = 'full', attributes = {}) }}` (`wp_get_attachment_image()`; empty for `null`; more in [WordPress functions](./twig.md#wordpress-functions)) |
+| Links | `<a {{ link_attributes(attrs.cta) }}>` – `href` with `esc_url()`, plus `target` and `rel` for a new tab; empty without URL (see [Links](./values.md#links)) |
 | References | IDs; `{{ wp_post_title(attrs.target) }}`, `{{ wp_post_url(attrs.target) }}`, `wp_term_name()`, `wp_term_url()`, `wp_user_name()` and more [WordPress functions](./twig.md#wordpress-functions) (see [References](./values.md#references)) |
 | Inner blocks | `{{ content\|raw }}` |
 | Root element | `{{ block_wrapper_attributes(extra = {}) }}` (`get_block_wrapper_attributes()`: classes and anchor of the supports, plus the classes of [block supports](./supports.md) and the marker of [front-end scripts](./frontend.md)) |

@@ -71,7 +71,7 @@ Twig runs with settings that catch mistakes early:
 - **`strict_variables`** is always on, so an undefined variable is an error instead of an empty string.
 - In development mode, **debug**, **auto reload** and **`dump()`** are enabled; in release mode they are off.
 
-A theme or plugin with settings groups has the global `settings` (see [Settings](./settings.md#using-settings)). The framework provides the template functions of blocks (`block_wrapper_attributes()`, see [Blocks](./blocks.md#escaping)), of the editor (`field()`, `inner_blocks()`, `is_editor()`, see [Editor](./editor.md#marking-editable-elements)), `has_plugin()` (see [Plugins](./plugins.md#public-template-functions-and-filters)), `post()` for post objects (see [Posts](./posts.md#templates)) and the [WordPress functions](#wordpress-functions) below.
+A theme or plugin with settings groups has the global `settings` (see [Settings](./settings.md#using-settings)). The framework provides the template functions of blocks (`block_wrapper_attributes()`, see [Blocks](./blocks.md#escaping)), of the editor (`field()`, `inner_blocks()`, `is_editor()`, see [Editor](./editor.md#marking-editable-elements)), `has_plugin()` (see [Plugins](./plugins.md#public-template-functions-and-filters)), `post()` for post objects (see [Posts](./posts.md#templates)), `link_attributes()` for [links](#links) and the [WordPress functions](#wordpress-functions) below.
 
 Twig exceptions reach the code that rendered the template, so the error handling of hooks and REST routes applies to them.
 
@@ -177,3 +177,15 @@ Text is escaped by Twig. Some values come from WordPress already escaped: term a
 :::warning
 The output of `wp_logout_url()` (a nonce), `wp_is_user_logged_in()` (the login state), `wp_date()` without a timestamp and `wp_human_time_diff()` without a second timestamp (the current time) depends on the request, not only on the attributes of a block. In [cached blocks](./cache.md#template-functions-that-depend-on-the-request) the framework checks them.
 :::
+
+## Links
+
+`link_attributes(link)` prints the attributes of an `<a>` element for a [`Link`](./values.md#links), like `block_wrapper_attributes()` prints those of the root element:
+
+```twig
+{% if attrs.cta.url %}
+    <a class="teaser__cta" {{ link_attributes(attrs.cta) }}>More</a>
+{% endif %}
+```
+
+The result is `href="https://example.org/about/"`, escaped with `esc_url()`, plus `target="_blank" rel="noopener"` if the link opens in a new tab. For a link without URL – also a link to content that no longer exists or is not public – it prints nothing, so check `link.url` before you print the element. The function takes no further attributes; write classes and other attributes next to it.

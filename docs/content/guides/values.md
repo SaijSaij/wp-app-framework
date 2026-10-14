@@ -53,6 +53,80 @@ The value factory never coerces silently. A value that does not match its type t
 
 `#[Url]` on a string adds `format: uri` to the schema, so the value is sanitized with `sanitize_url()`. Disallowed protocols such as `javascript:` become an empty string.
 
+## Links
+
+A call to action, a link in a footer setting, a registration link of an event: a link points either to content of the site or to any address. `#[Url]` stores the address as text, so a link to a page breaks when someone changes the page's slug. A `Link` (namespace `Saij\WpAppFramework\Value\`) stores the ID of the page instead, and the framework looks up its current URL when it renders – the same idea as [references](#references), plus a URL entered freely and "Open in new tab".
+
+```php
+use Saij\WpAppFramework\Block\Label;
+use Saij\WpAppFramework\Value\Link;
+
+final readonly class TeaserAttributes
+{
+    public function __construct(
+        #[Label('Call to action')] public Link $cta = new Link(),
+    ) {}
+}
+```
+
+A link is never `null`. A new `Link()` has an empty URL, and an empty URL means "no link". Print it with [`link_attributes()`](./twig.md#links), which writes `href` and, for a new tab, `target` and `rel`:
+
+```twig
+{% if attrs.cta.url %}
+    <a class="teaser__cta" {{ link_attributes(attrs.cta) }}>More</a>
+{% endif %}
+```
+
+### Linked content and free URLs
+
+Editors choose the target in the block inspector with the link control of the block editor. It searches posts, terms and media files. A chosen result stays *synced*: the link stores its kind and ID, and the input field is locked until the editor chooses "Unsync and edit". An address typed into the field is a *free URL*: it is stored as it is, without ID.
+
+A link is stored as four values:
+
+```json
+{"url":"https://example.org/about/","opensInNewTab":true,"kind":"post","id":42}
+{"url":"https://example.com/","opensInNewTab":false,"kind":"url","id":0}
+```
+
+`kind` is a `LinkKind`: `Url` for a free URL, `Post`, `Term` or `Attachment` for linked content. For linked content, the stored URL is only what the editor showed when the target was chosen; templates never see it.
+
+### Resolution
+
+When the value is created, a linked post, term or media file gets its current URL: the permalink of a post, the archive of a term, the file of a media item. A link becomes empty – an empty `url`, while `kind` and `id` stay – if its target:
+
+- no longer exists,
+- is of a post type or taxonomy that is not viewable,
+- is a post or media file that is not publicly viewable, such as a draft or the attachment of a draft.
+
+Renders for the block editor keep posts and media files that are not public, so editors still see what they chose. Free URLs stay as they are; like `#[Url]`, they are sanitized with `sanitize_url()`.
+
+Resolving costs about as much as a reference: one lookup of the object, usually from the object cache, and one call for its URL. A [cached block](./cache.md) keeps the resolved URL until its cache entry is invalidated. If the URLs of linked pages matter, tag the block with the types it links to, for example `PostTypeTag(Page::class)`, as you would for references.
+
+:::tip
+In templates and patterns of your theme, use free URLs only. IDs of pages, terms and media files differ from site to site, and the build does not check them.
+:::
+
+### Outside the block editor
+
+The settings page and meta boxes on the classic edit screen do not load the block editor. There a link is edited with a form of its own: a search of published posts, which links the chosen post with its ID, a field for a free URL and the toggle "Open in new tab". A linked post shows its title and can be unlinked, which keeps its URL as a free URL. Links to terms and media files are chosen in the block editor only.
+
+### Rules
+
+| Rule | |
+|---|---|
+| Type | `Link`, never nullable; default `new Link()` |
+| Allowed in | block attributes, value classes, lists (`#[ListOf(Link::class)]`), settings groups, meta classes |
+| Schema | `object` with `url` (`format: uri`), `opensInNewTab`, `kind` (enum `url`, `post`, `term`, `attachment`) and `id` |
+| Blocks | counts as content (`role: content`), editable in contentOnly mode |
+| Kind and ID | `kind: url` with `id: 0`; any other kind with a positive ID |
+
+The following are build errors:
+
+- `?Link`: a link is never null; an empty URL means no link;
+- `#[Content]`, `#[Url]`, `#[PlainText]`, `#[RichText]`, `#[Image]` or a reference on a `Link`: a link is content with its own control.
+
+A stored link whose kind and ID do not match is a [wrong value](#wrong-values). The build checks links in templates and patterns against the schema, so a wrong `kind` or a string as `opensInNewTab` is an error there; it does not check whether an ID exists.
+
 ## References
 
 A block that links to another page, a setting that names the privacy policy page, a teaser that shows a category: these are references to WordPress objects. Storing the URL or the title would break as soon as someone renames the page. References store the ID instead, and the framework looks up the current data when it renders.

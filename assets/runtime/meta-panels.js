@@ -9,13 +9,18 @@ import { registerPlugin } from '@wordpress/plugins';
 
 import { ClassicRichTextControl } from './classic-rich-text';
 import { createImageControl } from './image-control';
+import { LinkValueControl } from './link-control';
 import { MetaForm } from './meta-form';
 import { changeMeta, valueFromMeta } from './meta-data';
 
-/** Controls of rich text (classic editor) and images (media library of the block editor). */
+/**
+ * Controls of rich text (classic editor), images (media library of the block
+ * editor) and links (LinkControl of the block editor).
+ */
 const FIELD_CONTROLS = {
 	rich: ClassicRichTextControl,
 	image: createImageControl( { MediaUpload, MediaUploadCheck } ),
+	link: LinkValueControl,
 };
 
 /**

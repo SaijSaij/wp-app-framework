@@ -34,6 +34,11 @@ use WP_User;
  * also for post types that are not public (data types), and in renders for the
  * block editor in every status.
  *
+ * A `Link` to a post, term or media file gets the current URL of the object
+ * under the same conditions as a reference (attachments if they are public),
+ * else an empty URL; its kind and ID stay. A link whose kind and ID do not
+ * match (a free URL with an ID, a linked object without one) is an error.
+ *
  * @phpstan-type Reference array{target: 'post'|'term'|'user', subtypes: list<string>|null, class?: class-string<AbstractPost>}
  * @phpstan-type ClassValue array{type: 'enum'|'object', class: class-string, nullable: bool}
  * @phpstan-type ReferenceValue array{type: 'int', nullable: bool, reference: Reference}
@@ -106,7 +111,11 @@ final readonly class ValueFactory
             'string' => is_string($raw) ? $raw : throw self::mismatch($path, $value, $raw),
             'bool' => is_bool($raw) ? $raw : throw self::mismatch($path, $value, $raw),
             'enum' => $this->createEnum($value['class'], $raw, $path),
-            'object' => is_array($raw) ? $this->createObject($value['class'], $raw, $path) : throw self::mismatch($path, $value, $raw),
+            'object' => match (true) {
+                !is_array($raw) => throw self::mismatch($path, $value, $raw),
+                $value['class'] === Link::class => $this->resolveLink($this->createObject(Link::class, $raw, $path), $path),
+                default => $this->createObject($value['class'], $raw, $path),
+            },
             'list' => is_array($raw) && array_is_list($raw)
                 ? $this->createList($value['items'], $raw, $path)
                 : throw self::mismatch($path, $value, $raw),
@@ -182,6 +191,44 @@ final readonly class ValueFactory
         }
 
         return new $class(...$named);
+    }
+
+    /**
+     * The link with the current URL of its linked object; an empty URL if the object does not exist or may not be
+     * shown here. Free URLs stay as they are.
+     */
+    private function resolveLink(Link $link, string $path): Link
+    {
+        if (($link->kind === LinkKind::Url) !== ($link->id === 0) || $link->id < 0) {
+            throw new InvalidArgumentException(sprintf(
+                'Value "%s" is an invalid link: kind "%s" with ID %d; a free URL has the ID 0, a linked post, term or attachment its positive ID.',
+                $path,
+                $link->kind->value,
+                $link->id,
+            ));
+        }
+        if ($link->kind === LinkKind::Url) {
+            return $link;
+        }
+
+        $editor = $this->context?->isEditor() ?? false;
+        $url = match ($link->kind) {
+            LinkKind::Post => ($post = get_post($link->id)) instanceof WP_Post
+                && is_post_type_viewable($post->post_type)
+                && ($editor || is_post_publicly_viewable($post))
+                ? get_permalink($post)
+                : false,
+            LinkKind::Term => ($term = get_term($link->id)) instanceof WP_Term && is_taxonomy_viewable($term->taxonomy)
+                ? get_term_link($term)
+                : false,
+            LinkKind::Attachment => ($post = get_post($link->id)) instanceof WP_Post
+                && $post->post_type === 'attachment'
+                && ($editor || is_post_publicly_viewable($post))
+                ? wp_get_attachment_url($post->ID)
+                : false,
+        };
+
+        return new Link(is_string($url) ? $url : '', $link->opensInNewTab, $link->kind, $link->id);
     }
 
     /**

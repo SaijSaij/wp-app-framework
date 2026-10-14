@@ -1,6 +1,6 @@
 /**
- * Title of a list item: its first plain text field, else the text of its
- * first rich text field, else "Item n".
+ * Title of a list item: its first plain text field (the first line of a
+ * multiline one), else the text of its first rich text field, else "Item n".
  *
  * @param {import('./paths').AttributeValue} item
  * @param {number}                           index
@@ -27,9 +27,11 @@ export function itemTitle( item, index, path, fields ) {
 		if ( typeof raw !== 'string' ) {
 			continue;
 		}
-		const text = (
-			field.kind === 'rich' ? raw.replace( /<[^>]*>/g, '' ) : raw
-		).trim();
+		let text = field.kind === 'rich' ? raw.replace( /<[^>]*>/g, '' ) : raw;
+		if ( field.multiline ) {
+			text = text.trim().split( '\n' )[ 0 ];
+		}
+		text = text.trim();
 		if ( text !== '' ) {
 			return text;
 		}

@@ -12,6 +12,7 @@ import { useBlockData } from './context';
 import { useBufferedText, ValueControl } from './controls';
 import { groupControls } from './groups';
 import { createImageControl } from './image-control';
+import { LinkValueControl } from './link-control';
 
 const formatText = ( value ) => value ?? '';
 
@@ -49,10 +50,11 @@ function RichTextValueControl( { control, value, onChange, label } ) {
 	);
 }
 
-/** Controls of block fields, which need the block editor. */
+/** Controls of block fields and links, which need the block editor. */
 const FIELD_CONTROLS = {
 	rich: RichTextValueControl,
 	image: createImageControl( { MediaUpload, MediaUploadCheck } ),
+	link: LinkValueControl,
 };
 
 /**

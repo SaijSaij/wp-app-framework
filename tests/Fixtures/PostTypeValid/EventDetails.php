@@ -8,6 +8,7 @@ use Saij\WpAppFramework\Block\Image;
 use Saij\WpAppFramework\Block\Label;
 use Saij\WpAppFramework\Block\RichText;
 use Saij\WpAppFramework\Post\PostMeta;
+use Saij\WpAppFramework\Value\Link;
 use Saij\WpAppFramework\Value\ListOf;
 use Saij\WpAppFramework\Value\PostReference;
 
@@ -34,6 +35,7 @@ final class EventDetails
         private array $alternatives = [],
         #[PostReference(postTypes: [Event::class, 'page'])]
         protected ?int $related = null,
+        private Link $registration = new Link(),
     ) {}
 
     public function getCapacity(): int
@@ -113,5 +115,15 @@ final class EventDetails
     public function getRelated(): ?int
     {
         return $this->related;
+    }
+
+    public function getRegistration(): Link
+    {
+        return $this->registration;
+    }
+
+    public function setRegistration(Link $registration): void
+    {
+        $this->registration = $registration;
     }
 }

@@ -9,6 +9,7 @@ import {
 	FlexBlock,
 	FlexItem,
 	SelectControl,
+	TextareaControl,
 	TextControl,
 	ToggleControl,
 } from '@wordpress/components';
@@ -22,7 +23,8 @@ import { ReferenceControl, ReferencesControl } from './reference-control';
 /**
  * Controls of values described by the manifest, used by the block inspector
  * and the settings page. Controls of block fields (rich text and images in
- * the inspector) need the block editor; the inspector passes them in as
+ * the inspector) and links need the block editor or differ outside of it;
+ * the inspector, the settings page and the meta forms pass them in as
  * `fieldControls`, so the settings page does not load the block editor.
  */
 
@@ -93,6 +95,17 @@ function TextValueControl( { control, value, onChange, label } ) {
 		formatText,
 		parse
 	);
+	if ( control.multiline ) {
+		return (
+			<TextareaControl
+				__nextHasNoMarginBottom
+				label={ label ?? control.label }
+				value={ text }
+				onChange={ change }
+				onBlur={ flush }
+			/>
+		);
+	}
 	return (
 		<TextControl
 			__next40pxDefaultSize
@@ -401,8 +414,9 @@ export function ListControl( {
  * @param {(value: import('./paths').AttributeValue) => void} props.onChange
  * @param {string}                                            [props.label]         Overrides the label (list items).
  * @param {string}                                            [props.path]          Pattern of the value, for list item titles.
- * @param {Object}                                            [props.fieldControls] Controls of block fields by type
- *                                                                                  ("rich", "image"); only the inspector has them.
+ * @param {Object}                                            [props.fieldControls] Controls of block fields and links by type
+ *                                                                                  ("rich", "image", "link"), passed in by the
+ *                                                                                  inspector, the settings page and the meta forms.
  */
 export function ValueControl( props ) {
 	const { control, value, onChange, label, fieldControls } = props;
@@ -425,11 +439,12 @@ export function ValueControl( props ) {
 		case 'plain':
 			return <TextValueControl { ...props } />;
 		case 'rich':
-		case 'image': {
+		case 'image':
+		case 'link': {
 			const FieldControl = fieldControls?.[ control.type ];
 			if ( ! FieldControl ) {
 				throw new Error(
-					`wp-app-framework: the control type ${ control.type } is only available in the block inspector.`
+					`wp-app-framework: no control of type ${ control.type } was passed in (fieldControls); the inspector, the settings page and the meta forms pass one.`
 				);
 			}
 			return <FieldControl { ...props } />;

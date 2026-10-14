@@ -89,6 +89,8 @@ Each field is stored in its own meta key: the namespace, `_` and the field name 
 
 A field typed as a post class – `?Venue` here – refers to a post: it is stored as the ID and you get the object of the post. A list of `#[ListOf(Venue::class)]` stores IDs as well.
 
+A [`Link`](./values.md#links) – `private Link $registration = new Link()` – is stored as an object with the URL, the ID of the linked post and "Open in new tab", and you get it with the current URL of the post. `#[PlainText(multiline: true)]` keeps line breaks; print it with `|nl2br`.
+
 One post type can have several meta classes, and one meta class can belong to several post types. Meta for the post types of WordPress names the framework classes `Post` and `Page`:
 
 ```php
@@ -155,9 +157,9 @@ Other code can store anything in a meta key. When a meta object is loaded, each 
 
 ## Editing
 
-In the block editor every meta class of the edited post type is a panel in the document settings, titled with the `title` of `#[PostMeta]`. The editor saves the fields together with the post, in the same request, and shows the error of an invalid value as a notice.
+In the block editor every meta class of the edited post type is a panel in the document settings, titled with the `title` of `#[PostMeta]`. The editor saves the fields together with the post, in the same request, and shows the error of an invalid value as a notice. Links are edited with the link control of the block editor.
 
-On the classic edit screen – post types without the block editor – every meta class is a meta box with the same form. Invalid values are not saved and listed in a notice after saving.
+On the classic edit screen – post types without the block editor – every meta class is a meta box with the same form; links have the form of the settings page, which searches posts only. Invalid values are not saved and listed in a notice after saving.
 
 The framework removes WordPress' "Custom Fields" box from post types with meta: it would edit the meta keys as plain strings, past the schemas. Taxonomies are edited with the controls of WordPress.
 

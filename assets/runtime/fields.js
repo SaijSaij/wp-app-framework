@@ -49,11 +49,12 @@ function setValue( attributes, setAttributes, path, value ) {
  * @param {string} props.tagName      Tag of the marked element.
  * @param {Object} props.elementProps Props of the marked element.
  * @param {string} props.path         Concrete path, e.g. "buttons.0.label".
- * @param {Object} props.field        Field definition: kind, label, allowedFormats.
+ * @param {Object} props.field        Field definition: kind, label, allowedFormats, multiline.
  */
 export function TextField( { tagName, elementProps, path, field } ) {
 	const { attributes, setAttributes } = useBlockData();
 	const plain = field.kind === 'plain';
+	const multiline = plain && field.multiline === true;
 	const value = getPath( attributes, path ) ?? '';
 
 	return (
@@ -61,7 +62,7 @@ export function TextField( { tagName, elementProps, path, field } ) {
 			{ ...elementProps }
 			tagName={ tagName }
 			identifier={ path }
-			value={ plain ? textToHtml( value ) : value }
+			value={ plain ? textToHtml( value, multiline ) : value }
 			onChange={ ( next ) =>
 				setValue(
 					attributes,
@@ -72,7 +73,7 @@ export function TextField( { tagName, elementProps, path, field } ) {
 			}
 			placeholder={ field.label }
 			allowedFormats={ plain ? [] : field.allowedFormats }
-			disableLineBreaks={ plain }
+			disableLineBreaks={ plain && ! multiline }
 			withoutInteractiveFormatting={ plain }
 		/>
 	);

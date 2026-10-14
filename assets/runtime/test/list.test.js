@@ -33,3 +33,19 @@ describe( 'itemTitle', () => {
 		expect( itemTitle( 'value', 0, 'tags', fields ) ).toBe( 'Item 1' );
 	} );
 } );
+
+describe( 'itemTitle of multiline text', () => {
+	it( 'uses the first line', () => {
+		const multiline = {
+			'addresses.*.text': { kind: 'plain', multiline: true },
+		};
+		expect(
+			itemTitle(
+				{ text: '\n Main street 1 \n12345 Town' },
+				0,
+				'addresses',
+				multiline
+			)
+		).toBe( 'Main street 1' );
+	} );
+} );

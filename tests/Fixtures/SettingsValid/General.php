@@ -10,6 +10,7 @@ use Saij\WpAppFramework\Block\Label;
 use Saij\WpAppFramework\Block\PlainText;
 use Saij\WpAppFramework\Block\RichText;
 use Saij\WpAppFramework\Setting\SettingsGroup;
+use Saij\WpAppFramework\Value\Link as ContentLink;
 use Saij\WpAppFramework\Value\ListOf;
 use Saij\WpAppFramework\Value\PostReference;
 use Saij\WpAppFramework\Value\Url;
@@ -43,5 +44,8 @@ final readonly class General
         public ?int $privacyPage = null,
         #[PostReference]
         public array $featured = [],
+        public ContentLink $imprint = new ContentLink(),
+        #[PlainText(multiline: true)]
+        public string $address = '',
     ) {}
 }

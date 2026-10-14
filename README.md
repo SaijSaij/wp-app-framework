@@ -39,7 +39,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 | `Cache/` | `#[Cache]` attribute, tags (`Tag/`), variants (`Vary/`), collector (build), `CacheStore` with backends (`Backend/`), tag versions and their hooks (runtime) |
 | `Filesystem/` | Atomic file writes (build and runtime) |
 | `Asset/` | Scripts next to classes (`ScriptKind`: editor and view scripts, build) and registration of scripts and styles from the consumer's build (runtime) |
-| `Value/` | `#[ListOf]`, `#[Url]` attributes, schema derivation of typed values (build), value factory (runtime) |
+| `Value/` | `#[ListOf]`, `#[Url]` and reference attributes, `Link` with `LinkKind` and `link_attributes()`, schema derivation of typed values (build), value factory (runtime) |
 | `DependencyInjection/` | `#[NoService]` attribute, service candidates and resolver (build), container (runtime) |
 | `Manifest/` | Manifest builder, generator and loader, checks shared by entry point collectors; `Discovery/` (PSR-4 class discovery), `DevCache/` (development mode cache) |
 | `Console/` | Command line entry point of `bin/wp-app-framework` (and `bin/wp-app-framework-prefixed.php`) |

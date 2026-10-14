@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Tests\Fixtures\Markup;
 
 use Saij\WpAppFramework\Block\PlainText;
+use Saij\WpAppFramework\Value\Link as ContentLink;
 use Saij\WpAppFramework\Value\ListOf;
 
 final readonly class CardAttributes
@@ -20,5 +21,6 @@ final readonly class CardAttributes
         #[ListOf(Item::class)]
         public array $items = [],
         public int $count = 1,
+        public ContentLink $cta = new ContentLink(),
     ) {}
 }

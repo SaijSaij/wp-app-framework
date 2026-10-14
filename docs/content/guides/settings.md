@@ -56,7 +56,8 @@ Settings follow the rules of [values](./values.md): `int`, `float`, `string`, `b
 Some markers from blocks have a meaning in settings too:
 
 - **`#[Image]`** on a `?int` stores the ID of an attachment, chosen from the media library. It also works in value classes and list items. Print the image with [`wp_attachment_image()`](./twig.md#wordpress-functions). A value class used both by a block and by a settings group edits its image in the block canvas there and in the form here.
-- **`#[PlainText]`** is a text field.
+- **`#[PlainText]`** is a text field; with `multiline: true` a text area. Print multiline text with `|nl2br`.
+- **[`Link`](./values.md#links)** is a link to a post or a free URL, with "Open in new tab": a search of published posts and a URL field. Print it with `link_attributes()`.
 - **`#[RichText(allowedFormats: null)]`** is edited with WordPress' classic editor, because the rich text of the block editor works only inside a block. `allowedFormats` may contain `core/bold`, `core/italic`, `core/link`, `core/strikethrough`, `core/subscript` and `core/superscript`; other formats are build errors. The editor keeps only these elements and line breaks, without paragraphs. Print rich text with `|raw`. When a user without `unfiltered_html` saves (for example on multisite), it is filtered with `wp_kses_post()`.
 - **[References](./values.md#references)** (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are chosen with a search, one or as a list.
 

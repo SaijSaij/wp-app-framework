@@ -126,6 +126,7 @@ final class ManifestBuilderTest extends TestCase
                 \Saij\WpAppFramework\Theme::class,
                 \Saij\WpAppFramework\Twig\TemplateRenderer::class,
                 \Saij\WpAppFramework\Twig\WordPressTemplateFunctions::class,
+                \Saij\WpAppFramework\Value\LinkTemplateFunctions::class,
             ],
             $result->getCandidates(),
         );
@@ -141,6 +142,7 @@ final class ManifestBuilderTest extends TestCase
                     'context' => \Saij\WpAppFramework\Editor\RenderContext::class,
                 ],
                 \Saij\WpAppFramework\Twig\WordPressTemplateFunctions::class => ['context' => \Saij\WpAppFramework\Editor\RenderContext::class],
+                \Saij\WpAppFramework\Value\LinkTemplateFunctions::class => [],
             ],
             $result->getServices(),
         );

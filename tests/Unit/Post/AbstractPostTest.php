@@ -160,7 +160,7 @@ final class AbstractPostTest extends TestCase
         $post = get_post($id);
         self::assertSame(['fixture_event', 'draft', 'New'], [$post?->post_type, $post?->post_status, $post?->post_title]);
         // All fields of a new post, rich text filtered for users without unfiltered_html.
-        self::assertSame(['fixture_capacity', 'fixture_start_date', 'fixture_tickets', 'fixture_density', 'fixture_note', 'fixture_alternatives'], array_keys(Posts::meta($id)));
+        self::assertSame(['fixture_capacity', 'fixture_start_date', 'fixture_tickets', 'fixture_density', 'fixture_note', 'fixture_alternatives', 'fixture_registration'], array_keys(Posts::meta($id)));
         self::assertSame('<b>Hi</b>', Posts::meta($id)['fixture_note']);
         self::assertSame(['Jazz'], array_map(static fn(\WP_Term $term): string => $term->name, $event->getTerms(PostTypeValid\Genre::class)));
     }

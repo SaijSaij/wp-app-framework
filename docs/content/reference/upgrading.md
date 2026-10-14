@@ -4,6 +4,10 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.11
+
+**`link_attributes` is a framework function.** 0.11 adds the template function `link_attributes()` for [links](../guides/values.md#links). A template function of your own with this name is now a build error; rename it.
+
 ## 0.10
 
 **Inner blocks are declared with `#[InnerBlocks]`.** Before 0.10, `#[Block]` had one argument for containers, `allowedBlocks`, with block names as strings. 0.10 adds templates, locks and more for containers (see [Container blocks](../guides/containers.md)); they live in an attribute of their own, `#[InnerBlocks]`, and `allowedBlocks` moved there as `allowed`. Blocks are named so that your IDE can resolve them: blocks of your own by class, core blocks by `CoreBlock`.

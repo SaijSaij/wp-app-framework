@@ -66,7 +66,7 @@ final class PostTypeCollectorTest extends TestCase
 
         self::assertSame(['details', 'Event details', [PostTypeValid\Event::class]], [$meta['name'], $meta['title'], $meta['postTypes']]);
         self::assertSame(
-            ['capacity', 'startDate', 'venue', 'tickets', 'density', 'note', 'photo', 'alternatives', 'related'],
+            ['capacity', 'startDate', 'venue', 'tickets', 'density', 'note', 'photo', 'alternatives', 'related', 'registration'],
             array_keys($meta['fields']),
         );
         self::assertSame('fixture_start_date', $meta['fields']['startDate']['key']);
@@ -89,6 +89,10 @@ final class PostTypeCollectorTest extends TestCase
         self::assertSame('rich', $meta['controls']['note']['type']);
         self::assertSame('image', $meta['controls']['photo']['type']);
         self::assertSame('Start', $meta['controls']['startDate']['label']);
+        // A link is an object with a default, also on the top level of the meta (the REST API leaves out null only).
+        self::assertSame(['object', false], [$meta['fields']['registration']['type'], $meta['fields']['registration']['id']]);
+        self::assertSame(['url' => '', 'opensInNewTab' => false, 'kind' => 'url', 'id' => 0], $meta['fields']['registration']['schema']['default']);
+        self::assertSame(['type' => 'link', 'label' => 'Registration', 'nullable' => false], $meta['controls']['registration']);
     }
 
     public function testTaxonomiesAndTheRewriteHash(): void
