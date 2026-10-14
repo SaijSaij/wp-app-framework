@@ -600,9 +600,23 @@ function get_stylesheet_directory_uri(): string
 
 final class WP_Theme
 {
+    /**
+     * @param string|null $template The parent theme of a child theme.
+     */
     public function __construct(
         private readonly string $stylesheet,
+        private readonly ?string $template = null,
     ) {}
+
+    public function get_stylesheet(): string
+    {
+        return $this->stylesheet;
+    }
+
+    public function get_template(): string
+    {
+        return $this->template ?? $this->stylesheet;
+    }
 
     /**
      * Only the header "Version" is known.
@@ -615,9 +629,14 @@ final class WP_Theme
     }
 }
 
+/**
+ * The parent theme of a child theme comes from $GLOBALS['wp_app_framework_test_theme_parents'][$stylesheet].
+ */
 function wp_get_theme(string $stylesheet = '', string $theme_root = ''): WP_Theme
 {
-    return new WP_Theme($stylesheet === '' ? get_stylesheet() : $stylesheet);
+    $stylesheet = $stylesheet === '' ? get_stylesheet() : $stylesheet;
+
+    return new WP_Theme($stylesheet, $GLOBALS['wp_app_framework_test_theme_parents'][$stylesheet] ?? null);
 }
 
 // The content directory of the unit tests; caches of booted instances go below it.
@@ -999,21 +1018,31 @@ function register_deactivation_hook(string $file, callable $callback): void
 }
 
 /**
- * Scheduled events in $GLOBALS['wp_app_framework_test_cron'] (hook => [timestamp, recurrence]).
+ * Scheduled events in $GLOBALS['wp_app_framework_test_cron'] like the option "cron" of WordPress:
+ * timestamp => hook => md5(serialize($args)) => ['schedule' => name|false, 'args' => $args, 'interval' => seconds].
+ * Each write is counted in $GLOBALS['wp_app_framework_test_cron_writes']; with
+ * $GLOBALS['wp_app_framework_test_cron_fail'] set, writes fail like _set_cron_array() (WP_Error "could_not_set").
  *
- * @param array<mixed> $args
+ * @return array<int, array<string, array<string, array{schedule: string|false, args: array<mixed>, interval?: int}>>>
  */
-function wp_next_scheduled(string $hook, array $args = []): int|false
+function wp_app_framework_test_cron(): array
 {
-    return $GLOBALS['wp_app_framework_test_cron'][$hook][0] ?? false;
+    $cron = $GLOBALS['wp_app_framework_test_cron'] ?? [];
+    ksort($cron);
+
+    return $cron;
 }
 
 /**
- * @param array<mixed> $args
+ * @param array<int, array<string, array<string, array{schedule: string|false, args: array<mixed>, interval?: int}>>> $cron
  */
-function wp_schedule_event(int $timestamp, string $recurrence, string $hook, array $args = [], bool $wp_error = false): bool|WP_Error
+function wp_app_framework_test_cron_save(array $cron, bool $wp_error): bool|WP_Error
 {
-    $GLOBALS['wp_app_framework_test_cron'][$hook] = [$timestamp, $recurrence];
+    if ($GLOBALS['wp_app_framework_test_cron_fail'] ?? false) {
+        return $wp_error ? new WP_Error('could_not_set', 'The cron event list could not be saved.') : false;
+    }
+    $GLOBALS['wp_app_framework_test_cron'] = array_filter(array_map(array_filter(...), $cron));
+    $GLOBALS['wp_app_framework_test_cron_writes'] = ($GLOBALS['wp_app_framework_test_cron_writes'] ?? 0) + 1;
 
     return true;
 }
@@ -1021,12 +1050,147 @@ function wp_schedule_event(int $timestamp, string $recurrence, string $hook, arr
 /**
  * @param array<mixed> $args
  */
+function wp_next_scheduled(string $hook, array $args = []): int|false
+{
+    $event = wp_get_scheduled_event($hook, $args);
+
+    return $event === false ? false : $event->timestamp;
+}
+
+/**
+ * Like WordPress: the earliest event of the hook with exactly these arguments.
+ *
+ * @param array<mixed> $args
+ */
+function wp_get_scheduled_event(string $hook, array $args = [], ?int $timestamp = null): object|false
+{
+    $key = md5(serialize($args));
+    foreach (wp_app_framework_test_cron() as $time => $hooks) {
+        if (isset($hooks[$hook][$key]) && ($timestamp === null || $timestamp === $time)) {
+            $event = (object) ['hook' => $hook, 'timestamp' => $time, 'schedule' => $hooks[$hook][$key]['schedule'], 'args' => $args];
+            if (isset($hooks[$hook][$key]['interval'])) {
+                $event->interval = $hooks[$hook][$key]['interval'];
+            }
+
+            return $event;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Like WordPress: the four core intervals and those of the filter cron_schedules (core wins on equal names).
+ *
+ * @return array<string, array{interval: int, display: string}>
+ */
+function wp_get_schedules(): array
+{
+    /** @var array<string, array{interval: int, display: string}> $custom */
+    $custom = apply_filters('cron_schedules', []);
+
+    return array_merge($custom, [
+        'hourly' => ['interval' => 3600, 'display' => 'Once Hourly'],
+        'twicedaily' => ['interval' => 43200, 'display' => 'Twice Daily'],
+        'daily' => ['interval' => 86400, 'display' => 'Once Daily'],
+        'weekly' => ['interval' => 604800, 'display' => 'Once Weekly'],
+    ]);
+}
+
+/**
+ * Like WordPress: checks the timestamp and the recurrence, no check for duplicates.
+ *
+ * @param array<mixed> $args
+ */
+function wp_schedule_event(int $timestamp, string $recurrence, string $hook, array $args = [], bool $wp_error = false): bool|WP_Error
+{
+    if ($timestamp <= 0) {
+        return $wp_error ? new WP_Error('invalid_timestamp', 'Event timestamp must be a valid Unix timestamp.') : false;
+    }
+    $schedules = wp_get_schedules();
+    if (!isset($schedules[$recurrence])) {
+        return $wp_error ? new WP_Error('invalid_schedule', 'Event schedule does not exist.') : false;
+    }
+    $cron = wp_app_framework_test_cron();
+    $cron[$timestamp][$hook][md5(serialize($args))] = ['schedule' => $recurrence, 'args' => $args, 'interval' => $schedules[$recurrence]['interval']];
+
+    return wp_app_framework_test_cron_save($cron, $wp_error);
+}
+
+/**
+ * Like WordPress: checks the timestamp; an identical event (hook and arguments) within 10 minutes is a duplicate, and
+ * for a time in the past or the next 10 minutes so is every earlier one.
+ *
+ * @param array<mixed> $args
+ */
+function wp_schedule_single_event(int $timestamp, string $hook, array $args = [], bool $wp_error = false): bool|WP_Error
+{
+    if ($timestamp <= 0) {
+        return $wp_error ? new WP_Error('invalid_timestamp', 'Event timestamp must be a valid Unix timestamp.') : false;
+    }
+    $key = md5(serialize($args));
+    $min = $timestamp < time() + 600 ? 0 : $timestamp - 600;
+    $max = $timestamp < time() ? time() + 600 : $timestamp + 600;
+    $cron = wp_app_framework_test_cron();
+    foreach ($cron as $time => $hooks) {
+        if ($time >= $min && $time <= $max && isset($hooks[$hook][$key])) {
+            return $wp_error ? new WP_Error('duplicate_event', 'A duplicate event already exists.') : false;
+        }
+    }
+    $cron[$timestamp][$hook][$key] = ['schedule' => false, 'args' => $args];
+
+    return wp_app_framework_test_cron_save($cron, $wp_error);
+}
+
+/**
+ * Like WordPress: removes every event of the hook with exactly these arguments and returns their number.
+ *
+ * @param array<mixed> $args
+ */
 function wp_clear_scheduled_hook(string $hook, array $args = [], bool $wp_error = false): int|false|WP_Error
 {
-    $scheduled = isset($GLOBALS['wp_app_framework_test_cron'][$hook]);
-    unset($GLOBALS['wp_app_framework_test_cron'][$hook]);
+    $key = md5(serialize($args));
+    $cron = wp_app_framework_test_cron();
+    $count = 0;
+    foreach ($cron as $time => $hooks) {
+        if (isset($hooks[$hook][$key])) {
+            unset($cron[$time][$hook][$key]);
+            $count++;
+        }
+    }
+    if ($count === 0) {
+        return 0;
+    }
+    $saved = wp_app_framework_test_cron_save($cron, $wp_error);
 
-    return $scheduled ? 1 : 0;
+    return $saved === true ? $count : $saved;
+}
+
+/**
+ * Like WordPress: removes every event of the hook, whatever its arguments, and returns their number.
+ */
+function wp_unschedule_hook(string $hook, bool $wp_error = false): int|false|WP_Error
+{
+    $cron = wp_app_framework_test_cron();
+    $count = 0;
+    foreach ($cron as $time => $hooks) {
+        $count += count($hooks[$hook] ?? []);
+        unset($cron[$time][$hook]);
+    }
+    if ($count === 0) {
+        return 0;
+    }
+    $saved = wp_app_framework_test_cron_save($cron, $wp_error);
+
+    return $saved === true ? $count : $saved;
+}
+
+/**
+ * The time zone of the site: $GLOBALS['wp_app_framework_test_timezone'], UTC by default.
+ */
+function wp_timezone(): DateTimeZone
+{
+    return new DateTimeZone($GLOBALS['wp_app_framework_test_timezone'] ?? 'UTC');
 }
 
 /**

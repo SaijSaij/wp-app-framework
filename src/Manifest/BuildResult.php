@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework\Manifest;
 use ReflectionClass;
 use Saij\WpAppFramework\Block\BlockDefinition;
 use Saij\WpAppFramework\Block\Markup\MarkupFiles;
+use Saij\WpAppFramework\Cron\CronEventDefinition;
+use Saij\WpAppFramework\Cron\CronTaskDefinition;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Hook\HookDefinition;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
@@ -63,6 +65,8 @@ final readonly class BuildResult
      * @param PostData                                          $posts        Post classes, taxonomies, meta classes and the hash of
      *                                                                         the rewrite-relevant declarations.
      * @param list<BlockCategoryEntry>                          $blockCategories Custom block categories, in registration order.
+     * @param list<CronEventDefinition>                         $cronEvents   Recurring events (#[CronEvent]).
+     * @param list<CronTaskDefinition>                          $cronTasks    Handlers of one-time tasks (#[CronTask]).
      */
     public function __construct(
         private array $sources,
@@ -88,7 +92,25 @@ final readonly class BuildResult
         private ?MarkupFiles $markup = null,
         private array $posts = ['posts' => [], 'taxonomies' => [], 'meta' => [], 'rewrite' => null],
         private array $blockCategories = [],
+        private array $cronEvents = [],
+        private array $cronTasks = [],
     ) {}
+
+    /**
+     * @return list<CronEventDefinition>
+     */
+    public function getCronEvents(): array
+    {
+        return $this->cronEvents;
+    }
+
+    /**
+     * @return list<CronTaskDefinition>
+     */
+    public function getCronTasks(): array
+    {
+        return $this->cronTasks;
+    }
 
     /**
      * @return list<BlockCategoryEntry>

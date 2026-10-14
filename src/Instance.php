@@ -17,6 +17,8 @@ use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\Cache\TagHooks;
 use Saij\WpAppFramework\Cache\TagNames;
 use Saij\WpAppFramework\Cache\TagVersions;
+use Saij\WpAppFramework\Cron\CronRegistrar;
+use Saij\WpAppFramework\Cron\CronScheduler;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Editor\EditorAssets;
@@ -176,6 +178,7 @@ final readonly class Instance
         $tagVersions = new TagVersions($prefix);
         $codeVersion = $manifest['codeVersion'];
         $templateVersion = $manifest['templateVersion'];
+        $cronTasks = $manifest['cronTasks'];
         $generation = new CodeGeneration(static function () use ($development, $sourceEntries, $templateSetup, $codeVersion, $templateVersion, $releaseManifest): string {
             $setup = $templateSetup();
             if ($development) {
@@ -202,6 +205,7 @@ final readonly class Instance
             [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext, PostStore::class => $postStore],
             [
                 CacheStore::class => static fn(Container $container): CacheStore => new CacheStore($slug, $backends, $tagVersions, $generation, $container, $tagNames),
+                CronScheduler::class => static fn(): CronScheduler => new CronScheduler(CronRegistrar::taskHooks($slug, $cronTasks)),
                 TemplateRenderer::class => static function (Container $container) use (
                     $slug,
                     $directory,
@@ -235,12 +239,13 @@ final readonly class Instance
             ],
             $settings,
         );
-        new HookRegistrar($container, $debug)->register($manifest['hooks']);
+        $hookRegistrar = new HookRegistrar($container, $debug);
+        $hookRegistrar->register($manifest['hooks']);
 
         $cache = $container->get(CacheStore::class);
         $settingsOptions = array_column($settingsGroups, 'name', 'option');
         new TagHooks($tagVersions, $settingsOptions)->register();
-        $this->scheduleCacheCleanUp($cache);
+        new CronRegistrar($this->kind, $this->slug, $this->directory, $manifest['cronEvents'], $cronTasks, $hookRegistrar, $container, $values, $debug, $cache->cleanUp(...))->register();
 
         $restRegistrar = new RestRegistrar($container, $values, $debug, $cache);
         $routes = $manifest['routes'];
@@ -341,33 +346,11 @@ final readonly class Instance
      * Name of the WP-Cron event that deletes expired cache files of an instance.
      *
      * @param non-empty-string $slug
+     * @return non-empty-string
      */
     public static function cacheCleanUpEvent(string $slug): string
     {
         return 'wp_app_framework/cache/clean_up/' . $slug;
-    }
-
-    /**
-     * Schedules the daily clean-up of expired cache files and removes it when the theme is switched or the plugin
-     * is deactivated.
-     */
-    private function scheduleCacheCleanUp(CacheStore $cache): void
-    {
-        $event = self::cacheCleanUpEvent($this->slug);
-        add_action($event, $cache->cleanUp(...));
-        add_action('init', static function () use ($event): void {
-            if (wp_next_scheduled($event) === false) {
-                wp_schedule_event(time(), 'daily', $event);
-            }
-        });
-        $unschedule = static function () use ($event): void {
-            wp_clear_scheduled_hook($event);
-        };
-        if ($this->kind === ProjectKind::Plugin) {
-            register_deactivation_hook($this->directory . '/' . $this->slug . '.php', $unschedule);
-        } else {
-            add_action('switch_theme', $unschedule);
-        }
     }
 
     /**

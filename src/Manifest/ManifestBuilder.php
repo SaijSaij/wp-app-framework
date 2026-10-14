@@ -15,6 +15,8 @@ use Saij\WpAppFramework\Cache\CacheCollector;
 use Saij\WpAppFramework\Cache\CacheStore;
 use Saij\WpAppFramework\Cache\TagNames;
 use Saij\WpAppFramework\ChildTheme;
+use Saij\WpAppFramework\Cron\CronCollector;
+use Saij\WpAppFramework\Cron\CronScheduler;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Editor\RenderContext;
@@ -122,6 +124,7 @@ final class ManifestBuilder
                 TemplateRenderer::class,
                 RenderContext::class,
                 CacheStore::class,
+                CronScheduler::class,
             ],
             $scriptDirectory === false ? null : $scriptDirectory,
             $project->getKind(),
@@ -159,7 +162,8 @@ final class ManifestBuilder
             [...$this->predefined, PostStore::class],
             $this->parent,
             SettingsCollector::groupClasses($classes),
-            PostTypeCollector::nonServices($classes),
+            // Task classes first: a post class keeps its own, more telling description.
+            [...CronCollector::taskClasses($classes), ...PostTypeCollector::nonServices($classes)],
         );
         $postClasses = PostTypeCollector::postClasses($classes, $this->namespace);
         $taxonomyClasses = PostTypeCollector::taxonomyClasses($classes, $this->namespace);
@@ -172,6 +176,8 @@ final class ManifestBuilder
         $settings = $settingsCollector->collect($classes);
         $hookCollector = new HookCollector($resolver);
         $hooks = $hookCollector->collect($classes);
+        $cronCollector = new CronCollector($resolver, $values);
+        $cronCollector->collect($classes);
         $cacheCollector = new CacheCollector($resolver, new TagNames(
             CacheCollector::settingsGroups($classes),
             array_map(static fn(array $post): string => $post['name'], $postClasses),
@@ -211,6 +217,7 @@ final class ManifestBuilder
         $errors = [
             ...$errors,
             ...$hookCollector->errors(),
+            ...$cronCollector->errors(),
             ...$routeCollector->errors(),
             ...$cacheCollector->errors(),
             ...$templateCallableCollector->errors(),
@@ -252,6 +259,8 @@ final class ManifestBuilder
             $markup,
             $posts,
             $blockCollector->categories(),
+            cronEvents: $cronCollector->events(),
+            cronTasks: $cronCollector->tasks(),
         );
     }
 

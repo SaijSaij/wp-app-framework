@@ -5,7 +5,7 @@ Blocks, REST routes and settings all deal with structured values: a headline, a 
 - **In the build**, it derives a JSON schema from the class. WordPress uses the schema to validate block attributes, REST arguments and settings.
 - **At run time**, the *value factory* turns the stored array into an instance of your class, with enums as enum cases and nested objects as objects. It does this without reflection.
 
-Block attribute classes, [settings groups](./settings.md), nested value classes and `#[ListOf]` REST arguments all work this way, so what you learn here applies to all of them.
+Block attribute classes, [settings groups](./settings.md), nested value classes and `#[ListOf]` REST arguments all work this way, so what you learn here applies to all of them. The data of a one-time [cron task](./cron.md#one-time-tasks) is a value class too, without references.
 
 ## Value classes
 

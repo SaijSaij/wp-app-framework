@@ -36,6 +36,7 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
  * @phpstan-import-type SettingsGroupEntry from \Saij\WpAppFramework\Setting\SettingsCollector
  * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
+ * @phpstan-import-type CronArgument from \Saij\WpAppFramework\Cron\CronEventDefinition
  * @phpstan-type HookEntry array{name: string, priority: int, acceptedArgs: int, filter: bool, class: class-string, method: string, arguments: list<HookArgument>}
  * @phpstan-type RouteEntry array{
  *     namespace: non-falsy-string,
@@ -49,6 +50,16 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     void: bool,
  *     cache: CacheEntry|null
  * }
+ * @phpstan-type CronEventEntry array{
+ *     name: non-empty-string,
+ *     interval: non-empty-string|positive-int,
+ *     at: non-empty-string|null,
+ *     weekday: int<1, 7>|null,
+ *     class: class-string,
+ *     method: string,
+ *     arguments: list<CronArgument>
+ * }
+ * @phpstan-type CronTaskEntry array{name: non-empty-string, task: class-string, class: class-string, method: string, param: string, arguments: list<CronArgument>}
  * @phpstan-type BlockCategoryEntry array{slug: string, title: string, icon: string|null}
  * @phpstan-type BlockEntry array{
  *     name: string,
@@ -84,13 +95,15 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  *     posts: array<class-string<\Saij\WpAppFramework\Post\AbstractPost>, PostClassEntry>,
  *     taxonomies: array<class-string, TaxonomyEntry>,
  *     meta: array<class-string, MetaEntry>,
- *     rewrite: non-empty-string|null
+ *     rewrite: non-empty-string|null,
+ *     cronEvents: list<CronEventEntry>,
+ *     cronTasks: list<CronTaskEntry>
  * }
  */
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 19;
+    public const int FORMAT = 20;
 
     /**
      * @return ManifestData

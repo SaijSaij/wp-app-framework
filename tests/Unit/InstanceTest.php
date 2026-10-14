@@ -8,6 +8,7 @@ use LogicException;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Saij\WpAppFramework\Api\InstanceBridge;
+use Saij\WpAppFramework\Cron\CronRegistrar;
 use Saij\WpAppFramework\Instance;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
@@ -41,7 +42,7 @@ final class InstanceTest extends TestCase
     {
         Hooks::reset();
         Files::remove($this->root);
-        unset($GLOBALS['wp_app_framework_test_styles'], $GLOBALS['wp_app_framework_test_cron'], $GLOBALS['wp_app_framework_test_deactivation']);
+        unset($GLOBALS['wp_app_framework_test_styles'], $GLOBALS['wp_app_framework_test_cron'], $GLOBALS['wp_app_framework_test_deactivation'], $GLOBALS['wp_app_framework_test_options'], $GLOBALS['wp_app_framework_test_cron_writes']);
     }
 
     private function instance(ProjectKind $kind): Instance
@@ -148,20 +149,21 @@ final class InstanceTest extends TestCase
         $this->instance(ProjectKind::Plugin)->boot();
         $event = Instance::cacheCleanUpEvent('my-plugin');
 
-        // Only the instance's own callbacks: init also resolves services of the fixture that need other plugins.
+        // Only the cron registrar's callbacks: init also resolves services of the fixture that need other plugins.
         foreach (Recorded::listFilters('init') as $callback) {
-            if ($callback instanceof \Closure && new \ReflectionFunction($callback)->getClosureScopeClass()?->getName() === Instance::class) {
+            if ($callback instanceof \Closure && new \ReflectionFunction($callback)->getClosureScopeClass()?->getName() === CronRegistrar::class) {
                 $callback();
             }
         }
-        $cron = $GLOBALS['wp_app_framework_test_cron'] ?? [];
-        self::assertSame('daily', is_array($cron) && is_array($cron[$event] ?? null) ? $cron[$event][1] ?? null : null);
+        $scheduled = wp_get_scheduled_event($event);
+        self::assertSame('daily', $scheduled === false ? null : $scheduled->schedule);
 
         $hooks = $GLOBALS['wp_app_framework_test_deactivation'] ?? [];
         $deactivate = is_array($hooks) ? $hooks[$this->root . '/my-plugin/my-plugin.php'] ?? null : null;
         self::assertIsCallable($deactivate);
         $deactivate();
         self::assertFalse(wp_next_scheduled($event));
+        self::assertFalse(get_option('my_plugin_cron'));
     }
 
     public function testManifestOfAnotherKindIsAnError(): void

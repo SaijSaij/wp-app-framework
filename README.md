@@ -37,6 +37,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 | `Setting/` | `#[SettingsGroup]` attribute, collector (build), settings store, template global and settings page (runtime) |
 | `Style/` | Loading of the consumer's built stylesheet (runtime) |
 | `Cache/` | `#[Cache]` attribute, tags (`Tag/`), variants (`Vary/`), collector (build), `CacheStore` with backends (`Backend/`), tag versions and their hooks (runtime) |
+| `Cron/` | `#[CronEvent]`, `#[CronTask]` attributes, `CronInterval`/`Weekday` enums, collector (build), definitions, `CronScheduler`, registrar and start times (runtime) |
 | `Filesystem/` | Atomic file writes (build and runtime) |
 | `Asset/` | Scripts next to classes (`ScriptKind`: editor and view scripts, build) and registration of scripts and styles from the consumer's build (runtime) |
 | `Value/` | `#[ListOf]`, `#[Url]` and reference attributes, `Link` with `LinkKind` and `link_attributes()`, schema derivation of typed values (build), value factory (runtime) |

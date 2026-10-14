@@ -1,6 +1,6 @@
 # Hooks
 
-Hooks are how your code talks to WordPress. In a plain theme you would call `add_filter()` in `functions.php`, create the objects your callback needs, and count the arguments it accepts. With the framework, you put `#[Hook]` on a method instead. The build finds the method, and the framework registers the hook and creates the class only when WordPress actually fires it.
+Hooks are how your code talks to WordPress. In a plain theme you would call `add_filter()` in `functions.php`, create the objects your callback needs, and count the arguments it accepts. With the framework, you put `#[Hook]` on a method instead. The build finds the method, and the framework registers the hook and creates the class only when WordPress actually fires it. For work that runs regularly or later, without a page view, see [Cron events and tasks](./cron.md).
 
 ## A first hook
 

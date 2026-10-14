@@ -73,6 +73,7 @@ export default defineConfig( {
 						{ text: 'Posts', link: '/guides/posts' },
 						{ text: 'Queries', link: '/guides/queries' },
 						{ text: 'Cache', link: '/guides/cache' },
+						{ text: 'Cron events and tasks', link: '/guides/cron' },
 						{ text: 'Values', link: '/guides/values' },
 						{ text: 'Plugins', link: '/guides/plugins' },
 						{ text: 'Child themes', link: '/guides/child-themes' },

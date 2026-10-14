@@ -63,22 +63,36 @@ final readonly class HookRegistrar
 
             return $this->container->get($hook['class'])->{$hook['method']}(...$named);
         } catch (Throwable $exception) {
-            if ($this->debug) {
-                throw $exception;
-            }
-
-            error_log(sprintf(
-                'wp-app-framework: %s %s on hook "%s" failed: %s: %s in %s:%d',
+            self::rethrowOrLog($exception, $this->debug, sprintf(
+                '%s %s on hook "%s"',
                 $hook['filter'] ? 'filter' : 'action',
                 $hook['class'] . '::' . $hook['method'] . '()',
                 $hook['name'],
-                $exception::class,
-                $exception->getMessage(),
-                $exception->getFile(),
-                $exception->getLine(),
             ));
 
             return $hook['filter'] ? ($args[0] ?? null) : null;
         }
+    }
+
+    /**
+     * Rethrows an exception of a callback when debugging is enabled, otherwise logs it.
+     *
+     * @param string $callback What failed, e.g. `action Foo::bar() on hook "init"`.
+     * @throws Throwable With debugging.
+     */
+    public static function rethrowOrLog(Throwable $exception, bool $debug, string $callback): void
+    {
+        if ($debug) {
+            throw $exception;
+        }
+
+        error_log(sprintf(
+            'wp-app-framework: %s failed: %s: %s in %s:%d',
+            $callback,
+            $exception::class,
+            $exception->getMessage(),
+            $exception->getFile(),
+            $exception->getLine(),
+        ));
     }
 }

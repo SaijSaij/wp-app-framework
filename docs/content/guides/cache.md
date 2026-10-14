@@ -152,7 +152,7 @@ Invalidating a tag does not delete anything. It gives the tag a new version, so 
 The framework stores entries in the first available backend of a list:
 
 1. `object`: the persistent object cache, if the site has one (an `object-cache.php` drop-in such as Redis).
-2. `file`: PHP files below `wp-content/cache/{slug}/data`, written atomically and read through OPcache. A daily WP-Cron event deletes expired files.
+2. `file`: PHP files below `wp-content/cache/{slug}/data`, written atomically and read through OPcache. A daily [WP-Cron event](./cron.md) deletes expired files.
 3. `transient`: transients in the database.
 
 The site can change the list with the filter `wp_app_framework/cache/backends/{slug}`, for example in a must-use plugin. The values are plain strings, so the filter works without the theme's classes. An empty list turns the cache off:

@@ -93,6 +93,31 @@ final class ManifestGenerator
             ];
         }
 
+        $cronEvents = [];
+        foreach ($result->getCronEvents() as $event) {
+            $cronEvents[] = [
+                'name' => $event->getName(),
+                'interval' => $event->getInterval(),
+                'at' => $event->getAt(),
+                'weekday' => $event->getWeekday(),
+                'class' => $event->getClass(),
+                'method' => $event->getMethod(),
+                'arguments' => $event->getArguments(),
+            ];
+        }
+
+        $cronTasks = [];
+        foreach ($result->getCronTasks() as $task) {
+            $cronTasks[] = [
+                'name' => $task->getName(),
+                'task' => $task->getTask(),
+                'class' => $task->getClass(),
+                'method' => $task->getMethod(),
+                'param' => $task->getParam(),
+                'arguments' => $task->getArguments(),
+            ];
+        }
+
         return [
             'format' => Manifest::FORMAT,
             'kind' => $result->getKind()->value,
@@ -114,6 +139,8 @@ final class ManifestGenerator
             'styles' => $result->hasStyles(),
             'settings' => ['title' => $result->getSettingsTitle(), 'groups' => $result->getSettings()],
             ...$result->getPosts(),
+            'cronEvents' => $cronEvents,
+            'cronTasks' => $cronTasks,
         ];
     }
 }
