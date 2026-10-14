@@ -19,13 +19,13 @@ use Saij\WpAppFramework\Query\Condition;
 final readonly class PostField extends Field
 {
     /**
-     * @param class-string    $metaClass The meta class (#[PostMeta]).
+     * @param class-string    $class     The class the field belongs to: the meta class (#[PostMeta]).
      * @param string          $field     The name of the constructor parameter.
      * @param class-string<P> $postClass The post class of the field.
      */
-    public function __construct(string $metaClass, string $field, private string $postClass)
+    public function __construct(string $class, string $field, private string $postClass)
     {
-        parent::__construct($metaClass, $field);
+        parent::__construct($class, $field);
     }
 
     /**
@@ -87,9 +87,9 @@ final readonly class PostField extends Field
             return $post;
         }
         if (!$post instanceof $this->postClass) {
-            throw new InvalidArgumentException(sprintf('%s::$%s refers to a %s, %s given.', $this->getMetaClass(), $this->getField(), $this->postClass, $post::class));
+            throw new InvalidArgumentException(sprintf('%s::$%s refers to a %s, %s given.', $this->getClass(), $this->getField(), $this->postClass, $post::class));
         }
 
-        return $post->getId() ?? throw new InvalidArgumentException(sprintf('%s::$%s: the %s has not been saved yet.', $this->getMetaClass(), $this->getField(), $post::class));
+        return $post->getId() ?? throw new InvalidArgumentException(sprintf('%s::$%s: the %s has not been saved yet.', $this->getClass(), $this->getField(), $post::class));
     }
 }

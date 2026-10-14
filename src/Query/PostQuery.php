@@ -645,12 +645,48 @@ final readonly class PostQuery
         if ($condition instanceof Group) {
             return ['relation' => $condition->getRelation(), ...array_map($this->metaClause(...), $condition->getConditions())];
         }
-        if (!$condition instanceof MetaCondition) {
+        if (!$condition instanceof FieldCondition) {
             throw new LogicException(sprintf('%s is no condition on a meta field.', $condition::class));
         }
         $field = $this->field($condition->getField());
+        $operator = $condition->getOperator();
+        $values = $condition->getValues();
+        $clause = [
+            'key' => $field['key'],
+            'compare' => $operator,
+            'value' => in_array($operator, ['IN', 'NOT IN', 'BETWEEN'], true) ? $values : $values[0],
+            'type' => $condition->getField()->getCast(),
+        ];
+        // A meta value that is not stored is its default: if the default meets the condition, so does a missing value.
+        if (!self::matches($condition, $field['default'])) {
+            return $clause;
+        }
 
-        return $condition->clause($field['key'], $field['default']);
+        return ['relation' => 'OR', $clause, ['key' => $field['key'], 'compare' => 'NOT EXISTS']];
+    }
+
+    /**
+     * Whether a stored meta value meets the condition, compared like the database does after the cast (strings
+     * without regard to case, like the default collations).
+     */
+    private static function matches(FieldCondition $condition, mixed $stored): bool
+    {
+        $field = $condition->getField();
+        $value = $field->normalize($stored);
+        $values = array_map($field->normalize(...), $condition->getValues());
+
+        return match ($condition->getOperator()) {
+            '=' => $value === $values[0],
+            '!=' => $value !== $values[0],
+            '>' => $value > $values[0],
+            '>=' => $value >= $values[0],
+            '<' => $value < $values[0],
+            '<=' => $value <= $values[0],
+            'IN' => in_array($value, $values, true),
+            'NOT IN' => !in_array($value, $values, true),
+            'BETWEEN' => $value >= $values[0] && $value <= ($values[1] ?? $values[0]),
+            'LIKE' => str_contains((string) $value, (string) $values[0]),
+        };
     }
 
     /**
@@ -735,7 +771,7 @@ final readonly class PostQuery
      */
     private function field(Field $field): array
     {
-        return PostRegistry::metaStore($field->getMetaClass())->queryField($this->class, $field);
+        return PostRegistry::metaStore($field->getClass())->queryField($this->class, $field);
     }
 
     #[\NoDiscard]

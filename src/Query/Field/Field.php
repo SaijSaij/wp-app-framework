@@ -7,7 +7,7 @@ namespace Saij\WpAppFramework\Query\Field;
 use InvalidArgumentException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Query\Condition;
-use Saij\WpAppFramework\Query\MetaCondition;
+use Saij\WpAppFramework\Query\FieldCondition;
 
 /**
  * A field of a meta class in queries: its methods create conditions, and the query sorts by it. Created by the
@@ -20,20 +20,22 @@ use Saij\WpAppFramework\Query\MetaCondition;
 abstract readonly class Field
 {
     /**
-     * @param class-string $metaClass The meta class (#[PostMeta]).
-     * @param string       $field     The name of the constructor parameter.
+     * @param class-string $class The class the field belongs to: the meta class (#[PostMeta]).
+     * @param string       $field The name of the constructor parameter.
      */
     public function __construct(
-        private string $metaClass,
+        private string $class,
         private string $field,
     ) {}
 
     /**
+     * The class the field belongs to.
+     *
      * @return class-string
      */
-    public function getMetaClass(): string
+    public function getClass(): string
     {
-        return $this->metaClass;
+        return $this->class;
     }
 
     public function getField(): string
@@ -79,9 +81,9 @@ abstract readonly class Field
     protected function condition(string $operator, array $values): Condition
     {
         if ($values === []) {
-            throw new InvalidArgumentException(sprintf('%s::$%s: %s needs at least one value.', $this->metaClass, $this->field, $operator));
+            throw new InvalidArgumentException(sprintf('%s::$%s: %s needs at least one value.', $this->class, $this->field, $operator));
         }
 
-        return new MetaCondition($this, $operator, $values);
+        return new FieldCondition($this, $operator, $values);
     }
 }

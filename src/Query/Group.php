@@ -65,7 +65,7 @@ abstract readonly class Group implements Condition
     public static function kindOf(Condition $condition): string
     {
         return match (true) {
-            $condition instanceof MetaCondition => 'meta',
+            $condition instanceof FieldCondition => 'meta',
             $condition instanceof TermCondition => 'terms',
             $condition instanceof self => $condition->getKind(),
             default => throw new InvalidArgumentException(sprintf(

@@ -9,15 +9,18 @@ use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Post\Post;
 use Saij\WpAppFramework\Query\Field\EnumField;
+use Saij\WpAppFramework\Query\Field\FieldTypes;
 use Saij\WpAppFramework\Query\Field\FloatField;
 use Saij\WpAppFramework\Query\Field\IntField;
 use Saij\WpAppFramework\Query\Field\PostField;
 use Saij\WpAppFramework\Query\Field\StringField;
-use Saij\WpAppFramework\Query\MetaCondition;
-use Saij\WpAppFramework\Query\MetaFieldsGenerator;
+use Saij\WpAppFramework\Query\FieldClassGenerator;
+use Saij\WpAppFramework\Query\FieldCondition;
+use Saij\WpAppFramework\Query\MetaFields;
 use Saij\WpAppFramework\Query\MetaOrderClauses;
 use Saij\WpAppFramework\Tests\Fixtures\MetaFieldsBroken;
 use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid;
+use Saij\WpAppFramework\Tests\Support\Posts;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Tests\Unit\Post\PostTypeCollectorTest;
 use Saij\WpAppFramework\Value\ValueFactory;
@@ -69,7 +72,7 @@ final class MetaFieldsTest extends TestCase
         // The fixture is the generated class (lists and value classes are left out).
         self::assertSame(
             file_get_contents(__DIR__ . '/../../Fixtures/PostTypeValid/EventDetailsFields.php'),
-            MetaFieldsGenerator::generate(PostTypeValid\EventDetails::class, $builder->metaFieldValues(PostTypeValid\EventDetails::class)),
+            FieldClassGenerator::generate(PostTypeValid\EventDetails::class, MetaFields::class, 'meta-fields', FieldTypes::queryable($builder->metaFieldValues(PostTypeValid\EventDetails::class))),
         );
 
         $this->expectException(BuildException::class);
@@ -87,7 +90,7 @@ final class MetaFieldsTest extends TestCase
             'venue' => ['type' => 'int', 'nullable' => true, 'reference' => ['target' => 'post', 'subtypes' => null, 'class' => PostTypeValid\Venue::class]],
             'page' => ['type' => 'int', 'nullable' => true, 'reference' => ['target' => 'post', 'subtypes' => null, 'class' => 'Other\Venue']],
         ];
-        $source = MetaFieldsGenerator::generate(MetaFieldsBroken\ShowDetails::class, $values);
+        $source = FieldClassGenerator::generate(MetaFieldsBroken\ShowDetails::class, MetaFields::class, 'meta-fields', FieldTypes::queryable($values));
 
         self::assertStringContainsString("namespace Saij\\WpAppFramework\\Tests\\Fixtures\\MetaFieldsBroken;\n\nuse Saij\\WpAppFramework\\Query\\Field\\EnumField;\nuse Saij\\WpAppFramework\\Query\\Field\\FloatField;\nuse Saij\\WpAppFramework\\Query\\Field\\PostField;\nuse Saij\\WpAppFramework\\Query\\MetaFields;\nuse Saij\\WpAppFramework\\Tests\\Fixtures\\PostTypeValid\\Density;\nuse Saij\\WpAppFramework\\Tests\\Fixtures\\PostTypeValid\\Venue;\n", $source);
         self::assertStringContainsString("        return new EnumField(ShowDetails::class, 'kind', Density::class);\n", $source);
@@ -98,23 +101,34 @@ final class MetaFieldsTest extends TestCase
 
     public function testDefaultsAreComparedLikeTheDatabaseComparesThem(): void
     {
-        $rate = new FloatField(PostTypeValid\EventDetails::class, 'rate');
-        $between = $rate->between(1.5, 2.5);
-        self::assertInstanceOf(MetaCondition::class, $between);
-        self::assertSame(['key' => 'k', 'compare' => 'BETWEEN', 'value' => [1.5, 2.5], 'type' => 'DECIMAL(65,30)'], $between->clause('k', 0.0));
-        self::assertTrue($between->matches('2'));
+        Posts::store();
+        try {
+            $between = PostTypeValid\EventDetailsFields::capacity()->between(-1, 1);
+            self::assertInstanceOf(FieldCondition::class, $between);
+            self::assertSame('BETWEEN', $between->getOperator());
+            self::assertSame([-1, 1], $between->getValues());
+            $missing = static fn(string $key): array => ['key' => $key, 'compare' => 'NOT EXISTS'];
 
-        $title = new StringField(PostTypeValid\EventDetails::class, 'title');
-        $equals = $title->equals('Jazz');
-        self::assertInstanceOf(MetaCondition::class, $equals);
+            self::assertSame([
+                'relation' => 'AND',
+                // The default 0 is between -1 and 1, so a missing value is too.
+                ['relation' => 'OR', ['key' => 'fixture_capacity', 'compare' => 'BETWEEN', 'value' => [-1, 1], 'type' => 'SIGNED'], $missing('fixture_capacity')],
+                ['key' => 'fixture_capacity', 'compare' => '>', 'value' => 0, 'type' => 'SIGNED'],
+                ['relation' => 'OR', ['key' => 'fixture_start_date', 'compare' => 'NOT IN', 'value' => ['a', 'b'], 'type' => 'CHAR'], $missing('fixture_start_date')],
+                ['key' => 'fixture_start_date', 'compare' => 'LIKE', 'value' => 'x', 'type' => 'CHAR'],
+            ], PostTypeValid\Event::query()->where(
+                $between,
+                PostTypeValid\EventDetailsFields::capacity()->greaterThan(0),
+                PostTypeValid\EventDetailsFields::startDate()->notIn('a', 'b'),
+                PostTypeValid\EventDetailsFields::startDate()->contains('x'),
+            )->toArgs()['meta_query']);
+        } finally {
+            Posts::reset();
+        }
+
         // Without regard to case, like the default collations.
-        self::assertTrue($equals->matches('jazz'));
-        $contains = $title->contains('AZ');
-        self::assertInstanceOf(MetaCondition::class, $contains);
-        self::assertTrue($contains->matches('Jazz'));
-        $notIn = $title->notIn('a', 'b');
-        self::assertInstanceOf(MetaCondition::class, $notIn);
-        self::assertTrue($notIn->matches(''));
+        self::assertSame('jazz', new StringField(PostTypeValid\EventDetails::class, 'title')->normalize('Jazz'));
+        self::assertSame(2.0, new FloatField(PostTypeValid\EventDetails::class, 'rate')->normalize('2'));
     }
 
     public function testSortClausesKeepTheGroupingAndOrderOfWordPress(): void

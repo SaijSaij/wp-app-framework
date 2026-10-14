@@ -18,13 +18,13 @@ use Saij\WpAppFramework\Query\Condition;
 final readonly class EnumField extends Field
 {
     /**
-     * @param class-string    $metaClass The meta class (#[PostMeta]).
+     * @param class-string    $class     The class the field belongs to: the meta class (#[PostMeta]).
      * @param string          $field     The name of the constructor parameter.
      * @param class-string<E> $enum      The enum of the field.
      */
-    public function __construct(string $metaClass, string $field, private string $enum)
+    public function __construct(string $class, string $field, private string $enum)
     {
-        parent::__construct($metaClass, $field);
+        parent::__construct($class, $field);
     }
 
     /**
@@ -77,7 +77,7 @@ final readonly class EnumField extends Field
     private function value(BackedEnum $case): int|string
     {
         if (!$case instanceof $this->enum) {
-            throw new InvalidArgumentException(sprintf('%s::$%s is a %s, %s given.', $this->getMetaClass(), $this->getField(), $this->enum, $case::class));
+            throw new InvalidArgumentException(sprintf('%s::$%s is a %s, %s given.', $this->getClass(), $this->getField(), $this->enum, $case::class));
         }
 
         return $case->value;

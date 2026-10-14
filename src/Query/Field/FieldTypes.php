@@ -44,6 +44,26 @@ final class FieldTypes
     }
 
     /**
+     * The field class and class of the type of every queryable field, for the generator; lists and value classes are
+     * left out.
+     *
+     * @param array<string, Value> $values Values of a meta class by field.
+     * @return array<string, array{class-string<Field>, class-string|null}>
+     */
+    public static function queryable(array $values): array
+    {
+        $fields = [];
+        foreach ($values as $field => $value) {
+            $expected = self::expected($value);
+            if ($expected !== null) {
+                $fields[$field] = $expected;
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
      * Why a field object does not fit the meta field, or null if it does.
      *
      * @param Value $value
@@ -52,14 +72,14 @@ final class FieldTypes
     {
         $expected = self::expected($value);
         if ($expected === null) {
-            return sprintf('%s::$%s is a list or value class, stored serialized; only fields with one int, float, string, bool, enum, ID or post can be queried', $field->getMetaClass(), $field->getField());
+            return sprintf('%s::$%s is a list or value class, stored serialized; only fields with one int, float, string, bool, enum, ID or post can be queried', $field->getClass(), $field->getField());
         }
         [$class, $typeClass] = $expected;
         if (!$field instanceof $class) {
-            return sprintf('%s::$%s needs %s, %s given', $field->getMetaClass(), $field->getField(), self::describe($class, $typeClass), $field::class);
+            return sprintf('%s::$%s needs %s, %s given', $field->getClass(), $field->getField(), self::describe($class, $typeClass), $field::class);
         }
         if ($field->getTypeClass() !== $typeClass) {
-            return sprintf('%s::$%s needs %s, %s given', $field->getMetaClass(), $field->getField(), self::describe($class, $typeClass), self::describe($field::class, $field->getTypeClass()));
+            return sprintf('%s::$%s needs %s, %s given', $field->getClass(), $field->getField(), self::describe($class, $typeClass), self::describe($field::class, $field->getTypeClass()));
         }
 
         return null;

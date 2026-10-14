@@ -12,7 +12,9 @@ use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Query\MetaFieldsGenerator;
+use Saij\WpAppFramework\Query\Field\FieldTypes;
+use Saij\WpAppFramework\Query\FieldClassGenerator;
+use Saij\WpAppFramework\Query\MetaFields;
 use Saij\WpAppFramework\Release\ReleaseCommand;
 use Saij\WpAppFramework\Release\ReleaseException;
 use Saij\WpAppFramework\Release\TemplateCompilation;
@@ -134,13 +136,13 @@ final class Cli
 
             return 1;
         }
-        $file = dirname((string) new ReflectionClass($metaClass)->getFileName()) . '/' . substr($metaClass, (int) strrpos('\\' . $metaClass, '\\')) . MetaFieldsGenerator::SUFFIX . '.php';
+        $file = FieldClassGenerator::file((string) new ReflectionClass($metaClass)->getFileName(), $metaClass);
         if (is_file($file) && !$force) {
             fwrite($stderr, sprintf("%s exists; use --force to replace it.\n", $file));
 
             return 1;
         }
-        AtomicFile::write($file, MetaFieldsGenerator::generate($metaClass, $values));
+        AtomicFile::write($file, FieldClassGenerator::generate($metaClass, MetaFields::class, 'meta-fields', FieldTypes::queryable($values)));
         fwrite($stdout, sprintf("Written %s.\n", $file));
 
         return 0;

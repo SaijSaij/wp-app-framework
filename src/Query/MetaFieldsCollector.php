@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Query;
 
 use ReflectionClass;
-use ReflectionMethod;
-use ReflectionNamedType;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Post\PostMeta;
 use Saij\WpAppFramework\Post\PostTypeCollector;
@@ -92,44 +90,13 @@ final class MetaFieldsCollector
      */
     private function checkMethods(ReflectionClass $reflection, string $metaClass): void
     {
-        foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_STATIC) as $method) {
-            $type = $method->getReturnType();
-            if (!$method->isStatic() || !$method->isPublic() || !$type instanceof ReflectionNamedType || $type->isBuiltin() || !is_a($type->getName(), Field::class, true)) {
-                continue;
-            }
-            $location = sprintf('%s::%s()', $reflection->getName(), $method->getName());
-            if ($method->getNumberOfRequiredParameters() > 0) {
-                $this->errors[] = sprintf('%s returns a field and must have no parameters.', $location);
-                continue;
-            }
-            try {
-                $field = $method->invoke(null);
-            } catch (Throwable $exception) {
-                $this->errors[] = sprintf('%s failed: %s', $location, $exception->getMessage());
-                continue;
-            }
-            if (!$field instanceof Field) {
-                continue;
-            }
-            if ($field->getMetaClass() !== $metaClass) {
-                $this->errors[] = sprintf('%s returns a field of %s; the class provides the fields of %s (#[MetaFields]).', $location, $field->getMetaClass(), $metaClass);
-                continue;
-            }
-            $value = $this->values[$metaClass][$field->getField()]['value'] ?? null;
-            if ($value === null || !isset($this->meta[$metaClass]['fields'][$field->getField()])) {
-                $this->errors[] = sprintf(
-                    '%s returns the field $%s, which %s does not have (fields: %s).',
-                    $location,
-                    $field->getField(),
-                    $metaClass,
-                    implode(', ', array_keys($this->meta[$metaClass]['fields'])),
-                );
-                continue;
-            }
-            $error = FieldTypes::mismatch($field, $value);
-            if ($error !== null) {
-                $this->errors[] = sprintf('%s: %s.', $location, $error);
-            }
-        }
+        $values = $this->values[$metaClass];
+        array_push($this->errors, ...FieldClassCheck::methods(
+            $reflection,
+            $metaClass,
+            '#[MetaFields]',
+            array_keys($this->meta[$metaClass]['fields']),
+            static fn(Field $field): ?string => isset($values[$field->getField()]) ? FieldTypes::mismatch($field, $values[$field->getField()]['value']) : sprintf('%s::$%s has no value description', $metaClass, $field->getField()),
+        ));
     }
 }

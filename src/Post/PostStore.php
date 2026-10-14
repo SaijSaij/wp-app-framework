@@ -102,7 +102,7 @@ final class PostStore
      */
     public function queryField(string $postClass, Field $field): array
     {
-        $metaClass = $this->metaClass($postClass, $field->getMetaClass());
+        $metaClass = $this->metaClass($postClass, $field->getClass());
         $entry = $this->metaEntry($metaClass)['fields'][$field->getField()] ?? throw new LogicException(sprintf(
             '%s has no field $%s (fields: %s); check the class with #[MetaFields].',
             $metaClass,
