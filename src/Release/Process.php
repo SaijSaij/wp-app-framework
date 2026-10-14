@@ -95,18 +95,32 @@ final class Process
     /**
      * proc_open() only warns if a program does not exist; check it first for a clear message.
      */
+    /**
+     * Path of a program in the PATH, for commands that start it through another one (e.g. `php`).
+     */
+    public function locate(string $program): string
+    {
+        return self::find($program) ?? throw new ReleaseException(sprintf('Command `%s` was not found; the release build needs %s in the PATH.', $program, $program));
+    }
+
     private static function isAvailable(string $program): bool
     {
         if (str_contains($program, '/')) {
             return is_file($program) && is_executable($program);
         }
+
+        return self::find($program) !== null;
+    }
+
+    private static function find(string $program): ?string
+    {
         foreach (explode(PATH_SEPARATOR, (string) getenv('PATH')) as $directory) {
             if ($directory !== '' && is_file($directory . '/' . $program) && is_executable($directory . '/' . $program)) {
-                return true;
+                return $directory . '/' . $program;
             }
         }
 
-        return false;
+        return null;
     }
 
     /**

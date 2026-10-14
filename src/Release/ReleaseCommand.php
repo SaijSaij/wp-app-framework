@@ -42,6 +42,12 @@ final class ReleaseCommand
 
     private const int MAX_LISTED_FINDINGS = 20;
 
+    /**
+     * Memory limit of the Strauss run. Strauss parses every file of `vendor/`, including the class map that
+     * `--classmap-authoritative` makes large; PHP's default of 128 MB ran out in CI while it sufficed locally.
+     */
+    private const string STRAUSS_MEMORY_LIMIT = '512M';
+
     private ?string $workDirectory = null;
 
     /**
@@ -153,7 +159,7 @@ final class ReleaseCommand
         $scanner = PrefixScanner::forInstalledPackages($build . '/vendor');
 
         $this->step('Prefixing with Strauss');
-        $this->process->run(['strauss'], $build);
+        $this->process->run([PHP_BINARY, '-d', 'memory_limit=' . self::STRAUSS_MEMORY_LIMIT, $this->process->locate('strauss')], $build);
         $prefixed = $build . '/' . StraussConfig::TARGET_DIRECTORY;
         $replacements = TwigPatcher::patch($prefixed . '/twig/twig', $strauss->getNamespacePrefix());
         $this->print(sprintf('Twig compiler patched (%d replacements)', $replacements));

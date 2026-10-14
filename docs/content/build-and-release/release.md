@@ -18,7 +18,7 @@ The command works on a copy in the system's temporary directory and never change
 
 2. **Install the dependencies.** It runs `composer install --no-dev --classmap-authoritative` from the lock file, so the release contains exactly the versions you tested.
 
-3. **Prefix the dependencies.** [Strauss](https://github.com/BrianHenryIE/strauss) renames every dependency into the project's namespace and rewrites the project's own code to use the new names. Strauss must be in the `PATH`; the tools image of [wp-dev-env](https://github.com/saijsaij/wp-dev-env) provides it.
+3. **Prefix the dependencies.** [Strauss](https://github.com/BrianHenryIE/strauss) renames every dependency into the project's namespace and rewrites the project's own code to use the new names. Strauss must be in the `PATH` (the tools image of [wp-dev-env](https://github.com/saijsaij/wp-dev-env) provides it); the release command runs it with PHP and a memory limit of 512 MB, since it parses the large class map of the dependencies.
 
    Then the command patches Twig. Twig's compiler writes class names such as `use Twig\Environment;` as plain strings into every compiled template, and no prefixing tool rewrites strings. `Release\TwigPatcher` rewrites exactly these places. It expects each pattern a fixed number of times, so a Twig update that changes them fails the build instead of producing a broken release.
 
