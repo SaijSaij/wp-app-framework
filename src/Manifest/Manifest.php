@@ -39,6 +39,7 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
  * @phpstan-import-type CronArgument from \Saij\WpAppFramework\Cron\CronEventDefinition
  * @phpstan-import-type CliSubcommandEntry from CliCommandDefinition
+ * @phpstan-import-type TablesData from \Saij\WpAppFramework\Table\TableCollector
  * @phpstan-type HookEntry array{name: string, priority: int, acceptedArgs: int, filter: bool, class: class-string, method: string, arguments: list<HookArgument>}
  * @phpstan-type RouteEntry array{
  *     namespace: non-falsy-string,
@@ -101,13 +102,14 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  *     rewrite: non-empty-string|null,
  *     cronEvents: list<CronEventEntry>,
  *     cronTasks: list<CronTaskEntry>,
- *     cliCommands: list<CliCommandEntry>
+ *     cliCommands: list<CliCommandEntry>,
+ *     tables: TablesData
  * }
  */
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 21;
+    public const int FORMAT = 22;
 
     /**
      * @return ManifestData

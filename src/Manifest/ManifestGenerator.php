@@ -152,6 +152,7 @@ final class ManifestGenerator
             'cronEvents' => $cronEvents,
             'cronTasks' => $cronTasks,
             'cliCommands' => $cliCommands,
+            'tables' => $result->getTables(),
         ];
     }
 }

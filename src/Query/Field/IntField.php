@@ -8,10 +8,10 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Query\Condition;
 
 /**
- * An int field of a meta class.
+ * An int field of a meta class or a column of a table.
  */
 #[NoService]
-final readonly class IntField extends Field
+readonly class IntField extends Field
 {
     public function equals(int $value): Condition
     {

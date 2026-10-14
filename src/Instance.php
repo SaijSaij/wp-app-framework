@@ -39,6 +39,8 @@ use Saij\WpAppFramework\Setting\SettingsAccessor;
 use Saij\WpAppFramework\Setting\SettingsPage;
 use Saij\WpAppFramework\Setting\SettingsStore;
 use Saij\WpAppFramework\Style\StyleAssets;
+use Saij\WpAppFramework\Table\TableRegistry;
+use Saij\WpAppFramework\Table\TableStore;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\View\ViewAssets;
@@ -170,6 +172,12 @@ final readonly class Instance
             return $instance->get(CacheStore::class);
         });
         PostRegistry::register($postStore);
+        $tableStore = new TableStore($this->slug, $manifest['namespace'], $manifest['tables'], $debug);
+        TableRegistry::register($tableStore);
+        // Without tables, now or at the last sync, the check costs not even a callback.
+        if ($tableStore->needsCheck()) {
+            add_action('init', $tableStore->ensureCurrent(...), 0);
+        }
         $tagNames = new TagNames(
             $settingsNames,
             array_map(static fn(array $post): string => $post['name'], $manifest['posts']),

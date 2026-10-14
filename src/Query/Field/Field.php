@@ -10,17 +10,18 @@ use Saij\WpAppFramework\Query\Condition;
 use Saij\WpAppFramework\Query\FieldCondition;
 
 /**
- * A field of a meta class in queries: its methods create conditions, and the query sorts by it. Created by the
- * static methods of a class with #[MetaFields]; the subclass matches the type of the field.
+ * A field of a meta class or a column of a table in queries: its methods create conditions, and the query sorts by
+ * it. Created by the static methods of a class with #[MetaFields] or #[TableFields]; the subclass matches the type of
+ * the field.
  *
  * A meta value that is not stored counts as the default of its constructor parameter, in conditions and in the
- * sort order.
+ * sort order. Columns of a table are compared as stored; see the Nullable… field classes for null.
  */
 #[NoService]
 abstract readonly class Field
 {
     /**
-     * @param class-string $class The class the field belongs to: the meta class (#[PostMeta]).
+     * @param class-string $class The class the field belongs to: a meta class (#[PostMeta]) or row class (#[Table]).
      * @param string       $field The name of the constructor parameter.
      */
     public function __construct(
@@ -85,5 +86,15 @@ abstract readonly class Field
         }
 
         return new FieldCondition($this, $operator, $values);
+    }
+
+    /**
+     * A condition on null: IS NULL or IS NOT NULL (columns of a table).
+     *
+     * @param 'IS NULL'|'IS NOT NULL' $operator
+     */
+    protected function nullCondition(string $operator): Condition
+    {
+        return new FieldCondition($this, $operator, []);
     }
 }

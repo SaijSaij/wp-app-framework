@@ -205,7 +205,7 @@ final class PostQueryTest extends TestCase
     public function testAGroupCannotMixMetaFieldsAndTerms(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(Any::class . '::of() mixes conditions on meta fields and on terms; WordPress joins the two with AND, so a group holds conditions of one kind.');
+        $this->expectExceptionMessage(Any::class . '::of() mixes conditions of different kinds (meta fields, terms, columns of a table); a group holds conditions of one kind.');
 
         Any::of(EventDetailsFields::capacity()->equals(3), Terms::exists(Genre::class));
     }
@@ -213,7 +213,7 @@ final class PostQueryTest extends TestCase
     public function testConditionsOfOtherClassesAreRejected(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('is no condition of the framework; conditions come from meta fields, Terms, Any and All.');
+        $this->expectExceptionMessage('is no condition of the framework; conditions come from fields, Terms, Any and All.');
 
         $condition = new class implements Condition {};
         (void) Event::query()->where($condition);

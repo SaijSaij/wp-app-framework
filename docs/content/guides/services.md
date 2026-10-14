@@ -31,7 +31,8 @@ Every concrete class under the consumer's PSR-4 directories (`autoload.psr-4` in
 - classes marked with `#[NoService]` (`Saij\WpAppFramework\DependencyInjection\NoService`);
 - [settings groups](./settings.md#using-settings). A constructor parameter typed with a settings group receives the group with its stored values instead;
 - [post, meta and taxonomy classes](./posts.md#working-with-posts): they are data. Load posts with their class, `Event::get($id)`;
-- classes with [`#[MetaFields]`](./queries.md#meta-fields-in-queries): their static methods provide fields for queries.
+- classes with [`#[MetaFields]`](./queries.md#meta-fields-in-queries): their static methods provide fields for queries;
+- [row classes](./tables.md) (`#[Table]`) and classes with [`#[TableFields]`](./tables.md#field-classes): rows are data. Load them with their class, `LogEntry::get($id)`.
 
 The container wires services by the types of their constructor parameters. A parameter with a scalar type (`string`, `int` …) cannot be filled from the container and must have a default value. There is exactly one instance of each service per request; every class that asks for it gets the same object.
 

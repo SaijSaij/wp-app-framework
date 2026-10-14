@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Value;
 
 use BackedEnum;
+use DateTimeImmutable;
+use DateTimeZone;
 use InvalidArgumentException;
 use LogicException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -42,7 +44,9 @@ use WP_User;
  * @phpstan-type Reference array{target: 'post'|'term'|'user', subtypes: list<string>|null, class?: class-string<AbstractPost>}
  * @phpstan-type ClassValue array{type: 'enum'|'object', class: class-string, nullable: bool}
  * @phpstan-type ReferenceValue array{type: 'int', nullable: bool, reference: Reference}
- * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool', nullable: bool}
+ * Times (`datetime`, columns of tables only) are UTC strings `Y-m-d H:i:s` and become DateTimeImmutable in UTC.
+ *
+ * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool'|'datetime', nullable: bool}
  *     |ReferenceValue
  *     |ClassValue
  *     |array{type: 'list', items: ClassValue|ReferenceValue, nullable: bool}
@@ -110,6 +114,7 @@ final readonly class ValueFactory
             'float' => is_float($raw) || is_int($raw) ? (float) $raw : throw self::mismatch($path, $value, $raw),
             'string' => is_string($raw) ? $raw : throw self::mismatch($path, $value, $raw),
             'bool' => is_bool($raw) ? $raw : throw self::mismatch($path, $value, $raw),
+            'datetime' => is_string($raw) ? self::createDateTime($raw, $path) : throw self::mismatch($path, $value, $raw),
             'enum' => $this->createEnum($value['class'], $raw, $path),
             'object' => match (true) {
                 !is_array($raw) => throw self::mismatch($path, $value, $raw),
@@ -232,6 +237,20 @@ final readonly class ValueFactory
     }
 
     /**
+     * A UTC time `Y-m-d H:i:s`; anything else, e.g. the zero date 0000-00-00 00:00:00, is an error.
+     */
+    private static function createDateTime(string $raw, string $path): DateTimeImmutable
+    {
+        $utc = new DateTimeZone('UTC');
+        $time = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $raw, $utc);
+        if ($time === false || $time->format('Y-m-d H:i:s') !== $raw) {
+            throw new InvalidArgumentException(sprintf('Value "%s" must be a time in the format Y-m-d H:i:s, %s given.', $path, var_export($raw, true)));
+        }
+
+        return $time;
+    }
+
+    /**
      * @param class-string $class
      */
     private function createEnum(string $class, mixed $raw, string $path): BackedEnum
@@ -266,6 +285,7 @@ final readonly class ValueFactory
             'object' => 'an object of ' . $value['class'],
             'list' => 'a list',
             'enum' => 'a value of ' . $value['class'],
+            'datetime' => 'a time',
             default => $value['type'],
         };
 

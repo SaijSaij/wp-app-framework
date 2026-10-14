@@ -8,10 +8,10 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Query\Condition;
 
 /**
- * A float field of a meta class.
+ * A float field of a meta class or a column of a table.
  */
 #[NoService]
-final readonly class FloatField extends Field
+readonly class FloatField extends Field
 {
     public function equals(float $value): Condition
     {

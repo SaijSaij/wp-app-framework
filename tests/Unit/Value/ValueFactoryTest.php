@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Unit\Value;
 
+use DateTimeImmutable;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -81,6 +82,25 @@ final class ValueFactoryTest extends TestCase
         $this->assertFails('Value "link" must be an object of ' . BlockValid\Link::class . ', string given.', ['link' => 'https://example.com']);
         $this->assertFails('Value "sizes" must be a list, array given.', ['sizes' => ['a' => 1]]);
         $this->assertFails('Value "count" must be int, null given.', ['count' => null]);
+    }
+
+    public function testTimesAreUtcStringsOfTheDatabase(): void
+    {
+        $time = $this->factory->create(['type' => 'datetime', 'nullable' => true], '2026-10-14 08:30:05', 'created');
+        self::assertInstanceOf(DateTimeImmutable::class, $time);
+        self::assertSame('2026-10-14T08:30:05+00:00', $time->format(DATE_ATOM));
+        self::assertNull($this->factory->create(['type' => 'datetime', 'nullable' => true], null, 'created'));
+
+        foreach (['0000-00-00 00:00:00', '2026-02-31 00:00:00', '2026-10-14'] as $invalid) {
+            try {
+                $this->factory->create(['type' => 'datetime', 'nullable' => false], $invalid, 'created');
+                self::fail('The time must be rejected: ' . $invalid);
+            } catch (InvalidArgumentException $exception) {
+                self::assertSame(sprintf('Value "created" must be a time in the format Y-m-d H:i:s, \'%s\' given.', $invalid), $exception->getMessage());
+            }
+        }
+        $this->expectExceptionMessage('Value "created" must be a time, int given.');
+        $this->factory->create(['type' => 'datetime', 'nullable' => false], 5, 'created');
     }
 
     public function testUnknownValueClassNeedsARebuild(): void

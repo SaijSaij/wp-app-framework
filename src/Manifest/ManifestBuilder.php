@@ -30,10 +30,15 @@ use Saij\WpAppFramework\Post\PostTypeCollector;
 use Saij\WpAppFramework\Project\ComposerProject;
 use Saij\WpAppFramework\Project\NamePrefix;
 use Saij\WpAppFramework\Project\ProjectKind;
+use Saij\WpAppFramework\Query\Field\Field;
+use Saij\WpAppFramework\Query\Field\FieldTypes;
 use Saij\WpAppFramework\Query\MetaFieldsCollector;
 use Saij\WpAppFramework\Rest\RestRouteCollector;
 use Saij\WpAppFramework\Setting\SettingsCollector;
 use Saij\WpAppFramework\Style\StyleAssets;
+use Saij\WpAppFramework\Table\Table;
+use Saij\WpAppFramework\Table\TableCollector;
+use Saij\WpAppFramework\Table\TableFieldsCollector;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateCallableCollector;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
@@ -69,6 +74,8 @@ final class ManifestBuilder
      *                                                  patterns are checked against its blocks; null for plugins.
      * @param non-empty-string       $namespace         Namespace of the blocks, REST routes and settings options
      *                                                  (`extra.wp-app-framework.namespace`); fixtures use `fixture`.
+     * @param non-empty-string|null  $version           Version of the theme or plugin (header), stored with the tables
+     *                                                  so that older code leaves tables synced by newer code alone.
      */
     public function __construct(
         private readonly array $sources,
@@ -83,6 +90,7 @@ final class ManifestBuilder
         private readonly ?string $name = null,
         private readonly ?string $markupDirectory = null,
         private readonly string $namespace = self::FIXTURE_NAMESPACE,
+        private readonly ?string $version = null,
     ) {}
 
     /**
@@ -137,6 +145,7 @@ final class ManifestBuilder
             // WordPress reads templates, template parts and patterns only from themes.
             $project->getKind() === ProjectKind::Plugin ? null : $root,
             $project->getNamespace(),
+            version: $project->getVersion(),
         );
     }
 
@@ -164,7 +173,7 @@ final class ManifestBuilder
             $this->parent,
             SettingsCollector::groupClasses($classes),
             // Task classes first: a post class keeps its own, more telling description.
-            [...CronCollector::taskClasses($classes), ...PostTypeCollector::nonServices($classes)],
+            [...CronCollector::taskClasses($classes), ...PostTypeCollector::nonServices($classes), ...TableCollector::nonServices($classes)],
         );
         $postClasses = PostTypeCollector::postClasses($classes, $this->namespace);
         $taxonomyClasses = PostTypeCollector::taxonomyClasses($classes, $this->namespace);
@@ -173,6 +182,10 @@ final class ManifestBuilder
         $posts = $postTypeCollector->collect($classes);
         $metaFieldsCollector = new MetaFieldsCollector($posts['meta'], $values->values());
         $metaFieldsCollector->collect($classes);
+        $tableCollector = new TableCollector($this->namespace);
+        $tables = $tableCollector->collect($classes, $this->version);
+        $tableFieldsCollector = new TableFieldsCollector($tables['classes']);
+        $tableFieldsCollector->collect($classes);
         $settingsCollector = new SettingsCollector($values, self::frameworkSource()->getDirectory(), $this->namespace, $this->name);
         $settings = $settingsCollector->collect($classes);
         $hookCollector = new HookCollector($resolver);
@@ -232,6 +245,8 @@ final class ManifestBuilder
             ...$settingsCollector->errors(),
             ...$postTypeCollector->errors(),
             ...$metaFieldsCollector->errors(),
+            ...$tableCollector->errors(),
+            ...$tableFieldsCollector->errors(),
             ...$values->errors(),
             ...$resolver->errors(),
         ];
@@ -266,6 +281,7 @@ final class ManifestBuilder
             cronEvents: $cronCollector->events(),
             cronTasks: $cronCollector->tasks(),
             cliCommands: $cliCommands,
+            tables: $tables,
         );
     }
 
@@ -297,6 +313,37 @@ final class ManifestBuilder
         }
 
         return array_map(static fn(array $field): array => $field['value'], $fields);
+    }
+
+    /**
+     * The field class and enum of every column of a row class (#[Table]) by property, for `wp-app-framework
+     * table-fields`. Checks the tables only, so the fields of a changed row class can be generated while the build
+     * reports other errors.
+     *
+     * @param class-string $rowClass
+     * @return array<string, array{class-string<Field>, class-string|null}>
+     * @throws BuildException If the class is no valid row class.
+     */
+    public function tableFieldValues(string $rowClass): array
+    {
+        $errors = [];
+        $classes = $this->loadClasses($errors);
+        $reflection = $classes[$rowClass] ?? null;
+        if ($reflection === null || $reflection->getAttributes(Table::class) === []) {
+            throw new BuildException([sprintf('%s is no row class (#[Table]) of the PSR-4 sources of this theme or plugin.', $rowClass)]);
+        }
+        $collector = new TableCollector($this->namespace);
+        $table = $collector->collect([$rowClass => $reflection], $this->version)['classes'][$rowClass] ?? null;
+        if ($table === null) {
+            $errors = $collector->errors();
+            throw new BuildException($errors !== [] ? $errors : [sprintf('%s is no valid row class.', $rowClass)]);
+        }
+        $fields = [];
+        foreach ($table['columns'] as $property => $column) {
+            $fields[$property] = FieldTypes::column($column, $property === $table['primaryKey']);
+        }
+
+        return $fields;
     }
 
     /**

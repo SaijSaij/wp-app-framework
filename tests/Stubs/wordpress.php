@@ -1795,22 +1795,237 @@ final class WP_Query
 /**
  * Like WordPress: table names and prepare() for %s (quoted) and %d.
  */
+const OBJECT = 'OBJECT';
+
+const ARRAY_A = 'ARRAY_A';
+
+/**
+ * Statements run against $GLOBALS['wp_app_framework_test_database'] (Tests\Support\Database), if set; without it,
+ * queries return nothing. Placeholders like wpdb::prepare(): %i, %d, %f, %s.
+ */
 final class wpdb
 {
+    public string $prefix = 'wp_';
+
     public string $posts = 'wp_posts';
 
     public string $postmeta = 'wp_postmeta';
+
+    public string $options = 'wp_options';
+
+    public int $insert_id = 0;
+
+    public int $rows_affected = 0;
+
+    public string $last_error = '';
+
+    public bool $suppress_errors = false;
 
     public function prepare(string $query, mixed ...$args): string
     {
         $index = 0;
 
-        return (string) preg_replace_callback('/%[sd]/', static function (array $match) use ($args, &$index): string {
+        return (string) preg_replace_callback('/%[sdfi]/', static function (array $match) use ($args, &$index): string {
             $value = $args[$index++] ?? '';
+            $string = is_scalar($value) ? (string) $value : '';
 
-            return $match[0] === '%d' ? (string) (int) $value : "'" . addslashes(is_scalar($value) ? (string) $value : '') . "'";
+            return match ($match[0]) {
+                '%d' => (string) (int) $value,
+                '%f' => sprintf('%F', (float) $value),
+                '%i' => '`' . str_replace('`', '``', $string) . '`',
+                default => "'" . addslashes($string) . "'",
+            };
         }, $query);
     }
+
+    public function esc_like(string $text): string
+    {
+        return addcslashes($text, '_%\\');
+    }
+
+    public function remove_placeholder_escape(string $query): string
+    {
+        return $query;
+    }
+
+    public function get_charset_collate(): string
+    {
+        return 'DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci';
+    }
+
+    public function suppress_errors(bool $suppress = true): bool
+    {
+        $previous = $this->suppress_errors;
+        $this->suppress_errors = $suppress;
+
+        return $previous;
+    }
+
+    public function query(string $query): int|bool
+    {
+        $result = $this->run($query);
+        if ($result === false) {
+            return false;
+        }
+
+        return is_int($result) ? $result : true;
+    }
+
+    /**
+     * @return list<array<string, string|null>>|null
+     */
+    public function get_results(?string $query = null, string $output = OBJECT): ?array
+    {
+        $result = $this->run((string) $query);
+
+        return is_array($result) ? $result : ($result === false ? null : []);
+    }
+
+    /**
+     * @return array<string, string|null>|null
+     */
+    public function get_row(?string $query = null, string $output = OBJECT, int $y = 0): ?array
+    {
+        return $this->get_results($query, $output)[$y] ?? null;
+    }
+
+    public function get_var(?string $query = null, int $x = 0, int $y = 0): ?string
+    {
+        $result = $this->run((string) $query);
+        if (is_array($result)) {
+            $row = array_values($result[$y] ?? []);
+
+            return $row[$x] ?? null;
+        }
+
+        return is_scalar($result) && !is_bool($result) ? (string) $result : null;
+    }
+
+    /**
+     * @return list<string|null>
+     */
+    public function get_col(?string $query = null, int $x = 0): array
+    {
+        $result = $this->run((string) $query);
+
+        return is_array($result) ? array_map(static fn(array $row): ?string => array_values($row)[$x] ?? null, $result) : [];
+    }
+
+    /**
+     * @param array<string, mixed>      $data
+     * @param list<string>|string|null  $format
+     */
+    public function insert(string $table, array $data, array|string|null $format = null): int|false
+    {
+        $database = self::database();
+        $this->last_error = '';
+        if ($database === null) {
+            return false;
+        }
+        $result = $database->run(sprintf('INSERT INTO `%s` (%s)', $table, implode(', ', array_keys($data))));
+        if ($result['error'] !== '') {
+            $this->last_error = $result['error'];
+
+            return false;
+        }
+        try {
+            $this->insert_id = $database->insert($table, self::strings($data));
+        } catch (RuntimeException $exception) {
+            $this->last_error = $exception->getMessage();
+
+            return false;
+        }
+
+        return 1;
+    }
+
+    /**
+     * @param array<string, mixed>      $data
+     * @param array<string, mixed>      $where
+     * @param list<string>|string|null  $format
+     * @param list<string>|string|null  $where_format
+     */
+    public function update(string $table, array $data, array $where, array|string|null $format = null, array|string|null $where_format = null): int|false
+    {
+        $database = self::database();
+        $this->last_error = '';
+        if ($database === null) {
+            return false;
+        }
+        $result = $database->run(sprintf('UPDATE `%s` SET %s', $table, implode(', ', array_keys($data))));
+        if ($result['error'] !== '') {
+            $this->last_error = $result['error'];
+
+            return false;
+        }
+
+        return $database->update($table, self::strings($data), array_map(strval(...), self::strings($where)));
+    }
+
+    /**
+     * @param array<string, mixed>      $where
+     * @param list<string>|string|null  $where_format
+     */
+    public function delete(string $table, array $where, array|string|null $where_format = null): int|false
+    {
+        $database = self::database();
+        $this->last_error = '';
+        if ($database === null) {
+            return false;
+        }
+        $result = $database->run(sprintf('DELETE FROM `%s` BY %s', $table, implode(', ', array_keys($where))));
+        if ($result['error'] !== '') {
+            $this->last_error = $result['error'];
+
+            return false;
+        }
+
+        return $database->delete($table, array_map(strval(...), self::strings($where)));
+    }
+
+    /**
+     * @return list<array<string, string|null>>|int|bool|string|null
+     */
+    private function run(string $query): array|int|bool|string|null
+    {
+        $this->last_error = '';
+        $this->rows_affected = 0;
+        $database = self::database();
+        if ($database === null) {
+            return null;
+        }
+        $result = $database->run($query);
+        $this->last_error = $result['error'];
+        $this->rows_affected = $result['affected'];
+
+        return $result['result'];
+    }
+
+    private static function database(): ?Saij\WpAppFramework\Tests\Support\Database
+    {
+        $database = $GLOBALS['wp_app_framework_test_database'] ?? null;
+
+        return $database instanceof Saij\WpAppFramework\Tests\Support\Database ? $database : null;
+    }
+
+    /**
+     * Values as wpdb sends them: strings, NULL for null.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, string|null>
+     */
+    private static function strings(array $data): array
+    {
+        return array_map(static fn(mixed $value): ?string => $value === null ? null : (is_scalar($value) ? (string) $value : ''), $data);
+    }
+}
+
+/**
+ * $GLOBALS['wp_app_framework_test_installing'].
+ */
+function wp_installing(?bool $is_installing = null): bool
+{
+    return $GLOBALS['wp_app_framework_test_installing'] ?? false;
 }
 
 $GLOBALS['wpdb'] = new wpdb();

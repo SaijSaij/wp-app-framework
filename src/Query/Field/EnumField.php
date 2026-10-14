@@ -10,15 +10,15 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Query\Condition;
 
 /**
- * A backed enum field of a meta class, stored as the value of its case.
+ * A backed enum field of a meta class or a column of a table, stored as the value of its case.
  *
  * @template E of BackedEnum
  */
 #[NoService]
-final readonly class EnumField extends Field
+readonly class EnumField extends Field
 {
     /**
-     * @param class-string    $class     The class the field belongs to: the meta class (#[PostMeta]).
+     * @param class-string    $class     The class the field belongs to: a meta class (#[PostMeta]) or row class (#[Table]).
      * @param string          $field     The name of the constructor parameter.
      * @param class-string<E> $enum      The enum of the field.
      */

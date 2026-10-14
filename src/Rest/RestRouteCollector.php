@@ -326,6 +326,7 @@ final class RestRouteCollector
             'float' => 'number',
             'string' => 'string',
             'bool' => 'boolean',
+            'datetime' => throw new \LogicException(sprintf('%s: times are columns of tables only.', $parameterLocation)),
         };
         $keywords = $this->keywords($parameter, $parameterLocation, $schemaKind);
         if ($keywords === null) {

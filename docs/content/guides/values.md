@@ -39,6 +39,8 @@ A nullable type adds `null` to the schema type (`type: [..., 'null']`). PHP has 
 
 Enums and value classes must be in the scanned PSR-4 directories. A value class that contains itself, directly or indirectly, is a build error.
 
+The columns of [tables](./tables.md) use the same value factory with one more type: `DateTimeImmutable`, read from the database as a UTC time `Y-m-d H:i:s`. Anything else in such a column, including the zero date `0000-00-00 00:00:00`, is an error. Blocks, REST routes and settings have no time type.
+
 ## Defaults and missing values
 
 The default value of a parameter becomes the schema's `default`: enums as their value, value objects as arrays.
@@ -195,4 +197,4 @@ The following are build errors:
 
 ## Where values are used
 
-[Blocks](./blocks.md#attribute-class), [REST routes](./rest.md#parameters) and [Settings](./settings.md) describe what each of them adds to these rules.
+[Blocks](./blocks.md#attribute-class), [REST routes](./rest.md#parameters) and [Settings](./settings.md) describe what each of them adds to these rules; [Tables](./tables.md#types) list the types of columns.

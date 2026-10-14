@@ -22,7 +22,7 @@ The separation goes further in a release. Each consumer ships its own copy of th
 
 ## Build and run time
 
-You declare almost everything with PHP attributes: `#[Hook]` on a method registers a hook, `#[RestRoute]` a REST route, `#[Block]` a block, `#[TemplateFunction]` a Twig function, `#[SettingsGroup]` a group of settings, `#[PostType]` a post type. Nothing reads these attributes while WordPress handles a request in production. Instead, a *build* step reads them once and writes a **manifest**: plain PHP data listing the hooks, routes, blocks with their attribute schemas, template functions, settings and the services with their constructor dependencies.
+You declare almost everything with PHP attributes: `#[Hook]` on a method registers a hook, `#[RestRoute]` a REST route, `#[Block]` a block, `#[TemplateFunction]` a Twig function, `#[SettingsGroup]` a group of settings, `#[PostType]` a post type, `#[Table]` a database table. Nothing reads these attributes while WordPress handles a request in production. Instead, a *build* step reads them once and writes a **manifest**: plain PHP data listing the hooks, routes, blocks with their attribute schemas, template functions, settings and the services with their constructor dependencies.
 
 This has two benefits. First, mistakes surface early. A REST route without a permission, a constructor parameter the container cannot fill, a template function with the name of a Twig built-in – each is a build error naming the class at fault, not a surprise in production. Second, a release does no extra work at run time: it loads the manifest and calls your classes, without reflection, without checking files, and without ever writing into the theme or plugin directory.
 

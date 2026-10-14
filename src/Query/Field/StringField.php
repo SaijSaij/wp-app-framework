@@ -8,11 +8,11 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Query\Condition;
 
 /**
- * A string field of a meta class (also #[PlainText], #[RichText] and #[Url]); compared without regard to case,
- * like the default collations of the database.
+ * A string field of a meta class (also #[PlainText], #[RichText] and #[Url]) or a string column of a table; compared
+ * without regard to case, like the default collations of the database.
  */
 #[NoService]
-final readonly class StringField extends Field
+readonly class StringField extends Field
 {
     public function equals(string $value): Condition
     {

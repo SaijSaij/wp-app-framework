@@ -105,7 +105,11 @@ final readonly class PostQuery
     #[\NoDiscard]
     public function where(Condition ...$conditions): static
     {
-        array_map(Group::kindOf(...), $conditions);
+        foreach ($conditions as $condition) {
+            if (Group::kindOf($condition) === 'row') {
+                throw new InvalidArgumentException(sprintf('%s::query()->where() takes conditions on meta fields and terms; conditions on the columns of a table belong to its row query.', $this->class));
+            }
+        }
 
         return clone($this, ['conditions' => [...$this->conditions, ...array_values($conditions)]]);
     }
@@ -651,6 +655,9 @@ final readonly class PostQuery
         $field = $this->field($condition->getField());
         $operator = $condition->getOperator();
         $values = $condition->getValues();
+        if ($operator === 'IS NULL' || $operator === 'IS NOT NULL' || $values === []) {
+            throw new LogicException(sprintf('%s::$%s: %s is a condition on a column of a table.', $condition->getField()->getClass(), $condition->getField()->getField(), $operator));
+        }
         $clause = [
             'key' => $field['key'],
             'compare' => $operator,
@@ -686,6 +693,7 @@ final readonly class PostQuery
             'NOT IN' => !in_array($value, $values, true),
             'BETWEEN' => $value >= $values[0] && $value <= ($values[1] ?? $values[0]),
             'LIKE' => str_contains((string) $value, (string) $values[0]),
+            'IS NULL', 'IS NOT NULL' => throw new LogicException('Meta fields have no null.'),
         };
     }
 

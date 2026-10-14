@@ -27,6 +27,7 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  * @phpstan-import-type TaxonomyEntry from \Saij\WpAppFramework\Post\PostTypeCollector
  * @phpstan-import-type MetaEntry from \Saij\WpAppFramework\Post\PostTypeCollector
  * @phpstan-import-type BlockCategoryEntry from \Saij\WpAppFramework\Manifest\Manifest
+ * @phpstan-import-type TablesData from \Saij\WpAppFramework\Table\TableCollector
  * @phpstan-type PostData array{
  *     posts: array<class-string<\Saij\WpAppFramework\Post\AbstractPost>, PostClassEntry>,
  *     taxonomies: array<class-string, TaxonomyEntry>,
@@ -69,6 +70,8 @@ final readonly class BuildResult
      * @param list<CronEventDefinition>                         $cronEvents   Recurring events (#[CronEvent]).
      * @param list<CronTaskDefinition>                          $cronTasks    Handlers of one-time tasks (#[CronTask]).
      * @param list<CliCommandDefinition>                        $cliCommands  `#[CliCommand]` services with their subcommands.
+     * @param TablesData                                        $tables       Row classes with their tables, the hash of their
+     *                                                                         structure and the version of the project.
      */
     public function __construct(
         private array $sources,
@@ -97,7 +100,16 @@ final readonly class BuildResult
         private array $cronEvents = [],
         private array $cronTasks = [],
         private array $cliCommands = [],
+        private array $tables = ['schema' => null, 'version' => null, 'classes' => []],
     ) {}
+
+    /**
+     * @return TablesData
+     */
+    public function getTables(): array
+    {
+        return $this->tables;
+    }
 
     /**
      * @return list<CronEventDefinition>

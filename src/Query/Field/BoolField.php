@@ -8,10 +8,11 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Query\Condition;
 
 /**
- * A bool field of a meta class; WordPress stores true as "1" and false as "".
+ * A bool field of a meta class or a column of a table; WordPress stores true as "1" and false as "" in meta fields,
+ * a table as 1 and 0.
  */
 #[NoService]
-final readonly class BoolField extends Field
+readonly class BoolField extends Field
 {
     public function equals(bool $value): Condition
     {

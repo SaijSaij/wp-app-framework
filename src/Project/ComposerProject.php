@@ -160,6 +160,18 @@ final readonly class ComposerProject
     }
 
     /**
+     * The version of the theme or plugin (`Version:` header), null if the header file or the header is missing.
+     *
+     * @return non-empty-string|null
+     */
+    public function getVersion(): ?string
+    {
+        $file = $this->getHeaderFile();
+
+        return is_file($file) ? FileHeader::value($file, 'Version') : null;
+    }
+
+    /**
      * Slug of the parent theme (`Template:` header), for child themes only.
      *
      * @return non-empty-string|null

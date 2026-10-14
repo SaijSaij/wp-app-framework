@@ -120,6 +120,8 @@ The key identifies the entry within your theme or plugin; include everything the
 
 Queries of posts have a shortcut: `Event::query()->…->cache(ttl: 600)` caches their result with the tags of the post type and of the taxonomies they use (see [Queries](./queries.md#caching)).
 
+Rows of [tables](./tables.md) have no tag of the framework. To cache a value computed from a table, give it a tag of your own and invalidate that tag where your code saves or deletes rows, right after `save()`.
+
 ## Invalidating entries
 
 Three tags are invalidated by the framework itself:

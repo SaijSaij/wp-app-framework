@@ -94,9 +94,14 @@ During development, the framework rebuilds the manifest when one of these files 
 
 ```sh
 vendor/bin/wp-app-framework meta-fields <meta class> [--force]
+vendor/bin/wp-app-framework table-fields <row class> [--force]
 ```
 
-This command writes the class with `#[MetaFields]` that [queries](../guides/queries.md#meta-fields-in-queries) use to filter and sort by the fields of a meta class: `{MetaClass}Fields.php`, next to the meta class. It does not replace an existing file unless you pass `--force`. Unlike the build, it writes into your source code; the result is yours to change and commit.
+`meta-fields` writes the class with `#[MetaFields]` that [queries](../guides/queries.md#meta-fields-in-queries) use to filter and sort by the fields of a meta class: `{MetaClass}Fields.php`, next to the meta class. `table-fields` does the same for the columns of a [row class](../guides/tables.md#field-classes): `{RowClass}Fields.php` with `#[TableFields]`. Neither replaces an existing file unless you pass `--force`. Unlike the build, the two write into your source code; the result is yours to change and commit.
+
+## Tables
+
+The build checks the row classes of your [tables](../guides/tables.md) – types, primary key, lengths, indexes, earlier names – and reports every declaration that the database could not create, with class and parameter; the [rules](../guides/tables.md#rules) list them. It also checks every class with `#[TableFields]` against its row class. The manifest gets the structure of the tables, a hash of it and the version from the `Version:` header of your theme or plugin.
 
 ## Writing a manifest
 

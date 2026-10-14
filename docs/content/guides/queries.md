@@ -78,7 +78,7 @@ final class EventDetailsFields
 }
 ```
 
-The file is ordinary source code of your project. Commit it, remove methods you do not need, or add a method later. The command does not replace an existing file unless you pass `--force`. It is the only command of the framework that writes source code, and it does so only when you run it.
+The file is ordinary source code of your project. Commit it, remove methods you do not need, or add a method later. The command does not replace an existing file unless you pass `--force`. Together with `table-fields` for [tables](./tables.md#field-classes), it is the only command of the framework that writes source code, and it does so only when you run it.
 
 ### Writing it by hand
 
@@ -109,6 +109,8 @@ $events = Event::query()
 ```
 
 `Any::of()` is met if one of its conditions is met, `All::of()` if all of them are; groups can contain groups. WordPress keeps conditions on meta fields and on terms in two separate parts of a query and always joins the two with AND. A group therefore contains either meta conditions or term conditions; mixing them throws an exception.
+
+The same field classes and groups work for the columns of [tables of your own](./tables.md#queries), in `LogEntry::query()`. A query of posts takes no conditions on columns, and a query of rows none on meta fields or terms.
 
 The data of the post has methods of its own, described in the next section.
 
@@ -230,7 +232,8 @@ Fields and their conditions:
 - Strings are compared without regard to case, like the default collations of the database. `contains()` matches `%` and `_` literally.
 - A meta value that is not stored counts as the default in conditions and in the sort order.
 - `Terms::in()`, `notIn()` and `all()` take the taxonomy class, a non-empty list of `WP_Term` objects or term IDs and `includeChildren` (default true); `Terms::exists()` and `notExists()` take the taxonomy class.
-- `Any::of()` and `All::of()` need at least one condition, all on meta fields or all on terms.
+- `Any::of()` and `All::of()` need at least one condition, all on meta fields, all on terms or all on the columns of a table.
+- `DateTimeField` and the `Nullable…` field classes are for [tables](./tables.md#rules) only.
 
 `#[MetaFields(metaClass)]` on a class of your own:
 

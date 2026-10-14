@@ -65,7 +65,7 @@ final class ServiceResolver
      * @param list<class-string>                           $settingsGroups Classes with `#[SettingsGroup]`: no services, injected
      *                                                                     from their option.
      * @param array<class-string, string>                  $nonServices    Classes that are data, not services, and what they
-     *                                                                     are (post, meta and taxonomy classes).
+     *                                                                     are (post, meta, taxonomy and row classes).
      */
     public static function forClasses(array $classes, array $predefined, ?string $parentTheme = null, array $settingsGroups = [], array $nonServices = []): self
     {
@@ -356,6 +356,7 @@ final class ServiceResolver
                     'an interface' => ' (aliases are not supported)',
                     'a post class' => sprintf('; load posts with %s::get($id)', substr($name, (int) strrpos($name, '\\') + 1)),
                     'a meta class' => '; meta objects are reached through their post: $post->meta(…)',
+                    'a row class' => sprintf('; load rows with %s::get($id)', substr($name, (int) strrpos($name, '\\') + 1)),
                     default => '',
                 },
             );

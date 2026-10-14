@@ -6,15 +6,17 @@ namespace Saij\WpAppFramework\Query;
 
 use InvalidArgumentException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Table\AbstractRow;
 
 /**
- * Conditions joined with OR (Any) or AND (All). WordPress keeps conditions on meta fields and on terms apart and
- * joins the two with AND, so a group holds conditions of one kind.
+ * Conditions joined with OR (Any) or AND (All). A group holds conditions of one kind: on meta fields, on terms or on
+ * the columns of a table. WordPress keeps conditions on meta fields and on terms apart and joins the two with AND;
+ * columns belong to queries of rows.
  */
 #[NoService]
 abstract readonly class Group implements Condition
 {
-    /** @var 'meta'|'terms' */
+    /** @var 'meta'|'terms'|'row' */
     private string $kind;
 
     /**
@@ -29,7 +31,7 @@ abstract readonly class Group implements Condition
         $kinds = array_values(array_unique(array_map(self::kindOf(...), $conditions)));
         if (count($kinds) > 1) {
             throw new InvalidArgumentException(sprintf(
-                '%s::of() mixes conditions on meta fields and on terms; WordPress joins the two with AND, so a group holds conditions of one kind.',
+                '%s::of() mixes conditions of different kinds (meta fields, terms, columns of a table); a group holds conditions of one kind.',
                 static::class,
             ));
         }
@@ -45,7 +47,7 @@ abstract readonly class Group implements Condition
     }
 
     /**
-     * @return 'meta'|'terms'
+     * @return 'meta'|'terms'|'row'
      */
     public function getKind(): string
     {
@@ -58,18 +60,18 @@ abstract readonly class Group implements Condition
     abstract public function getRelation(): string;
 
     /**
-     * @internal What a condition is about.
+     * @internal What a condition is about: meta fields, terms or the columns of a table (rows).
      *
-     * @return 'meta'|'terms'
+     * @return 'meta'|'terms'|'row'
      */
     public static function kindOf(Condition $condition): string
     {
         return match (true) {
-            $condition instanceof FieldCondition => 'meta',
+            $condition instanceof FieldCondition => is_subclass_of($condition->getField()->getClass(), AbstractRow::class) ? 'row' : 'meta',
             $condition instanceof TermCondition => 'terms',
             $condition instanceof self => $condition->getKind(),
             default => throw new InvalidArgumentException(sprintf(
-                '%s is no condition of the framework; conditions come from meta fields, Terms, Any and All.',
+                '%s is no condition of the framework; conditions come from fields, Terms, Any and All.',
                 $condition::class,
             )),
         };

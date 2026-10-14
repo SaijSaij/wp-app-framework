@@ -5,16 +5,20 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Query\Field;
 
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Table\TableCollector;
 use Saij\WpAppFramework\Value\ValueFactory;
 
 /**
- * Which field class belongs to a meta field: shared by the build, the query at run time and the generator.
- * Queryable are fields on the top level of a meta class whose value is stored as one scalar; lists and value
- * classes are stored serialized.
+ * Which field class belongs to a meta field or a column of a table: shared by the build, the queries at run time and
+ * the generators. Queryable are fields on the top level of a meta class whose value is stored as one scalar; lists
+ * and value classes are stored serialized. Every column of a table is queryable.
+ *
+ * The field class must match exactly: the Nullable… field classes extend the others but fit nullable columns only.
  *
  * @internal
  *
  * @phpstan-import-type Value from ValueFactory
+ * @phpstan-import-type ColumnEntry from TableCollector
  */
 #[NoService]
 final class FieldTypes
@@ -39,7 +43,7 @@ final class FieldTypes
                 isset($value['reference']) || $value['nullable'] => [IdField::class, null],
                 default => [IntField::class, null],
             },
-            'object', 'list' => null,
+            'object', 'list', 'datetime' => null,
         };
     }
 
@@ -74,8 +78,50 @@ final class FieldTypes
         if ($expected === null) {
             return sprintf('%s::$%s is a list or value class, stored serialized; only fields with one int, float, string, bool, enum, ID or post can be queried', $field->getClass(), $field->getField());
         }
+
+        return self::compare($field, $expected);
+    }
+
+    /**
+     * The field class and, for enums, the enum of a column of a table.
+     *
+     * @param ColumnEntry $column
+     * @return array{class-string<Field>, class-string|null}
+     */
+    public static function column(array $column, bool $primaryKey): array
+    {
+        if ($primaryKey) {
+            return [IntField::class, null];
+        }
+        $nullable = $column['nullable'];
+
+        return match ($column['kind']) {
+            'int' => [$nullable ? NullableIntField::class : IntField::class, null],
+            'float' => [$nullable ? NullableFloatField::class : FloatField::class, null],
+            'bool' => [$nullable ? NullableBoolField::class : BoolField::class, null],
+            'string' => [$nullable ? NullableStringField::class : StringField::class, null],
+            'enum' => [$nullable ? NullableEnumField::class : EnumField::class, $column['enum']],
+            'datetime' => [$nullable ? NullableDateTimeField::class : DateTimeField::class, null],
+        };
+    }
+
+    /**
+     * Why a field object does not fit the column, or null if it does.
+     *
+     * @param ColumnEntry $column
+     */
+    public static function columnMismatch(Field $field, array $column, bool $primaryKey): ?string
+    {
+        return self::compare($field, self::column($column, $primaryKey));
+    }
+
+    /**
+     * @param array{class-string<Field>, class-string|null} $expected
+     */
+    private static function compare(Field $field, array $expected): ?string
+    {
         [$class, $typeClass] = $expected;
-        if (!$field instanceof $class) {
+        if ($field::class !== $class) {
             return sprintf('%s::$%s needs %s, %s given', $field->getClass(), $field->getField(), self::describe($class, $typeClass), $field::class);
         }
         if ($field->getTypeClass() !== $typeClass) {

@@ -18,6 +18,7 @@ use Saij\WpAppFramework\Query\MetaFields;
 use Saij\WpAppFramework\Release\ReleaseCommand;
 use Saij\WpAppFramework\Release\ReleaseException;
 use Saij\WpAppFramework\Release\TemplateCompilation;
+use Saij\WpAppFramework\Table\TableFields;
 use Saij\WpAppFramework\Twig\TemplateCallableKind;
 use Saij\WpAppFramework\Twig\TemplateOverrides;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
@@ -31,7 +32,9 @@ use Saij\WpAppFramework\Twig\TemplateVersion;
  *   generated/manifest.php: the framework treats its presence as a release build.
  * - `release [...]` builds the release ZIP (see ReleaseCommand).
  * - `meta-fields <meta class> [--force]` writes the class with #[MetaFields] for a meta class next to it
- *   ({MetaClass}Fields.php); an existing file only with --force. The only command that writes source code.
+ *   ({MetaClass}Fields.php); an existing file only with --force.
+ * - `table-fields <row class> [--force]` writes the class with #[TableFields] for a row class next to it
+ *   ({RowClass}Fields.php); an existing file only with --force. The two are the only commands that write source code.
  * - `compile-templates --manifest=<file> --output=<directory>` compiles all
  *   templates as release mode would; internal step of `release`, run with the
  *   prefixed classes of the build copy.
@@ -39,7 +42,7 @@ use Saij\WpAppFramework\Twig\TemplateVersion;
 #[NoService]
 final class Cli
 {
-    private const string USAGE = "Usage:\n  wp-app-framework build [--output=<file>]\n  wp-app-framework release [--output=<zip>] [--expect-version=<version>] [--package-source=<package>=<directory>]...\n  wp-app-framework meta-fields <meta class> [--force]";
+    private const string USAGE = "Usage:\n  wp-app-framework build [--output=<file>]\n  wp-app-framework release [--output=<zip>] [--expect-version=<version>] [--package-source=<package>=<directory>]...\n  wp-app-framework meta-fields <meta class> [--force]\n  wp-app-framework table-fields <row class> [--force]";
 
     /**
      * @param list<string> $arguments Command line arguments without the script name.
@@ -54,7 +57,8 @@ final class Cli
             'build' => self::build($arguments, $projectDirectory, $stdout, $stderr),
             'release' => ReleaseCommand::run($arguments, $projectDirectory, $stdout, $stderr),
             'compile-templates' => self::compileTemplates($arguments, $projectDirectory, $stdout, $stderr),
-            'meta-fields' => self::metaFields($arguments, $projectDirectory, $stdout, $stderr),
+            'meta-fields' => self::fields('meta-fields', $arguments, $projectDirectory, $stdout, $stderr),
+            'table-fields' => self::fields('table-fields', $arguments, $projectDirectory, $stdout, $stderr),
             default => self::usage($stderr),
         };
     }
@@ -105,44 +109,48 @@ final class Cli
     }
 
     /**
-     * @param list<string> $arguments
-     * @param resource     $stdout
-     * @param resource     $stderr
+     * `meta-fields` and `table-fields`: write the field class of a meta class or row class.
+     *
+     * @param 'meta-fields'|'table-fields' $command
+     * @param list<string>                 $arguments
+     * @param resource                     $stdout
+     * @param resource                     $stderr
      */
-    private static function metaFields(array $arguments, string $projectDirectory, $stdout, $stderr): int
+    private static function fields(string $command, array $arguments, string $projectDirectory, $stdout, $stderr): int
     {
         $force = false;
-        $metaClass = null;
+        $class = null;
         foreach ($arguments as $argument) {
             if ($argument === '--force') {
                 $force = true;
-            } elseif ($metaClass === null && !str_starts_with($argument, '-')) {
-                $metaClass = ltrim($argument, '\\');
+            } elseif ($class === null && !str_starts_with($argument, '-')) {
+                $class = ltrim($argument, '\\');
             } else {
                 return self::usage($stderr, $argument);
             }
         }
-        if ($metaClass === null) {
-            fwrite($stderr, "Usage: wp-app-framework meta-fields <meta class> [--force]\n");
+        if ($class === null) {
+            fwrite($stderr, sprintf("Usage: wp-app-framework %s <%s class> [--force]\n", $command, $command === 'meta-fields' ? 'meta' : 'row'));
 
             return 2;
         }
 
         try {
-            /** @var class-string $metaClass Checked by metaFieldValues(). */
-            $values = ManifestBuilder::forProject($projectDirectory)->metaFieldValues($metaClass);
+            $builder = ManifestBuilder::forProject($projectDirectory);
+            /** @var class-string $class Checked by metaFieldValues() and tableFieldValues(). */
+            $fields = $command === 'meta-fields' ? FieldTypes::queryable($builder->metaFieldValues($class)) : $builder->tableFieldValues($class);
         } catch (BuildException $exception) {
             fwrite($stderr, $exception->getMessage() . "\n");
 
             return 1;
         }
-        $file = FieldClassGenerator::file((string) new ReflectionClass($metaClass)->getFileName(), $metaClass);
+        $file = FieldClassGenerator::file((string) new ReflectionClass($class)->getFileName(), $class);
         if (is_file($file) && !$force) {
             fwrite($stderr, sprintf("%s exists; use --force to replace it.\n", $file));
 
             return 1;
         }
-        AtomicFile::write($file, FieldClassGenerator::generate($metaClass, MetaFields::class, 'meta-fields', FieldTypes::queryable($values)));
+        AtomicFile::write($file, FieldClassGenerator::generate($class, $command === 'meta-fields' ? MetaFields::class : TableFields::class, $command, $fields));
         fwrite($stdout, sprintf("Written %s.\n", $file));
 
         return 0;
