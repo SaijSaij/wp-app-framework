@@ -97,6 +97,79 @@ final class AbstractRowTest extends TestCase
         self::assertSame('After', $this->database->rows(self::LOG)[0]['message']);
     }
 
+    public function testARowObjectWithAnUnknownIdIsInsertedWithThatId(): void
+    {
+        $entry = new LogEntry(id: 7, message: 'Restored', created: new DateTimeImmutable('2026-10-14 08:30:00+00:00'));
+
+        $entry->save();
+
+        self::assertSame([
+            'UPDATE `wp_dev_test_log` SET level, message, context, reference, attempts, ratio, flagged, post_id, priority, handled, created',
+            'SELECT 1 FROM `wp_dev_test_log` WHERE `id` = 7 LIMIT 1',
+            'INSERT INTO `wp_dev_test_log` (id, level, message, context, reference, attempts, ratio, flagged, post_id, priority, handled, created)',
+        ], $this->database->getQueries());
+        self::assertSame([7, 'Restored'], [$entry->getId(), LogEntry::get(7)->getMessage()]);
+
+        // Saved: unchanged, nothing is written; the next new row continues after the ID.
+        $this->database->forget();
+        $entry->save();
+        self::assertSame([], $this->database->getQueries());
+        $next = new LogEntry(message: 'Next');
+        $next->save();
+        self::assertSame(8, $next->getId());
+    }
+
+    public function testARowObjectWithTheIdAndValuesOfAnExistingRowInsertsNothing(): void
+    {
+        $this->database->insert(self::LOG, ['message' => 'Same', 'context' => '', 'created' => '2026-10-14 08:30:00']);
+
+        new LogEntry(id: 1, message: 'Same', created: new DateTimeImmutable('2026-10-14 08:30:00+00:00'))->save();
+
+        // MariaDB counts no changed row, so the store looks the row up instead of inserting it twice.
+        self::assertSame([
+            'UPDATE `wp_dev_test_log` SET level, message, context, reference, attempts, ratio, flagged, post_id, priority, handled, created',
+            'SELECT 1 FROM `wp_dev_test_log` WHERE `id` = 1 LIMIT 1',
+        ], $this->database->getQueries());
+        self::assertCount(1, $this->database->rows(self::LOG));
+    }
+
+    public function testARowObjectWithTheIdOfAnExistingRowUpdatesIt(): void
+    {
+        $this->database->insert(self::LOG, ['message' => 'Before', 'context' => '', 'created' => '2026-10-14 08:30:00']);
+
+        new LogEntry(id: 1, message: 'After')->save();
+
+        self::assertSame(['UPDATE `wp_dev_test_log` SET level, message, context, reference, attempts, ratio, flagged, post_id, priority, handled, created'], $this->database->getQueries());
+        self::assertSame(['1', 'After'], [$this->database->rows(self::LOG)[0]['id'], $this->database->rows(self::LOG)[0]['message']]);
+    }
+
+    public function testAChangedRowDeletedInTheMeantimeIsInsertedAgainWithAllColumns(): void
+    {
+        $this->database->insert(self::LOG, ['message' => 'Before', 'context' => 'Kept', 'created' => '2026-10-14 08:30:00']);
+        $entry = LogEntry::get(1);
+        $this->database->delete(self::LOG, ['id' => '1']);
+        $this->database->forget();
+        $entry->setMessage('After');
+
+        $entry->save();
+
+        self::assertSame([
+            'UPDATE `wp_dev_test_log` SET message',
+            'SELECT 1 FROM `wp_dev_test_log` WHERE `id` = 1 LIMIT 1',
+            'INSERT INTO `wp_dev_test_log` (id, level, message, context, reference, attempts, ratio, flagged, post_id, priority, handled, created)',
+        ], $this->database->getQueries());
+        self::assertSame(['1', 'After', 'Kept'], [$this->database->rows(self::LOG)[0]['id'], $this->database->rows(self::LOG)[0]['message'], $this->database->rows(self::LOG)[0]['context']]);
+    }
+
+    public function testARefusedInsertWithAnIdIsAnError(): void
+    {
+        $this->database->fail('/^INSERT INTO `wp_dev_test_log`/', "Duplicate entry '3' for key 'PRIMARY'");
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(sprintf("Inserting the row 3 of %s into wp_dev_test_log failed: Duplicate entry '3' for key 'PRIMARY'", LogEntry::class));
+        new LogEntry(id: 3, message: 'Raced')->save();
+    }
+
     public function testProtectedColumnsAreReadAndWrittenToo(): void
     {
         $counter = new Counter(name: 'visits', count: 3);

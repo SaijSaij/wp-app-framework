@@ -112,6 +112,14 @@ $entry->save();
 $entry->delete();   // its primary key is null afterwards
 ```
 
+You can also create a row object with a primary key of your own, for example to restore a row you exported. `save()` writes it like a loaded row: it updates the row with that key, and if there is none, it inserts the row with that key and all columns.
+
+```php
+new LogEntry(id: 42, level: Level::Error, message: 'Restored')->save();
+```
+
+The same happens when the row of a loaded object was deleted in the meantime and you change and save the object: the row comes back with its old primary key. Finding out whether the row exists costs a query of its own, but only when the update changed nothing. MariaDB and MySQL count only the rows an `UPDATE` really changed, so an update of a row that already has these values looks the same as an update of a missing row.
+
 Every `get()`, `find()` and query returns new objects. When two of them change the same row, each `save()` writes its changed columns; for a column changed by both, the last one wins. `save()` and `delete()` check no capabilities.
 
 If the database refuses a row – a string longer than its column, for example – `save()` throws a `RuntimeException` with the error of the database. A stored value that no longer fits the class, such as the value of a removed enum case, makes loading the row throw an exception; the framework does not quietly use the default instead.
@@ -269,7 +277,7 @@ Each site has its own tables, with the table prefix of the site. The sync runs f
 | `static find(int $id)` | The row or null. |
 | `static query()` | A `RowQuery` of the class. |
 | `static tableName()` | The full table name on the current site. |
-| `save()` | Inserts the row and sets the primary key, or writes the changed columns. `RuntimeException` if the database refuses it. |
+| `save()` | Inserts the row and sets the primary key, or writes the changed columns; without changes, nothing. With a primary key whose row does not exist, inserts the row with that key and all columns. `RuntimeException` if the database refuses it, e.g. a duplicate key when another request inserted the row first. |
 | `delete()` | Deletes the row; the primary key becomes null. `LogicException` for a row that was never saved. |
 
 All of them work once the theme or plugin has booted; before, they throw a `LogicException`.

@@ -12,7 +12,8 @@ use InvalidArgumentException;
  *
  * A row object is loaded with `LogEntry::get($id)` or `LogEntry::find($id)`, found with `LogEntry::query()` and
  * created with `new LogEntry(…)`. save() inserts a new row and sets its primary key, or writes the changed columns of
- * a loaded one; delete() deletes it.
+ * a loaded one; a row object with a primary key whose row does not exist is inserted with that key. delete() deletes
+ * it.
  *
  * Every get(), find() and query returns new objects; when two of them change the same row, the last save() of a
  * column wins. save() and delete() check no capabilities.
@@ -59,7 +60,8 @@ abstract class AbstractRow
 
     /**
      * Inserts the row and sets its primary key, or writes the columns changed since it was loaded or saved; without
-     * changes, nothing is written.
+     * changes, nothing is written. With a primary key whose row does not exist (set in `new`, or the row was deleted
+     * in the meantime and the object changed since), the row is inserted with that primary key and all columns.
      *
      * @throws \RuntimeException If the database refuses the row, e.g. a string longer than its column.
      */

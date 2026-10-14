@@ -316,7 +316,8 @@ final class TableStore
 
     /**
      * Inserts a new row (and sets its primary key) or updates the changed columns of a loaded one; without changes,
-     * nothing is written.
+     * nothing is written. A changed row object with a primary key whose row does not exist (created with `new` and an
+     * ID, or deleted in the meantime) is inserted with that primary key and all columns.
      */
     public function save(AbstractRow $row): void
     {
@@ -341,15 +342,22 @@ final class TableStore
 
             return;
         }
-        if ($loaded !== null) {
-            $values = array_filter($values, static fn(array $value, string $property): bool => !array_key_exists($property, $loaded) || $loaded[$property] !== $value[0], ARRAY_FILTER_USE_BOTH);
-        }
-        if ($values === []) {
+        $changed = $loaded === null ? $values : array_filter($values, static fn(array $value, string $property): bool => !array_key_exists($property, $loaded) || $loaded[$property] !== $value[0], ARRAY_FILTER_USE_BOTH);
+        if ($changed === []) {
             return;
         }
-        [$data, $formats] = $this->columns($table, $values);
-        if ($wpdb->update($full, $data, [$table['columns'][$primaryKey]['column'] => $id], $formats, ['%d']) === false) {
+        $primaryColumn = $table['columns'][$primaryKey]['column'];
+        [$data, $formats] = $this->columns($table, $changed);
+        $updated = $wpdb->update($full, $data, [$primaryColumn => $id], $formats, ['%d']);
+        if ($updated === false) {
             throw self::failure($wpdb, sprintf('Updating the row %s of %s in %s', (string) $id, $class, $full));
+        }
+        // MariaDB and MySQL count changed rows only: 0 also when the row exists with these values already.
+        if ($updated === 0 && !$this->exists($wpdb, $full, $primaryColumn, $id)) {
+            [$data, $formats] = $this->columns($table, $this->encode($row));
+            if ($wpdb->insert($full, $data, $formats) === false) {
+                throw self::failure($wpdb, sprintf('Inserting the row %s of %s into %s', (string) $id, $class, $full));
+            }
         }
         $this->remember($row, $this->encode($row));
     }
@@ -371,6 +379,17 @@ final class TableStore
         }
         $this->writer($class)($row, $primaryKey, null);
         $this->remember($row, null);
+    }
+
+    /**
+     * Whether the row with the primary key exists; only asked when an UPDATE changed no row.
+     */
+    private function exists(wpdb $wpdb, string $full, string $primaryColumn, int|string $id): bool
+    {
+        $found = $wpdb->get_var($wpdb->prepare('SELECT 1 FROM %i WHERE %i = %d LIMIT 1', $full, $primaryColumn, $id));
+        self::check($wpdb, sprintf('Looking up the row %s in %s', (string) $id, $full));
+
+        return $found !== null;
     }
 
     /**

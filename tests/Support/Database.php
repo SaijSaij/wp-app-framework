@@ -73,16 +73,25 @@ final class Database
         $id = $table['next'];
         $full = [];
         foreach ($table['columns'] as $column => $definition) {
+            if ($definition['extra'] === 'auto_increment' && isset($row[$column])) {
+                // An explicit value: a duplicate fails, a higher one moves the counter like AUTO_INCREMENT does.
+                if (in_array($row[$column], array_column($table['rows'], $column), true)) {
+                    throw new RuntimeException(sprintf("Duplicate entry '%s' for key 'PRIMARY'", $row[$column]));
+                }
+                $id = (int) $row[$column];
+            }
             $full[$column] = array_key_exists($column, $row) ? $row[$column] : ($definition['extra'] === 'auto_increment' ? (string) $id : $definition['default']);
         }
         $table['rows'][] = $full;
-        $table['next'] = $id + 1;
+        $table['next'] = max($table['next'], $id + 1);
         $this->tables[$name] = $table;
 
         return $id;
     }
 
     /**
+     * The number of changed rows, like MariaDB: a row that already has the values does not count.
+     *
      * @param array<string, string|null> $data
      * @param array<string, string>      $where
      */
@@ -93,7 +102,7 @@ final class Database
         foreach ($this->tables[$table]['rows'] as $index => $row) {
             if (array_intersect_assoc($where, array_map(strval(...), $row)) === $where) {
                 $this->tables[$table]['rows'][$index] = [...$row, ...$data];
-                $count++;
+                $count += $this->tables[$table]['rows'][$index] === $row ? 0 : 1;
             }
         }
 
@@ -355,6 +364,9 @@ final class Database
         }
         if (preg_match('/^SELECT COUNT\(\*\) FROM `([^`]+)`$/', $sql, $match) === 1) {
             return $ok((string) count($this->tables[$this->table($match[1])]['rows']));
+        }
+        if (preg_match('/^SELECT 1 FROM `([^`]+)` WHERE `([^`]+)` = (\d+) LIMIT 1$/', $sql, $match) === 1) {
+            return $ok(array_values(array_map(static fn(): array => ['found' => '1'], array_filter($this->tables[$this->table($match[1])]['rows'], static fn(array $row): bool => $row[$match[2]] === $match[3]))));
         }
         if (preg_match("/^SELECT \\* FROM `([^`]+)` WHERE `([^`]+)` = (\\d+)$/", $sql, $match) === 1) {
             return $ok(array_values(array_filter($this->tables[$this->table($match[1])]['rows'], static fn(array $row): bool => $row[$match[2]] === $match[3])));
