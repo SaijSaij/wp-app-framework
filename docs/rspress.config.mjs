@@ -76,6 +76,10 @@ export default defineConfig( {
 						{ text: 'Tables', link: '/guides/tables' },
 						{ text: 'Cache', link: '/guides/cache' },
 						{ text: 'Cron events and tasks', link: '/guides/cron' },
+						{
+							text: 'Activation and uninstallation',
+							link: '/guides/lifecycle',
+						},
 						{ text: 'Values', link: '/guides/values' },
 						{ text: 'Plugins', link: '/guides/plugins' },
 						{ text: 'Child themes', link: '/guides/child-themes' },

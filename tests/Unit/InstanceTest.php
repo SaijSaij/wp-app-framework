@@ -42,7 +42,7 @@ final class InstanceTest extends TestCase
     {
         Hooks::reset();
         Files::remove($this->root);
-        unset($GLOBALS['wp_app_framework_test_styles'], $GLOBALS['wp_app_framework_test_cron'], $GLOBALS['wp_app_framework_test_deactivation'], $GLOBALS['wp_app_framework_test_options'], $GLOBALS['wp_app_framework_test_cron_writes']);
+        unset($GLOBALS['wp_app_framework_test_styles'], $GLOBALS['wp_app_framework_test_cron'], $GLOBALS['wp_app_framework_test_deactivation'], $GLOBALS['wp_app_framework_test_uninstall'], $GLOBALS['wp_app_framework_test_options'], $GLOBALS['wp_app_framework_test_cron_writes']);
     }
 
     private function instance(ProjectKind $kind): Instance
@@ -203,6 +203,24 @@ final class InstanceTest extends TestCase
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('The plugin my-plugin requires Twig v1.0.0, but Twig ' . \Twig\Environment::VERSION . ' is loaded (from another consumer).');
+
+        $this->instance(ProjectKind::Plugin)->boot();
+    }
+
+    public function testAnUninstallScriptOfAPluginIsAnErrorInDevelopmentMode(): void
+    {
+        mkdir($this->root . '/my-plugin/vendor/saij', 0777, true);
+        mkdir($this->root . '/my-plugin/vendor/composer');
+        symlink((string) realpath(__DIR__ . '/../..'), $this->root . '/my-plugin/vendor/saij/wp-app-framework');
+        file_put_contents(
+            $this->root . '/my-plugin/vendor/composer/installed.php',
+            "<?php return ['versions' => ['twig/twig' => ['pretty_version' => 'v" . \Twig\Environment::VERSION . "']]];",
+        );
+        // The cached manifest of development mode would not notice the file.
+        touch($this->root . '/my-plugin/uninstall.php');
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage($this->root . '/my-plugin/uninstall.php exists: WordPress runs it instead of the uninstall hook of the framework');
 
         $this->instance(ProjectKind::Plugin)->boot();
     }

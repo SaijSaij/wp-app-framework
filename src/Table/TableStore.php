@@ -204,6 +204,47 @@ final class TableStore
     }
 
     /**
+     * The full names of the tables of the instance on the current site: those the last sync manages (in the namespace
+     * it synced them in) and those the row classes declare.
+     *
+     * @return list<non-empty-string>
+     */
+    public function siteTables(): array
+    {
+        $prefix = self::wpdb()->prefix;
+        $state = self::state(get_option(TableNames::option($this->slug)));
+        $names = [];
+        if ($state['namespace'] !== null) {
+            foreach ($state['tables'] as $table) {
+                if ($table !== '') {
+                    $names[] = TableNames::full($prefix, $state['namespace'], $table);
+                }
+            }
+        }
+        foreach ($this->tables['classes'] as $table) {
+            $names[] = TableNames::full($prefix, $this->namespace, $table['name']);
+        }
+
+        return array_values(array_unique($names));
+    }
+
+    /**
+     * Drops the tables of the instance on the current site and deletes the state of their sync and its lock (the
+     * plugin is uninstalled).
+     */
+    public function drop(): void
+    {
+        $wpdb = self::wpdb();
+        foreach ($this->siteTables() as $table) {
+            $wpdb->query(sprintf('DROP TABLE IF EXISTS `%s`', str_replace('`', '``', $table)));
+            self::check($wpdb, 'Dropping the table ' . $table);
+        }
+        delete_option(TableNames::option($this->slug));
+        $this->unlock($wpdb, TableNames::lock($this->slug));
+        unset($this->checked[get_current_blog_id()]);
+    }
+
+    /**
      * The full name of the table of a row class on the current site, after ensure().
      *
      * @param class-string<AbstractRow> $class

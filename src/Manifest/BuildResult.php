@@ -28,6 +28,7 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  * @phpstan-import-type MetaEntry from \Saij\WpAppFramework\Post\PostTypeCollector
  * @phpstan-import-type BlockCategoryEntry from \Saij\WpAppFramework\Manifest\Manifest
  * @phpstan-import-type TablesData from \Saij\WpAppFramework\Table\TableCollector
+ * @phpstan-import-type LifecycleData from \Saij\WpAppFramework\Lifecycle\LifecycleCollector
  * @phpstan-type PostData array{
  *     posts: array<class-string<\Saij\WpAppFramework\Post\AbstractPost>, PostClassEntry>,
  *     taxonomies: array<class-string, TaxonomyEntry>,
@@ -72,6 +73,8 @@ final readonly class BuildResult
      * @param list<CliCommandDefinition>                        $cliCommands  `#[CliCommand]` services with their subcommands.
      * @param TablesData                                        $tables       Row classes with their tables, the hash of their
      *                                                                         structure and the version of the project.
+     * @param LifecycleData                                     $lifecycle    Methods with #[OnActivation], #[OnDeactivation] and
+     *                                                                         #[OnUninstall].
      */
     public function __construct(
         private array $sources,
@@ -101,7 +104,16 @@ final readonly class BuildResult
         private array $cronTasks = [],
         private array $cliCommands = [],
         private array $tables = ['schema' => null, 'version' => null, 'classes' => []],
+        private array $lifecycle = ['activation' => [], 'deactivation' => [], 'uninstall' => []],
     ) {}
+
+    /**
+     * @return LifecycleData
+     */
+    public function getLifecycle(): array
+    {
+        return $this->lifecycle;
+    }
 
     /**
      * @return TablesData

@@ -4,6 +4,12 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.12
+
+**Deleting a plugin deletes its data.** Before 0.12, the framework left everything behind when a plugin was deleted. Since 0.12 it removes the posts of the plugin's post types, its terms, meta keys, settings, tables, cron events, technical options and caches (see [Activation, deactivation and uninstallation](../guides/lifecycle.md)). Back up the data before you delete a plugin whose data you want to keep.
+
+**A plugin must not have an `uninstall.php`.** WordPress runs this file instead of the uninstall hook of the framework, so it is now a build error. Move its code into a method with `#[OnUninstall]`.
+
 ## 0.11
 
 **`link_attributes` is a framework function.** 0.11 adds the template function `link_attributes()` for [links](../guides/values.md#links). A template function of your own with this name is now a build error; rename it.

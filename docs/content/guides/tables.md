@@ -252,7 +252,11 @@ Code that uses a table while its sync cannot run – locked, failed or blocked b
 
 ### Multisite
 
-Each site has its own tables, with the table prefix of the site. The sync runs for a site on the first request to it, or when code switches to it with `switch_to_blog()` and uses a table. There are no tables shared by the network.
+Each site has its own tables, with the table prefix of the site. The sync runs for a site on the first request to it, or when code switches to it with `switch_to_blog()` and uses a table. There are no tables shared by the network. When a site is deleted, its tables of your plugin are dropped with it.
+
+### Removing tables
+
+The tables of a theme stay when the site switches to another theme, so they are there again when it switches back. When a plugin is deleted, the framework drops its tables on every site – also tables an earlier namespace of the plugin left – and deletes the state of their sync. See [Activation, deactivation and uninstallation](./lifecycle.md).
 
 ## Rules
 

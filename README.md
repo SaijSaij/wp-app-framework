@@ -14,7 +14,7 @@ The framework is a library that themes, child themes and plugins (its *consumers
 
 ## Status
 
-In development (0.x): framework core, REST routes, WP-CLI commands, Twig, server-side blocks, block supports, settings, editor runtime, front-end scripts, release build, plugins and child themes. Breaking changes are listed in [Upgrading](https://saijsaij.github.io/wp-app-framework/next/reference/upgrading.html).
+In development (0.x): framework core, REST routes, WP-CLI commands, Twig, server-side blocks, block supports, settings, editor runtime, front-end scripts, release build, activation and uninstallation, plugins and child themes. Breaking changes are listed in [Upgrading](https://saijsaij.github.io/wp-app-framework/next/reference/upgrading.html).
 
 ## Source layout
 
@@ -40,7 +40,8 @@ In development (0.x): framework core, REST routes, WP-CLI commands, Twig, server
 | `Style/` | Loading of the consumer's built stylesheet (runtime) |
 | `Cache/` | `#[Cache]` attribute, tags (`Tag/`), variants (`Vary/`), collector (build), `CacheStore` with backends (`Backend/`), tag versions and their hooks (runtime) |
 | `Cron/` | `#[CronEvent]`, `#[CronTask]` attributes, `CronInterval`/`Weekday` enums, collector (build), definitions, `CronScheduler`, registrar and start times (runtime) |
-| `Filesystem/` | Atomic file writes (build and runtime) |
+| `Lifecycle/` | `#[OnActivation]`, `#[OnDeactivation]`, `#[OnUninstall]` attributes, collector and `uninstall.php` check (build), lifecycle registrar and uninstaller (runtime) |
+| `Filesystem/` | Atomic file writes, removal of directory trees (build and runtime) |
 | `Asset/` | Scripts next to classes (`ScriptKind`: editor and view scripts, build) and registration of scripts and styles from the consumer's build (runtime) |
 | `Value/` | `#[ListOf]`, `#[Url]` and reference attributes, `Link` with `LinkKind` and `link_attributes()`, schema derivation of typed values (build), value factory (runtime) |
 | `DependencyInjection/` | `#[NoService]` attribute, service candidates and resolver (build), container (runtime) |

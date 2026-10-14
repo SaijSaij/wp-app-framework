@@ -21,6 +21,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Hook\HookCollector;
+use Saij\WpAppFramework\Lifecycle\LifecycleCollector;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Plugin;
@@ -76,6 +77,8 @@ final class ManifestBuilder
      *                                                  (`extra.wp-app-framework.namespace`); fixtures use `fixture`.
      * @param non-empty-string|null  $version           Version of the theme or plugin (header), stored with the tables
      *                                                  so that older code leaves tables synced by newer code alone.
+     * @param string|null            $pluginDirectory   Directory of a plugin, which must not have an `uninstall.php`;
+     *                                                  null for themes and fixtures.
      */
     public function __construct(
         private readonly array $sources,
@@ -91,6 +94,7 @@ final class ManifestBuilder
         private readonly ?string $markupDirectory = null,
         private readonly string $namespace = self::FIXTURE_NAMESPACE,
         private readonly ?string $version = null,
+        private readonly ?string $pluginDirectory = null,
     ) {}
 
     /**
@@ -146,6 +150,7 @@ final class ManifestBuilder
             $project->getKind() === ProjectKind::Plugin ? null : $root,
             $project->getNamespace(),
             version: $project->getVersion(),
+            pluginDirectory: $project->getKind() === ProjectKind::Plugin ? $root : null,
         );
     }
 
@@ -192,6 +197,8 @@ final class ManifestBuilder
         $hooks = $hookCollector->collect($classes);
         $cronCollector = new CronCollector($resolver, $values);
         $cronCollector->collect($classes);
+        $lifecycleCollector = new LifecycleCollector($resolver, $this->kind);
+        $lifecycle = $lifecycleCollector->collect($classes, $this->pluginDirectory);
         $cacheCollector = new CacheCollector($resolver, new TagNames(
             CacheCollector::settingsGroups($classes),
             array_map(static fn(array $post): string => $post['name'], $postClasses),
@@ -234,6 +241,7 @@ final class ManifestBuilder
             ...$errors,
             ...$hookCollector->errors(),
             ...$cronCollector->errors(),
+            ...$lifecycleCollector->errors(),
             ...$routeCollector->errors(),
             ...$cliCommandCollector->errors(),
             ...$cacheCollector->errors(),
@@ -282,6 +290,7 @@ final class ManifestBuilder
             cronTasks: $cronCollector->tasks(),
             cliCommands: $cliCommands,
             tables: $tables,
+            lifecycle: $lifecycle,
         );
     }
 

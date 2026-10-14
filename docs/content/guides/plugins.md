@@ -46,7 +46,7 @@ final class Notes
 }
 ```
 
-The plugin may be deactivated, so the parameter must be nullable with the default `null`. It is `null` whenever the plugin is not active, and your code checks for that.
+The plugin may be deactivated, so the parameter must be nullable with the default `null`. (What happens when a plugin is activated, deactivated and deleted is described in [Activation, deactivation and uninstallation](./lifecycle.md).) It is `null` whenever the plugin is not active, and your code checks for that.
 
 The consumer's build does not load the class, so it works without the plugin. For your IDE and static analysis, require the plugin as a development dependency (`require-dev`); the release build installs without development dependencies.
 

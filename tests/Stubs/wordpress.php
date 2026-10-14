@@ -523,10 +523,25 @@ function apply_filters(string $hook_name, mixed $value, mixed ...$args): mixed
 function do_action(string $hook_name, mixed ...$arg): void
 {
     $GLOBALS['wp_app_framework_test_actions'][$hook_name] = ($GLOBALS['wp_app_framework_test_actions'][$hook_name] ?? 0) + 1;
-    foreach ($GLOBALS['wp_app_framework_test_filters'][$hook_name] ?? [] as $index => $callback) {
-        $accepted = $GLOBALS['wp_app_framework_test_filter_args'][$hook_name][$index] ?? 1;
-        $callback(...array_slice($arg, 0, $accepted));
+    $GLOBALS['wp_app_framework_test_current_actions'][] = $hook_name;
+    try {
+        foreach ($GLOBALS['wp_app_framework_test_filters'][$hook_name] ?? [] as $index => $callback) {
+            $accepted = $GLOBALS['wp_app_framework_test_filter_args'][$hook_name][$index] ?? 1;
+            $callback(...array_slice($arg, 0, $accepted));
+        }
+    } finally {
+        array_pop($GLOBALS['wp_app_framework_test_current_actions']);
     }
+}
+
+/**
+ * The innermost action do_action() runs.
+ */
+function current_action(): string|false
+{
+    $actions = $GLOBALS['wp_app_framework_test_current_actions'] ?? [];
+
+    return $actions === [] ? false : $actions[array_key_last($actions)];
 }
 
 function did_action(string $hook_name): int
@@ -1811,6 +1826,8 @@ final class wpdb
 
     public string $postmeta = 'wp_postmeta';
 
+    public string $term_taxonomy = 'wp_term_taxonomy';
+
     public string $options = 'wp_options';
 
     public int $insert_id = 0;
@@ -2029,3 +2046,126 @@ function wp_installing(?bool $is_installing = null): bool
 }
 
 $GLOBALS['wpdb'] = new wpdb();
+
+/**
+ * Records uninstall hooks in $GLOBALS['wp_app_framework_test_uninstall'] by plugin file.
+ */
+function register_uninstall_hook(string $file, callable $callback): void
+{
+    $GLOBALS['wp_app_framework_test_uninstall'][$file] = $callback;
+}
+
+/**
+ * $GLOBALS['wp_app_framework_test_multisite'], false by default.
+ */
+function is_multisite(): bool
+{
+    return $GLOBALS['wp_app_framework_test_multisite'] ?? false;
+}
+
+function get_current_network_id(): int
+{
+    return 1;
+}
+
+/**
+ * The IDs of $GLOBALS['wp_app_framework_test_sites'] (site ID => network ID), of one network with "network_id"; only
+ * "fields" => "ids" is supported. The arguments are recorded in $GLOBALS['wp_app_framework_test_site_queries'].
+ *
+ * @param string|array<string, mixed> $args
+ * @return list<int|WP_Site>|int
+ */
+function get_sites(string|array $args = []): array|int
+{
+    $args = is_array($args) ? $args : [];
+    $GLOBALS['wp_app_framework_test_site_queries'][] = $args;
+    $sites = [];
+    foreach ($GLOBALS['wp_app_framework_test_sites'] ?? [1 => 1] as $site => $network) {
+        if (!isset($args['network_id']) || $args['network_id'] === $network) {
+            $sites[] = $site;
+        }
+    }
+
+    return $sites;
+}
+
+/**
+ * Sets the current blog ID (get_current_blog_id()) and records the switch in
+ * $GLOBALS['wp_app_framework_test_switches'].
+ */
+function switch_to_blog(int $new_blog_id, ?bool $deprecated = null): true
+{
+    $GLOBALS['wp_app_framework_test_blog_stack'][] = get_current_blog_id();
+    $GLOBALS['wp_app_framework_test_blog_id'] = $new_blog_id;
+    $GLOBALS['wp_app_framework_test_switches'][] = $new_blog_id;
+
+    return true;
+}
+
+function restore_current_blog(): bool
+{
+    $stack = $GLOBALS['wp_app_framework_test_blog_stack'] ?? [];
+    if ($stack === []) {
+        return false;
+    }
+    $GLOBALS['wp_app_framework_test_blog_id'] = array_pop($stack);
+    $GLOBALS['wp_app_framework_test_blog_stack'] = $stack;
+
+    return true;
+}
+
+/**
+ * Network options from $GLOBALS['wp_app_framework_test_site_options'].
+ */
+function get_site_option(string $option, mixed $default_value = false, bool $deprecated = true): mixed
+{
+    return $GLOBALS['wp_app_framework_test_site_options'][$option] ?? $default_value;
+}
+
+/**
+ * Removes the key from all posts in $GLOBALS['wp_app_framework_test_meta'] and records it in
+ * $GLOBALS['wp_app_framework_test_deleted_meta_keys'].
+ */
+function delete_post_meta_by_key(string $post_meta_key): bool
+{
+    $GLOBALS['wp_app_framework_test_deleted_meta_keys'][] = $post_meta_key;
+    $found = false;
+    foreach ($GLOBALS['wp_app_framework_test_meta'] ?? [] as $postId => $meta) {
+        if (array_key_exists($post_meta_key, $meta)) {
+            unset($GLOBALS['wp_app_framework_test_meta'][$postId][$post_meta_key]);
+            $found = true;
+        }
+    }
+
+    return $found;
+}
+
+/**
+ * Records deleted terms in $GLOBALS['wp_app_framework_test_deleted_terms'] as "taxonomy ID"; terms listed in
+ * $GLOBALS['wp_app_framework_test_term_failures'] fail with a WP_Error.
+ *
+ * @param array<string, mixed>|string $args
+ */
+function wp_delete_term(int $term, string $taxonomy, array|string $args = []): bool|int|WP_Error
+{
+    if (in_array($term, $GLOBALS['wp_app_framework_test_term_failures'] ?? [], true)) {
+        return new WP_Error('invalid_term', 'Term does not exist.');
+    }
+    $GLOBALS['wp_app_framework_test_deleted_terms'][] = $taxonomy . ' ' . $term;
+
+    return true;
+}
+
+/**
+ * Only the ID of the site is known.
+ */
+final class WP_Site
+{
+    public string $blog_id = '0';
+
+    public function __construct(object $site)
+    {
+        $id = get_object_vars($site)['blog_id'] ?? '0';
+        $this->blog_id = is_scalar($id) ? (string) $id : '0';
+    }
+}

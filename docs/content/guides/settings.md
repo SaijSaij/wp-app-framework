@@ -75,7 +75,7 @@ Each group is stored in its own option, named `{namespace}_{name}`, where `{name
 
 The framework registers the option with `register_setting()` on `init`, with its schema and `show_in_rest`. That makes it readable and writable through `/wp/v2/settings` under the same name. WordPress validates and sanitizes saved values against the schema there, and requires the capability `manage_options` for reading and saving.
 
-The option belongs to the theme's namespace, not to its directory name or the active stylesheet. A child theme without code therefore uses the settings of its parent theme, and switching to a child theme keeps them. A child theme with code and each plugin have their own groups and options.
+The option belongs to the theme's namespace, not to its directory name or the active stylesheet. A child theme without code therefore uses the settings of its parent theme, and switching to a child theme keeps them. A child theme with code and each plugin have their own groups and options. Deleting a plugin deletes the options of its groups (see [Activation, deactivation and uninstallation](./lifecycle.md)); the options of a theme stay when the site switches to another theme.
 
 ## Using settings
 

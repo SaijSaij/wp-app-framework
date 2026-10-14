@@ -148,7 +148,7 @@ On every request (on `init`), the framework compares the events of your code wit
 
 The framework remembers the events and tasks of your theme or plugin in an autoloaded option (`{slug}_cron`, with underscores instead of hyphens). When nothing changed, the comparison costs no database query and writes nothing.
 
-When a plugin is deactivated, or the site switches to another theme, the framework removes all events and tasks of that plugin or theme and its option. Switching from a theme to its own child theme keeps them, because the theme stays active as parent theme.
+When a plugin is deactivated, or the site switches to another theme, the framework removes all events and tasks of that plugin or theme and its option. Switching from a theme to its own child theme keeps them, because the theme stays active as parent theme. Activating the plugin or switching back to the theme schedules them again on the next request. See [Activation, deactivation and uninstallation](./lifecycle.md) for what else happens at these moments.
 
 The daily clean-up of the [file cache](./cache.md#where-entries-are-stored) is an event of the same kind.
 

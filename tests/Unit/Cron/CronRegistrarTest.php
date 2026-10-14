@@ -16,7 +16,6 @@ use Saij\WpAppFramework\Cron\CronTime;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\Hook\HookRegistrar;
 use Saij\WpAppFramework\Instance;
-use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Tests\Fixtures\CronValid;
 use Saij\WpAppFramework\Tests\Support\Hooks;
 use Saij\WpAppFramework\Tests\Support\Recorded;
@@ -62,15 +61,13 @@ final class CronRegistrarTest extends TestCase
             $GLOBALS['wp_app_framework_test_autoload'],
             $GLOBALS['wp_app_framework_test_option_misses'],
             $GLOBALS['wp_app_framework_test_timezone'],
-            $GLOBALS['wp_app_framework_test_deactivation'],
-            $GLOBALS['wp_app_framework_test_theme_parents'],
         );
     }
 
     /**
-     * A registrar for the theme (or plugin) my-theme with the events and tasks of the fixture CronValid.
+     * A registrar for the instance my-theme with the events and tasks of the fixture CronValid.
      */
-    private function registrar(bool $debug = true, ProjectKind $kind = ProjectKind::Theme, bool $events = true, bool $tasks = true): CronRegistrar
+    private function registrar(bool $debug = true, bool $events = true, bool $tasks = true): CronRegistrar
     {
         $manifest = CronCollectorTest::manifest();
         $cronTasks = $tasks ? $manifest['cronTasks'] : [];
@@ -81,9 +78,7 @@ final class CronRegistrarTest extends TestCase
         );
 
         return new CronRegistrar(
-            $kind,
             'my-theme',
-            '/plugins/my-theme',
             $events ? $manifest['cronEvents'] : [],
             $cronTasks,
             new HookRegistrar($this->container, $debug),
@@ -316,47 +311,17 @@ final class CronRegistrarTest extends TestCase
         self::assertIsArray(get_option(self::OPTION));
     }
 
-    public function testDeactivatingThePluginRemovesEverything(): void
-    {
-        $registrar = $this->registrar(kind: ProjectKind::Plugin);
-        $registrar->register();
-        $registrar->synchronize();
-        new CronScheduler([CronValid\SendReminder::class => self::REMINDER])->schedule(new CronValid\SendReminder(5), new DateTimeImmutable('+1 hour'));
-
-        $hooks = $GLOBALS['wp_app_framework_test_deactivation'] ?? [];
-        $deactivate = is_array($hooks) ? $hooks['/plugins/my-theme/my-theme.php'] ?? null : null;
-        self::assertIsCallable($deactivate);
-        $deactivate();
-
-        self::assertSame([], self::cron());
-        self::assertFalse(get_option(self::OPTION));
-    }
-
-    public function testSwitchingToAnotherThemeRemovesEverything(): void
+    public function testClearRemovesEverything(): void
     {
         $registrar = $this->registrar();
         $registrar->register();
         $registrar->synchronize();
         new CronScheduler([CronValid\SendReminder::class => self::REMINDER])->schedule(new CronValid\SendReminder(5), new DateTimeImmutable('+1 hour'));
 
-        do_action('switch_theme', 'Other', wp_get_theme('other'), wp_get_theme('my-theme'));
+        $registrar->clear();
 
         self::assertSame([], self::cron());
         self::assertFalse(get_option(self::OPTION));
-    }
-
-    public function testSwitchingToTheOwnChildThemeKeepsEverything(): void
-    {
-        $registrar = $this->registrar();
-        $registrar->register();
-        $registrar->synchronize();
-        $cron = self::cron();
-
-        $GLOBALS['wp_app_framework_test_theme_parents'] = ['my-theme-child' => 'my-theme'];
-        do_action('switch_theme', 'Child', wp_get_theme('my-theme-child'), wp_get_theme('my-theme'));
-
-        self::assertSame($cron, self::cron());
-        self::assertIsArray(get_option(self::OPTION));
     }
 
     public function testEventHandlersGetServicesAndNoArguments(): void

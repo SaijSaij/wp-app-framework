@@ -25,6 +25,9 @@ use Saij\WpAppFramework\Editor\EditorAssets;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Editor\RenderController;
 use Saij\WpAppFramework\Hook\HookRegistrar;
+use Saij\WpAppFramework\Lifecycle\LifecycleCollector;
+use Saij\WpAppFramework\Lifecycle\LifecycleRegistrar;
+use Saij\WpAppFramework\Lifecycle\Uninstaller;
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
@@ -122,6 +125,8 @@ final readonly class Instance
             ));
         }
 
+        // Activating and uninstalling a plugin load it after `init`, so its post types are not registered on `init`.
+        $afterInit = did_action('init') > 0;
         $frameworkDirectory = dirname(__DIR__);
         $releaseManifest = $this->directory . '/' . self::RELEASE_MANIFEST;
         $development = !is_file($releaseManifest);
@@ -129,6 +134,11 @@ final readonly class Instance
         $sourceEntries = [];
         if ($development) {
             $this->checkSharedClasses($frameworkDirectory);
+            // The build checks it as well; the cached manifest of development mode does not notice a new file.
+            $uninstallScript = $this->kind === ProjectKind::Plugin ? LifecycleCollector::uninstallScriptError($this->directory) : null;
+            if ($uninstallScript !== null) {
+                throw new LogicException($uninstallScript);
+            }
             [$manifest, $sourceEntries] = $this->loadDevelopmentManifest($cacheDirectory . '/manifest', $frameworkDirectory);
         } else {
             $manifest = Manifest::load($releaseManifest);
@@ -258,7 +268,8 @@ final readonly class Instance
         $cache = $container->get(CacheStore::class);
         $settingsOptions = array_column($settingsGroups, 'name', 'option');
         new TagHooks($tagVersions, $settingsOptions)->register();
-        new CronRegistrar($this->kind, $this->slug, $this->directory, $manifest['cronEvents'], $cronTasks, $hookRegistrar, $container, $values, $debug, $cache->cleanUp(...))->register();
+        $cronRegistrar = new CronRegistrar($this->slug, $manifest['cronEvents'], $cronTasks, $hookRegistrar, $container, $values, $debug, $cache->cleanUp(...));
+        $cronRegistrar->register();
 
         $restRegistrar = new RestRegistrar($container, $values, $debug, $cache);
         $routes = $manifest['routes'];
@@ -284,7 +295,28 @@ final readonly class Instance
             $blockRegistrar->register($blocks, $blockCategories);
         });
 
-        $this->registerPosts($postStore, $manifest['rewrite'], $prefix);
+        $postTypeRegistrar = $this->registerPosts($postStore, $manifest['rewrite'], $prefix . 'rewrite');
+        new LifecycleRegistrar(
+            $this->kind,
+            $this->slug,
+            $this->directory,
+            $manifest['lifecycle'],
+            $hookRegistrar,
+            $postTypeRegistrar,
+            $cronRegistrar,
+            $tableStore,
+            new Uninstaller(
+                $this->slug,
+                $postStore,
+                array_column($settingsGroups, 'option'),
+                $tableStore,
+                $cronRegistrar,
+                $prefix . 'rewrite',
+                $cacheDirectory,
+            ),
+            $debug,
+            !$afterInit,
+        )->register();
 
         $editorAssets = new EditorAssets(
             $this->slug,
@@ -328,31 +360,27 @@ final readonly class Instance
 
     /**
      * Registers post types, taxonomies and meta on `init`, keeps the rewrite rules up to date and adds the meta boxes
-     * of the classic edit screen.
+     * of the classic edit screen; activating the instance resets the rewrite rules (LifecycleRegistrar).
      *
      * @param non-empty-string|null $rewrite Hash of the rewrite-relevant declarations.
-     * @param non-empty-string      $prefix  Technical prefix of the instance's options.
+     * @param non-empty-string      $option  The option with the hash of the rewrite rules last flushed for.
      */
-    private function registerPosts(PostStore $store, ?string $rewrite, string $prefix): void
+    private function registerPosts(PostStore $store, ?string $rewrite, string $option): PostTypeRegistrar
     {
-        $registrar = new PostTypeRegistrar($store, $prefix . 'rewrite', $rewrite);
+        $registrar = new PostTypeRegistrar($store, $option, $rewrite);
         add_action('init', $registrar->register(...));
         add_action('init', $registrar->flushRewriteRules(...), PHP_INT_MAX);
-        // Another theme or plugin may have flushed the rules without these post types in the meantime.
-        if ($this->kind === ProjectKind::Plugin) {
-            register_activation_hook($this->directory . '/' . $this->slug . '.php', $registrar->resetRewriteRules(...));
-        } else {
-            add_action('after_switch_theme', $registrar->resetRewriteRules(...));
-        }
 
         if ($store->getMeta() === []) {
-            return;
+            return $registrar;
         }
         $boxes = new MetaBoxes($this->slug, $store, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
         add_action('add_meta_boxes', $boxes->add(...));
         add_action('save_post', $boxes->save(...), 10, 2);
         add_action('admin_notices', $boxes->notices(...));
         add_action('admin_enqueue_scripts', $boxes->enqueue(...));
+
+        return $registrar;
     }
 
     /**

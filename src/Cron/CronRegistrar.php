@@ -12,11 +12,9 @@ use Saij\WpAppFramework\Hook\HookRegistrar;
 use Saij\WpAppFramework\Instance;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Project\NamePrefix;
-use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Throwable;
 use WP_Error;
-use WP_Theme;
 
 /**
  * Registers the cron events and tasks of the manifest with WordPress and keeps
@@ -28,8 +26,9 @@ use WP_Theme;
  * start time back to their local time after a change of daylight saving time or
  * of the time zone, and unschedules events and tasks the code no longer has. An
  * autoloaded option remembers the hooks of the instance, so the comparison costs
- * no database query when nothing changed. Deactivating the plugin or switching
- * to a theme that is not this one (or its child theme) removes everything.
+ * no database query when nothing changed. clear() removes everything; the
+ * lifecycle of the instance calls it when the plugin is deactivated or the
+ * site switches away from the theme.
  *
  * @internal
  *
@@ -46,16 +45,12 @@ final readonly class CronRegistrar
 
     /**
      * @param non-empty-string     $slug
-     * @param string               $directory Directory of the project; plugins register their deactivation hook for
-     *                                        `{directory}/{slug}.php`.
      * @param list<CronEventEntry> $events
      * @param list<CronTaskEntry>  $tasks
      * @param Closure(): void      $cleanUp   Deletes expired cache files; runs daily.
      */
     public function __construct(
-        private ProjectKind $kind,
         private string $slug,
-        private string $directory,
         private array $events,
         private array $tasks,
         private HookRegistrar $hooks,
@@ -137,11 +132,6 @@ final readonly class CronRegistrar
         }
 
         add_action('init', $this->synchronize(...));
-        if ($this->kind === ProjectKind::Plugin) {
-            register_deactivation_hook($this->directory . '/' . $this->slug . '.php', $this->clear(...));
-        } else {
-            add_action('switch_theme', $this->switchTheme(...), 10, 2);
-        }
     }
 
     /**
@@ -236,7 +226,7 @@ final readonly class CronRegistrar
     }
 
     /**
-     * Removes the events and tasks of the instance and its option: the plugin is deactivated or the theme switched.
+     * Removes the events and tasks of the instance and its option on the current site.
      */
     public function clear(): void
     {
@@ -246,16 +236,6 @@ final readonly class CronRegistrar
         }
         if ($success) {
             delete_option($this->option());
-        }
-    }
-
-    /**
-     * Clears the instance unless the new theme is this theme or its child theme (action `switch_theme`).
-     */
-    private function switchTheme(string $newName, WP_Theme $newTheme): void
-    {
-        if (!in_array($this->slug, [$newTheme->get_stylesheet(), $newTheme->get_template()], true)) {
-            $this->clear();
         }
     }
 

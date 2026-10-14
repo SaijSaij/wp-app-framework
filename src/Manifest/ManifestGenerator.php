@@ -153,6 +153,7 @@ final class ManifestGenerator
             'cronTasks' => $cronTasks,
             'cliCommands' => $cliCommands,
             'tables' => $result->getTables(),
+            'lifecycle' => $result->getLifecycle(),
         ];
     }
 }
