@@ -101,4 +101,16 @@ final class DocumentViewAssetsTest extends TestCase
         $before = Recorded::scripts()['my-theme-wp-app-framework-view']['before'];
         self::assertStringEndsWith('.data = {"menu":{"open":false}};', $before[1]);
     }
+
+    public function testViewDataIsNotPrintedInTheAdmin(): void
+    {
+        // The block editor runs wp_print_footer_scripts to collect the assets of its canvas.
+        $GLOBALS['wp_app_framework_test_admin'] = true;
+        $data = new ViewData('my-theme', true);
+        $this->views()->printData($data);
+        unset($GLOBALS['wp_app_framework_test_admin']);
+
+        $data->set('editor', true);
+        self::assertTrue($data->has('editor'), 'The editor runtime prints the data later.');
+    }
 }

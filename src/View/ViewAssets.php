@@ -145,9 +145,14 @@ final readonly class ViewAssets
     /**
      * Prints the view data before the view runtime, if a block or document view enqueued it; runs on
      * wp_print_footer_scripts before WordPress prints the footer scripts, so values set in render() are included.
+     * Not in the admin: the block editor runs the action to collect the assets of its canvas
+     * (_wp_get_iframed_editor_assets()); there the editor runtime prints the data (EditorAssets::printData()).
      */
     public function printData(ViewData $data): void
     {
+        if (is_admin()) {
+            return;
+        }
         $runtime = self::runtimeHandle($this->slug);
         $script = $data->print('in the footer of the front end');
         if (!wp_script_is($runtime, 'enqueued')) {
