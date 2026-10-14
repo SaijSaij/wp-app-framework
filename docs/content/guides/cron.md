@@ -64,6 +64,8 @@ WP-Cron keeps the rhythm of an event in UTC, so after a change to or from daylig
 
 A start time that does not exist on a day, such as 02:30 when the clocks go forward, moves forward by the gap (03:30). In the hour that repeats when the clocks go back, the first of the two times counts.
 
+If you remove `at` from an event and keep its interval, the event keeps the time of day it ran at so far. It goes on running in its interval, but it is no longer moved back to its local time, so after the next change of daylight saving time it runs an hour earlier or later. The comparison described below does not give it a new start time; only a change of the interval schedules it anew, due at once.
+
 ## One-time tasks
 
 A one-time task carries data: the post a reminder is about, the kind of reminder. You describe that data as a [value class](./values.md#value-classes) and write one handler for it:

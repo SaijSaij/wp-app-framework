@@ -18,10 +18,10 @@ Without `--output`, the command builds and checks the manifest and writes nothin
 If the build succeeds, the command prints what it found, for example:
 
 ```
-Manifest OK (theme my-theme): 40 service candidates, 25 services, 3 hooks, 12 routes, 2 template functions, 1 template filters, 8 blocks, 4 CLI commands. Nothing written (no --output).
+Manifest OK (theme my-theme): 40 service candidates, 25 services, 3 hooks, 12 routes, 2 template functions, 1 template filters, 8 blocks, 4 CLI commands, 2 cron events, 1 cron tasks, 1 tables. Nothing written (no --output).
 ```
 
-The CLI commands are the subcommands of [WP-CLI commands](../guides/cli.md).
+The CLI commands are the subcommands of [WP-CLI commands](../guides/cli.md). Cron events and cron tasks are the recurring events and one-time tasks of [Cron events and tasks](../guides/cron.md), and tables are the row classes of [Tables](../guides/tables.md).
 
 The command also lists the templates of the project that override templates of the framework.
 

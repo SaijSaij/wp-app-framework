@@ -1,18 +1,25 @@
 # Development files of the framework: excluded from distribution archives (Composer dist
 # downloads, the release package ZIP) and from the prefixed copy in a consumer's release.
 # Consumers need package.json, assets/, webpack.config.js and bin/ – they stay.
-# Directories are matched as dir/** so the attribute applies to the files inside.
+# Directories are matched as dir/** so the attribute applies to the files inside (git check-attr
+# per file, as the release command asks it), and as dir so git archive writes no empty directory.
 /.gitattributes export-ignore
 /.gitignore export-ignore
+/.github export-ignore
 /.github/** export-ignore
 /.php-cs-fixer.dist.php export-ignore
 /CLAUDE.md export-ignore
+/docs export-ignore
 /docs/** export-ignore
 /eslint.config.cjs export-ignore
+/assets/runtime/test export-ignore
 /assets/runtime/test/** export-ignore
+/assets/test export-ignore
 /assets/test/** export-ignore
+/assets/view/test export-ignore
 /assets/view/test/** export-ignore
 /package-lock.json export-ignore
 /phpstan.dist.neon export-ignore
 /phpunit.xml.dist export-ignore
+/tests export-ignore
 /tests/** export-ignore
