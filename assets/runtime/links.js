@@ -97,14 +97,17 @@ export function linkFromSearchResult( result, opensInNewTab ) {
 }
 
 /**
- * A free URL with the URL of a link: "Unlink" keeps the address.
+ * A free URL with the address of a linked object: "Unlink" keeps it. The
+ * stored URL of a linked object is only what was shown when it was chosen, so
+ * the current URL of the object is passed when it is known.
  *
- * @param {Link} link
+ * @param {Link}   link
+ * @param {string} [url] Current URL of the linked object.
  * @return {Link} Free URL.
  */
-export function unlink( link ) {
+export function unlink( link, url ) {
 	return {
-		url: link.url,
+		url: url || link.url,
 		opensInNewTab: link.opensInNewTab,
 		kind: 'url',
 		id: 0,
@@ -130,8 +133,8 @@ export function searchPath( text ) {
 }
 
 /**
- * The request for the title of a linked object; media files are not part of
- * /wp/v2/search.
+ * The request for the title and the current URL of a linked object; media
+ * files are not part of /wp/v2/search.
  *
  * @param {Link} link Linked link.
  * @return {string} REST path that returns a list with the object.
@@ -140,15 +143,26 @@ export function includePath( link ) {
 	if ( link.kind === 'attachment' ) {
 		return `/wp/v2/media?${ new URLSearchParams( {
 			include: String( link.id ),
-			_fields: 'id,title',
+			_fields: 'id,title,source_url',
 		} ).toString() }`;
 	}
 	return `/wp/v2/search?${ new URLSearchParams( {
 		type: link.kind,
 		subtype: 'any',
 		include: String( link.id ),
-		_fields: 'id,title',
+		_fields: 'id,title,url',
 	} ).toString() }`;
+}
+
+/**
+ * The URL of an object from a result: /wp/v2/search returns `url`, media
+ * files `source_url`.
+ *
+ * @param {Object} result
+ * @return {string} URL, empty if there is none.
+ */
+export function resultUrl( result ) {
+	return result?.url ?? result?.source_url ?? '';
 }
 
 /**

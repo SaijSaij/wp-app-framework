@@ -108,7 +108,7 @@ In templates and patterns of your theme, use free URLs only. IDs of pages, terms
 
 ### Outside the block editor
 
-The settings page and meta boxes on the classic edit screen do not load the block editor. There a link is edited with a form of its own: a search of published posts, which links the chosen post with its ID, a field for a free URL and the toggle "Open in new tab". A linked post shows its title and can be unlinked, which keeps its URL as a free URL. Links to terms and media files are chosen in the block editor only.
+The settings page and meta boxes on the classic edit screen do not load the block editor. There a link is edited with a form of its own: a search of published posts, which links the chosen post with its ID, a field for a free URL and the toggle "Open in new tab". A linked post shows its title and can be unlinked, which keeps its current URL as a free URL. Links to terms and media files are chosen in the block editor only.
 
 ### Rules
 

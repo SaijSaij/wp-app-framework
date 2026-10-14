@@ -8,6 +8,7 @@ import {
 	isLinked,
 	linkFromSearchResult,
 	resultTitle,
+	resultUrl,
 	searchPath,
 	toLinkControlValue,
 	unlink,
@@ -142,6 +143,10 @@ describe( 'links', () => {
 			id: 0,
 		} );
 		expect( isLinked( unlink( linked ) ) ).toBe( false );
+		// The current URL of the object wins over the URL stored when it was chosen.
+		expect( unlink( linked, 'https://example.org/moved/' ).url ).toBe(
+			'https://example.org/moved/'
+		);
 		expect( isLinked( null ) ).toBe( false );
 	} );
 
@@ -150,19 +155,26 @@ describe( 'links', () => {
 			'/wp/v2/search?type=post&subtype=any&search=a%26b&per_page=20&_fields=id%2Ctitle%2Curl'
 		);
 		expect( includePath( { kind: 'post', id: 4 } ) ).toBe(
-			'/wp/v2/search?type=post&subtype=any&include=4&_fields=id%2Ctitle'
+			'/wp/v2/search?type=post&subtype=any&include=4&_fields=id%2Ctitle%2Curl'
 		);
 		expect( includePath( { kind: 'term', id: 3 } ) ).toBe(
-			'/wp/v2/search?type=term&subtype=any&include=3&_fields=id%2Ctitle'
+			'/wp/v2/search?type=term&subtype=any&include=3&_fields=id%2Ctitle%2Curl'
 		);
 		expect( includePath( { kind: 'attachment', id: 9 } ) ).toBe(
-			'/wp/v2/media?include=9&_fields=id%2Ctitle'
+			'/wp/v2/media?include=9&_fields=id%2Ctitle%2Csource_url'
 		);
 		expect( resultTitle( { title: 'News' } ) ).toBe( 'News' );
 		expect( resultTitle( { title: { rendered: 'Photo' } } ) ).toBe(
 			'Photo'
 		);
 		expect( resultTitle( undefined ) ).toBe( '' );
+		expect( resultUrl( { url: 'https://example.org/a/' } ) ).toBe(
+			'https://example.org/a/'
+		);
+		expect( resultUrl( { source_url: 'https://example.org/a.jpg' } ) ).toBe(
+			'https://example.org/a.jpg'
+		);
+		expect( resultUrl( undefined ) ).toBe( '' );
 	} );
 
 	it( 'shortens URLs for display', () => {
