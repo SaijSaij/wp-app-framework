@@ -16,7 +16,8 @@ The workflow:
 2. runs `composer lint` and `npm run lint`, if they are defined, and `wp-app-framework build`;
 3. builds the release; when it publishes, with `--expect-version` set to the version of the tag, so a tag that doesn't match `Version:` fails;
 4. installs the ZIP into a plain WordPress (`scripts/release-test` of wp-dev-env);
-5. runs the project's browser tests (`npm run test:e2e`) with `E2E_TARGET=release`; the input `e2e: false` skips them.
+5. with the input `cli-tests: true`, runs the project's WP-CLI tests against the installed release (see below);
+6. runs the project's browser tests (`npm run test:e2e`) with `E2E_TARGET=release`; the input `e2e: false` skips them.
 
 ### Plugins and child themes need a theme
 
@@ -27,6 +28,10 @@ A theme can be tested on its own, but a plugin or a child theme needs a theme to
 
 The input `with-theme: <owner>/<repository>@<tag>` names that theme release. It is required for plugins and child themes.
 
+### WP-CLI tests
+
+Browser tests can't run [WP-CLI commands](../guides/cli.md). With `cli-tests: true`, the workflow runs the executable `tests/cli/run` of your project after the release is installed. It calls the script from the directory of wp-dev-env, with the Compose service of the release site as its only argument, `wordpress-release`. The script runs your commands with `docker compose exec -T -u www-data "$1" wp …` and fails with a non-zero exit code if an output or exit code is not what you expect. Use the same script during development with the argument `wordpress`.
+
 ### Inputs
 
 | Input | Default | Purpose |
@@ -34,6 +39,7 @@ The input `with-theme: <owner>/<repository>@<tag>` names that theme release. It 
 | `repository` | the calling repository | the project to release |
 | `ref` | the calling ref, i.e. the tag | the revision to build |
 | `e2e` | `true` | run the browser tests (`npm run test:e2e`) against the release |
+| `cli-tests` | `false` | run the WP-CLI tests `tests/cli/run` against the release |
 | `publish` | `true` | attach the ZIP to the GitHub release of the tag |
 | `framework-ref` | the locked version | build with another revision of the framework (the framework's release gate uses it) |
 | `wp-dev-env-ref` | `main` | the revision of wp-dev-env that provides the tools and the release test |

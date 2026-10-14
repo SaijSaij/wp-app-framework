@@ -14,7 +14,7 @@ The framework is a library that themes, child themes and plugins (its *consumers
 
 ## Status
 
-In development (0.x): framework core, REST routes, Twig, server-side blocks, block supports, settings, editor runtime, front-end scripts, release build, plugins and child themes. Breaking changes are listed in [Upgrading](https://saijsaij.github.io/wp-app-framework/next/reference/upgrading.html).
+In development (0.x): framework core, REST routes, WP-CLI commands, Twig, server-side blocks, block supports, settings, editor runtime, front-end scripts, release build, plugins and child themes. Breaking changes are listed in [Upgrading](https://saijsaij.github.io/wp-app-framework/next/reference/upgrading.html).
 
 ## Source layout
 
@@ -30,6 +30,7 @@ In development (0.x): framework core, REST routes, Twig, server-side blocks, blo
 | `Api/` | `#[PublicApi]`, `#[PluginApi]`, `#[ThemeApi]` attributes, collector and signature checks (build), hooks between instances and `has_plugin()` (runtime) |
 | `Hook/` | `#[Hook]` attribute, collector (build), definition, registrar (runtime) |
 | `Rest/` | `#[RestController]`, `#[RestRoute]`, `#[Param]` attributes, `HttpMethod`/`Format` enums, `Permission/` (`PublicAccess`, `Capability`, `Callback`), `RestException`, collector (build), definition, registrar (runtime) |
+| `WpCli/` | `#[CliCommand]`, `#[CliSubcommand]`, `#[Argument]`, `#[Option]` attributes, `CliOutput`, `CliException`, collector (build), definition, registrar of the WP-CLI commands (runtime) |
 | `Twig/` | `#[TemplateFunction]`, `#[TemplateFilter]` attributes, collector (build), definition, `TemplateRenderer` and runtime loader (runtime), override finder (build) |
 | `Block/` | `#[Block]`, `#[Supports]`, `#[PlainText]`, `#[RichText]`, `#[Image]`, `#[Content]`, `#[Label]`, `#[Hidden]` attributes, `Labeled` interface, `BlockCategory`/`Align` enums, collector (build), definition, registrar and template functions (runtime); `Support/` (`#[BlockSupport]`, `#[UseSupport]`, `SupportGroup`, collector) |
 | `Editor/` | Editor template functions (`field()`, `inner_blocks()`, `is_editor()`), render context, batch render and preview routes and editor assets (runtime) |
@@ -64,7 +65,7 @@ A local WordPress for testing is provided by [wp-dev-env](https://github.com/sai
 
 All checks run in the `tools` container of [wp-dev-env](https://github.com/saijsaij/wp-dev-env) and must pass without errors or warnings.
 
-PHP: unit tests (PHPUnit), static analysis (PHPStan, level max, with the WordPress stubs of `szepeviktor/phpstan-wordpress`) and code style (PHP-CS-Fixer, PER Coding Style). WordPress is not loaded in unit tests; minimal test doubles of the WordPress classes and functions with the signatures of WordPress live in `tests/Stubs/` and are loaded by the PHPUnit bootstrap only, so the analysis checks the tests against the real signatures. Fixtures that are wrong on purpose (build errors under test) carry `@phpstan-ignore` with the reason.
+PHP: unit tests (PHPUnit), static analysis (PHPStan, level max, with the WordPress stubs of `szepeviktor/phpstan-wordpress`) and code style (PHP-CS-Fixer, PER Coding Style). WordPress is not loaded in unit tests; minimal test doubles of the WordPress classes and functions with the signatures of WordPress live in `tests/Stubs/` and are loaded by the PHPUnit bootstrap only, so the analysis checks the tests against the real signatures. The WP-CLI double (`tests/Stubs/wp-cli.php`, signatures of WP-CLI 2.12.0) is also the signature file of the analysis, because `php-stubs/wp-cli-stubs` cannot be installed together with the WordPress 7 stubs. Fixtures that are wrong on purpose (build errors under test) carry `@phpstan-ignore` with the reason.
 
 ```sh
 composer install

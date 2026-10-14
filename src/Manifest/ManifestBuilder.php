@@ -39,6 +39,7 @@ use Saij\WpAppFramework\Twig\TemplateCallableCollector;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
+use Saij\WpAppFramework\WpCli\CliCommandCollector;
 use Throwable;
 
 /**
@@ -186,6 +187,8 @@ final class ManifestBuilder
         $cacheCollector->collect($classes);
         $routeCollector = new RestRouteCollector($resolver, $values, $this->namespace, $cacheCollector);
         $routes = $routeCollector->collect($classes);
+        $cliCommandCollector = new CliCommandCollector($resolver, $values, $this->namespace);
+        $cliCommands = $cliCommandCollector->collect($classes);
         $supportCollector = new SupportCollector($resolver, $values, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
         $supportCollector->collect($classes);
         $blockCollector = new BlockCollector($resolver, $values, $supportCollector, $this->namespace, self::frameworkSource()->getDirectory(), $this->scriptDirectory, $cacheCollector);
@@ -219,6 +222,7 @@ final class ManifestBuilder
             ...$hookCollector->errors(),
             ...$cronCollector->errors(),
             ...$routeCollector->errors(),
+            ...$cliCommandCollector->errors(),
             ...$cacheCollector->errors(),
             ...$templateCallableCollector->errors(),
             ...$publicApiCollector->errors(),
@@ -261,6 +265,7 @@ final class ManifestBuilder
             $blockCollector->categories(),
             cronEvents: $cronCollector->events(),
             cronTasks: $cronCollector->tasks(),
+            cliCommands: $cliCommands,
         );
     }
 

@@ -15,6 +15,7 @@ use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRouteDefinition;
 use Saij\WpAppFramework\Twig\TemplateCallableDefinition;
+use Saij\WpAppFramework\WpCli\CliCommandDefinition;
 
 /**
  * Everything the builder found; input for the manifest generator and the dev cache.
@@ -67,6 +68,7 @@ final readonly class BuildResult
      * @param list<BlockCategoryEntry>                          $blockCategories Custom block categories, in registration order.
      * @param list<CronEventDefinition>                         $cronEvents   Recurring events (#[CronEvent]).
      * @param list<CronTaskDefinition>                          $cronTasks    Handlers of one-time tasks (#[CronTask]).
+     * @param list<CliCommandDefinition>                        $cliCommands  `#[CliCommand]` services with their subcommands.
      */
     public function __construct(
         private array $sources,
@@ -94,6 +96,7 @@ final readonly class BuildResult
         private array $blockCategories = [],
         private array $cronEvents = [],
         private array $cronTasks = [],
+        private array $cliCommands = [],
     ) {}
 
     /**
@@ -110,6 +113,14 @@ final readonly class BuildResult
     public function getCronTasks(): array
     {
         return $this->cronTasks;
+    }
+
+    /**
+     * @return list<CliCommandDefinition>
+     */
+    public function getCliCommands(): array
+    {
+        return $this->cliCommands;
     }
 
     /**

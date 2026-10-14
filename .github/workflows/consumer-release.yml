@@ -13,7 +13,7 @@
 #
 # Builds the release ZIP in the tools container of wp-dev-env, installs it into a
 # plain WordPress (scripts/release-test) and runs the consumer's browser tests
-# against it. Only if everything passes, the GitHub release of the tag gets the ZIP.
+# (and, with cli-tests, its WP-CLI tests) against it. Only if everything passes, the GitHub release of the tag gets the ZIP.
 # The repository name is the slug of the theme or plugin; the type in its
 # composer.json (wordpress-theme, wordpress-plugin) and the Template: header of
 # style.css (child themes) decide how it is installed. A plugin is tested next to
@@ -36,6 +36,10 @@ on:
         description: Run the consumer's browser tests (npm script test:e2e) against the release.
         type: boolean
         default: true
+      cli-tests:
+        description: Run the consumer's WP-CLI tests against the release, the executable tests/cli/run with the Compose service as argument (wordpress-release), called from the wp-dev-env directory.
+        type: boolean
+        default: false
       publish:
         description: Attach the ZIP to the GitHub release of the tag; the tag must equal v<version> of style.css (theme, child theme) or of the main file <slug>.php (plugin).
         type: boolean
@@ -230,15 +234,17 @@ jobs:
           path: ${{ steps.build.outputs.zip }}
           if-no-files-found: error
 
-      - name: Install the release and run the browser tests
+      - name: Install the release and run the CLI and browser tests
         id: e2e
-        if: inputs.e2e
+        if: inputs.e2e || inputs.cli-tests
         working-directory: workspace/wp-dev-env
         env:
           SLUG: ${{ steps.project.outputs.slug }}
           ZIP: ${{ steps.build.outputs.zip }}
           THEME_ZIP: ${{ steps.theme.outputs.zip }}
           KIND: ${{ steps.kind.outputs.kind }}
+          E2E: ${{ inputs.e2e }}
+          CLI_TESTS: ${{ inputs.cli-tests }}
         run: |
           set -a; source .env; set +a
           docker compose up -d --wait traefik
@@ -247,13 +253,18 @@ jobs:
             child-theme) scripts/release-test --theme "${THEME_ZIP}" --child-theme "${ZIP}" ;;
             *) scripts/release-test --theme "${ZIP}" ;;
           esac
-          docker compose run --rm --no-deps \
-            -e WP_BASE_URL="${WP_RELEASE_URL}" \
-            -e E2E_BROWSER_HOST_RULES="MAP ${WP_RELEASE_HOST} traefik" \
-            -e E2E_TARGET=release \
-            e2e npm --prefix "/workspace/${SLUG}" run test:e2e
+          if [[ "${CLI_TESTS}" == "true" ]]; then
+            "../${SLUG}/tests/cli/run" wordpress-release
+          fi
+          if [[ "${E2E}" == "true" ]]; then
+            docker compose run --rm --no-deps \
+              -e WP_BASE_URL="${WP_RELEASE_URL}" \
+              -e E2E_BROWSER_HOST_RULES="MAP ${WP_RELEASE_HOST} traefik" \
+              -e E2E_TARGET=release \
+              e2e npm --prefix "/workspace/${SLUG}" run test:e2e
+          fi
 
-      # Only if the browser tests failed; an earlier failure leaves nothing to inspect.
+      # Only if the CLI or browser tests failed; an earlier failure leaves nothing to inspect.
       - name: Keep the test results
         if: failure() && steps.e2e.outcome == 'failure'
         uses: actions/upload-artifact@v7

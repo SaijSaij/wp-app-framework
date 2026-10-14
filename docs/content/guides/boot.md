@@ -54,7 +54,7 @@ A child theme with code of its own – blocks, hooks, REST routes – boots its 
 
 ### Slug, namespace and init action
 
-Each instance is identified by a slug. For a theme it is `get_template()`, for a child theme `get_stylesheet()` and for a plugin its directory name. The framework derives the technical global names of the instance from it: script handles, the JavaScript global, the cache directory and the init action. Blocks, REST routes and settings options use the namespace from `composer.json` instead (see [Concepts](../concepts.md#consumers-and-instances)).
+Each instance is identified by a slug. For a theme it is `get_template()`, for a child theme `get_stylesheet()` and for a plugin its directory name. The framework derives the technical global names of the instance from it: script handles, the JavaScript global, the cache directory and the init action. Blocks, REST routes, WP-CLI commands and settings options use the namespace from `composer.json` instead (see [Concepts](../concepts.md#consumers-and-instances)).
 
 A slug can boot only once. A second boot with the same slug is an error, whether it comes from the same project or from a theme and a plugin that happen to share a directory name. The same holds for the namespace: when an instance boots, the framework fires the action `wp_app_framework/namespace/{namespace}`, and a second instance with the same namespace stops with an error.
 

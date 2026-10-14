@@ -118,6 +118,16 @@ final class ManifestGenerator
             ];
         }
 
+        $cliCommands = [];
+        foreach ($result->getCliCommands() as $command) {
+            $cliCommands[] = [
+                'name' => $command->getName(),
+                'description' => $command->getDescription(),
+                'class' => $command->getClass(),
+                'subcommands' => $command->getSubcommands(),
+            ];
+        }
+
         return [
             'format' => Manifest::FORMAT,
             'kind' => $result->getKind()->value,
@@ -141,6 +151,7 @@ final class ManifestGenerator
             ...$result->getPosts(),
             'cronEvents' => $cronEvents,
             'cronTasks' => $cronTasks,
+            'cliCommands' => $cliCommands,
         ];
     }
 }

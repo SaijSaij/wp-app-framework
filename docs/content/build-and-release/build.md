@@ -15,6 +15,14 @@ In a consumer created as in [Getting started](../getting-started.md), `composer 
 
 Without `--output`, the command builds and checks the manifest and writes nothing. It builds the project whose `vendor/autoload.php` the Composer bin proxy loads, which is the project you run it in. Problems are listed with class and parameter names, and the exit code is 1.
 
+If the build succeeds, the command prints what it found, for example:
+
+```
+Manifest OK (theme my-theme): 40 service candidates, 25 services, 3 hooks, 12 routes, 2 template functions, 1 template filters, 8 blocks, 4 CLI commands. Nothing written (no --output).
+```
+
+The CLI commands are the subcommands of [WP-CLI commands](../guides/cli.md).
+
 The command also lists the templates of the project that override templates of the framework.
 
 ## Checking templates, parts and patterns

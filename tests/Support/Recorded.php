@@ -206,4 +206,26 @@ final class Recorded
         /** @var array<string, mixed> */
         return $GLOBALS['wp_app_framework_test_options'] ?? [];
     }
+
+    /**
+     * @phpstan-impure Changes with each registration.
+     * @return array<string, array{callable: callable|object|string, args: array<string, mixed>}> Commands passed to
+     *         WP_CLI::add_command() (tests/Stubs/wp-cli.php) by name, in registration order.
+     */
+    public static function cliCommands(): array
+    {
+        /** @var array<string, array{callable: callable|object|string, args: array<string, mixed>}> */
+        return $GLOBALS['wp_app_framework_test_cli_commands'] ?? [];
+    }
+
+    /**
+     * @phpstan-impure Changes with each message.
+     * @return list<list<mixed>> Messages of WP_CLI::log(), success(), warning() and error() as [type, message], tables
+     *         of format_items() as ['format', format, items, fields].
+     */
+    public static function cliOutput(): array
+    {
+        /** @var list<list<mixed>> */
+        return $GLOBALS['wp_app_framework_test_cli_output'] ?? [];
+    }
 }

@@ -56,6 +56,7 @@ export default defineConfig( {
 						{ text: 'Services', link: '/guides/services' },
 						{ text: 'Hooks', link: '/guides/hooks' },
 						{ text: 'REST routes', link: '/guides/rest' },
+						{ text: 'WP-CLI commands', link: '/guides/cli' },
 						{ text: 'Twig templates', link: '/guides/twig' },
 						{ text: 'Blocks', link: '/guides/blocks' },
 						{

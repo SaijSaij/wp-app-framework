@@ -20,7 +20,7 @@ Fixed design decisions:
 - Queries (`Event::query()`) are immutable (`#[\NoDiscard]` on every method returning a query) and run through `WP_Query` without `suppress_filters`; sorting by meta fields writes its own SQL clauses (`Query\MetaOrderClauses`, filter `posts_clauses` only while the query runs) so that missing values sort like their default.
 - Own minimal, internal DI container: constructor autowiring of concrete classes, shared instances, no public `get()`, no aliases, no tags. Post classes are active records (`Event::get()`, `save()`): they reach the store of their instance through the internal `Post\PostRegistry`, filled at boot; post, meta and taxonomy classes are no services.
 - Prefixing with Strauss is mandatory in every release; each consumer ships its own prefixed framework.
-- Consumers are themes (`Theme::boot()`), child themes with code (`ChildTheme::boot()`) and plugins (`Plugin::boot(__FILE__)`). Each is an isolated instance: names of content and data (blocks `{ns}/name`, REST routes `{ns}/{version}`, settings options `{ns}_name`) derive from its namespace (`extra.wp-app-framework.namespace`, stored in the manifest), technical names (script handles, JS global, cache paths, editor routes, init action `wp_app_framework/init/{slug}`) from its slug. Instances talk only through the public interface (filters `wp_app_framework/api/{slug}` and `wp_app_framework/template/{slug}`).
+- Consumers are themes (`Theme::boot()`), child themes with code (`ChildTheme::boot()`) and plugins (`Plugin::boot(__FILE__)`). Each is an isolated instance: names of content and data (blocks `{ns}/name`, REST routes `{ns}/{version}`, settings options `{ns}_name`, WP-CLI commands `wp {ns} …`) derive from its namespace (`extra.wp-app-framework.namespace`, stored in the manifest), technical names (script handles, JS global, cache paths, editor routes, init action `wp_app_framework/init/{slug}`) from its slug. Instances talk only through the public interface (filters `wp_app_framework/api/{slug}` and `wp_app_framework/template/{slug}`).
 - Twig lookup: child `overrides/{theme-slug}/` → theme `src/` → framework `src/`; plugins: child and theme `overrides/{plugin-slug}/` → plugin `src/` → framework `src/`. Template names are full paths relative to `src/`.
 
 ## Rules
@@ -66,7 +66,7 @@ docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs run 
 
 - Units and **every build error** are tested here: PHPUnit with fixtures in `tests/Fixtures/`, Vitest in `assets/runtime/test/`, `assets/view/test/` (view runtime) and `assets/test/` (webpack helper). Fixtures that are wrong on purpose carry `@phpstan-ignore` with the reason. Tests in `tests/Unit/` mirror `src/`.
 - Everything that needs WordPress, a browser or a complete consumer build (successful manifest build, REST, Twig in WordPress, blocks on the front end and in the editor, release ZIP) is tested in [theme-dev-test](https://github.com/saijsaij/theme-dev-test); plugin and child theme behavior in [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test) and [theme-dev-test-child](https://github.com/saijsaij/theme-dev-test-child). Code written to check a feature stays there as a permanent test.
-- WordPress is not loaded in unit tests. The test doubles in `tests/Stubs/` follow the real WordPress 7.1 signatures and are loaded by `tests/bootstrap.php` only.
+- WordPress is not loaded in unit tests. The test doubles in `tests/Stubs/` follow the real WordPress 7.1 signatures and are loaded by `tests/bootstrap.php` only. The WP-CLI double (`tests/Stubs/wp-cli.php`, WP-CLI 2.12.0) is also PHPStan's signature file (`scanFiles`): add a WP-CLI symbol there with its real signature before using it.
 
 ## Pitfalls
 
@@ -78,6 +78,7 @@ docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs run 
 - OPcache in the WordPress image revalidates every 2 seconds (`revalidate_freq=2`): changes may need a moment to show up.
 - The documentation is published per minor version from the tag (`release.yml`, job `docs`) and as `next` from `main` (`docs.yml`) into directories of the `gh-pages` branch (`docs/scripts/publish.mjs`); never push to `gh-pages` by hand. Each build needs its own `DOCS_BASE` (`/wp-app-framework/<version>/`); the build script disables Rspress' persistent cache, whose key ignores the base.
 - `Release\TwigPatcher` expects exact match counts in Twig's compiler; a Twig update that changes them fails the release build on purpose – check the patch list against the new Twig source.
+- `WpCli\CliCommandCollector::WP_CLI_COMMANDS` lists the root commands of WP-CLI; the build rejects them as namespace of a consumer with commands. The CLI test of theme-dev-test (`tests/cli/run`) compares the list with the installed WP-CLI – update it when that test fails after a WP-CLI update.
 - The development cache rebuilds only when signatures (attributes, signatures of constructor and public methods) or relevant file contents change; a new kind of input to the build must be part of the signature or the listing hash.
 
 ## Compatibility and releases

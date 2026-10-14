@@ -13,3 +13,7 @@ parameters:
     excludePaths:
         # Test doubles of WordPress; the analysis uses the real signatures from the stubs.
         - tests/Stubs/wordpress.php
+        # Test double of WP-CLI, read as signature file below (php-stubs/wp-cli-stubs requires wordpress-stubs < 7).
+        - tests/Stubs/wp-cli.php
+    scanFiles:
+        - tests/Stubs/wp-cli.php

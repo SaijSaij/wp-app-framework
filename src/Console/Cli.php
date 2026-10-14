@@ -185,7 +185,7 @@ final class Cli
 
         $public = count(array_filter($result->getTemplateCallables(), static fn($callable) => $callable->isPublic()));
         fwrite($stdout, sprintf(
-            "Manifest OK (%s %s): %d service candidates, %d services, %d hooks, %d routes, %d template functions, %d template filters, %d blocks.%s\n",
+            "Manifest OK (%s %s): %d service candidates, %d services, %d hooks, %d routes, %d template functions, %d template filters, %d blocks, %d CLI commands.%s\n",
             $result->getKind()->getLabel(),
             $result->getSlug() ?? '',
             count($result->getCandidates()),
@@ -195,6 +195,7 @@ final class Cli
             $functions,
             count($result->getTemplateCallables()) - $functions,
             count($result->getBlocks()),
+            array_sum(array_map(static fn($command) => count($command->getSubcommands()), $result->getCliCommands())),
             $output !== null ? ' Written to ' . $output . '.' : ' Nothing written (no --output).',
         ));
         if ($result->getMarkup() !== null) {

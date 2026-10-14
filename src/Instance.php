@@ -42,6 +42,7 @@ use Saij\WpAppFramework\Style\StyleAssets;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\View\ViewAssets;
+use Saij\WpAppFramework\WpCli\CliRegistrar;
 use Twig\Environment;
 
 /**
@@ -241,6 +242,10 @@ final readonly class Instance
         );
         $hookRegistrar = new HookRegistrar($container, $debug);
         $hookRegistrar->register($manifest['hooks']);
+        $cliCommands = $manifest['cliCommands'];
+        if (defined('WP_CLI') && WP_CLI && $cliCommands !== []) {
+            new CliRegistrar($container, $values, $debug, $manifest['namespace'], $this->kind, $this->slug)->register($cliCommands);
+        }
 
         $cache = $container->get(CacheStore::class);
         $settingsOptions = array_column($settingsGroups, 'name', 'option');

@@ -60,12 +60,13 @@ final readonly class EntryPointInspector
     }
 
     /**
-     * @param string $context Where the parameter is used, e.g. "hooks".
+     * @param string $context        Where the parameter is used, e.g. "hooks".
+     * @param bool   $allowVariadic  Variadic parameters are supported (positional arguments of WP-CLI commands).
      */
-    public function parameterError(ReflectionParameter $parameter, string $parameterLocation, string $context): ?string
+    public function parameterError(ReflectionParameter $parameter, string $parameterLocation, string $context, bool $allowVariadic = false): ?string
     {
-        if ($parameter->isVariadic() || $parameter->isPassedByReference()) {
-            return sprintf('%s: variadic and by-reference parameters are not supported in %s.', $parameterLocation, $context);
+        if ($parameter->isPassedByReference() || ($parameter->isVariadic() && !$allowVariadic)) {
+            return sprintf('%s: %s parameters are not supported in %s.', $parameterLocation, $allowVariadic ? 'by-reference' : 'variadic and by-reference', $context);
         }
 
         if ($this->resolver->hasAmbiguousType($parameter)) {

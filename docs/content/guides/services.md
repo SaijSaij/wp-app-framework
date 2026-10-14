@@ -39,12 +39,12 @@ The container wires services by the types of their constructor parameters. A par
 
 You don't have to mark every class that is not meant as a service. The build starts from the *entry points* and follows their constructor parameters. Entry points are:
 
-- methods with `#[Hook]`, `#[RestRoute]`, `#[TemplateFunction]`, `#[TemplateFilter]`, `#[CronEvent]` or `#[CronTask]`, including the permission callbacks of REST routes;
+- methods with `#[Hook]`, `#[RestRoute]`, `#[CliSubcommand]`, `#[TemplateFunction]`, `#[TemplateFilter]`, `#[CronEvent]` or `#[CronTask]`, including the permission callbacks of REST routes;
 - classes with `#[Block]`.
 
 Only classes reachable from there are built and checked. A value object that no constructor asks for is simply ignored. A parameter of a reachable class that cannot be filled is a build error naming the class and parameter; two classes that need each other are a build error naming the chain of classes.
 
-Services are created lazily: when the hook fires, the route is called or the block renders – not when WordPress loads.
+Services are created lazily: when the hook fires, the route is called, the WP-CLI command runs or the block renders – not when WordPress loads.
 
 ## The container stays internal
 
