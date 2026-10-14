@@ -10,6 +10,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Manifest\BuildException;
+use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Project\ComposerProject;
 use SplFileInfo;
 
@@ -23,7 +24,8 @@ use SplFileInfo;
  * 2. `composer install --no-dev` from the lock file (optionally replacing packages by local checkouts),
  * 3. Strauss with call sites, then the Twig patch,
  * 4. the manifest with the prefixed classes, then compile and check all templates,
- * 5. `npm ci && npm run build`,
+ * 5. `npm ci && npm run build`, then the check that every built file the
+ *    manifest needs at run time exists (BuildCheck),
  * 6. remove the development files and check the tree for unprefixed names,
  * 7. write the ZIP with the slug as root folder.
  */
@@ -174,6 +176,8 @@ final class ReleaseCommand
             $this->process->run(['npm', 'ci', '--no-audit', '--no-fund'], $build);
             $this->process->run(['npm', 'run', 'build'], $build);
         }
+        // Before package.json is removed with the development files: the message names it.
+        BuildCheck::check(Manifest::load($build . '/generated/manifest.php'), $build);
 
         $this->step('Removing development files');
         foreach ([...self::DEVELOPMENT_FILES, ...$files->getExportIgnored()] as $path) {

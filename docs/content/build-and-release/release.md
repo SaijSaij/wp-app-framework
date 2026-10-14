@@ -24,7 +24,19 @@ The command works on a copy in the system's temporary directory and never change
 
 4. **Build the manifest.** It builds `generated/manifest.php` with the prefixed classes (using `bin/wp-app-framework-prefixed.php` in the prefixed copy) and writes the template version into it. Then it compiles all templates of the project and the framework, as release mode would, and checks the compiled code for names that were not prefixed.
 
-5. **Build the assets.** If there is a `package.json`, it runs `npm ci && npm run build`, which also builds the editor runtime from `vendor/`.
+5. **Build the assets.** If there is a `package.json`, it runs `npm ci && npm run build`, which also builds the editor runtime from `vendor/`. Then it checks that every built file the framework loads at run time exists, because a missing one would only fail on the page that needs it. The manifest decides which files these are:
+
+   | The project has | It needs in `build/` |
+   |---|---|
+   | blocks or post meta | `vendor/wp-app-framework/editor.asset.php` (editor runtime) |
+   | blocks | `vendor/wp-app-framework/canvas.asset.php` (canvas styles) |
+   | an editor or view script of a block or block support | that script's `.asset.php` |
+   | view scripts | `vendor/wp-app-framework/view.asset.php` (view runtime) |
+   | settings groups | `vendor/wp-app-framework/settings.asset.php` (settings page) |
+   | post meta | `vendor/wp-app-framework/meta-box.asset.php` (meta boxes) |
+   | `src/styles.css` | `styles.css` |
+
+   A missing file stops the release with a list of the missing files and what needs them. A project without blocks, post meta, settings and stylesheet needs no `package.json`; one with them needs a `package.json` with a `build` script and a `webpack.config.js` with the framework's webpack helper.
 
 6. **Remove development files.** It removes `node_modules/`, `vendor/`, `composer.json`, `composer.lock`, `package.json`, `package-lock.json` and every path the project marks `export-ignore` in `.gitattributes` (use `dir/**` for directories). Then it checks all PHP files for names of dependencies that were not prefixed, in string literals too. Inside `vendor-prefixed/` string literals are not checked, because dependencies mention their own class names in messages.
 
