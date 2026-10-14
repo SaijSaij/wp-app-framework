@@ -2169,3 +2169,113 @@ final class WP_Site
         $this->blog_id = is_scalar($id) ? (string) $id : '0';
     }
 }
+
+/**
+ * Test double of WP_HTML_Tag_Processor (WordPress 7.1, wp-includes/html-api/class-wp-html-tag-processor.php) for the
+ * first tag of a document only: finds it, reads its name, and adds classes and sets or removes attributes on it.
+ * Like WordPress, it changes existing attributes in place and inserts new ones after the tag name, sorted by name.
+ */
+class WP_HTML_Tag_Processor
+{
+    /** @var array<string, string|true> Attributes of the found tag, lowercase names. */
+    private array $attributes = [];
+
+    /** @var list<string> Names of the attributes the tag had, in their order. */
+    private array $original = [];
+
+    private ?string $tag = null;
+
+    private int $start = 0;
+
+    private int $length = 0;
+
+    private string $html;
+
+    /**
+     * @param string $html
+     */
+    public function __construct($html)
+    {
+        $this->html = $html;
+    }
+
+    /**
+     * @param array<string, mixed>|string|null $query
+     */
+    public function next_tag($query = null): bool
+    {
+        if ($this->tag !== null || preg_match('#<([a-zA-Z][a-zA-Z0-9-]*)((?:\s+[^\s=/>]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?)*)\s*/?>#', $this->html, $match, PREG_OFFSET_CAPTURE) !== 1) {
+            return false;
+        }
+        $this->tag = strtoupper($match[1][0]);
+        $this->start = $match[0][1];
+        $this->length = strlen($match[0][0]);
+        preg_match_all('#([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+)))?#', $match[2][0], $attributes, PREG_SET_ORDER);
+        foreach ($attributes as $attribute) {
+            $value = ($attribute[2] ?? '') . ($attribute[3] ?? '') . ($attribute[4] ?? '');
+            $this->attributes[strtolower($attribute[1])] = isset($attribute[2]) || isset($attribute[3]) || isset($attribute[4]) ? html_entity_decode($value) : true;
+        }
+        $this->original = array_keys($this->attributes);
+
+        return true;
+    }
+
+    public function get_tag(): ?string
+    {
+        return $this->tag;
+    }
+
+    /**
+     * @param string      $name
+     * @param string|bool $value
+     */
+    public function set_attribute($name, $value): bool
+    {
+        if ($value === false) {
+            return $this->remove_attribute($name);
+        }
+        $this->attributes[strtolower($name)] = $value === true ? true : $value;
+
+        return true;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function remove_attribute($name): bool
+    {
+        unset($this->attributes[strtolower($name)]);
+
+        return true;
+    }
+
+    /**
+     * @param string $class_name
+     */
+    public function add_class($class_name): bool
+    {
+        $classes = isset($this->attributes['class']) && is_string($this->attributes['class']) ? preg_split('/\s+/', trim($this->attributes['class']), -1, PREG_SPLIT_NO_EMPTY) : [];
+        if (!in_array($class_name, (array) $classes, true)) {
+            $classes[] = $class_name;
+        }
+        $this->attributes['class'] = implode(' ', (array) $classes);
+
+        return true;
+    }
+
+    public function get_updated_html(): string
+    {
+        if ($this->tag === null) {
+            return $this->html;
+        }
+        $added = array_values(array_diff(array_keys($this->attributes), $this->original));
+        sort($added, SORT_STRING);
+        $tag = '<' . strtolower($this->tag);
+        foreach ([...$added, ...array_values(array_intersect($this->original, array_keys($this->attributes)))] as $name) {
+            $value = $this->attributes[$name];
+            $tag .= ' ' . $name . ($value === true ? '' : '="' . htmlspecialchars($value, ENT_QUOTES) . '"');
+        }
+
+        return substr($this->html, 0, $this->start) . $tag . '>' . substr($this->html, $this->start + $this->length);
+    }
+}

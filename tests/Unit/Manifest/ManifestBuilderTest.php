@@ -128,12 +128,14 @@ final class ManifestBuilderTest extends TestCase
 
     public function testFrameworkServicesAreThePredefinedOnesAndItsTemplateFunctions(): void
     {
-        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class, \Saij\WpAppFramework\Editor\RenderContext::class, \Saij\WpAppFramework\Cache\CacheStore::class, \Saij\WpAppFramework\Cron\CronScheduler::class, \Saij\WpAppFramework\View\ViewData::class];
+        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class, \Saij\WpAppFramework\Editor\RenderContext::class, \Saij\WpAppFramework\Cache\CacheStore::class, \Saij\WpAppFramework\Cron\CronScheduler::class];
         $result = new ManifestBuilder([ManifestBuilder::frameworkSource()], [], $predefined)->build();
 
         self::assertSame(
             [
                 \Saij\WpAppFramework\Api\PluginTemplateFunctions::class,
+                \Saij\WpAppFramework\Asset\AssetTemplateFunctions::class,
+                \Saij\WpAppFramework\Asset\Assets::class,
                 \Saij\WpAppFramework\Block\BlockTemplateFunctions::class,
                 \Saij\WpAppFramework\Cache\CacheStore::class,
                 \Saij\WpAppFramework\Cron\CronScheduler::class,
@@ -152,6 +154,7 @@ final class ManifestBuilderTest extends TestCase
         self::assertSame(
             [
                 \Saij\WpAppFramework\Api\PluginTemplateFunctions::class => [],
+                \Saij\WpAppFramework\Asset\AssetTemplateFunctions::class => ['assets' => \Saij\WpAppFramework\Asset\Assets::class],
                 \Saij\WpAppFramework\Block\BlockTemplateFunctions::class => [
                     'context' => \Saij\WpAppFramework\Editor\RenderContext::class,
                 ],

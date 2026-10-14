@@ -85,7 +85,7 @@ A few more rules:
 
 ## Template overrides
 
-A theme changes the markup of a plugin's blocks by overriding its templates in `overrides/{plugin-slug}/`. For example, `overrides/my-plugin/Block/Note/Note.twig` in the theme replaces `src/Block/Note/Note.twig` of the plugin. [Twig templates](./twig.md#lookup) describes the full lookup order.
+A theme changes the markup of a plugin's blocks by overriding its templates in `overrides/{plugin-slug}/`. For example, `overrides/my-plugin/Block/Note/Note.twig` in the theme replaces `src/Block/Note/Note.twig` of the plugin. [Twig templates](./twig.md#lookup) describes the full lookup order. A file of the plugin's `assets/` directory is replaced the same way, in `overrides/{plugin-slug}/assets/` (see [Static assets](./assets.md#overrides-and-the-child-themes-own-files)).
 
 ## Styles
 

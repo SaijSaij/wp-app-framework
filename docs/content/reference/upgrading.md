@@ -8,6 +8,8 @@ The documentation is published for each minor version. The version switcher in t
 
 **The stylesheet moved to `assets/styles.css`.** Each project now has an `assets/` directory for everything that belongs to no PHP class (see [Concepts](../concepts.md#src-and-assets)), and the Tailwind stylesheet is the first file there. Move `src/styles.css` to `assets/styles.css` and make the paths in it relative to the new place: `@source "./**/*.twig"` becomes `@source "../src/**/*.twig"`, and `url(…)` to files in `src/` gets a `../src/` in front. A file left at `src/styles.css` is a build error in the manifest build and in the webpack helper, so it cannot be forgotten.
 
+**`asset_url`, `asset_image` and `asset_svg` are framework functions.** 0.13 adds them for [static assets](../guides/assets.md). A template function of your own with one of these names is now a build error; rename it.
+
 **Scripts in `src/` need a block or block support.** An `*.editor.js` or `*.view.js` in `src/` without a block or block support class of the same name next to it is now a build error. Before 0.13 the webpack helper built such a file, but the framework never loaded it.
 
 ## 0.12

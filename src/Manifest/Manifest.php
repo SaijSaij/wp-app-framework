@@ -23,6 +23,7 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  *
  * @phpstan-import-type HookArgument from HookDefinition
  * @phpstan-import-type ScriptsData from \Saij\WpAppFramework\Asset\AssetScripts
+ * @phpstan-import-type AssetEntry from \Saij\WpAppFramework\Asset\AssetCollector
  * @phpstan-import-type RestArgument from RestRouteDefinition
  * @phpstan-import-type RestPermission from RestRouteDefinition
  * @phpstan-import-type TemplateCallableEntry from TemplateRenderer
@@ -107,7 +108,8 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  *     cliCommands: list<CliCommandEntry>,
  *     tables: TablesData,
  *     lifecycle: LifecycleData,
- *     scripts: ScriptsData
+ *     scripts: ScriptsData,
+ *     assets: array<string, AssetEntry>
  * }
  */
 #[NoService]

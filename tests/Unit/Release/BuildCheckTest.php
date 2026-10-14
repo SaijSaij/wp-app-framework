@@ -16,9 +16,10 @@ final class BuildCheckTest extends ReleaseTestCase
      * @param array<string, mixed>       $meta
      * @param list<array<string, mixed>> $groups
      * @param array<string, mixed>       $scripts
+     * @param array<string, mixed>       $assets
      * @return array<string, mixed>
      */
-    private static function manifest(array $blocks = [], array $meta = [], array $groups = [], bool $styles = false, array $scripts = []): array
+    private static function manifest(array $blocks = [], array $meta = [], array $groups = [], bool $styles = false, array $scripts = [], array $assets = []): array
     {
         return [
             'blocks' => $blocks,
@@ -26,6 +27,7 @@ final class BuildCheckTest extends ReleaseTestCase
             'settings' => ['title' => null, 'groups' => $groups],
             'styles' => $styles,
             'scripts' => [...['documentViews' => [], 'editorScripts' => [], 'shared' => []], ...$scripts],
+            'assets' => $assets,
         ];
     }
 
@@ -80,6 +82,16 @@ final class BuildCheckTest extends ReleaseTestCase
         ], $this->missing($manifest));
 
         $this->build('assets/menu.view.asset.php', 'assets/format.editor.asset.php', 'assets/shared/ui/modal.asset.php', 'vendor/wp-app-framework/editor.asset.php', 'vendor/wp-app-framework/view.asset.php');
+        self::assertSame([], $this->missing($manifest));
+    }
+
+    public function testStaticAssetsMustBeInTheRelease(): void
+    {
+        $manifest = self::manifest(assets: ['images/logo.svg' => ['hash' => 'a', 'width' => 1, 'height' => 1]]);
+        self::assertSame(['assets/images/logo.svg (static asset, e.g. removed by export-ignore)'], $this->missing($manifest));
+
+        mkdir($this->root . '/assets/images', 0777, true);
+        touch($this->root . '/assets/images/logo.svg');
         self::assertSame([], $this->missing($manifest));
     }
 

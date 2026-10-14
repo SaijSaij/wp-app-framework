@@ -7,7 +7,9 @@ namespace Saij\WpAppFramework\Manifest;
 use ReflectionClass;
 use Saij\WpAppFramework\Api\PublicApiCollector;
 use Saij\WpAppFramework\Api\PublicSignatureInspector;
+use Saij\WpAppFramework\Asset\AssetCollector;
 use Saij\WpAppFramework\Asset\AssetDirectory;
+use Saij\WpAppFramework\Asset\Assets;
 use Saij\WpAppFramework\Asset\AssetScripts;
 use Saij\WpAppFramework\Asset\OrphanScripts;
 use Saij\WpAppFramework\Block\BlockCollector;
@@ -146,7 +148,6 @@ final class ManifestBuilder
                 RenderContext::class,
                 CacheStore::class,
                 CronScheduler::class,
-                ViewData::class,
             ],
             $scriptDirectory === false ? null : $scriptDirectory,
             $project->getKind(),
@@ -181,10 +182,11 @@ final class ManifestBuilder
         $errors = [];
         $classes = $this->loadClasses($errors);
 
-        // The post store of the instance is provided at run time, also for the framework's own template function post().
+        // The post store, the view data and the assets of the instance are provided at run time, also for the
+        // framework's own template functions (post(), asset_url() …).
         $resolver = ServiceResolver::forClasses(
             $classes,
-            [...$this->predefined, PostStore::class],
+            [...$this->predefined, PostStore::class, ViewData::class, Assets::class],
             $this->parent,
             SettingsCollector::groupClasses($classes),
             // Task classes first: a post class keeps its own, more telling description.
@@ -277,9 +279,12 @@ final class ManifestBuilder
             throw new BuildException($errors);
         }
 
+        // The content of a static asset versions its URL.
+        $assetFiles = AssetCollector::files($this->assetDirectory);
+
         return new BuildResult(
             $this->sources,
-            $this->trackedFiles,
+            [...$this->trackedFiles, ...array_values($assetFiles)],
             $classes,
             $resolver->candidates(),
             $resolver->resolved(),
@@ -308,6 +313,7 @@ final class ManifestBuilder
             lifecycle: $lifecycle,
             assetDirectory: $this->assetDirectory,
             scripts: $scripts,
+            assets: AssetCollector::collect($this->assetDirectory),
         );
     }
 

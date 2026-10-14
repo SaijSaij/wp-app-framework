@@ -305,6 +305,19 @@ final class DevCacheTest extends TestCase
         self::assertSame('no styles', $this->probe('load-styles'));
     }
 
+    public function testStaticAssetsRebuildWhenTheirContentChanges(): void
+    {
+        mkdir($this->theme . '/assets');
+        file_put_contents($this->theme . '/assets/logo.svg', '<svg width="1" height="1"></svg>');
+        $this->probe('load');
+        self::assertSame('fresh', $this->probe('check'));
+
+        // The hash of the content versions the URL.
+        file_put_contents($this->theme . '/assets/logo.svg', '<svg width="2" height="2"></svg>');
+        touch($this->theme . '/assets/logo.svg', time() + 10);
+        self::assertSame('stale', $this->probe('check'));
+    }
+
     public function testStylesheetInItsFormerPlaceRebuilds(): void
     {
         $this->probe('load');

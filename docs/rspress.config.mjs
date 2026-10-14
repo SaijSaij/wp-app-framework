@@ -70,6 +70,7 @@ export default defineConfig( {
 							link: '/guides/frontend',
 						},
 						{ text: 'Styles', link: '/guides/styles' },
+						{ text: 'Static assets', link: '/guides/assets' },
 						{ text: 'Settings', link: '/guides/settings' },
 						{ text: 'Posts', link: '/guides/posts' },
 						{ text: 'Queries', link: '/guides/queries' },

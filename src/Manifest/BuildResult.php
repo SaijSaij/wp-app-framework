@@ -22,6 +22,7 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  *
  * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
  * @phpstan-import-type ScriptsData from \Saij\WpAppFramework\Asset\AssetScripts
+ * @phpstan-import-type AssetEntry from \Saij\WpAppFramework\Asset\AssetCollector
  * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
  * @phpstan-import-type SettingsGroupEntry from \Saij\WpAppFramework\Setting\SettingsCollector
  * @phpstan-import-type PostClassEntry from \Saij\WpAppFramework\Post\PostTypeCollector
@@ -80,6 +81,7 @@ final readonly class BuildResult
      *                                                                         does not exist; null for builds of fixtures.
      * @param ScriptsData                                       $scripts      Document views, editor scripts without a block and
      *                                                                         shared modules in the asset directory.
+     * @param array<string, AssetEntry>                         $assets       Static files of the asset directory by name.
      */
     public function __construct(
         private array $sources,
@@ -112,7 +114,16 @@ final readonly class BuildResult
         private array $lifecycle = ['activation' => [], 'deactivation' => [], 'uninstall' => []],
         private ?string $assetDirectory = null,
         private array $scripts = ['documentViews' => [], 'editorScripts' => [], 'shared' => []],
+        private array $assets = [],
     ) {}
+
+    /**
+     * @return array<string, AssetEntry>
+     */
+    public function getAssets(): array
+    {
+        return $this->assets;
+    }
 
     /**
      * @return ScriptsData

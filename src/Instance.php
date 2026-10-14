@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework;
 use Closure;
 use LogicException;
 use Saij\WpAppFramework\Api\InstanceBridge;
+use Saij\WpAppFramework\Asset\AssetDirectory;
+use Saij\WpAppFramework\Asset\Assets;
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\Cache\Backend\FileBackend;
@@ -94,6 +96,20 @@ final readonly class Instance
         private Closure $templateSetup,
         private ?string $parent = null,
     ) {}
+
+    /**
+     * The URL of a directory of the active theme or child theme, e.g. of its overrides directory.
+     */
+    private static function themeUri(string $path): string
+    {
+        foreach ([[get_stylesheet_directory(), get_stylesheet_directory_uri()], [get_template_directory(), get_template_directory_uri()]] as [$directory, $uri]) {
+            if ($path === $directory || str_starts_with($path, $directory . '/')) {
+                return $uri . substr($path, strlen($directory));
+            }
+        }
+
+        throw new LogicException(sprintf('%s is no directory of the active theme or child theme.', $path));
+    }
 
     /**
      * Separates the release cache of compiled templates that the active theme
@@ -221,12 +237,34 @@ final readonly class Instance
             'transient' => new TransientBackend($prefix),
         ];
         $viewData = new ViewData($this->slug, $debug);
+        $directoryUri = $this->directoryUri;
+        $assets = $manifest['assets'];
         $container = new Container(
             $manifest['services'],
             [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext, PostStore::class => $postStore, ViewData::class => $viewData],
             [
                 CacheStore::class => static fn(Container $container): CacheStore => new CacheStore($slug, $backends, $tagVersions, $generation, $container, $tagNames),
                 CronScheduler::class => static fn(): CronScheduler => new CronScheduler(CronRegistrar::taskHooks($slug, $cronTasks)),
+                // Created on first use, when the active theme and child theme are final.
+                Assets::class => static function () use ($slug, $directory, $directoryUri, $assets, $exactNamespace, $templateSetup): Assets {
+                    $overrides = [];
+                    foreach ($templateSetup()['overrides'] as $override) {
+                        $overrides[] = [$override . '/' . AssetDirectory::NAME, self::themeUri($override) . '/' . AssetDirectory::NAME];
+                    }
+                    $child = get_stylesheet() !== get_template()
+                        ? [get_stylesheet_directory() . '/' . AssetDirectory::NAME, get_stylesheet_directory_uri() . '/' . AssetDirectory::NAME]
+                        : null;
+
+                    return new Assets(
+                        $slug,
+                        $directory . '/' . AssetDirectory::NAME,
+                        $directoryUri . '/' . AssetDirectory::NAME,
+                        $assets,
+                        '@' . $exactNamespace . '/',
+                        $overrides,
+                        $child,
+                    );
+                },
                 TemplateRenderer::class => static function (Container $container) use (
                     $slug,
                     $directory,

@@ -8,6 +8,8 @@ Most adaptations need no PHP at all. A child theme without code overrides templa
 
 To change the markup of a block, put a template with the same path into `overrides/{parent-slug}/`. For the parent theme `my-theme`, the file `overrides/my-theme/Block/Hero/Hero.twig` replaces the theme's `src/Block/Hero/Hero.twig`. The block keeps its attributes and its editor; only the markup changes. [Twig templates](./twig.md#lookup) describes the full lookup order.
 
+Files work the same way: `overrides/my-theme/assets/images/logo.svg` replaces the theme's `assets/images/logo.svg`, and files that replace nothing go into the child theme's own `assets/` and are named `@child/…` (see [Static assets](./assets.md#overrides-and-the-child-themes-own-files)).
+
 The overrides can use the classes in the parent theme's stylesheet, or plain CSS in the child theme's `style.css`. If they need further Tailwind utilities, the child theme needs code and a build of its own (see [Styles](./styles.md#plugins-and-child-themes)).
 
 ## Child themes with code

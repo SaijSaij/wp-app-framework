@@ -6,6 +6,7 @@ namespace Saij\WpAppFramework\Tests\Unit\Twig;
 
 use PHPUnit\Framework\TestCase;
 use Saij\WpAppFramework\Api\PluginTemplateFunctions;
+use Saij\WpAppFramework\Asset\AssetTemplateFunctions;
 use Saij\WpAppFramework\Block\BlockTemplateFunctions;
 use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
 use Saij\WpAppFramework\Manifest\BuildException;
@@ -46,6 +47,9 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Filter, 'wrap_html', TwigValid\TextHelpers::class, 'wrapHtml', true],
                 [TemplateCallableKind::Function, 'count_items', TwigValid\TextHelpers::class, 'countItems', false],
                 [TemplateCallableKind::Function, 'has_plugin', PluginTemplateFunctions::class, 'hasPlugin', false],
+                [TemplateCallableKind::Function, 'asset_url', AssetTemplateFunctions::class, 'url', false],
+                [TemplateCallableKind::Function, 'asset_image', AssetTemplateFunctions::class, 'image', true],
+                [TemplateCallableKind::Function, 'asset_svg', AssetTemplateFunctions::class, 'svg', true],
                 [TemplateCallableKind::Function, 'block_wrapper_attributes', BlockTemplateFunctions::class, 'blockWrapperAttributes', true],
                 [TemplateCallableKind::Function, 'field', EditorTemplateFunctions::class, 'field', true],
                 [TemplateCallableKind::Function, 'inner_blocks', EditorTemplateFunctions::class, 'innerBlocks', true],

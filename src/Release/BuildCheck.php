@@ -98,6 +98,12 @@ final class BuildCheck
                 $missing[] = sprintf('%s (%s)', $path, $reason);
             }
         }
+        foreach (array_keys($manifest['assets']) as $name) {
+            $path = AssetDirectory::NAME . '/' . $name;
+            if (!is_file($projectDirectory . '/' . $path)) {
+                $missing[] = sprintf('%s (static asset, e.g. removed by export-ignore)', $path);
+            }
+        }
 
         return $missing;
     }

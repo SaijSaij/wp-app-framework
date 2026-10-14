@@ -155,6 +155,7 @@ final class ManifestGenerator
             'tables' => $result->getTables(),
             'lifecycle' => $result->getLifecycle(),
             'scripts' => $result->getScripts(),
+            'assets' => $result->getAssets(),
         ];
     }
 }
