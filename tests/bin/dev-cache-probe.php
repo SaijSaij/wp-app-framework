@@ -6,11 +6,12 @@ declare(strict_types=1);
  * Runs the dev cache against a temporary project in a fresh PHP process, because
  * classes changed by a test cannot be reloaded in the PHPUnit process.
  *
- * Usage: php dev-cache-probe.php <check|load|load-styles|load-sources|load-without-project-base> <cache dir> <project dir>
+ * Usage: php dev-cache-probe.php <check|load|load-styles|load-sources|load-without-project-base|generation> <cache dir> <project dir>
  * Prints "fresh"/"stale" (check), whether the loaded manifest has styles (load-styles), the directories the
  * manifest was built from (load-sources) or the hook names of the loaded manifest (load).
  */
 
+use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 
@@ -37,11 +38,15 @@ if ($mode === 'load-without-project-base') {
     unset($bases['project']);
 }
 
-$cache = new DevCache($cacheDirectory, $bases, ManifestBuilder::forProject($themeDirectory));
+$cache = new DevCache($cacheDirectory, $bases, static fn(): ManifestBuilder => ManifestBuilder::forProject($themeDirectory));
 
 try {
     if ($mode === 'check') {
         echo $cache->isFresh() ? 'fresh' : 'stale';
+    } elseif ($mode === 'generation') {
+        // The code generation from the entries of the check equals the one of a walk of its own.
+        $cache->load();
+        echo CodeGeneration::ofEntries($cache->getSourceEntries()) === CodeGeneration::ofFiles($cache->getSourceDirectories()) ? 'same' : 'different';
     } elseif ($mode === 'load-sources') {
         $cache->load();
         echo implode(',', $cache->getSourceDirectories());

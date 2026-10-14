@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Manifest\DevCache;
 
+use Closure;
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionClass;
 use RuntimeException;
 use Saij\WpAppFramework\Asset\ScriptKind;
+use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Filesystem\AtomicFile;
 use Saij\WpAppFramework\Manifest\BuildResult;
@@ -16,6 +21,7 @@ use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Style\StyleAssets;
+use SplFileInfo;
 use Throwable;
 
 /**
@@ -32,6 +38,10 @@ use Throwable;
  * The meta file stores paths relative to named base directories only (for
  * example ['project', 'src/Foo.php']), never absolute paths.
  *
+ * Each watched directory is walked once per request: the walk yields the
+ * file list for the check and the entries of the code generation of the
+ * cache (getSourceEntries()). The builder is created only for a rebuild.
+ *
  * @phpstan-import-type ManifestData from Manifest
  * @phpstan-type PathRef array{0: string, 1: string}
  * @phpstan-type Meta array{
@@ -47,14 +57,18 @@ final class DevCache
 {
     private const int META_FORMAT = 2;
 
+    /** @var array<string, array{listing: string, entries: list<string>}> Walked directories of this request. */
+    private array $scans = [];
+
     /**
-     * @param string                $directory Cache directory, outside the project.
-     * @param array<string, string> $bases     Base directories by name, used to make paths relative.
+     * @param string                   $directory Cache directory, outside the project.
+     * @param array<string, string>    $bases     Base directories by name, used to make paths relative.
+     * @param Closure(): ManifestBuilder $builder Creates the builder of the project, called only for a rebuild.
      */
     public function __construct(
         private readonly string $directory,
         private readonly array $bases,
-        private readonly ManifestBuilder $builder,
+        private readonly Closure $builder,
     ) {}
 
     /**
@@ -87,6 +101,17 @@ final class DevCache
         return array_map(fn(array $directory): string => $this->absolute($directory[0], $directory[1]), $meta['directories']);
     }
 
+    /**
+     * The entries of the code generation (CodeGeneration::entry()) of the directories the manifest was built from,
+     * from the walk of the check; call after load().
+     *
+     * @return list<array{0: string, 1: list<string>}>
+     */
+    public function getSourceEntries(): array
+    {
+        return array_map(fn(string $directory): array => [$directory, $this->scan($directory)['entries']], $this->getSourceDirectories());
+    }
+
     public function isFresh(): bool
     {
         $manifestFile = $this->manifestFile();
@@ -106,7 +131,7 @@ final class DevCache
 
         foreach ($meta['directories'] as [$base, $relative, $hash]) {
             $directory = $this->absolute($base, $relative);
-            if (!is_dir($directory) || self::listingHash($directory) !== $hash) {
+            if (!is_dir($directory) || $this->scan($directory)['listing'] !== $hash) {
                 return false;
             }
         }
@@ -170,7 +195,9 @@ final class DevCache
 
     private function rebuild(): void
     {
-        $result = $this->builder->build();
+        $result = ($this->builder)()->build();
+        // The rebuild reads the current files; walk them again for the meta file and the code generation.
+        $this->scans = [];
         $code = new ManifestGenerator()->generate($result);
         $meta = $this->meta($result);
 
@@ -199,7 +226,7 @@ final class DevCache
         }
         $directories = [];
         foreach ($listed as $directory) {
-            $directories[] = [...$this->relative($directory), self::listingHash($directory)];
+            $directories[] = [...$this->relative($directory), $this->scan($directory)['listing']];
         }
 
         $markup = [];
@@ -287,18 +314,42 @@ final class DevCache
     }
 
     /**
-     * Hash of the PHP files, editor scripts and view scripts below a directory
-     * and of the stylesheet in it: adding or removing a script or the
-     * stylesheet changes the manifest as well.
+     * One walk of a directory per request: the hash of its PHP files, editor scripts, view scripts and stylesheet
+     * (adding or removing one changes the manifest) and the entries of the code generation of all its files.
+     *
+     * @return array{listing: string, entries: list<string>}
      */
-    private static function listingHash(string $directory): string
+    private function scan(string $directory): array
     {
-        return hash('xxh128', implode("\n", [
-            ...ClassDiscovery::files($directory),
-            ...ClassDiscovery::files($directory, ScriptKind::Editor->value),
-            ...ClassDiscovery::files($directory, ScriptKind::View->value),
-            ...(is_file($directory . '/' . StyleAssets::SOURCE) ? [StyleAssets::SOURCE] : []),
-        ]));
+        if (isset($this->scans[$directory])) {
+            return $this->scans[$directory];
+        }
+        $suffixes = ['.php' => [], ScriptKind::Editor->value => [], ScriptKind::View->value => []];
+        $entries = [];
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
+        /** @var SplFileInfo $file */
+        foreach ($files as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+            $entries[] = CodeGeneration::entry($file);
+            foreach (array_keys($suffixes) as $suffix) {
+                if (str_ends_with($file->getFilename(), $suffix)) {
+                    $suffixes[$suffix][] = str_replace('\\', '/', substr($file->getPathname(), strlen($directory) + 1));
+                }
+            }
+        }
+        $listing = [];
+        foreach ($suffixes as $relatives) {
+            // The order of ClassDiscovery::files(), so existing cache entries stay valid.
+            sort($relatives, SORT_STRING);
+            array_push($listing, ...$relatives);
+        }
+        if (is_file($directory . '/' . StyleAssets::SOURCE)) {
+            $listing[] = StyleAssets::SOURCE;
+        }
+
+        return $this->scans[$directory] = ['listing' => hash('xxh128', implode("\n", $listing)), 'entries' => $entries];
     }
 
     /**

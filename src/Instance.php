@@ -30,7 +30,7 @@ use Saij\WpAppFramework\Post\MetaBoxes;
 use Saij\WpAppFramework\Post\PostRegistry;
 use Saij\WpAppFramework\Post\PostStore;
 use Saij\WpAppFramework\Post\PostTypeRegistrar;
-use Saij\WpAppFramework\Project\ComposerProject;
+use Saij\WpAppFramework\Project\NamePrefix;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Rest\RestRegistrar;
 use Saij\WpAppFramework\Setting\SettingsAccessor;
@@ -121,10 +121,10 @@ final readonly class Instance
         $releaseManifest = $this->directory . '/' . self::RELEASE_MANIFEST;
         $development = !is_file($releaseManifest);
         $cacheDirectory = WP_CONTENT_DIR . '/cache/' . $this->slug;
-        $sourceDirectories = [];
+        $sourceEntries = [];
         if ($development) {
             $this->checkSharedClasses($frameworkDirectory);
-            [$manifest, $sourceDirectories] = $this->loadDevelopmentManifest($cacheDirectory . '/manifest', $frameworkDirectory);
+            [$manifest, $sourceEntries] = $this->loadDevelopmentManifest($cacheDirectory . '/manifest', $frameworkDirectory);
         } else {
             $manifest = Manifest::load($releaseManifest);
         }
@@ -172,14 +172,16 @@ final readonly class Instance
             array_map(static fn(array $post): string => $post['name'], $manifest['posts']),
             array_map(static fn(array $taxonomy): string => $taxonomy['name'], $manifest['taxonomies']),
         );
-        $prefix = ComposerProject::templatePrefix($this->slug);
+        $prefix = NamePrefix::template($this->slug);
         $tagVersions = new TagVersions($prefix);
         $codeVersion = $manifest['codeVersion'];
         $templateVersion = $manifest['templateVersion'];
-        $generation = new CodeGeneration(static function () use ($development, $sourceDirectories, $templateSetup, $codeVersion, $templateVersion, $releaseManifest): string {
+        $generation = new CodeGeneration(static function () use ($development, $sourceEntries, $templateSetup, $codeVersion, $templateVersion, $releaseManifest): string {
             $setup = $templateSetup();
             if ($development) {
-                return CodeGeneration::ofFiles([...$sourceDirectories, ...$setup['overrides']]);
+                $overrides = array_map(static fn(string $directory): array => [$directory, CodeGeneration::entries($directory)], $setup['overrides']);
+
+                return CodeGeneration::ofEntries([...$sourceEntries, ...$overrides]);
             }
             if ($codeVersion === null || $templateVersion === null) {
                 throw new LogicException(sprintf(
@@ -455,7 +457,9 @@ final readonly class Instance
     /**
      * Builds the manifest by reflection, cached until a source changes.
      *
-     * @return array{0: ManifestData, 1: list<string>} The manifest and the directories it was built from.
+     * @return array{0: ManifestData, 1: list<array{0: string, 1: list<string>}>} The manifest and the code generation
+     *                                                                         entries of the directories it was built
+     *                                                                         from (CodeGeneration::ofEntries()).
      */
     private function loadDevelopmentManifest(string $cacheDirectory, string $frameworkDirectory): array
     {
@@ -473,11 +477,11 @@ final readonly class Instance
         $cache = new DevCache(
             $cacheDirectory,
             ['project' => $projectRoot, 'framework' => $frameworkRoot],
-            ManifestBuilder::forProject($projectRoot),
+            static fn(): ManifestBuilder => ManifestBuilder::forProject($projectRoot),
         );
 
         $manifest = $cache->load();
 
-        return [$manifest, $cache->getSourceDirectories()];
+        return [$manifest, $cache->getSourceEntries()];
     }
 }

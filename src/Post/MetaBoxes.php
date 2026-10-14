@@ -156,13 +156,14 @@ final class MetaBoxes
     }
 
     /**
-     * Shows the errors of the last save on the edit screen of the post (`admin_notices`).
+     * Shows the errors of the last save on the edit screen of the post (`admin_notices`). Only post types with meta
+     * classes have them: reading the transient costs a database query without a persistent object cache.
      */
     public function notices(): void
     {
         $post = get_post();
         $screen = get_current_screen();
-        if (!$post instanceof WP_Post || !$screen instanceof WP_Screen || $screen->base !== 'post') {
+        if (!$post instanceof WP_Post || !$screen instanceof WP_Screen || $screen->base !== 'post' || !isset($this->metaByType[$post->post_type])) {
             return;
         }
         $errors = get_transient($this->errorKey($post->ID));

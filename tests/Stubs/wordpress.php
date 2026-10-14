@@ -1034,8 +1034,15 @@ function wp_cache_set(int|string $key, mixed $data, string $group = '', int $exp
 /**
  * Transients in $GLOBALS['wp_app_framework_test_transients'] (expiration is recorded, not applied).
  */
+/**
+ * Transients from $GLOBALS['wp_app_framework_test_transients']; each read is recorded in
+ * $GLOBALS['wp_app_framework_test_transient_reads'] (WordPress queries the database for it without a persistent object
+ * cache).
+ */
 function get_transient(string $transient): mixed
 {
+    $GLOBALS['wp_app_framework_test_transient_reads'][] = $transient;
+
     return $GLOBALS['wp_app_framework_test_transients'][$transient]['value'] ?? false;
 }
 

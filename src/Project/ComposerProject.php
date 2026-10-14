@@ -197,31 +197,6 @@ final readonly class ComposerProject
     }
 
     /**
-     * Prefix of the public template functions and filters of a plugin or theme: the slug
-     * with underscores instead of hyphens, followed by an underscore
-     * (`plugin-dev-test` → `plugin_dev_test_`).
-     *
-     * @param non-empty-string $slug
-     * @return non-empty-string
-     */
-    public static function templatePrefix(string $slug): string
-    {
-        return str_replace('-', '_', $slug) . '_';
-    }
-
-    /**
-     * Prefix of the data names of a namespace – settings options, post types, taxonomies and meta keys: the
-     * namespace with underscores instead of hyphens, followed by an underscore (`dev-test` → `dev_test_`).
-     *
-     * @param non-empty-string $namespace
-     * @return non-empty-string
-     */
-    public static function dataPrefix(string $namespace): string
-    {
-        return str_replace('-', '_', $namespace) . '_';
-    }
-
-    /**
      * The validation error of a namespace, null if it is valid.
      */
     public static function namespaceError(string $namespace): ?string
@@ -385,7 +360,7 @@ final readonly class ComposerProject
         $prefixes = [];
         if ($parent !== null) {
             $valid[] = $parent;
-            $prefixes[$parent] = self::templatePrefix($parent);
+            $prefixes[$parent] = NamePrefix::template($parent);
         }
         foreach ($plugins as $plugin) {
             if (!is_string($plugin) || $plugin === '' || preg_match(self::SLUG_PATTERN, $plugin) !== 1) {
@@ -400,7 +375,7 @@ final readonly class ComposerProject
                 $errors[] = sprintf('extra.wp-app-framework.template-plugins in %s lists the parent theme %s; a child theme uses its public template callables without declaring them.', $composerFile, $plugin);
                 continue;
             }
-            $prefix = self::templatePrefix($plugin);
+            $prefix = NamePrefix::template($plugin);
             foreach ($prefixes as $otherPlugin => $otherPrefix) {
                 if (str_starts_with($prefix, $otherPrefix) || str_starts_with($otherPrefix, $prefix)) {
                     $errors[] = sprintf(

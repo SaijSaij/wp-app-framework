@@ -20,7 +20,9 @@ use SplFileInfo;
  * release manifest with the key of the templates that the active theme and
  * child theme override. In development mode it is a hash of the paths, sizes
  * and modification times of all files in the source and override directories,
- * computed once per request on first use.
+ * computed once per request on first use; the entries of the source
+ * directories come from the development manifest cache, which walks them on
+ * every request anyway.
  *
  * @internal
  */
@@ -46,25 +48,64 @@ final class CodeGeneration
      */
     public static function ofFiles(array $directories): string
     {
-        $context = hash_init('xxh128');
+        $entries = [];
         foreach ($directories as $directory) {
+            $entries[] = [$directory, self::entries($directory)];
+        }
+
+        return self::ofEntries($entries);
+    }
+
+    /**
+     * The hash of ofFiles() from entries collected elsewhere (the development manifest cache walks the source
+     * directories anyway).
+     *
+     * @param list<array{0: string, 1: list<string>|null}> $directories Directory and its entries (entry()), null if
+     *                                                                   it is missing.
+     */
+    public static function ofEntries(array $directories): string
+    {
+        $context = hash_init('xxh128');
+        foreach ($directories as [$directory, $entries]) {
             hash_update($context, $directory . "\0");
-            if (!is_dir($directory)) {
+            if ($entries === null) {
                 continue;
-            }
-            $entries = [];
-            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
-            /** @var SplFileInfo $file */
-            foreach ($files as $file) {
-                if ($file->isFile()) {
-                    $entries[] = $file->getPathname() . "\0" . $file->getSize() . "\0" . $file->getMTime();
-                }
             }
             sort($entries, SORT_STRING);
             hash_update($context, implode("\n", $entries) . "\n");
         }
 
         return hash_final($context);
+    }
+
+    /**
+     * The entries of the files below a directory; null if it is missing.
+     *
+     * @return list<string>|null
+     */
+    public static function entries(string $directory): ?array
+    {
+        if (!is_dir($directory)) {
+            return null;
+        }
+        $entries = [];
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
+        /** @var SplFileInfo $file */
+        foreach ($files as $file) {
+            if ($file->isFile()) {
+                $entries[] = self::entry($file);
+            }
+        }
+
+        return $entries;
+    }
+
+    /**
+     * What the hash records of a file: path, size and modification time.
+     */
+    public static function entry(SplFileInfo $file): string
+    {
+        return $file->getPathname() . "\0" . $file->getSize() . "\0" . $file->getMTime();
     }
 
     /**

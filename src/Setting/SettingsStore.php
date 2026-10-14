@@ -6,7 +6,7 @@ namespace Saij\WpAppFramework\Setting;
 
 use LogicException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Project\ComposerProject;
+use Saij\WpAppFramework\Project\NamePrefix;
 use Saij\WpAppFramework\Value\HtmlFilter;
 use Saij\WpAppFramework\Value\ValueFactory;
 
@@ -56,7 +56,7 @@ final class SettingsStore
      */
     public static function optionName(string $namespace, string $name): string
     {
-        return ComposerProject::dataPrefix($namespace) . $name;
+        return NamePrefix::data($namespace) . $name;
     }
 
     /**

@@ -6,7 +6,7 @@ namespace Saij\WpAppFramework\Post;
 
 use ReflectionClass;
 use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Project\ComposerProject;
+use Saij\WpAppFramework\Project\NamePrefix;
 use Saij\WpAppFramework\Query\MetaFields;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
@@ -106,7 +106,7 @@ final class PostTypeCollector
         foreach ($classes as $class => $reflection) {
             $attribute = self::instance($reflection, PostType::class);
             if ($attribute instanceof PostType && $attribute->name !== '') {
-                $name = ComposerProject::dataPrefix($namespace) . $attribute->name;
+                $name = NamePrefix::data($namespace) . $attribute->name;
                 $posts[$class] = ['name' => $name, 'restBase' => $name];
             }
         }
@@ -127,7 +127,7 @@ final class PostTypeCollector
         foreach ($classes as $class => $reflection) {
             $attribute = self::instance($reflection, Taxonomy::class);
             if ($attribute instanceof Taxonomy && $attribute->name !== '') {
-                $taxonomies[$class] = ComposerProject::dataPrefix($namespace) . $attribute->name;
+                $taxonomies[$class] = NamePrefix::data($namespace) . $attribute->name;
             }
         }
 
@@ -297,7 +297,7 @@ final class PostTypeCollector
             return null;
         }
 
-        $name = strtolower(ComposerProject::dataPrefix($this->namespace) . $postType->name);
+        $name = strtolower(NamePrefix::data($this->namespace) . $postType->name);
         $ownProperties = array_values(array_filter(
             $reflection->getProperties(),
             static fn(\ReflectionProperty $property): bool => !$property->isStatic() && $property->getDeclaringClass()->getName() !== AbstractPost::class,
@@ -392,7 +392,7 @@ final class PostTypeCollector
                 $valid = false;
                 continue;
             }
-            $key = ComposerProject::dataPrefix($this->namespace) . strtolower((string) preg_replace('/(?<=[a-z0-9])([A-Z])/', '_$1', $name));
+            $key = NamePrefix::data($this->namespace) . strtolower((string) preg_replace('/(?<=[a-z0-9])([A-Z])/', '_$1', $name));
             $schema = $field['schema'];
             $default = ValueSchemaBuilder::export($parameter->getDefaultValue());
             if ($id) {
@@ -461,7 +461,7 @@ final class PostTypeCollector
             return null;
         }
 
-        $name = ComposerProject::dataPrefix($this->namespace) . $taxonomy->name;
+        $name = NamePrefix::data($this->namespace) . $taxonomy->name;
         $postTypes = $this->classList('#[Taxonomy]', $class, $taxonomy->postTypes, $posts, 'post class (#[PostType], Post or Page)');
         $error = match (true) {
             ($reflection->getConstructor()?->getNumberOfParameters() ?? 0) > 0 => sprintf('#[Taxonomy] on %s: the class has constructor parameters; taxonomy classes declare no fields (term meta is not supported yet).', $class),

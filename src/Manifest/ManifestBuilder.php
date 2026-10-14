@@ -26,6 +26,7 @@ use Saij\WpAppFramework\Post\PostMeta;
 use Saij\WpAppFramework\Post\PostStore;
 use Saij\WpAppFramework\Post\PostTypeCollector;
 use Saij\WpAppFramework\Project\ComposerProject;
+use Saij\WpAppFramework\Project\NamePrefix;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Query\MetaFieldsCollector;
 use Saij\WpAppFramework\Rest\RestRouteCollector;
@@ -194,12 +195,12 @@ final class ManifestBuilder
         $signatures = new PublicSignatureInspector($classes, [...$this->foreignNamespaces, $framework->getPrefix()], $framework->getDirectory());
         $templateProviders = [];
         foreach ($this->templateProviders as $provider) {
-            $templateProviders[ComposerProject::templatePrefix($provider)] = $provider;
+            $templateProviders[NamePrefix::template($provider)] = $provider;
         }
         $templateCallableCollector = new TemplateCallableCollector(
             $resolver,
             TemplateRenderer::getBuiltInNames(),
-            $this->kind->isProvider() && $this->slug !== null ? ComposerProject::templatePrefix($this->slug) : null,
+            $this->kind->isProvider() && $this->slug !== null ? NamePrefix::template($this->slug) : null,
             $templateProviders,
             $signatures,
         );

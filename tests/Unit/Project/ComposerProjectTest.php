@@ -94,16 +94,6 @@ final class ComposerProjectTest extends TestCase
         self::assertSame(['My\\Plugin\\Vendor\\', 'Twig\\'], $project->getForeignNamespaces());
     }
 
-    public function testTemplatePrefixReplacesHyphens(): void
-    {
-        self::assertSame('plugin_dev_test_', ComposerProject::templatePrefix('plugin-dev-test'));
-    }
-
-    public function testDataPrefixReplacesHyphens(): void
-    {
-        self::assertSame('dev_test_', ComposerProject::dataPrefix('dev-test'));
-    }
-
     public function testNamespaceIsRequired(): void
     {
         self::assertSame(

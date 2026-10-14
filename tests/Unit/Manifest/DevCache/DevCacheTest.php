@@ -94,6 +94,13 @@ final class DevCacheTest extends TestCase
         );
     }
 
+    public function testTheCodeGenerationComesFromTheWalkOfTheCheck(): void
+    {
+        $this->probe('load');
+
+        self::assertSame('same', $this->probe('generation'));
+    }
+
     public function testMetaFileContainsNoAbsolutePaths(): void
     {
         $this->probe('load');

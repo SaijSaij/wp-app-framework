@@ -106,6 +106,19 @@ final class MetaBoxesTest extends TestCase
         unset($GLOBALS['post']);
     }
 
+    public function testReadsNoErrorsOnScreensOfPostTypesWithoutMeta(): void
+    {
+        $GLOBALS['post'] = Posts::add(11, 'nav_menu_item');
+        Posts::screen('nav_menu_item');
+        unset($GLOBALS['wp_app_framework_test_transient_reads']);
+
+        ob_start();
+        $this->boxes()->notices();
+        self::assertSame('', ob_get_clean());
+        self::assertSame([], $GLOBALS['wp_app_framework_test_transient_reads'] ?? [], 'No transient is read.');
+        unset($GLOBALS['post']);
+    }
+
     public function testIgnoresRequestsWithoutNonceOrCapability(): void
     {
         $post = Posts::add(10, 'fixture_event');
