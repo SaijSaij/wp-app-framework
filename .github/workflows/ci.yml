@@ -1,5 +1,5 @@
 # Tests and lint of the framework (PHPUnit, Vitest, PHPStan, PHP-CS-Fixer, ESLint,
-# Stylelint) in the tools container of wp-dev-env, and the build of the documentation
+# Stylelint) in the tools image of wp-test-env, and the build of the documentation
 # (docs/). Also run by release.yml.
 name: CI
 
@@ -21,25 +21,22 @@ jobs:
         with:
           path: workspace/wp-app-framework
 
-      - name: Check out wp-dev-env
+      - name: Check out wp-test-env
         uses: actions/checkout@v5
         with:
-          repository: SaijSaij/wp-dev-env
-          path: workspace/wp-dev-env
+          repository: SaijSaij/wp-test-env
+          path: workspace/wp-test-env
 
-      - name: Configure wp-dev-env
-        working-directory: workspace/wp-dev-env
-        run: |
-          cp .env.example .env
-          sed -i "s|^HOST_UID=.*|HOST_UID=$(id -u)|; s|^HOST_GID=.*|HOST_GID=$(id -g)|" .env
-          docker compose build tools
+      - name: Build the tools image
+        working-directory: workspace/wp-test-env
+        run: bin/build tools
 
       - name: Install, test and lint
-        working-directory: workspace/wp-dev-env
+        working-directory: workspace/wp-test-env
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
         run: |
-          docker compose run --rm -e COMPOSER_AUTH -w /workspace/wp-app-framework tools sh -euc "
+          bin/tools -e COMPOSER_AUTH -w wp-app-framework sh -euc "
             composer install --no-interaction --no-progress
             composer test
             composer lint

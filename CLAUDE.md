@@ -47,19 +47,21 @@ The pages in `docs/content/` are written for people learning the framework, not 
 
 ## Commands
 
-All checks run in the `tools` container of [wp-dev-env](https://github.com/saijsaij/wp-dev-env), checked out next to this repository; run the commands from the wp-dev-env directory. Every check must pass without errors or warnings.
+All checks run in the tools image of [wp-test-env](https://github.com/saijsaij/wp-test-env), checked out next to this repository; run the commands from this directory. Every check must pass without errors or warnings.
 
 ```sh
-docker compose run --rm tools composer --working-dir=/workspace/wp-app-framework install
-docker compose run --rm tools composer --working-dir=/workspace/wp-app-framework test   # PHPUnit
-docker compose run --rm tools composer --working-dir=/workspace/wp-app-framework lint   # PHPStan (level max) + PHP-CS-Fixer (PER-CS); fix: composer fix
-docker compose run --rm tools npm --prefix /workspace/wp-app-framework ci
-docker compose run --rm tools npm --prefix /workspace/wp-app-framework test             # Vitest
-docker compose run --rm tools npm --prefix /workspace/wp-app-framework run lint         # ESLint + Stylelint; fix: npm run format
-docker run --rm -v "$PWD/../wp-app-framework:/repo" -w /repo rhysd/actionlint:1.7.12   # after changing .github/workflows/
-docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs ci
-docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs run build  # documentation; fails on broken links and anchors
+../wp-test-env/bin/tools -w wp-app-framework composer install
+../wp-test-env/bin/tools -w wp-app-framework composer test   # PHPUnit
+../wp-test-env/bin/tools -w wp-app-framework composer lint   # PHPStan (level max) + PHP-CS-Fixer (PER-CS); fix: composer fix
+../wp-test-env/bin/tools -w wp-app-framework npm ci
+../wp-test-env/bin/tools -w wp-app-framework npm test             # Vitest
+../wp-test-env/bin/tools -w wp-app-framework npm run lint         # ESLint + Stylelint; fix: npm run format
+docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12  # after changing .github/workflows/
+../wp-test-env/bin/tools -w wp-app-framework/docs npm ci
+../wp-test-env/bin/tools -w wp-app-framework/docs npm run build  # documentation; fails on broken links and anchors
 ```
+
+Browser, WP-CLI and release tests of the consumers run in pools of wp-test-env (`bin/run` with the pool files in their `tests/`); see their CLAUDE.md.
 
 `npm run lint` and `npm run format` include the scripts and styles in `docs/`; ESLint resolves their imports in `docs/node_modules`, so install `docs/` first.
 
@@ -86,6 +88,6 @@ docker compose run --rm tools npm --prefix /workspace/wp-app-framework/docs run 
 
 - Within a major version the consumer API only grows: nothing is renamed, removed or changed in behavior. Consumer API: attributes and their parameters, boot methods, Twig functions, JS exports of `@saij/wp-app-framework`, the webpack helper and its conventions, the `release` command and its options, the inputs of `.github/workflows/consumer-release.yml`. Breaking changes before 1.0 are listed in `docs/content/reference/upgrading.md`.
 - The filters `wp_app_framework/api/{slug}` and `wp_app_framework/template/{slug}`, the init action `wp_app_framework/init/{slug}`, the action `wp_app_framework/namespace/{namespace}` and the shape of their values are a contract between framework versions: they may only be extended, also across major versions. Internals such as the manifest format are excluded.
-- Tags `v<semver>`. `release.yml` gates a tag with theme-dev-test, plugin-dev-test and theme-dev-test-child built with the framework of the tag. Order when releasing changes that consumers depend on: wp-dev-env → framework (`main`) → consumers update their lock file and tag their releases → framework tag. The child and plugin gates use a released theme (`with-theme`), so that theme release must exist first.
+- Tags `v<semver>`. `release.yml` gates a tag with theme-dev-test, plugin-dev-test and theme-dev-test-child built with the framework of the tag. Order when releasing changes that consumers depend on: wp-test-env → framework (`main`) → consumers update their lock file and tag their releases → framework tag. The child and plugin gates use a released theme (`with-theme`), so that theme release must exist first.
 - Every change of the consumer API or of observable behavior updates the documentation pages in `docs/content/` in the same change.
 - Every GitHub release gets release notes written for the people who use the framework, not a list of commits: a short summary, new features, changes of behavior and breaking changes (with the steps to upgrade and a link to `upgrading.md`), fixes, compatibility (WordPress, PHP, consumers the tag was gated with) and links to the documentation of the version; the compare link last. `release.yml` creates the release with `--generate-notes`; once the workflow has passed, replace the text with `gh release edit <tag> --notes-file <file>`. A rerun of the workflow only uploads the ZIP and keeps the text.

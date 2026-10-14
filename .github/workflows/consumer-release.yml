@@ -11,9 +11,10 @@
 #       with:
 #         with-theme: SaijSaij/theme-dev-test@v1.0.0   # plugins and child themes only
 #
-# Builds the release ZIP in the tools container of wp-dev-env, installs it into a
-# plain WordPress (scripts/release-test) and runs the consumer's browser tests
-# (and, with cli-tests, its WP-CLI tests) against it. Only if everything passes, the GitHub release of the tag gets the ZIP.
+# Builds the release ZIP in the tools image of wp-test-env, installs it into fresh,
+# plain WordPress instances of wp-test-env (release mode) and runs the consumer's
+# browser tests (one Playwright worker per instance) and, with cli-tests, its WP-CLI
+# tests against them. Only if everything passes, the GitHub release of the tag gets the ZIP.
 # The repository name is the slug of the theme or plugin; the type in its
 # composer.json (wordpress-theme, wordpress-plugin) and the Template: header of
 # style.css (child themes) decide how it is installed. A plugin is tested next to
@@ -37,7 +38,7 @@ on:
         type: boolean
         default: true
       cli-tests:
-        description: Run the consumer's WP-CLI tests against the release, the executable tests/cli/run with the Compose service as argument (wordpress-release), called from the wp-dev-env directory.
+        description: Run the consumer's WP-CLI tests against the release, the executable tests/cli/run with the name of an instance of wp-test-env as argument (wp-test-env is checked out next to the consumer).
         type: boolean
         default: false
       publish:
@@ -48,10 +49,14 @@ on:
         description: Build with this ref of wp-app-framework instead of the locked version (release gate of the framework).
         type: string
         default: ''
-      wp-dev-env-ref:
-        description: Ref of SaijSaij/wp-dev-env that provides the tools and the release test.
+      wp-test-env-ref:
+        description: Ref of SaijSaij/wp-test-env that provides the tools and the WordPress instances.
         type: string
         default: main
+      e2e-instances:
+        description: Number of WordPress instances (and Playwright workers) for the browser tests.
+        type: number
+        default: 2
       with-theme:
         description: 'Plugins and child themes only (required there): theme release whose ZIP the release test installs, as <owner>/<repository>@<tag>; for a child theme its parent theme.'
         type: string
@@ -95,12 +100,12 @@ jobs:
           ref: ${{ env.REF }}
           path: workspace/${{ steps.project.outputs.slug }}
 
-      - name: Check out wp-dev-env
+      - name: Check out wp-test-env
         uses: actions/checkout@v5
         with:
-          repository: SaijSaij/wp-dev-env
-          ref: ${{ inputs.wp-dev-env-ref }}
-          path: workspace/wp-dev-env
+          repository: SaijSaij/wp-test-env
+          ref: ${{ inputs.wp-test-env-ref }}
+          path: workspace/wp-test-env
 
       - name: Check out wp-app-framework
         if: inputs.framework-ref != ''
@@ -165,38 +170,19 @@ jobs:
           fi
           echo "zip=$(realpath "${zips[0]}")" >> "$GITHUB_OUTPUT"
 
-      - name: Configure wp-dev-env
-        working-directory: workspace/wp-dev-env
-        env:
-          SLUG: ${{ steps.project.outputs.slug }}
-          KIND: ${{ steps.kind.outputs.kind }}
-        run: |
-          cp .env.example .env
-          set_env() {
-            grep -q "^$1=" .env || { echo "::error::$1 is missing in .env.example of wp-dev-env."; exit 1; }
-            sed -i "s|^$1=.*|$1=$2|" .env
-          }
-          set_env HOST_UID "$(id -u)"
-          set_env HOST_GID "$(id -g)"
-          if [[ "${KIND}" != "plugin" ]]; then
-            set_env WP_THEMES "${SLUG}"
-            set_env WP_ACTIVE_THEME "${SLUG}"
-          else
-            set_env WP_PLUGINS "${SLUG}"
-          fi
-          mkdir -p data/db data/uploads data/e2e data/release
-          docker compose build tools
+      - name: Build the images
+        working-directory: workspace/wp-test-env
+        run: bin/build
 
       - name: Install, lint and check the manifest
-        working-directory: workspace/wp-dev-env
+        working-directory: workspace/wp-test-env
         env:
           SLUG: ${{ steps.project.outputs.slug }}
           FRAMEWORK: ${{ inputs.framework-ref != '' }}
         run: |
           # With framework-ref the checked out framework also provides the build tools and the
-          # editor runtime of the checkout (like WP_PACKAGE_LINKS of wp-dev-env).
-          docker compose run --rm -e COMPOSER_AUTH -e FRAMEWORK tools sh -euc "
-            cd /workspace/${SLUG}
+          # editor runtime of the checkout (like the package links of bin/prepare).
+          bin/tools -e COMPOSER_AUTH -e FRAMEWORK -w "${SLUG}" sh -euc "
             composer install --no-interaction --no-progress
             if [ \"\${FRAMEWORK}\" = true ]; then
               rm -r vendor/saij/wp-app-framework
@@ -210,7 +196,7 @@ jobs:
 
       - name: Build the release
         id: build
-        working-directory: workspace/wp-dev-env
+        working-directory: workspace/wp-test-env
         env:
           SLUG: ${{ steps.project.outputs.slug }}
           VERSION: ${{ steps.project.outputs.version }}
@@ -223,7 +209,7 @@ jobs:
           if [[ "${FRAMEWORK}" == "true" ]]; then
             arguments+=("--package-source=saij/wp-app-framework=../wp-app-framework")
           fi
-          docker compose run --rm -e COMPOSER_AUTH -w "/workspace/${SLUG}" tools vendor/bin/wp-app-framework release "${arguments[@]}"
+          bin/tools -e COMPOSER_AUTH -w "${SLUG}" vendor/bin/wp-app-framework release "${arguments[@]}"
           zip="$(find "../${SLUG}/dist" -maxdepth 1 -name "${SLUG}-*.zip" -print -quit)"
           echo "zip=$(realpath "${zip}")" >> "$GITHUB_OUTPUT"
 
@@ -237,31 +223,55 @@ jobs:
       - name: Install the release and run the CLI and browser tests
         id: e2e
         if: inputs.e2e || inputs.cli-tests
-        working-directory: workspace/wp-dev-env
+        working-directory: workspace/wp-test-env
         env:
           SLUG: ${{ steps.project.outputs.slug }}
           ZIP: ${{ steps.build.outputs.zip }}
           THEME_ZIP: ${{ steps.theme.outputs.zip }}
           KIND: ${{ steps.kind.outputs.kind }}
           E2E: ${{ inputs.e2e }}
+          E2E_INSTANCES: ${{ inputs.e2e-instances }}
           CLI_TESTS: ${{ inputs.cli-tests }}
         run: |
-          set -a; source .env; set +a
-          docker compose up -d --wait traefik
           case "${KIND}" in
-            plugin) scripts/release-test --theme "${THEME_ZIP}" --plugin "${ZIP}" ;;
-            child-theme) scripts/release-test --theme "${THEME_ZIP}" --child-theme "${ZIP}" ;;
-            *) scripts/release-test --theme "${ZIP}" ;;
+            plugin) zips=(--theme-zip "${THEME_ZIP}" --plugin-zip "${ZIP}") ;;
+            child-theme) zips=(--theme-zip "${THEME_ZIP}" --child-theme-zip "${ZIP}") ;;
+            *) zips=(--theme-zip "${ZIP}") ;;
           esac
+          # Fresh instances with the release, started in parallel; the CLI tests get their own.
+          e2e_instances=()
+          instances=()
+          if [[ "${E2E}" == "true" ]]; then
+            for ((i = 1; i <= E2E_INSTANCES; i++)); do
+              e2e_instances+=("release-${i}")
+            done
+            instances+=("${e2e_instances[@]}")
+          fi
           if [[ "${CLI_TESTS}" == "true" ]]; then
-            "../${SLUG}/tests/cli/run" wordpress-release
+            instances+=(release-cli)
+          fi
+          mkdir -p results
+          pids=()
+          for instance in "${instances[@]}"; do
+            bin/up "${instance}" "${zips[@]}" > "results/up-${instance}.log" 2>&1 &
+            pids+=($!)
+          done
+          failed=0
+          for i in "${!pids[@]}"; do
+            if ! wait "${pids[i]}"; then
+              echo "::error::Instance ${instances[i]} failed to start."
+              cat "results/up-${instances[i]}.log"
+              failed=1
+            fi
+          done
+          if [[ "${failed}" != 0 ]]; then
+            exit 1
+          fi
+          if [[ "${CLI_TESTS}" == "true" ]]; then
+            "../${SLUG}/tests/cli/run" release-cli
           fi
           if [[ "${E2E}" == "true" ]]; then
-            docker compose run --rm --no-deps \
-              -e WP_BASE_URL="${WP_RELEASE_URL}" \
-              -e E2E_BROWSER_HOST_RULES="MAP ${WP_RELEASE_HOST} traefik" \
-              -e E2E_TARGET=release \
-              e2e npm --prefix "/workspace/${SLUG}" run test:e2e
+            bin/e2e --instances "$(IFS=,; echo "${e2e_instances[*]}")" --project "${SLUG}" --results e2e
           fi
 
       # Only if the CLI or browser tests failed; an earlier failure leaves nothing to inspect.
@@ -270,13 +280,19 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.project.outputs.slug }}-e2e-results
-          path: workspace/wp-dev-env/data/e2e
+          path: workspace/wp-test-env/results
           if-no-files-found: ignore
 
-      - name: Log of the release site
+      - name: Logs of the WordPress instances
         if: failure() && steps.e2e.outcome == 'failure'
-        working-directory: workspace/wp-dev-env
-        run: docker compose --profile release logs --no-color wordpress-release
+        working-directory: workspace/wp-test-env
+        run: |
+          for state in state/*/; do
+            instance="$(basename "${state}")"
+            echo "::group::${instance}"
+            bin/logs "${instance}" 2>&1 || true
+            echo "::endgroup::"
+          done
 
       - name: Attach the ZIP to the GitHub release
         if: inputs.publish
