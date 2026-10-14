@@ -5,12 +5,12 @@
 <title>Release - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-160ed765c6db.381e57793f.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-160ed765c6db.d3c71d915a.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.d23ca40952.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.d9c2b915f7.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.64f15b859a.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.b708f6aecf.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -34,7 +34,7 @@
 <p><strong>Install the dependencies.</strong> It runs <code>composer install --no-dev --classmap-authoritative</code> from the lock file, so the release contains exactly the versions you tested.</p>
 </li>
 <li>
-<p><strong>Prefix the dependencies.</strong> <a href="https://github.com/BrianHenryIE/strauss" target="_blank" rel="noopener noreferrer" class="rp-link">Strauss</a> renames every dependency into the project&#x27;s namespace and rewrites the project&#x27;s own code to use the new names. Strauss must be in the <code>PATH</code>; the tools image of <a href="https://github.com/saijsaij/wp-dev-env" target="_blank" rel="noopener noreferrer" class="rp-link">wp-dev-env</a> provides it.</p>
+<p><strong>Prefix the dependencies.</strong> <a href="https://github.com/BrianHenryIE/strauss" target="_blank" rel="noopener noreferrer" class="rp-link">Strauss</a> renames every dependency into the project&#x27;s namespace and rewrites the project&#x27;s own code to use the new names. Strauss must be in the <code>PATH</code> (the tools image of <a href="https://github.com/saijsaij/wp-dev-env" target="_blank" rel="noopener noreferrer" class="rp-link">wp-dev-env</a> provides it); the release command runs it with PHP and a memory limit of 512 MB, since it parses the large class map of the dependencies.</p>
 <p>Then the command patches Twig. Twig&#x27;s compiler writes class names such as <code>use Twig\Environment;</code> as plain strings into every compiled template, and no prefixing tool rewrites strings. <code>Release\TwigPatcher</code> rewrites exactly these places. It expects each pattern a fixed number of times, so a Twig update that changes them fails the build instead of producing a broken release.</p>
 </li>
 <li>
