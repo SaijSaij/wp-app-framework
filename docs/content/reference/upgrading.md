@@ -4,6 +4,12 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.13
+
+**The stylesheet moved to `assets/styles.css`.** Each project now has an `assets/` directory for everything that belongs to no PHP class (see [Concepts](../concepts.md#src-and-assets)), and the Tailwind stylesheet is the first file there. Move `src/styles.css` to `assets/styles.css` and make the paths in it relative to the new place: `@source "./**/*.twig"` becomes `@source "../src/**/*.twig"`, and `url(…)` to files in `src/` gets a `../src/` in front. A file left at `src/styles.css` is a build error in the manifest build and in the webpack helper, so it cannot be forgotten.
+
+**Scripts in `src/` need a block or block support.** An `*.editor.js` or `*.view.js` in `src/` without a block or block support class of the same name next to it is now a build error. Before 0.13 the webpack helper built such a file, but the framework never loaded it.
+
 ## 0.12
 
 **Deleting a plugin deletes its data.** Before 0.12, the framework left everything behind when a plugin was deleted. Since 0.12 it removes the posts of the plugin's post types, its terms, meta keys, settings, tables, cron events, technical options and caches (see [Activation, deactivation and uninstallation](../guides/lifecycle.md)). Back up the data before you delete a plugin whose data you want to keep.

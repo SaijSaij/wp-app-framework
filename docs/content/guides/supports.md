@@ -99,4 +99,4 @@ When a support needs JavaScript on the page – an element that fades in while i
 
 ## Styling
 
-`className()` builds class names at run time, so Tailwind does not find them in the templates. Style them with CSS of the theme, or list them with `@source inline(…)` in `src/styles.css` (see [Styles](./styles.md)).
+`className()` builds class names at run time, so Tailwind does not find them in the templates. Style them with CSS of the theme, or list them with `@source inline(…)` in `assets/styles.css` (see [Styles](./styles.md)).

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Release;
 
+use Saij\WpAppFramework\Asset\AssetDirectory;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Editor\EditorAssets;
 use Saij\WpAppFramework\Instance;
@@ -74,7 +75,7 @@ final class BuildCheck
             $required[MetaBoxes::SCRIPT . '.asset.php'] = 'meta boxes (post meta)';
         }
         if ($manifest['styles']) {
-            $required[StyleAssets::BUILD . '.css'] = 'stylesheet (src/' . StyleAssets::SOURCE . ')';
+            $required[StyleAssets::BUILD . '.css'] = 'stylesheet (' . AssetDirectory::NAME . '/' . StyleAssets::SOURCE . ')';
         }
 
         $missing = [];

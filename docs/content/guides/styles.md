@@ -6,7 +6,7 @@ The framework ships no stylesheet for the front end of its own, because design t
 
 ## Setting up the stylesheet
 
-A theme, child theme or plugin that has a stylesheet `src/styles.css` gets it compiled to `build/styles.css` by the [webpack helper](./editor.md#build). Only this file goes through Tailwind, using Tailwind's official loader `@tailwindcss/webpack`. All other stylesheets of the build keep the PostCSS setup of `@wordpress/scripts`. A consumer without `src/styles.css` doesn't need Tailwind at all.
+A theme, child theme or plugin that has a stylesheet `assets/styles.css` gets it compiled to `build/styles.css` by the [webpack helper](./editor.md#build). The stylesheet lives in `assets/`, the directory for everything that belongs to no PHP class (see [Concepts](../concepts.md#src-and-assets)). Only this file goes through Tailwind, using Tailwind's official loader `@tailwindcss/webpack`. All other stylesheets of the build keep the PostCSS setup of `@wordpress/scripts`. A consumer without `assets/styles.css` doesn't need Tailwind at all.
 
 Install Tailwind next to `@wordpress/scripts`:
 
@@ -14,7 +14,7 @@ Install Tailwind next to `@wordpress/scripts`:
 npm install --save-dev tailwindcss@4 @tailwindcss/webpack@4
 ```
 
-If the packages are missing, the build fails with a message that names them. The helper looks for `src/styles.css` when it starts, so restart `npm run start` after adding or removing the file.
+If the packages are missing, the build fails with a message that names them. The helper looks for `assets/styles.css` when it starts, so restart `npm run start` after adding or removing the file.
 
 Here is a stylesheet for a theme:
 
@@ -24,7 +24,7 @@ Here is a stylesheet for a theme:
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
 
 /* Where the class names are: the Twig templates of the theme and its overrides. */
-@source "./**/*.twig";
+@source "../src/**/*.twig";
 @source "../overrides/**/*.twig";
 
 /* Tokens on the values of theme.json. */
@@ -72,9 +72,9 @@ The example does not import Preflight, Tailwind's reset (`tailwindcss/preflight.
 
 ## Loading
 
-If the consumer has `src/styles.css`, the build records it in the manifest. The framework then loads `build/styles.css` on `enqueue_block_assets` with the handle `{slug}-styles`. That reaches the front end and the canvas iframes of the post and site editor, but not the main document of the editor, so the admin interface stays unstyled. `add_editor_style()` is not needed.
+If the consumer has `assets/styles.css`, the build records it in the manifest. The framework then loads `build/styles.css` on `enqueue_block_assets` with the handle `{slug}-styles`. That reaches the front end and the canvas iframes of the post and site editor, but not the main document of the editor, so the admin interface stays unstyled. `add_editor_style()` is not needed.
 
-A missing `build/styles.css` is an exception naming the file.
+A missing `build/styles.css` is an exception naming the file. A stylesheet in its former place, `src/styles.css`, is a build error, both in the manifest build and in the webpack helper.
 
 The `styles-rtl.css` that `@wordpress/scripts` writes is not used. Tailwind handles the writing direction itself, with logical properties (`ms-4`, `ps-4`) and the `rtl:` variant.
 

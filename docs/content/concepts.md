@@ -82,6 +82,14 @@ TeaserAttributes.php ──build──▶ attribute schema ──▶ register_bl
 
 [Blocks](./guides/blocks.md) and [Editor](./guides/editor.md) go into the details.
 
+## src and assets
+
+Each project has two directories for its own files. `src/` holds everything that belongs to a PHP class: the classes themselves, their Twig templates and the scripts of blocks and block supports, each next to its class (`Hero.php`, `Hero.twig`, `Hero.editor.js`, `Hero.view.js`).
+
+`assets/` holds everything that belongs to no PHP class, starting with the stylesheet `assets/styles.css` (see [Styles](./guides/styles.md)). The directory is optional and ships with the release like `src/`.
+
+A script in `src/` that sits next to no block or block support class is a build error. The webpack helper would build it, but the framework would never load it.
+
 ## Templates in layers
 
 Twig templates live in the `src/` directory of each project, next to the code that uses them. A template name is always the full path relative to `src/`, such as `Block/Teaser/Teaser.twig`.

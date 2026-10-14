@@ -10,6 +10,7 @@ use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Tests\Fixtures\Valid;
+use Saij\WpAppFramework\Tests\Support\Files;
 
 final class ManifestBuilderTest extends TestCase
 {
@@ -26,24 +27,40 @@ final class ManifestBuilderTest extends TestCase
         return new ManifestBuilder([self::fixture('Valid')])->build();
     }
 
-    public function testStylesheetInTheScriptDirectoryIsRecorded(): void
+    public function testStylesheetInTheAssetDirectoryIsRecorded(): void
+    {
+        $assets = sys_get_temp_dir() . '/wpaf-assets-' . bin2hex(random_bytes(4));
+
+        try {
+            self::assertFalse(self::buildValid()->hasStyles(), 'Without an asset directory.');
+            $result = new ManifestBuilder([self::fixture('Valid')], assetDirectory: $assets)->build();
+            self::assertFalse($result->hasStyles(), 'The asset directory does not exist.');
+            self::assertSame($assets, $result->getAssetDirectory());
+
+            mkdir($assets);
+            touch($assets . '/styles.css');
+            self::assertTrue(new ManifestBuilder([self::fixture('Valid')], assetDirectory: $assets)->build()->hasStyles());
+        } finally {
+            Files::remove($assets);
+        }
+    }
+
+    public function testStylesheetInItsFormerPlaceIsABuildError(): void
     {
         $scripts = sys_get_temp_dir() . '/wpaf-scripts-' . bin2hex(random_bytes(4));
         mkdir($scripts);
+        touch($scripts . '/styles.css');
 
         try {
-            self::assertFalse(self::buildValid()->hasStyles(), 'Without a script directory.');
-            self::assertFalse(new ManifestBuilder([self::fixture('Valid')], scriptDirectory: $scripts)->build()->hasStyles());
-
-            touch($scripts . '/styles.css');
-            $result = new ManifestBuilder([self::fixture('Valid')], scriptDirectory: $scripts)->build();
-            self::assertTrue($result->hasStyles());
-            self::assertSame($scripts, $result->getScriptDirectory());
+            new ManifestBuilder([self::fixture('Valid')], scriptDirectory: $scripts)->build();
+            self::fail('Expected a build error.');
+        } catch (BuildException $exception) {
+            self::assertSame([sprintf(
+                'The stylesheet %s/styles.css is no longer built: move it to assets/styles.css in the root of the theme or plugin and make the paths in it relative to that directory (e.g. @source "../src").',
+                $scripts,
+            )], $exception->getErrors());
         } finally {
-            if (is_file($scripts . '/styles.css')) {
-                unlink($scripts . '/styles.css');
-            }
-            rmdir($scripts);
+            Files::remove($scripts);
         }
     }
 

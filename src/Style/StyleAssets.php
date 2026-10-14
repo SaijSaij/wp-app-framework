@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Style;
 
 use LogicException;
+use Saij\WpAppFramework\Asset\AssetDirectory;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Loads the consumer's stylesheet on the front end and in the editor canvas.
  *
- * The consumer's build compiles `src/styles.css` with Tailwind into
+ * The consumer's build compiles `assets/styles.css` with Tailwind into
  * `build/styles.css` (webpack helper of the framework); the manifest records
  * whether the consumer has that file. WordPress runs enqueue_block_assets on
  * the front end and again to collect the assets of the editor iframes, with
@@ -24,8 +25,11 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 #[NoService]
 final readonly class StyleAssets
 {
-    /** The stylesheet below the consumer's script directory (`src/`). */
+    /** The stylesheet below the consumer's asset directory (`assets/`). */
     public const string SOURCE = 'styles.css';
+
+    /** Where the stylesheet was until 0.13, below the script directory (`src/`); now a build error. */
+    public const string FORMER_SOURCE = 'styles.css';
 
     /** The built stylesheet below the build directory, without extension. */
     public const string BUILD = 'styles';
@@ -40,6 +44,26 @@ final readonly class StyleAssets
         private string $buildDirectory,
         private string $buildUri,
     ) {}
+
+    /**
+     * The build error for a stylesheet in its former place, `src/styles.css`, which the framework no longer builds.
+     *
+     * @param string|null $scriptDirectory The consumer's `src/`; null without one.
+     * @return list<string>
+     */
+    public static function sourceErrors(?string $scriptDirectory): array
+    {
+        if ($scriptDirectory === null || !is_file($scriptDirectory . '/' . self::FORMER_SOURCE)) {
+            return [];
+        }
+
+        return [sprintf(
+            'The stylesheet %s is no longer built: move it to %s/%s in the root of the theme or plugin and make the paths in it relative to that directory (e.g. @source "../src").',
+            $scriptDirectory . '/' . self::FORMER_SOURCE,
+            AssetDirectory::NAME,
+            self::SOURCE,
+        )];
+    }
 
     /**
      * @return non-empty-string
@@ -60,7 +84,8 @@ final readonly class StyleAssets
         foreach ([$file, $assetFile] as $required) {
             if (!is_file($required)) {
                 throw new LogicException(sprintf(
-                    'The styles of src/%s are not built: %s is missing. Run "npm run build" (or "npm run start") in the theme or plugin %s.',
+                    'The styles of %s/%s are not built: %s is missing. Run "npm run build" (or "npm run start") in the theme or plugin %s.',
+                    AssetDirectory::NAME,
                     self::SOURCE,
                     $required,
                     $this->slug,

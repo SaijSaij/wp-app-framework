@@ -9,7 +9,7 @@ PHP/JS library (Composer `saij/wp-app-framework`, namespace `Saij\WpAppFramework
 1. **No markup in post content.** Every block renders on the server. `post_content` holds block comments with JSON attributes; block supports are attributes too. Sole exception: at most one `#[RichText(postContent: true)]` field per block, stored as inline HTML without wrapping element between the comments (`source: html` without selector). No other attribute uses `source: html|attribute|text`; markup lives in Twig only.
 2. **Inline editing in the editor canvas is mandatory.**
 3. **Full site editing.** Pages are block templates (`templates/*.html`) and template parts (`parts/*.html`). Twig renders block markup and markup fragments of consumer code (mails, HTML responses), never page layouts.
-4. **Twig for block markup, Tailwind (v4) for styling.** The framework provides the build (`src/styles.css` → `build/styles.css` in the webpack helper) and loads the result; tokens and their mapping to WordPress' preset variables belong to the theme. The framework ships no CSS for the front end.
+4. **Twig for block markup, Tailwind (v4) for styling.** The framework provides the build (`assets/styles.css` → `build/styles.css` in the webpack helper) and loads the result; tokens and their mapping to WordPress' preset variables belong to the theme. The framework ships no CSS for the front end.
 5. **Plain WordPress:** no Bedrock, no Composer on the server.
 6. **Everything that can be expressed as a value** (colors, spacing, variants, order) is configurable in the backend; new block types, roles and layout structures stay code.
 

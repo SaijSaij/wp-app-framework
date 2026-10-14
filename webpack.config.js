@@ -10,8 +10,9 @@
  * - the consumer's view scripts next to its code (src/Block/Faq/Faq.view.js →
  *   build/Block/Faq/Faq.view.js); the class each exports by default is assigned to
  *   wpAppFramework[slug].views['Block/Faq/Faq.view'], where the view runtime finds it,
- * - the consumer's stylesheet, if it has one: src/styles.css → build/styles.css, compiled
+ * - the consumer's stylesheet, if it has one: assets/styles.css → build/styles.css, compiled
  *   with Tailwind CSS (`tailwindcss` and `@tailwindcss/webpack`, installed by the consumer).
+ *   Until 0.13 the stylesheet was src/styles.css; a file there fails the build.
  *
  * Imports of `@saij/wp-app-framework` resolve to the runtime of the same instance
  * (global `wpAppFramework[slug]`, script handle `{slug}-wp-app-framework`), imports of
@@ -43,6 +44,8 @@ const IMPORT_NAME = '@saij/wp-app-framework';
 const VIEW_IMPORT_NAME = '@saij/wp-app-framework/view';
 const STYLES_ENTRY = 'styles';
 const STYLES_SOURCE = 'styles.css';
+/** Directory of the consumer for everything without a PHP class: stylesheet, scripts without a block, static files. */
+const ASSET_DIRECTORY = 'assets';
 
 /** Major version of Tailwind CSS the stylesheet is built with (peer dependency). */
 const TAILWIND_MAJOR = 4;
@@ -231,8 +234,15 @@ module.exports = function createConfig( { slug, root } = {} ) {
 		'@wordpress/dependency-extraction-webpack-plugin'
 	);
 
+	const formerStyles = path.join( root, 'src', STYLES_SOURCE );
+	if ( fs.existsSync( formerStyles ) ) {
+		throw new Error(
+			`wp-app-framework: ${ formerStyles } is no longer built; move it to ${ ASSET_DIRECTORY }/${ STYLES_SOURCE } and make the paths in it relative to that directory (e.g. @source "../src").`
+		);
+	}
+
 	// Checked once: after adding or removing the stylesheet, restart the watcher.
-	const styles = path.join( root, 'src', STYLES_SOURCE );
+	const styles = path.join( root, ASSET_DIRECTORY, STYLES_SOURCE );
 	const tailwind = fs.existsSync( styles )
 		? tailwindRule( defaults, styles, root, fromRoot )
 		: null;

@@ -78,7 +78,7 @@ final class StyleAssetsTest extends TestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(sprintf(
-            'The styles of src/styles.css are not built: %s/styles.css is missing. Run "npm run build" (or "npm run start") in the theme or plugin my-theme.',
+            'The styles of assets/styles.css are not built: %s/styles.css is missing. Run "npm run build" (or "npm run start") in the theme or plugin my-theme.',
             $this->build,
         ));
 

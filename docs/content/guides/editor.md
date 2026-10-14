@@ -184,7 +184,7 @@ The build writes to `build/`, each file with its `.asset.php`:
 | `build/vendor/wp-app-framework/view.js` | the view runtime: base classes of [front-end scripts](./frontend.md), starts their views; loaded with them on the front end and with the runtime in the editor |
 | `build/Block/Hero/Hero.editor.js` | editor scripts, mirrored from `src/` |
 | `build/Block/Faq/Faq.view.js` | front-end scripts (view scripts), mirrored from `src/` |
-| `build/styles.css` | the consumer's `src/styles.css`, if it has one, compiled with Tailwind (see [Styles](./styles.md)) |
+| `build/styles.css` | the consumer's `assets/styles.css`, if it has one, compiled with Tailwind (see [Styles](./styles.md)) |
 
 Without a build, the editor fails with an exception that names the missing file. A consumer without blocks, settings and post meta loads no script and needs no build.
 

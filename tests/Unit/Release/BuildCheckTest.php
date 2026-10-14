@@ -103,7 +103,7 @@ final class BuildCheckTest extends ReleaseTestCase
         self::assertSame(
             [
                 'build/vendor/wp-app-framework/settings.asset.php (settings page (settings groups))',
-                'build/styles.css (stylesheet (src/styles.css))',
+                'build/styles.css (stylesheet (assets/styles.css))',
             ],
             $this->missing(self::manifest(groups: [['name' => 'general']], styles: true)),
         );

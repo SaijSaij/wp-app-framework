@@ -15,25 +15,26 @@ const roots = [];
  * A consumer directory whose node_modules links to packages of the framework's node_modules.
  *
  * @param {Object}                 options
- * @param {boolean}                options.styles   Whether the consumer has src/styles.css.
+ * @param {boolean}                options.styles   Whether the consumer has assets/styles.css.
  * @param {Array<string>}          options.packages Packages installed in the consumer.
  * @param {Object<string, string>} [options.files]  Further files below src/ by path, with their content.
+ * @param {Object<string, string>} [options.assets] Further files below assets/ by path, with their content.
  * @return {string} Root directory of the consumer.
  */
-function consumer( { styles, packages, files = {} } ) {
+function consumer( { styles, packages, files = {}, assets = {} } ) {
 	const root = fs.mkdtempSync( path.join( os.tmpdir(), 'wpaf-webpack-' ) );
 	roots.push( root );
 	fs.writeFileSync( path.join( root, 'package.json' ), '{}' );
 	fs.mkdirSync( path.join( root, 'src' ) );
-	if ( styles ) {
-		fs.writeFileSync( path.join( root, 'src', 'styles.css' ), '' );
-	}
-	for ( const [ file, content ] of Object.entries( files ) ) {
-		fs.mkdirSync( path.dirname( path.join( root, 'src', file ) ), {
-			recursive: true,
-		} );
-		fs.writeFileSync( path.join( root, 'src', file ), content );
-	}
+	const write = ( directory, entries ) => {
+		for ( const [ file, content ] of Object.entries( entries ) ) {
+			const target = path.join( root, directory, file );
+			fs.mkdirSync( path.dirname( target ), { recursive: true } );
+			fs.writeFileSync( target, content );
+		}
+	};
+	write( 'src', files );
+	write( 'assets', styles ? { ...assets, 'styles.css': '' } : assets );
 	for ( const name of packages ) {
 		const link = path.join( root, 'node_modules', name );
 		fs.mkdirSync( path.dirname( link ), { recursive: true } );
@@ -74,7 +75,7 @@ describe( 'webpack helper', () => {
 		);
 	} );
 
-	it( 'builds no stylesheet and needs no Tailwind without src/styles.css', () => {
+	it( 'builds no stylesheet and needs no Tailwind without assets/styles.css', () => {
 		const root = consumer( { styles: false, packages: TOOLCHAIN } );
 		const config = createConfig( { slug: 'my-theme', root } );
 
@@ -86,12 +87,12 @@ describe( 'webpack helper', () => {
 		).toBe( false );
 	} );
 
-	it( 'compiles src/styles.css with Tailwind instead of PostCSS', () => {
+	it( 'compiles assets/styles.css with Tailwind instead of PostCSS', () => {
 		const root = consumer( {
 			styles: true,
 			packages: [ ...TOOLCHAIN, ...TAILWIND ],
 		} );
-		const styles = path.join( root, 'src', 'styles.css' );
+		const styles = path.join( root, 'assets', 'styles.css' );
 		const config = createConfig( { slug: 'my-theme', root } );
 
 		expect( config.entry().styles ).toBe( styles );
@@ -112,6 +113,18 @@ describe( 'webpack helper', () => {
 		expect( loaders[ 2 ] ).toContain( '@tailwindcss/webpack' );
 		expect( loaders ).toHaveLength( 3 );
 		expect( stylesRule.use[ 2 ].options ).toEqual( { base: root } );
+	} );
+
+	it( 'fails for a stylesheet in its former place, src/styles.css', () => {
+		const root = consumer( {
+			styles: false,
+			packages: [ ...TOOLCHAIN, ...TAILWIND ],
+			files: { 'styles.css': '' },
+		} );
+
+		expect( () => createConfig( { slug: 'my-theme', root } ) ).toThrow(
+			'src/styles.css is no longer built; move it to assets/styles.css'
+		);
 	} );
 
 	it( 'names the packages to install if Tailwind is missing', () => {

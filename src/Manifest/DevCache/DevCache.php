@@ -29,7 +29,8 @@ use Throwable;
  *
  * Next to the manifest, a meta file lists the resources the build depended on:
  * the file lists of the source directories, files whose content matters, the
- * file lists of the directories with block markup (also if they are missing) and,
+ * file lists of the directories with block markup and of the asset directory
+ * (also if they are missing) and,
  * per scanned class, its files and signature hash. A request compares file
  * modification times with the manifest; only for newer files the content hash
  * or class signature is recomputed, and only a difference triggers a rebuild.
@@ -49,13 +50,14 @@ use Throwable;
  *     directories: list<array{0: string, 1: string, 2: string}>,
  *     files: list<array{0: string, 1: string, 2: string}>,
  *     markup: list<array{0: string, 1: string, 2: string}>,
+ *     assets: list<array{0: string, 1: string, 2: string}>,
  *     classes: array<class-string, array{files: list<PathRef>, signature: string}>
  * }
  */
 #[NoService]
 final class DevCache
 {
-    private const int META_FORMAT = 2;
+    private const int META_FORMAT = 3;
 
     /** @var array<string, array{listing: string, entries: list<string>}> Walked directories of this request. */
     private array $scans = [];
@@ -109,7 +111,15 @@ final class DevCache
      */
     public function getSourceEntries(): array
     {
-        return array_map(fn(string $directory): array => [$directory, $this->scan($directory)['entries']], $this->getSourceDirectories());
+        $entries = array_map(fn(string $directory): array => [$directory, $this->scan($directory)['entries']], $this->getSourceDirectories());
+        foreach ($this->readMeta($this->metaFile())['assets'] ?? [] as [$base, $relative]) {
+            $directory = $this->absolute($base, $relative);
+            if (is_dir($directory)) {
+                $entries[] = [$directory, $this->scan($directory)['entries']];
+            }
+        }
+
+        return $entries;
     }
 
     public function isFresh(): bool
@@ -138,6 +148,12 @@ final class DevCache
 
         foreach ($meta['markup'] as [$base, $relative, $hash]) {
             if (self::markupListingHash($this->absolute($base, $relative)) !== $hash) {
+                return false;
+            }
+        }
+
+        foreach ($meta['assets'] as [$base, $relative, $hash]) {
+            if (self::assetListingHash($this->absolute($base, $relative)) !== $hash) {
                 return false;
             }
         }
@@ -219,7 +235,7 @@ final class DevCache
     private function meta(BuildResult $result): array
     {
         $listed = array_map(static fn(Source $source): string => $source->getDirectory(), $result->getSources());
-        // The script directory decides whether the consumer has a stylesheet; it is usually a source directory as well.
+        // A stylesheet in the script directory is a build error; it is usually a source directory as well.
         $scriptDirectory = $result->getScriptDirectory();
         if ($scriptDirectory !== null && !in_array($scriptDirectory, $listed, true)) {
             $listed[] = $scriptDirectory;
@@ -236,6 +252,11 @@ final class DevCache
                 $markup[] = [...$this->relative($directory), self::markupListingHash($directory)];
             }
             $trackedFiles = [...$trackedFiles, ...$result->getMarkup()->getAbsoluteFiles()];
+        }
+
+        $assets = [];
+        if ($result->getAssetDirectory() !== null) {
+            $assets[] = [...$this->relative($result->getAssetDirectory()), self::assetListingHash($result->getAssetDirectory())];
         }
 
         $files = [];
@@ -270,6 +291,7 @@ final class DevCache
             'directories' => $directories,
             'files' => $files,
             'markup' => $markup,
+            'assets' => $assets,
             'classes' => $classes,
         ];
     }
@@ -345,8 +367,9 @@ final class DevCache
             sort($relatives, SORT_STRING);
             array_push($listing, ...$relatives);
         }
-        if (is_file($directory . '/' . StyleAssets::SOURCE)) {
-            $listing[] = StyleAssets::SOURCE;
+        // The stylesheet in its former place, src/styles.css, is a build error.
+        if (is_file($directory . '/' . StyleAssets::FORMER_SOURCE)) {
+            $listing[] = StyleAssets::FORMER_SOURCE;
         }
 
         return $this->scans[$directory] = ['listing' => hash('xxh128', implode("\n", $listing)), 'entries' => $entries];
@@ -363,6 +386,29 @@ final class DevCache
         }
 
         return hash('xxh128', implode("\n", is_dir($directory) ? ClassDiscovery::files($directory, '') : ['']));
+    }
+
+    /**
+     * Hash of the names of all files below the asset directory (stylesheet, scripts without a class, static files),
+     * hidden files left out; a missing directory has a hash of its own, so that creating it rebuilds the manifest.
+     */
+    private static function assetListingHash(string $directory): string
+    {
+        if (!is_dir($directory)) {
+            return 'missing';
+        }
+        $names = [];
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
+        /** @var SplFileInfo $file */
+        foreach ($files as $file) {
+            $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($directory) + 1));
+            if ($file->isFile() && !preg_match('#(^|/)\.#', $relative)) {
+                $names[] = $relative;
+            }
+        }
+        sort($names, SORT_STRING);
+
+        return hash('xxh128', implode("\n", $names));
     }
 
     private function manifestFile(): string

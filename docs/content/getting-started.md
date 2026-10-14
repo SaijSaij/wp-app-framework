@@ -21,15 +21,16 @@ my-theme/
 ├── theme.json
 ├── templates/index.html
 ├── webpack.config.js
+├── assets/
+│   └── styles.css
 └── src/
-    ├── styles.css
     └── Block/Teaser/
         ├── Teaser.php
         ├── TeaserAttributes.php
         └── Teaser.twig
 ```
 
-`style.css`, `theme.json` and `templates/index.html` are the same as in any block theme. `composer.json` and `functions.php` bring in the framework and start it. `package.json` and `webpack.config.js` build the JavaScript for the editor and the stylesheet. Your own code lives in `src/`.
+`style.css`, `theme.json` and `templates/index.html` are the same as in any block theme. `composer.json` and `functions.php` bring in the framework and start it. `package.json` and `webpack.config.js` build the JavaScript for the editor and the stylesheet. Your own code lives in `src/`; the stylesheet lives in `assets/`, the directory for everything that belongs to no PHP class.
 
 ### composer.json
 
@@ -139,15 +140,15 @@ module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( 
 } );
 ```
 
-### src/styles.css
+### assets/styles.css
 
-Blocks are styled with Tailwind CSS. If the theme has a `src/styles.css`, the build compiles it with Tailwind, and the framework loads it on the front end and in the editor canvas. The stylesheet maps Tailwind's tokens to the values of `theme.json`. Here `bg-primary` uses the color `primary`, which `theme.json` defines:
+Blocks are styled with Tailwind CSS. If the theme has an `assets/styles.css`, the build compiles it with Tailwind, and the framework loads it on the front end and in the editor canvas. The stylesheet maps Tailwind's tokens to the values of `theme.json`. Here `bg-primary` uses the color `primary`, which `theme.json` defines:
 
 ```css
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
-@source "./**/*.twig";
+@source "../src/**/*.twig";
 
 @theme inline {
 	--color-primary: var(--wp--preset--color--primary);

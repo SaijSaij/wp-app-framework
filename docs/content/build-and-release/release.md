@@ -34,7 +34,7 @@ The command works on a copy in the system's temporary directory and never change
    | view scripts | `vendor/wp-app-framework/view.asset.php` (view runtime) |
    | settings groups | `vendor/wp-app-framework/settings.asset.php` (settings page) |
    | post meta | `vendor/wp-app-framework/meta-box.asset.php` (meta boxes) |
-   | `src/styles.css` | `styles.css` |
+   | `assets/styles.css` | `styles.css` |
 
    A missing file stops the release with a list of the missing files and what needs them. A project without blocks, post meta, settings and stylesheet needs no `package.json`; one with them needs a `package.json` with a `build` script and a `webpack.config.js` with the framework's webpack helper.
 

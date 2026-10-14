@@ -218,21 +218,22 @@ final class DevCacheTest extends TestCase
         self::assertSame('stale', $this->probe('check'));
 
         // Whether a block has an editor script is part of the manifest.
+        $this->writeSource('Probe.php', "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Block;\nuse Saij\\WpAppFramework\\Block\\BlockCategory;\n\n#[Block('probe', title: 'Probe', category: BlockCategory::Text)]\nfinal class Probe\n{\n    public function render(): string\n    {\n        return '<div>Probe</div>';\n    }\n}\n");
         $this->probe('load');
-        file_put_contents($this->theme . '/src/Hooks.editor.js', '');
+        file_put_contents($this->theme . '/src/Probe.editor.js', '');
         self::assertSame('stale', $this->probe('check'));
 
         $this->probe('load');
-        unlink($this->theme . '/src/Hooks.editor.js');
+        unlink($this->theme . '/src/Probe.editor.js');
         self::assertSame('stale', $this->probe('check'));
 
         // So is whether it has a view script.
         $this->probe('load');
-        file_put_contents($this->theme . '/src/Hooks.view.js', '');
+        file_put_contents($this->theme . '/src/Probe.view.js', '');
         self::assertSame('stale', $this->probe('check'));
 
         $this->probe('load');
-        unlink($this->theme . '/src/Hooks.view.js');
+        unlink($this->theme . '/src/Probe.view.js');
         self::assertSame('stale', $this->probe('check'));
     }
 
@@ -280,19 +281,35 @@ final class DevCacheTest extends TestCase
         self::assertSame('no styles', $this->probe('load-styles'));
         self::assertSame('fresh', $this->probe('check'));
 
-        file_put_contents($this->theme . '/src/styles.css', '');
+        // Creating the asset directory alone rebuilds: it holds scripts and static files as well.
+        mkdir($this->theme . '/assets');
+        self::assertSame('stale', $this->probe('check'));
+        self::assertSame('no styles', $this->probe('load-styles'));
+
+        file_put_contents($this->theme . '/assets/styles.css', '');
         self::assertSame('stale', $this->probe('check'));
         self::assertSame('styles', $this->probe('load-styles'));
         self::assertSame('fresh', $this->probe('check'));
 
         // Only the presence of the stylesheet matters, not its content.
-        file_put_contents($this->theme . '/src/styles.css', '.a {}');
-        touch($this->theme . '/src/styles.css', time() + 10);
+        file_put_contents($this->theme . '/assets/styles.css', '.a {}');
+        touch($this->theme . '/assets/styles.css', time() + 10);
         self::assertSame('fresh', $this->probe('check'));
 
-        unlink($this->theme . '/src/styles.css');
+        // Hidden files are no assets.
+        touch($this->theme . '/assets/.gitkeep');
+        self::assertSame('fresh', $this->probe('check'));
+
+        unlink($this->theme . '/assets/styles.css');
         self::assertSame('stale', $this->probe('check'));
         self::assertSame('no styles', $this->probe('load-styles'));
+    }
+
+    public function testStylesheetInItsFormerPlaceRebuilds(): void
+    {
+        $this->probe('load');
+        file_put_contents($this->theme . '/src/styles.css', '');
+        self::assertSame('stale', $this->probe('check'));
     }
 
     public function testParentClassesOutsideTheSourcesAreNotTracked(): void

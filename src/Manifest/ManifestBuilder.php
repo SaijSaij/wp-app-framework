@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework\Manifest;
 use ReflectionClass;
 use Saij\WpAppFramework\Api\PublicApiCollector;
 use Saij\WpAppFramework\Api\PublicSignatureInspector;
+use Saij\WpAppFramework\Asset\AssetDirectory;
+use Saij\WpAppFramework\Asset\OrphanScripts;
 use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\Block\Markup\BlockMarkupValidator;
 use Saij\WpAppFramework\Block\Markup\MarkupFiles;
@@ -79,6 +81,9 @@ final class ManifestBuilder
      *                                                  so that older code leaves tables synced by newer code alone.
      * @param string|null            $pluginDirectory   Directory of a plugin, which must not have an `uninstall.php`;
      *                                                  null for themes and fixtures.
+     * @param string|null            $assetDirectory    The consumer's `assets/` directory, also if it does not exist yet
+     *                                                  (scripts and styles without a PHP class, static files); null for
+     *                                                  builds of fixtures.
      */
     public function __construct(
         private readonly array $sources,
@@ -95,6 +100,7 @@ final class ManifestBuilder
         private readonly string $namespace = self::FIXTURE_NAMESPACE,
         private readonly ?string $version = null,
         private readonly ?string $pluginDirectory = null,
+        private readonly ?string $assetDirectory = null,
     ) {}
 
     /**
@@ -151,6 +157,7 @@ final class ManifestBuilder
             $project->getNamespace(),
             version: $project->getVersion(),
             pluginDirectory: $project->getKind() === ProjectKind::Plugin ? $root : null,
+            assetDirectory: $root . '/' . AssetDirectory::NAME,
         );
     }
 
@@ -257,6 +264,8 @@ final class ManifestBuilder
             ...$tableFieldsCollector->errors(),
             ...$values->errors(),
             ...$resolver->errors(),
+            ...StyleAssets::sourceErrors($this->scriptDirectory),
+            ...OrphanScripts::errors($classes, $this->scriptDirectory),
         ];
         if ($errors !== []) {
             throw new BuildException($errors);
@@ -280,7 +289,7 @@ final class ManifestBuilder
             $templateProviders,
             $this->parent,
             $this->scriptDirectory,
-            $this->scriptDirectory !== null && is_file($this->scriptDirectory . '/' . StyleAssets::SOURCE),
+            $this->assetDirectory !== null && is_file($this->assetDirectory . '/' . StyleAssets::SOURCE),
             $settings,
             $settings === [] ? null : $this->name,
             $markup,
@@ -291,6 +300,7 @@ final class ManifestBuilder
             cliCommands: $cliCommands,
             tables: $tables,
             lifecycle: $lifecycle,
+            assetDirectory: $this->assetDirectory,
         );
     }
 

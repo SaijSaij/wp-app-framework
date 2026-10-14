@@ -59,7 +59,7 @@ final readonly class BuildResult
      * @param non-empty-string|null                             $parent       Parent theme of a child theme.
      * @param string|null                                       $scriptDirectory Directory the consumer's build compiles scripts and
      *                                                                         styles from (its `src/`).
-     * @param bool                                              $styles       The consumer has a stylesheet (`src/styles.css`).
+     * @param bool                                              $styles       The consumer has a stylesheet (`assets/styles.css`).
      * @param list<SettingsGroupEntry>                          $settings     Settings groups, ordered for the settings page.
      * @param string|null                                       $settingsTitle Title of the settings page (name of the theme or
      *                                                                         plugin); null without settings groups.
@@ -75,6 +75,8 @@ final readonly class BuildResult
      *                                                                         structure and the version of the project.
      * @param LifecycleData                                     $lifecycle    Methods with #[OnActivation], #[OnDeactivation] and
      *                                                                         #[OnUninstall].
+     * @param string|null                                       $assetDirectory The consumer's `assets/` directory, also if it
+     *                                                                         does not exist; null for builds of fixtures.
      */
     public function __construct(
         private array $sources,
@@ -105,7 +107,13 @@ final readonly class BuildResult
         private array $cliCommands = [],
         private array $tables = ['schema' => null, 'version' => null, 'classes' => []],
         private array $lifecycle = ['activation' => [], 'deactivation' => [], 'uninstall' => []],
+        private ?string $assetDirectory = null,
     ) {}
+
+    public function getAssetDirectory(): ?string
+    {
+        return $this->assetDirectory;
+    }
 
     /**
      * @return LifecycleData
