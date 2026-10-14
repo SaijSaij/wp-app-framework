@@ -47,6 +47,7 @@ use Saij\WpAppFramework\Table\TableStore;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\View\ViewAssets;
+use Saij\WpAppFramework\View\ViewData;
 use Saij\WpAppFramework\WpCli\CliRegistrar;
 use Twig\Environment;
 
@@ -219,9 +220,10 @@ final readonly class Instance
             'file' => new FileBackend($cacheDirectory . '/data'),
             'transient' => new TransientBackend($prefix),
         ];
+        $viewData = new ViewData($this->slug, $debug);
         $container = new Container(
             $manifest['services'],
-            [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext, PostStore::class => $postStore],
+            [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext, PostStore::class => $postStore, ViewData::class => $viewData],
             [
                 CacheStore::class => static fn(Container $container): CacheStore => new CacheStore($slug, $backends, $tagVersions, $generation, $container, $tagNames),
                 CronScheduler::class => static fn(): CronScheduler => new CronScheduler(CronRegistrar::taskHooks($slug, $cronTasks)),
@@ -289,8 +291,10 @@ final readonly class Instance
             $renderController->register();
         });
 
-        $buildAssets = new BuildAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
-        $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug, $this->slug, new ViewAssets($this->slug, $buildAssets), $cache);
+        $scripts = $manifest['scripts'];
+        $buildAssets = new BuildAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY, $scripts['shared']);
+        $viewAssets = new ViewAssets($this->slug, $buildAssets);
+        $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug, $this->slug, $viewAssets, $cache, $viewData);
         add_action('init', static function () use ($blockRegistrar, $blocks, $blockCategories): void {
             $blockRegistrar->register($blocks, $blockCategories);
         });
@@ -326,8 +330,17 @@ final readonly class Instance
             $development,
             $manifest['namespace'],
             $postStore,
+            $scripts['editorScripts'],
+            $scripts['shared'],
         );
         add_action('enqueue_block_editor_assets', $editorAssets->enqueue(...));
+        add_action('enqueue_block_editor_assets', static fn() => $editorAssets->printData($viewData), PHP_INT_MAX);
+        $documentViews = $scripts['documentViews'];
+        if ($documentViews !== []) {
+            add_action('wp_enqueue_scripts', static fn() => $viewAssets->enqueueDocumentViews($documentViews));
+        }
+        // Before WordPress prints the footer scripts (_wp_footer_scripts, priority 10).
+        add_action('wp_print_footer_scripts', static fn() => $viewAssets->printData($viewData), 9);
         add_action('enqueue_block_assets', $editorAssets->enqueueCanvas(...));
         if ($manifest['styles']) {
             $styleAssets = new StyleAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);

@@ -86,7 +86,7 @@ TeaserAttributes.php ──build──▶ attribute schema ──▶ register_bl
 
 Each project has two directories for its own files. `src/` holds everything that belongs to a PHP class: the classes themselves, their Twig templates and the scripts of blocks and block supports, each next to its class (`Hero.php`, `Hero.twig`, `Hero.editor.js`, `Hero.view.js`).
 
-`assets/` holds everything that belongs to no PHP class, starting with the stylesheet `assets/styles.css` (see [Styles](./guides/styles.md)). The directory is optional and ships with the release like `src/`.
+`assets/` holds everything that belongs to no PHP class: the stylesheet `assets/styles.css` (see [Styles](./guides/styles.md)), scripts for the whole page (`*.view.js`, see [Scripts for the whole page](./guides/frontend.md#scripts-for-the-whole-page)), editor scripts without a block (`*.editor.js`, see [Editor](./guides/editor.md#editor-scripts-without-a-block)) and modules shared between scripts (`assets/shared/`, see [Shared modules](./guides/frontend.md#shared-modules)). The directory is optional and ships with the release like `src/`.
 
 A script in `src/` that sits next to no block or block support class is a build error. The webpack helper would build it, but the framework would never load it.
 

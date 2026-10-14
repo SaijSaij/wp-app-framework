@@ -6,18 +6,28 @@
  * Provides the base classes as wpAppFramework[slug].view (the import
  * `@saij/wp-app-framework/view` of view scripts), and, for the editor runtime,
  * wpAppFramework[slug].viewRuntime. On the front end it mounts the views of the
- * instance on DOMContentLoaded, after the deferred view scripts have run.
+ * instance on DOMContentLoaded, after the deferred view scripts have run: first
+ * its document views (wpAppFramework[slug].documentViews, printed by the
+ * server), then the views of its blocks.
  */
 /* global WP_APP_FRAMEWORK_SLUG */
-import { mountWithin } from './view/mount';
-import { BlockView, SupportView } from './view/view';
+import { getData } from './view/data';
+import { loadScript } from './view/load-script';
+import { mountDocumentViews, mountWithin } from './view/mount';
+import { BlockView, DocumentView, SupportView } from './view/view';
 
 const slug = WP_APP_FRAMEWORK_SLUG;
 window.wpAppFramework = window.wpAppFramework || {};
 const instance = ( window.wpAppFramework[ slug ] =
 	window.wpAppFramework[ slug ] || {} );
 
-instance.view = { BlockView, SupportView };
+instance.view = {
+	BlockView,
+	SupportView,
+	DocumentView,
+	loadScript,
+	getData: ( key ) => getData( slug, key ),
+};
 instance.viewRuntime = {
 	mountWithin: ( root, options ) =>
 		mountWithin( slug, instance.views, root, options ),
@@ -29,6 +39,12 @@ function mountDocument() {
 		return;
 	}
 	mounted = true;
+	mountDocumentViews(
+		slug,
+		instance.views,
+		instance.documentViews ?? [],
+		document
+	);
 	mountWithin( slug, instance.views, document.documentElement, {
 		isPreview: false,
 	} );

@@ -8,6 +8,7 @@ use ReflectionClass;
 use Saij\WpAppFramework\Api\PublicApiCollector;
 use Saij\WpAppFramework\Api\PublicSignatureInspector;
 use Saij\WpAppFramework\Asset\AssetDirectory;
+use Saij\WpAppFramework\Asset\AssetScripts;
 use Saij\WpAppFramework\Asset\OrphanScripts;
 use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\Block\Markup\BlockMarkupValidator;
@@ -47,6 +48,7 @@ use Saij\WpAppFramework\Twig\TemplateCallableCollector;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
+use Saij\WpAppFramework\View\ViewData;
 use Saij\WpAppFramework\WpCli\CliCommandCollector;
 use Throwable;
 
@@ -144,6 +146,7 @@ final class ManifestBuilder
                 RenderContext::class,
                 CacheStore::class,
                 CronScheduler::class,
+                ViewData::class,
             ],
             $scriptDirectory === false ? null : $scriptDirectory,
             $project->getKind(),
@@ -243,6 +246,8 @@ final class ManifestBuilder
         $templateCallables = $templateCallableCollector->collect($classes);
         $publicApiCollector = new PublicApiCollector($resolver, $signatures, $this->kind);
         $publicApis = $publicApiCollector->collect($classes);
+        $assetScripts = new AssetScripts($this->slug);
+        $scripts = $assetScripts->collect($this->assetDirectory);
 
         $errors = [
             ...$errors,
@@ -264,6 +269,7 @@ final class ManifestBuilder
             ...$tableFieldsCollector->errors(),
             ...$values->errors(),
             ...$resolver->errors(),
+            ...$assetScripts->errors(),
             ...StyleAssets::sourceErrors($this->scriptDirectory),
             ...OrphanScripts::errors($classes, $this->scriptDirectory),
         ];
@@ -301,6 +307,7 @@ final class ManifestBuilder
             tables: $tables,
             lifecycle: $lifecycle,
             assetDirectory: $this->assetDirectory,
+            scripts: $scripts,
         );
     }
 

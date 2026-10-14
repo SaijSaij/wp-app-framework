@@ -28,10 +28,11 @@ The command works on a copy in the system's temporary directory and never change
 
    | The project has | It needs in `build/` |
    |---|---|
-   | blocks or post meta | `vendor/wp-app-framework/editor.asset.php` (editor runtime) |
+   | blocks, post meta or editor scripts in `assets/` | `vendor/wp-app-framework/editor.asset.php` (editor runtime) |
    | blocks | `vendor/wp-app-framework/canvas.asset.php` (canvas styles) |
    | an editor or view script of a block or block support | that script's `.asset.php` |
-   | view scripts | `vendor/wp-app-framework/view.asset.php` (view runtime) |
+   | a document view, an editor script or a shared module in `assets/` | that script's `.asset.php` below `assets/` |
+   | view scripts or document views | `vendor/wp-app-framework/view.asset.php` (view runtime) |
    | settings groups | `vendor/wp-app-framework/settings.asset.php` (settings page) |
    | post meta | `vendor/wp-app-framework/meta-box.asset.php` (meta boxes) |
    | `assets/styles.css` | `styles.css` |

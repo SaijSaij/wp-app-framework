@@ -18,8 +18,9 @@ use Saij\WpAppFramework\View\ViewAssets;
  * Checks that the build directory of a release holds every built file the
  * framework loads at run time according to the manifest: the editor runtime
  * and canvas styles for blocks, the editor and view scripts of blocks and
- * block supports, the view runtime, the settings page, the meta boxes and the
- * stylesheet. Without the check a release without its scripts would fail
+ * block supports, the scripts in the asset directory (document views, editor
+ * scripts, shared modules), the view runtime, the settings page, the meta
+ * boxes and the stylesheet. Without the check a release without its scripts would fail
  * only on the page that needs them (BuildAssets::asset()).
  *
  * @internal
@@ -41,7 +42,7 @@ final class BuildCheck
         $blocks = $manifest['blocks'];
         $meta = $manifest['meta'];
         if ($blocks !== [] || $meta !== []) {
-            $required[EditorAssets::RUNTIME . '.asset.php'] = 'editor runtime (blocks or post meta)';
+            $required[EditorAssets::RUNTIME . '.asset.php'] = 'editor runtime (blocks, post meta or editor scripts)';
         }
         if ($blocks !== []) {
             $required[EditorAssets::CANVAS . '.asset.php'] = 'canvas styles of the editor (blocks)';
@@ -64,6 +65,18 @@ final class BuildCheck
                     $views = true;
                 }
             }
+        }
+        $scripts = $manifest['scripts'];
+        foreach ($scripts['documentViews'] as $script) {
+            $required[$script . '.asset.php'] = 'document view';
+            $views = true;
+        }
+        foreach ($scripts['editorScripts'] as $script) {
+            $required[$script . '.asset.php'] = 'editor script without a block';
+            $required[EditorAssets::RUNTIME . '.asset.php'] = 'editor runtime (blocks, post meta or editor scripts)';
+        }
+        foreach ($scripts['shared'] as $name => $script) {
+            $required[$script . '.asset.php'] = sprintf('shared module #shared/%s', $name);
         }
         if ($views) {
             $required[ViewAssets::RUNTIME . '.asset.php'] = 'view runtime (view scripts)';

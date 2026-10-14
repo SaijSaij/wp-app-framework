@@ -22,6 +22,7 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  * @internal
  *
  * @phpstan-import-type HookArgument from HookDefinition
+ * @phpstan-import-type ScriptsData from \Saij\WpAppFramework\Asset\AssetScripts
  * @phpstan-import-type RestArgument from RestRouteDefinition
  * @phpstan-import-type RestPermission from RestRouteDefinition
  * @phpstan-import-type TemplateCallableEntry from TemplateRenderer
@@ -105,13 +106,14 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  *     cronTasks: list<CronTaskEntry>,
  *     cliCommands: list<CliCommandEntry>,
  *     tables: TablesData,
- *     lifecycle: LifecycleData
+ *     lifecycle: LifecycleData,
+ *     scripts: ScriptsData
  * }
  */
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 23;
+    public const int FORMAT = 24;
 
     /**
      * @return ManifestData

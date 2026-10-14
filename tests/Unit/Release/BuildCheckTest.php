@@ -15,11 +15,18 @@ final class BuildCheckTest extends ReleaseTestCase
      * @param list<array<string, mixed>> $blocks
      * @param array<string, mixed>       $meta
      * @param list<array<string, mixed>> $groups
+     * @param array<string, mixed>       $scripts
      * @return array<string, mixed>
      */
-    private static function manifest(array $blocks = [], array $meta = [], array $groups = [], bool $styles = false): array
+    private static function manifest(array $blocks = [], array $meta = [], array $groups = [], bool $styles = false, array $scripts = []): array
     {
-        return ['blocks' => $blocks, 'meta' => $meta, 'settings' => ['title' => null, 'groups' => $groups], 'styles' => $styles];
+        return [
+            'blocks' => $blocks,
+            'meta' => $meta,
+            'settings' => ['title' => null, 'groups' => $groups],
+            'styles' => $styles,
+            'scripts' => [...['documentViews' => [], 'editorScripts' => [], 'shared' => []], ...$scripts],
+        ];
     }
 
     /**
@@ -57,6 +64,25 @@ final class BuildCheckTest extends ReleaseTestCase
         self::assertSame([], $this->missing(self::manifest()));
     }
 
+    public function testScriptsInTheAssetDirectoryNeedTheirBuildAndRuntimes(): void
+    {
+        $manifest = self::manifest(scripts: [
+            'documentViews' => ['assets/menu.view'],
+            'editorScripts' => ['assets/format.editor'],
+            'shared' => ['ui/modal' => 'assets/shared/ui/modal'],
+        ]);
+        self::assertSame([
+            'build/assets/menu.view.asset.php (document view)',
+            'build/assets/format.editor.asset.php (editor script without a block)',
+            'build/vendor/wp-app-framework/editor.asset.php (editor runtime (blocks, post meta or editor scripts))',
+            'build/assets/shared/ui/modal.asset.php (shared module #shared/ui/modal)',
+            'build/vendor/wp-app-framework/view.asset.php (view runtime (view scripts))',
+        ], $this->missing($manifest));
+
+        $this->build('assets/menu.view.asset.php', 'assets/format.editor.asset.php', 'assets/shared/ui/modal.asset.php', 'vendor/wp-app-framework/editor.asset.php', 'vendor/wp-app-framework/view.asset.php');
+        self::assertSame([], $this->missing($manifest));
+    }
+
     public function testBlocksNeedTheEditorRuntimeTheCanvasAndTheirScripts(): void
     {
         $support = ['class' => 'Acme\\Reveal', 'editorScript' => 'Support/Reveal.editor', 'viewScript' => 'Support/Reveal.view'];
@@ -64,7 +90,7 @@ final class BuildCheckTest extends ReleaseTestCase
 
         self::assertSame(
             [
-                'build/vendor/wp-app-framework/editor.asset.php (editor runtime (blocks or post meta))',
+                'build/vendor/wp-app-framework/editor.asset.php (editor runtime (blocks, post meta or editor scripts))',
                 'build/vendor/wp-app-framework/canvas.asset.php (canvas styles of the editor (blocks))',
                 'build/Block/Faq/Faq.editor.asset.php (editor script of block acme/faq)',
                 'build/Block/Faq/Faq.view.asset.php (view script of block acme/faq)',
@@ -91,7 +117,7 @@ final class BuildCheckTest extends ReleaseTestCase
     {
         self::assertSame(
             [
-                'build/vendor/wp-app-framework/editor.asset.php (editor runtime (blocks or post meta))',
+                'build/vendor/wp-app-framework/editor.asset.php (editor runtime (blocks, post meta or editor scripts))',
                 'build/vendor/wp-app-framework/meta-box.asset.php (meta boxes (post meta))',
             ],
             $this->missing(self::manifest(meta: ['Acme\\EventDetails' => []])),

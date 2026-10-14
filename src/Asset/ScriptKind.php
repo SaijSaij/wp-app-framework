@@ -44,6 +44,41 @@ enum ScriptKind: string
         return $slug . '-support-' . strtolower((string) preg_replace('/(?<=[a-z0-9])([A-Z])/', '-$1', $attribute)) . '-' . $this->handleSuffix();
     }
 
+    /**
+     * Script handle of a script in the asset directory, e.g. my-theme-document-nav-menu-view for
+     * assets/nav/menu.view.js; the same for document views and editor scripts without a block.
+     *
+     * @param string $script Below the build directory, without extension, e.g. assets/nav/menu.view.
+     * @return non-empty-string
+     */
+    public function documentHandle(string $slug, string $script): string
+    {
+        $name = substr($script, strlen(AssetDirectory::NAME) + 1, -strlen($this->value) + strlen('.js'));
+
+        return $slug . '-document-' . self::kebab($name) . '-' . $this->handleSuffix();
+    }
+
+    /**
+     * Script handle of a shared module, e.g. my-theme-shared-ui-modal for assets/shared/ui/Modal.js; the webpack
+     * helper of the framework derives the same handle for imports of `#shared/ui/Modal`.
+     *
+     * @return non-empty-string
+     */
+    public static function sharedHandle(string $slug, string $module): string
+    {
+        return $slug . '-shared-' . self::kebab($module);
+    }
+
+    /**
+     * A name as part of a script handle, e.g. ui/ModalStack → ui-modal-stack (as kebab() in webpack.config.js).
+     */
+    public static function kebab(string $name): string
+    {
+        $kebab = strtolower((string) preg_replace('/(?<=[a-z0-9])([A-Z])/', '-$1', $name));
+
+        return trim((string) preg_replace('/[^a-z0-9]+/', '-', $kebab), '-');
+    }
+
     private function handleSuffix(): string
     {
         return match ($this) {

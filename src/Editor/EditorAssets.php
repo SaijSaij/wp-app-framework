@@ -12,6 +12,7 @@ use Saij\WpAppFramework\Post\MetaBoxes;
 use Saij\WpAppFramework\Post\PostStore;
 use Saij\WpAppFramework\Value\FormAssets;
 use Saij\WpAppFramework\View\ViewAssets;
+use Saij\WpAppFramework\View\ViewData;
 
 /**
  * Loads the editor runtime and the block editor scripts of one framework
@@ -24,7 +25,8 @@ use Saij\WpAppFramework\View\ViewAssets;
  * build/Block/Hero/Hero.editor.js), each with an .asset.php file.
  *
  * The view scripts of blocks and block supports load with the runtime as
- * well: the runtime mounts them on a block in preview mode.
+ * well: the runtime mounts them on a block in preview mode. The editor scripts
+ * without a block (assets/*.editor.js) load after the runtime.
  *
  * @internal
  *
@@ -52,6 +54,8 @@ final readonly class EditorAssets
      * @param string           $namespace      Namespace of the blocks; the runtime completes the block names given to
      *                                         registerControl() and the like.
      * @param PostStore|null   $posts          Meta classes of the instance, edited in panels of the post editor.
+     * @param list<string>     $editorScripts  Editor scripts without a block, e.g. assets/format.editor.
+     * @param array<string, string> $shared    Shared modules by name, registered as dependencies of the scripts.
      */
     public function __construct(
         private string $slug,
@@ -61,8 +65,10 @@ final readonly class EditorAssets
         private bool $development,
         private string $namespace,
         private ?PostStore $posts = null,
+        private array $editorScripts = [],
+        array $shared = [],
     ) {
-        $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri);
+        $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri, $shared);
         $this->views = new ViewAssets($slug, $this->assets);
     }
 
@@ -75,13 +81,13 @@ final readonly class EditorAssets
     }
 
     /**
-     * Without blocks and meta the instance needs no editor runtime, so a theme
-     * without them needs no script build either.
+     * Without blocks, meta and editor scripts the instance needs no editor
+     * runtime, so a theme without them needs no script build either.
      */
     public function enqueue(): void
     {
         $meta = $this->posts?->getMeta() ?? [];
-        if ($this->blocks === [] && $meta === []) {
+        if ($this->blocks === [] && $meta === [] && $this->editorScripts === []) {
             return;
         }
         // Rich text in meta panels uses the classic editor (like the settings page); images use the block editor's media.
@@ -124,6 +130,25 @@ final readonly class EditorAssets
 
         foreach ($this->blocks as $block) {
             $this->views->enqueue($block);
+        }
+
+        foreach ($this->editorScripts as $script) {
+            $scriptHandle = ScriptKind::Editor->documentHandle($this->slug, $script);
+            $this->assets->registerScript($scriptHandle, $script);
+            wp_enqueue_script($scriptHandle);
+        }
+    }
+
+    /**
+     * Prints the view data after the configuration of the runtime; runs last on enqueue_block_editor_assets, so
+     * values set on that action are included.
+     */
+    public function printData(ViewData $data): void
+    {
+        $script = $data->print('with the editor runtime on enqueue_block_editor_assets');
+        $handle = self::runtimeHandle($this->slug);
+        if (wp_script_is($handle, 'enqueued')) {
+            wp_add_inline_script($handle, $script, 'before');
         }
     }
 

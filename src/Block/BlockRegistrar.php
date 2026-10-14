@@ -12,6 +12,7 @@ use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\View\ViewAssets;
+use Saij\WpAppFramework\View\ViewData;
 use Throwable;
 use WP_Block;
 use WP_Block_Type_Registry;
@@ -51,9 +52,10 @@ use WP_Block_Type_Registry;
  * error.
  *
  * A block with #[Cache] renders from the cache store, except in renders for
- * the block editor and its preview: the entry holds the HTML and the scripts,
- * styles and script modules render() enqueued; a cache hit enqueues them and
- * the view scripts again. Errors are not cached.
+ * the block editor and its preview: the entry holds the HTML, the scripts,
+ * styles and script modules render() enqueued and the view data it set; a
+ * cache hit enqueues them and the view scripts again and sets the view data
+ * again. Errors are not cached.
  *
  * Values of ancestors (#[Context] parameters) come from the block context:
  * sanitized against the schema of the providing attribute and created like
@@ -83,6 +85,7 @@ final readonly class BlockRegistrar
         private string $slug,
         private ViewAssets $views,
         private ?CacheStore $cache = null,
+        private ?ViewData $viewData = null,
     ) {}
 
     /**
@@ -174,12 +177,13 @@ final readonly class BlockRegistrar
                     $cache,
                     fn(): array => [$this->renderRecorded($block, $attributes, $content, $instance, $vary), true],
                 );
-                /** @var array{html: string, assets: Queues} $entry Stored by renderRecorded(). */
+                /** @var array{html: string, assets: Queues, viewData?: array<string, mixed>} $entry Stored by renderRecorded(). */
                 if ($hit) {
                     if (ViewAssets::hasViews($block)) {
                         $this->views->enqueue($block);
                     }
                     RenderedAssets::enqueue($entry['assets'], $block['name']);
+                    $this->viewData?->replay($entry['viewData'] ?? []);
                 }
 
                 return $entry['html'];
@@ -262,19 +266,29 @@ final readonly class BlockRegistrar
     }
 
     /**
-     * Renders the block for its cache entry: the HTML and what render() enqueued besides the view scripts.
+     * Renders the block for its cache entry: the HTML, what render() enqueued besides the view scripts and the view
+     * data it set.
      *
      * @param BlockEntry           $block
      * @param array<string, mixed> $attributes
      * @param list<string>         $vary
-     * @return array{html: string, assets: Queues}
+     * @return array{html: string, assets: Queues, viewData: array<string, mixed>}
      */
     private function renderRecorded(array $block, array $attributes, string $content, ?WP_Block $instance, array $vary): array
     {
         $before = RenderedAssets::snapshot();
-        $html = $this->renderTemplate($block, $attributes, $content, $instance, $vary);
+        $this->viewData?->startRecording();
+        try {
+            $html = $this->renderTemplate($block, $attributes, $content, $instance, $vary);
+        } finally {
+            $viewData = $this->viewData?->stopRecording() ?? [];
+        }
 
-        return ['html' => $html, 'assets' => RenderedAssets::added($before, RenderedAssets::snapshot(), $this->views->handles($block))];
+        return [
+            'html' => $html,
+            'assets' => RenderedAssets::added($before, RenderedAssets::snapshot(), $this->views->handles($block)),
+            'viewData' => $viewData,
+        ];
     }
 
     /**

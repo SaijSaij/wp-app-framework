@@ -128,7 +128,7 @@ final class ManifestBuilderTest extends TestCase
 
     public function testFrameworkServicesAreThePredefinedOnesAndItsTemplateFunctions(): void
     {
-        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class, \Saij\WpAppFramework\Editor\RenderContext::class, \Saij\WpAppFramework\Cache\CacheStore::class, \Saij\WpAppFramework\Cron\CronScheduler::class];
+        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class, \Saij\WpAppFramework\Editor\RenderContext::class, \Saij\WpAppFramework\Cache\CacheStore::class, \Saij\WpAppFramework\Cron\CronScheduler::class, \Saij\WpAppFramework\View\ViewData::class];
         $result = new ManifestBuilder([ManifestBuilder::frameworkSource()], [], $predefined)->build();
 
         self::assertSame(
@@ -145,6 +145,7 @@ final class ManifestBuilderTest extends TestCase
                 \Saij\WpAppFramework\Twig\TemplateRenderer::class,
                 \Saij\WpAppFramework\Twig\WordPressTemplateFunctions::class,
                 \Saij\WpAppFramework\Value\LinkTemplateFunctions::class,
+                \Saij\WpAppFramework\View\ViewData::class,
             ],
             $result->getCandidates(),
         );

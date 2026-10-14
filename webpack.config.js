@@ -10,6 +10,12 @@
  * - the consumer's view scripts next to its code (src/Block/Faq/Faq.view.js →
  *   build/Block/Faq/Faq.view.js); the class each exports by default is assigned to
  *   wpAppFramework[slug].views['Block/Faq/Faq.view'], where the view runtime finds it,
+ * - the scripts in the consumer's assets/ directory, which belong to no PHP class:
+ *   document views (assets/menu.view.js → build/assets/menu.view.js, class under
+ *   wpAppFramework[slug].views['assets/menu.view']), editor scripts without a block
+ *   (assets/format.editor.js) and shared modules (assets/shared/counter.js, exports under
+ *   wpAppFramework[slug].shared.counter, imported anywhere in the instance as
+ *   `#shared/counter`, script handle `{slug}-shared-counter`),
  * - the consumer's stylesheet, if it has one: assets/styles.css → build/styles.css, compiled
  *   with Tailwind CSS (`tailwindcss` and `@tailwindcss/webpack`, installed by the consumer).
  *   Until 0.13 the stylesheet was src/styles.css; a file there fails the build.
@@ -46,6 +52,12 @@ const STYLES_ENTRY = 'styles';
 const STYLES_SOURCE = 'styles.css';
 /** Directory of the consumer for everything without a PHP class: stylesheet, scripts without a block, static files. */
 const ASSET_DIRECTORY = 'assets';
+/** Directory below assets/ with the shared modules. */
+const SHARED_DIRECTORY = 'shared';
+/** Prefix of imports of shared modules, mapped by `imports` in the consumer's package.json for IDEs. */
+const SHARED_IMPORT_PREFIX = '#shared/';
+const SHARED_IMPORTS_KEY = '#shared/*';
+const SHARED_IMPORTS_TARGET = './assets/shared/*.js';
 
 /** Major version of Tailwind CSS the stylesheet is built with (peer dependency). */
 const TAILWIND_MAJOR = 4;
@@ -80,18 +92,24 @@ function scripts( directory, suffix ) {
  *
  * @param {string} directory
  * @param {string} slug
+ * @param {string} [prefix]  Prefix of the entry names, e.g. "assets/".
  * @return {Object<string, Object>} Entries.
  */
-function viewScripts( directory, slug ) {
+function viewScripts( directory, slug, prefix = '' ) {
 	return Object.fromEntries(
 		Object.entries( scripts( directory, VIEW_SCRIPT_SUFFIX ) ).map(
 			( [ name, file ] ) => [
-				name,
+				prefix + name,
 				{
 					import: file,
 					library: {
 						type: 'window',
-						name: [ 'wpAppFramework', slug, 'views', name ],
+						name: [
+							'wpAppFramework',
+							slug,
+							'views',
+							prefix + name,
+						],
 						export: 'default',
 					},
 				},
@@ -101,33 +119,168 @@ function viewScripts( directory, slug ) {
 }
 
 /**
- * Fails the build when a view script (an entry ending in ".view") imports the editor runtime.
+ * The shared modules of the consumer: every script below assets/shared/ except view and editor scripts.
+ *
+ * @param {string} assetDirectory
+ * @return {Object<string, string>} Files by module name (path below assets/shared/ without ".js").
  */
-class ViewImportCheck {
+function sharedModules( assetDirectory ) {
+	return Object.fromEntries(
+		Object.entries(
+			scripts( path.join( assetDirectory, SHARED_DIRECTORY ), '.js' )
+		).filter(
+			( [ name ] ) =>
+				! ( name + '.js' ).endsWith( VIEW_SCRIPT_SUFFIX ) &&
+				! ( name + '.js' ).endsWith( EDITOR_SCRIPT_SUFFIX )
+		)
+	);
+}
+
+/**
+ * A name as part of a script handle: kebab case, e.g. "ui/ModalStack" → "ui-modal-stack".
+ * The framework derives the same handles in PHP (Asset\ScriptKind::kebab()).
+ *
+ * @param {string} name
+ * @return {string} Kebab case.
+ */
+function kebab( name ) {
+	return name
+		.replace( /(?<=[a-z0-9])([A-Z])/g, '-$1' )
+		.toLowerCase()
+		.replace( /[^a-z0-9]+/g, '-' )
+		.replace( /^-+|-+$/g, '' );
+}
+
+/**
+ * The requests of the modules of an entry, among them the external ones (`@saij/wp-app-framework`, `#shared/…`).
+ *
+ * @param {Object} compilation
+ * @param {Object} entrypoint
+ * @return {Set<string>} Requests.
+ */
+function externalRequests( compilation, entrypoint ) {
+	const requests = new Set();
+	for ( const chunk of entrypoint.chunks ) {
+		for ( const module of compilation.chunkGraph.getChunkModulesIterable(
+			chunk
+		) ) {
+			if ( typeof module.userRequest === 'string' ) {
+				requests.add( module.userRequest );
+			}
+		}
+	}
+	return requests;
+}
+
+/**
+ * Fails the build when a view script (an entry ending in ".view") imports the editor runtime,
+ * also through shared modules, and when shared modules import each other in a cycle.
+ */
+class ScriptImportCheck {
 	apply( compiler ) {
 		compiler.hooks.compilation.tap( 'wp-app-framework', ( compilation ) => {
 			compilation.hooks.afterChunks.tap( 'wp-app-framework', () => {
+				const requests = new Map();
 				for ( const [ name, entrypoint ] of compilation.entrypoints ) {
+					requests.set(
+						name,
+						externalRequests( compilation, entrypoint )
+					);
+				}
+				const sharedOf = ( name ) =>
+					[ ...( requests.get( name ) ?? [] ) ]
+						.filter( ( request ) =>
+							request.startsWith( SHARED_IMPORT_PREFIX )
+						)
+						.map(
+							( request ) =>
+								`${ ASSET_DIRECTORY }/${ SHARED_DIRECTORY }/${ request.slice(
+									SHARED_IMPORT_PREFIX.length
+								) }`
+						);
+				// Entries of scripts in assets/ carry the directory in their name; the others are below src/.
+				const file = ( name ) =>
+					name.startsWith( ASSET_DIRECTORY + '/' )
+						? `${ name }.js`
+						: `src/${ name }.js`;
+				const error = ( message ) =>
+					compilation.errors.push(
+						new compiler.webpack.WebpackError(
+							`wp-app-framework: ${ message }`
+						)
+					);
+
+				for ( const name of requests.keys() ) {
 					if (
 						! name.endsWith( VIEW_SCRIPT_SUFFIX.slice( 0, -3 ) )
 					) {
 						continue;
 					}
-					const imports = entrypoint.chunks.some( ( chunk ) =>
-						[
-							...compilation.chunkGraph.getChunkModulesIterable(
-								chunk
-							),
-						].some(
-							( module ) => module.userRequest === IMPORT_NAME
-						)
-					);
-					if ( imports ) {
-						compilation.errors.push(
-							new compiler.webpack.WebpackError(
-								`wp-app-framework: the view script src/${ name }.js imports ${ IMPORT_NAME }, the editor runtime, which is not loaded on the front end; view scripts import ${ VIEW_IMPORT_NAME }.`
-							)
+					// The view script and the shared modules it reaches, with the path to each.
+					const paths = new Map( [ [ name, [ name ] ] ] );
+					const queue = [ name ];
+					while ( queue.length > 0 ) {
+						const current = queue.shift();
+						for ( const shared of sharedOf( current ) ) {
+							if ( ! paths.has( shared ) ) {
+								paths.set( shared, [
+									...paths.get( current ),
+									shared,
+								] );
+								queue.push( shared );
+							}
+						}
+					}
+					for ( const [ reached, through ] of paths ) {
+						if ( requests.get( reached )?.has( IMPORT_NAME ) ) {
+							error(
+								reached === name
+									? `the view script ${ file(
+											name
+										) } imports ${ IMPORT_NAME }, the editor runtime, which is not loaded on the front end; view scripts import ${ VIEW_IMPORT_NAME }.`
+									: `the view script ${ file(
+											name
+										) } uses ${ file( reached ) } (${ through
+											.map( file )
+											.join(
+												' → '
+											) }), which imports ${ IMPORT_NAME }, the editor runtime, which is not loaded on the front end; modules used by view scripts import ${ VIEW_IMPORT_NAME }.`
+							);
+						}
+					}
+				}
+
+				// Cycles between shared modules: WordPress cannot order their scripts.
+				const state = new Map();
+				const visit = ( name, stack ) => {
+					if ( state.get( name ) === 'done' ) {
+						return;
+					}
+					if ( state.get( name ) === 'active' ) {
+						const cycle = [
+							...stack.slice( stack.indexOf( name ) ),
+							name,
+						];
+						error(
+							`the shared modules import each other in a cycle: ${ cycle
+								.map( file )
+								.join( ' → ' ) }.`
 						);
+						return;
+					}
+					state.set( name, 'active' );
+					for ( const shared of sharedOf( name ) ) {
+						visit( shared, [ ...stack, name ] );
+					}
+					state.set( name, 'done' );
+				};
+				for ( const name of requests.keys() ) {
+					if (
+						name.startsWith(
+							`${ ASSET_DIRECTORY }/${ SHARED_DIRECTORY }/`
+						)
+					) {
+						visit( name, [] );
 					}
 				}
 			} );
@@ -192,6 +345,92 @@ function tailwindRule( defaults, styles, root, fromRoot ) {
 }
 
 /**
+ * The name of the shared module an import `#shared/<name>` refers to; fails if it does not exist.
+ *
+ * @param {string} assetDirectory
+ * @param {string} request
+ * @return {string} Module name.
+ */
+function sharedModule( assetDirectory, request ) {
+	const name = request.slice( SHARED_IMPORT_PREFIX.length );
+	if ( ! Object.hasOwn( sharedModules( assetDirectory ), name ) ) {
+		throw new Error(
+			`wp-app-framework: ${ request } is no shared module: ${ ASSET_DIRECTORY }/${ SHARED_DIRECTORY }/${ name }.js does not exist.`
+		);
+	}
+	return name;
+}
+
+/**
+ * Checks that the consumer's package.json maps the imports of shared modules for IDEs and other tools.
+ *
+ * @param {string} root
+ */
+function checkSharedImports( root ) {
+	const file = path.join( root, 'package.json' );
+	const imports = JSON.parse( fs.readFileSync( file, 'utf8' ) ).imports;
+	if ( imports?.[ SHARED_IMPORTS_KEY ] !== SHARED_IMPORTS_TARGET ) {
+		throw new Error(
+			`wp-app-framework: the project has shared modules in ${ ASSET_DIRECTORY }/${ SHARED_DIRECTORY }/; add "imports": { "${ SHARED_IMPORTS_KEY }": "${ SHARED_IMPORTS_TARGET }" } to ${ file }, so that imports of ${ SHARED_IMPORT_PREFIX }… resolve in IDEs.`
+		);
+	}
+}
+
+/**
+ * Entries of the scripts in src/: editor and view scripts next to the classes of blocks and block supports.
+ *
+ * @param {string} root
+ * @param {string} slug
+ * @return {Object<string, Object|string>} Entries.
+ */
+function sourceEntries( root, slug ) {
+	const entries = {
+		...scripts( path.join( root, 'src' ), EDITOR_SCRIPT_SUFFIX ),
+		...viewScripts( path.join( root, 'src' ), slug ),
+	};
+	for ( const name of Object.keys( entries ) ) {
+		if ( name.startsWith( ASSET_DIRECTORY + '/' ) ) {
+			throw new Error(
+				`wp-app-framework: src/${ name }.js has the same entry name as a script in ${ ASSET_DIRECTORY }/; rename the directory src/${ ASSET_DIRECTORY }/.`
+			);
+		}
+	}
+	return entries;
+}
+
+/**
+ * Entries of the scripts in assets/: document views, editor scripts without a block, shared modules.
+ *
+ * @param {string} root
+ * @param {string} slug
+ * @return {Object<string, Object|string>} Entries.
+ */
+function assetEntries( root, slug ) {
+	const directory = path.join( root, ASSET_DIRECTORY );
+	const prefix = ASSET_DIRECTORY + '/';
+	const entries = {
+		...viewScripts( directory, slug, prefix ),
+		...Object.fromEntries(
+			Object.entries( scripts( directory, EDITOR_SCRIPT_SUFFIX ) ).map(
+				( [ name, file ] ) => [ prefix + name, file ]
+			)
+		),
+	};
+	for ( const [ name, file ] of Object.entries(
+		sharedModules( directory )
+	) ) {
+		entries[ `${ prefix }${ SHARED_DIRECTORY }/${ name }` ] = {
+			import: file,
+			library: {
+				type: 'window',
+				name: [ 'wpAppFramework', slug, 'shared', name ],
+			},
+		};
+	}
+	return entries;
+}
+
+/**
  * @param {Object} options
  * @param {string} options.slug Slug of the framework instance: the directory name of the theme (get_template()) or plugin.
  * @param {string} options.root Root directory of the consumer.
@@ -241,6 +480,11 @@ module.exports = function createConfig( { slug, root } = {} ) {
 		);
 	}
 
+	const assetDirectory = path.join( root, ASSET_DIRECTORY );
+	if ( Object.keys( sharedModules( assetDirectory ) ).length > 0 ) {
+		checkSharedImports( root );
+	}
+
 	// Checked once: after adding or removing the stylesheet, restart the watcher.
 	const styles = path.join( root, ASSET_DIRECTORY, STYLES_SOURCE );
 	const tailwind = fs.existsSync( styles )
@@ -251,6 +495,7 @@ module.exports = function createConfig( { slug, root } = {} ) {
 		...defaults,
 		// A function, so a new editor or view script is picked up when the watcher rebuilds.
 		entry: () => ( {
+			...assetEntries( root, slug ),
 			[ RUNTIME_ENTRY ]: path.join( __dirname, 'assets', 'editor.js' ),
 			// Styles of the editor canvas (iframe), loaded separately from the runtime.
 			[ CANVAS_ENTRY ]: path.join( __dirname, 'assets', 'canvas.scss' ),
@@ -260,8 +505,7 @@ module.exports = function createConfig( { slug, root } = {} ) {
 			[ META_BOX_ENTRY ]: path.join( __dirname, 'assets', 'meta-box.js' ),
 			// The view runtime: base classes of view scripts, mounts their views.
 			[ VIEW_ENTRY ]: path.join( __dirname, 'assets', 'view.js' ),
-			...scripts( path.join( root, 'src' ), EDITOR_SCRIPT_SUFFIX ),
-			...viewScripts( path.join( root, 'src' ), slug ),
+			...sourceEntries( root, slug ),
 			...( tailwind ? { [ STYLES_ENTRY ]: styles } : {} ),
 		} ),
 		module: tailwind
@@ -295,7 +539,7 @@ module.exports = function createConfig( { slug, root } = {} ) {
 					plugin.constructor.name !==
 					'DependencyExtractionWebpackPlugin'
 			),
-			new ViewImportCheck(),
+			new ScriptImportCheck(),
 			new webpack.DefinePlugin( {
 				WP_APP_FRAMEWORK_SLUG: JSON.stringify( slug ),
 			} ),
@@ -304,6 +548,14 @@ module.exports = function createConfig( { slug, root } = {} ) {
 					if ( request === IMPORT_NAME ) {
 						return [ 'wpAppFramework', slug ];
 					}
+					if ( request.startsWith( SHARED_IMPORT_PREFIX ) ) {
+						return [
+							'wpAppFramework',
+							slug,
+							'shared',
+							sharedModule( assetDirectory, request ),
+						];
+					}
 					return request === VIEW_IMPORT_NAME
 						? [ 'wpAppFramework', slug, 'view' ]
 						: undefined;
@@ -311,6 +563,11 @@ module.exports = function createConfig( { slug, root } = {} ) {
 				requestToHandle: ( request ) => {
 					if ( request === IMPORT_NAME ) {
 						return `${ slug }-wp-app-framework`;
+					}
+					if ( request.startsWith( SHARED_IMPORT_PREFIX ) ) {
+						return `${ slug }-shared-${ kebab(
+							sharedModule( assetDirectory, request )
+						) }`;
 					}
 					return request === VIEW_IMPORT_NAME
 						? `${ slug }-wp-app-framework-view`

@@ -154,6 +154,7 @@ final class ManifestGenerator
             'cliCommands' => $cliCommands,
             'tables' => $result->getTables(),
             'lifecycle' => $result->getLifecycle(),
+            'scripts' => $result->getScripts(),
         ];
     }
 }

@@ -14,6 +14,7 @@ use Saij\WpAppFramework\Tests\Support\Files;
 use Saij\WpAppFramework\Tests\Support\Recorded;
 use Saij\WpAppFramework\Tests\Unit\Block\Support\SupportCollectorTest;
 use Saij\WpAppFramework\Tests\Unit\View\ViewBuildTest;
+use Saij\WpAppFramework\View\ViewData;
 
 final class EditorAssetsTest extends TestCase
 {
@@ -150,6 +151,46 @@ final class EditorAssetsTest extends TestCase
         self::assertSame(['fixture/container', 'fixture/teaser', 'fixture/wrong-field'], array_keys($config['blocks']));
         self::assertSame(['fields' => [], 'controls' => [], 'innerBlocks' => true, 'innerBlockOptions' => [], 'postContentField' => null, 'supports' => [], 'view' => false], $config['blocks']['fixture/container']);
         self::assertSame(['kind' => 'rich', 'label' => 'Title', 'allowedFormats' => ['core/bold']], $config['blocks']['fixture/teaser']['fields']['title']);
+    }
+
+    public function testEditorScriptsWithoutABlockLoadAfterTheRuntimeAlsoWithoutBlocks(): void
+    {
+        $this->writeAsset('vendor/wp-app-framework/editor', "'wp-blocks'");
+        file_put_contents($this->build . '/vendor/wp-app-framework/editor.css', '');
+        mkdir($this->build . '/assets/shared', 0777, true);
+        $this->writeAsset('assets/highlight.editor', "'my-theme-wp-app-framework', 'my-theme-shared-format'");
+        $this->writeAsset('assets/shared/format', "'wp-rich-text'");
+
+        new EditorAssets('my-theme', $this->build, 'https://example.test/build', [], true, 'fixture', null, ['assets/highlight.editor'], ['format' => 'assets/shared/format'])->enqueue();
+        $scripts = Recorded::scripts();
+
+        self::assertSame(['my-theme-wp-app-framework', 'my-theme-shared-format', 'my-theme-document-highlight-editor'], array_keys($scripts));
+        self::assertSame('https://example.test/build/assets/highlight.editor.js', $scripts['my-theme-document-highlight-editor']['src']);
+        self::assertTrue($scripts['my-theme-document-highlight-editor']['enqueued']);
+        self::assertSame('https://example.test/build/assets/shared/format.js', $scripts['my-theme-shared-format']['src']);
+        self::assertSame(['wp-rich-text'], $scripts['my-theme-shared-format']['deps']);
+        self::assertFalse($scripts['my-theme-shared-format']['enqueued'], 'Registered as dependency only.');
+    }
+
+    public function testViewDataIsPrintedAfterTheConfiguration(): void
+    {
+        $this->writeAsset('vendor/wp-app-framework/editor', '');
+        file_put_contents($this->build . '/vendor/wp-app-framework/editor.css', '');
+        $this->writeAsset('Container.editor', '');
+        $data = new ViewData('my-theme', true);
+        $data->set('map', ['zoom' => 3]);
+
+        $assets = $this->assets();
+        $assets->enqueue();
+        $assets->printData($data);
+
+        $before = Recorded::scripts()['my-theme-wp-app-framework']['before'];
+        self::assertCount(2, $before);
+        self::assertStringEndsWith('.data = {"map":{"zoom":3}};', $before[1]);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('(with the editor runtime on enqueue_block_editor_assets)');
+        $data->set('late', true);
     }
 
     public function testEnqueuesTheEditorScriptsOfUsedSupportsAndPassesTheirAttributes(): void

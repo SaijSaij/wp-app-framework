@@ -121,6 +121,33 @@ registerPanel( 'hero', ( { attributes, setAttributes } ) => <PanelBody title="He
 
 `registerControl()` replaces the generated control of one attribute. `registerPanel()` adds a panel of your own. Like `registerToolbarButton()` below, they take the block name without namespace, as in `#[Block]`. All of them warn in the console about unknown blocks and attributes, and about names with a namespace.
 
+### Editor scripts without a block
+
+Some extensions of the editor belong to no block of your own: a format for rich text, a control added to a core block with a filter, a block variation, a sidebar of `registerPlugin()`. Such a script lives in the `assets/` directory, with a name ending in `.editor.js`, and needs no PHP class: `assets/highlight.editor.js`. The framework loads it in the post and site editor after the runtime, also when the theme or plugin has no blocks:
+
+```jsx
+// assets/highlight.editor.js
+import { getData } from '@saij/wp-app-framework';
+import { RichTextToolbarButton } from '@wordpress/block-editor';
+import { registerFormatType, toggleFormat } from '@wordpress/rich-text';
+
+registerFormatType( 'my-theme/highlight', {
+	title: getData( 'highlight' ).title,
+	tagName: 'mark',
+	className: 'highlight',
+	edit: ( { isActive, value, onChange } ) => (
+		<RichTextToolbarButton
+			icon="admin-appearance"
+			title="Highlight"
+			isActive={ isActive }
+			onClick={ () => onChange( toggleFormat( value, { type: 'my-theme/highlight' } ) ) }
+		/>
+	),
+} );
+```
+
+`getData()` reads [data from PHP](./frontend.md#data-from-php), which the framework prints with the runtime. Editor scripts can import [shared modules](./frontend.md#shared-modules) and load [external scripts](./frontend.md#external-scripts) with `loadScript()` of `@saij/wp-app-framework`. Their handle is `{slug}-document-{path}-editor`.
+
 ### Toolbar buttons
 
 `registerToolbarButton()` adds buttons of your own to a block's toolbar, for actions that belong right at the block rather than in the inspector:
@@ -184,10 +211,12 @@ The build writes to `build/`, each file with its `.asset.php`:
 | `build/vendor/wp-app-framework/view.js` | the view runtime: base classes of [front-end scripts](./frontend.md), starts their views; loaded with them on the front end and with the runtime in the editor |
 | `build/Block/Hero/Hero.editor.js` | editor scripts, mirrored from `src/` |
 | `build/Block/Faq/Faq.view.js` | front-end scripts (view scripts), mirrored from `src/` |
+| `build/assets/menu.view.js`, `build/assets/highlight.editor.js` | [document views](./frontend.md#scripts-for-the-whole-page) and [editor scripts without a block](#editor-scripts-without-a-block), mirrored from `assets/` |
+| `build/assets/shared/dialogs.js` | [shared modules](./frontend.md#shared-modules), mirrored from `assets/shared/` |
 | `build/styles.css` | the consumer's `assets/styles.css`, if it has one, compiled with Tailwind (see [Styles](./styles.md)) |
 
-Without a build, the editor fails with an exception that names the missing file. A consumer without blocks, settings and post meta loads no script and needs no build.
+Without a build, the editor fails with an exception that names the missing file. A consumer without blocks, settings, post meta and scripts in `assets/` loads no script and needs no build.
 
 ## Instances
 
-Everything global is derived from the slug of the instance: the render and preview routes, the script handles (`{slug}-wp-app-framework`, `{slug}-{block}-editor`, `{slug}-wp-app-framework-view`, `{slug}-{block}-view`, `{slug}-wp-app-framework-settings`) and the JavaScript global `window.wpAppFramework[slug]`. Several framework instances, even in different versions, therefore run side by side in the same editor.
+Everything global is derived from the slug of the instance: the render and preview routes, the script handles (`{slug}-wp-app-framework`, `{slug}-{block}-editor`, `{slug}-wp-app-framework-view`, `{slug}-{block}-view`, `{slug}-document-{path}-view`, `{slug}-document-{path}-editor`, `{slug}-shared-{name}`, `{slug}-wp-app-framework-settings`) and the JavaScript global `window.wpAppFramework[slug]`. Several framework instances, even in different versions, therefore run side by side in the same editor.

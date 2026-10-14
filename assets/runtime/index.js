@@ -3,6 +3,8 @@ import { InnerBlocks } from '@wordpress/block-editor';
 import { getBlockType, registerBlockType } from '@wordpress/blocks';
 import { RawHTML } from '@wordpress/element';
 
+import { getData } from '../view/data';
+import { loadScript } from '../view/load-script';
 import { PortalEdit } from './portal-edit';
 import { registerMetaPanels } from './meta-panels';
 import { createRegistry } from './registry';
@@ -53,6 +55,8 @@ export function startRuntime( slug ) {
 	instance.registerSupportControl = runtime.registry.registerSupportControl;
 	instance.registerPanel = runtime.registry.registerPanel;
 	instance.registerToolbarButton = runtime.registry.registerToolbarButton;
+	instance.loadScript = loadScript;
+	instance.getData = ( key ) => getData( slug, key );
 }
 
 /**

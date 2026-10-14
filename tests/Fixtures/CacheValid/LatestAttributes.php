@@ -10,5 +10,6 @@ final readonly class LatestAttributes
         public string $title = '',
         public bool $fail = false,
         public bool $enqueue = false,
+        public string $data = '',
     ) {}
 }

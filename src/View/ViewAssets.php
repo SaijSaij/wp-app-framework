@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\View;
 
+use LogicException;
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -112,6 +113,53 @@ final readonly class ViewAssets
             }
             wp_enqueue_script($handle);
         }
+    }
+
+    /**
+     * Enqueues the view runtime and the document views of the instance (assets/*.view.js), on every page of the
+     * front end (wp_enqueue_scripts), with the list of document views the runtime mounts.
+     *
+     * @param list<string> $documentViews Scripts below the build directory without extension, e.g. assets/menu.view.
+     */
+    public function enqueueDocumentViews(array $documentViews): void
+    {
+        $runtime = self::runtimeHandle($this->slug);
+        if (!wp_script_is($runtime, 'registered')) {
+            $this->assets->registerScript($runtime, self::RUNTIME, self::ARGS);
+        }
+        $slug = (string) wp_json_encode($this->slug);
+        wp_add_inline_script($runtime, sprintf(
+            'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework[%1$s] = window.wpAppFramework[%1$s] || {}; window.wpAppFramework[%1$s].documentViews = %2$s;',
+            $slug,
+            wp_json_encode($documentViews, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP),
+        ), 'before');
+        wp_enqueue_script($runtime);
+
+        foreach ($documentViews as $script) {
+            $handle = ScriptKind::View->documentHandle($this->slug, $script);
+            $this->assets->registerScript($handle, $script, self::ARGS);
+            wp_enqueue_script($handle);
+        }
+    }
+
+    /**
+     * Prints the view data before the view runtime, if a block or document view enqueued it; runs on
+     * wp_print_footer_scripts before WordPress prints the footer scripts, so values set in render() are included.
+     */
+    public function printData(ViewData $data): void
+    {
+        $runtime = self::runtimeHandle($this->slug);
+        $script = $data->print('in the footer of the front end');
+        if (!wp_script_is($runtime, 'enqueued')) {
+            return;
+        }
+        if (wp_script_is($runtime, 'done')) {
+            throw new LogicException(sprintf(
+                'The view runtime %s was printed before the footer, so its view data could not be printed; do not make scripts in the head depend on it.',
+                $runtime,
+            ));
+        }
+        wp_add_inline_script($runtime, $script, 'before');
     }
 
     /**

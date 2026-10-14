@@ -15,6 +15,7 @@ use Saij\WpAppFramework\Tests\Fixtures\CacheValid;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use Saij\WpAppFramework\Theme;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
+use Saij\WpAppFramework\View\ViewData;
 
 /**
  * #[Cache] in the build: the entries of blocks and routes, and every error.
@@ -28,7 +29,7 @@ final class CacheBuildTest extends TestCase
         return new ManifestBuilder(
             [$fixture, ManifestBuilder::frameworkSource()],
             [],
-            [Theme::class, TemplateRenderer::class, RenderContext::class, CacheStore::class],
+            [Theme::class, TemplateRenderer::class, RenderContext::class, CacheStore::class, ViewData::class],
             $fixture->getDirectory(),
             slug: 'my-theme',
             name: 'My Theme',

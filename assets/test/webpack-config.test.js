@@ -170,6 +170,107 @@ describe( 'webpack helper', () => {
 		expect( config.output.enabledLibraryTypes ).toEqual( [ 'window' ] );
 	} );
 
+	it( 'builds the document views, editor scripts and shared modules in assets/', () => {
+		const root = consumer( {
+			styles: false,
+			packages: TOOLCHAIN,
+			assets: {
+				'menu.view.js': '',
+				'editor/highlight.editor.js': '',
+				'shared/ui/modal.js': '',
+				'shared/ui/panel.view.js': '',
+				'helpers/format.js': '',
+			},
+		} );
+		fs.writeFileSync(
+			path.join( root, 'package.json' ),
+			JSON.stringify( {
+				imports: { '#shared/*': './assets/shared/*.js' },
+			} )
+		);
+		const entry = createConfig( { slug: 'my-theme', root } ).entry();
+
+		expect( entry[ 'assets/menu.view' ] ).toEqual( {
+			import: path.join( root, 'assets', 'menu.view.js' ),
+			library: {
+				type: 'window',
+				name: [
+					'wpAppFramework',
+					'my-theme',
+					'views',
+					'assets/menu.view',
+				],
+				export: 'default',
+			},
+		} );
+		expect( entry[ 'assets/shared/ui/panel.view' ].library.name ).toEqual( [
+			'wpAppFramework',
+			'my-theme',
+			'views',
+			'assets/shared/ui/panel.view',
+		] );
+		expect( entry[ 'assets/editor/highlight.editor' ] ).toBe(
+			path.join( root, 'assets', 'editor/highlight.editor.js' )
+		);
+		expect( entry[ 'assets/shared/ui/modal' ] ).toEqual( {
+			import: path.join( root, 'assets', 'shared/ui/modal.js' ),
+			library: {
+				type: 'window',
+				name: [ 'wpAppFramework', 'my-theme', 'shared', 'ui/modal' ],
+			},
+		} );
+		expect( entry ).not.toHaveProperty( 'assets/helpers/format' );
+	} );
+
+	it( 'fails for a script in src/assets/, whose entry would collide with assets/', () => {
+		const root = consumer( {
+			styles: false,
+			packages: TOOLCHAIN,
+			files: { 'assets/menu.view.js': '' },
+		} );
+
+		expect( () =>
+			createConfig( { slug: 'my-theme', root } ).entry()
+		).toThrow(
+			'src/assets/menu.view.js has the same entry name as a script in assets/'
+		);
+	} );
+
+	it( 'needs the imports of shared modules in package.json', () => {
+		const root = consumer( {
+			styles: false,
+			packages: TOOLCHAIN,
+			assets: { 'shared/counter.js': '' },
+		} );
+
+		expect( () => createConfig( { slug: 'my-theme', root } ) ).toThrow(
+			'add "imports": { "#shared/*": "./assets/shared/*.js" } to'
+		);
+	} );
+
+	/**
+	 * A consumer with shared modules and the imports for them in its package.json.
+	 *
+	 * @param {Object<string, string>} assets  Files below assets/.
+	 * @param {Object<string, string>} [files] Files below src/.
+	 * @return {string} Root directory.
+	 */
+	function consumerWithShared( assets, files = {} ) {
+		const root = consumer( {
+			styles: false,
+			packages: TOOLCHAIN,
+			files,
+			assets,
+		} );
+		fs.writeFileSync(
+			path.join( root, 'package.json' ),
+			JSON.stringify( {
+				imports: { '#shared/*': './assets/shared/*.js' },
+			} )
+		);
+		return root;
+	}
+
 	/**
 	 * Builds only the view scripts of a consumer with webpack.
 	 *
@@ -190,8 +291,10 @@ describe( 'webpack helper', () => {
 					devtool: false,
 					entry: () =>
 						Object.fromEntries(
-							Object.entries( entry() ).filter( ( [ name ] ) =>
-								name.endsWith( '.view' )
+							Object.entries( entry() ).filter(
+								( [ name ] ) =>
+									name.endsWith( '.view' ) ||
+									name.startsWith( 'assets/shared/' )
 							)
 						),
 				},
@@ -249,6 +352,94 @@ describe( 'webpack helper', () => {
 			stats.toJson().errors.map( ( error ) => error.message )
 		).toEqual( [
 			'wp-app-framework: the view script src/Block/Faq/Faq.view.js imports @saij/wp-app-framework, the editor runtime, which is not loaded on the front end; view scripts import @saij/wp-app-framework/view.',
+		] );
+	}, 30000 );
+
+	it( 'maps shared modules to the global and the script handle of the instance', async () => {
+		const root = consumerWithShared( {
+			'menu.view.js': [
+				"import { DocumentView } from '@saij/wp-app-framework/view';",
+				"import { count } from '#shared/ui/Counter';",
+				'export default class Menu extends DocumentView { mount() { count(); } }',
+			].join( '\n' ),
+			'shared/ui/Counter.js': 'export function count() {}',
+		} );
+
+		const stats = await buildViews( root );
+
+		expect( stats.hasErrors() ).toBe( false );
+		const script = fs.readFileSync(
+			path.join( root, 'build', 'assets/menu.view.js' ),
+			'utf8'
+		);
+		expect( script ).toContain(
+			'window["wpAppFramework"]["my-theme"]["shared"]["ui/Counter"]'
+		);
+		const asset = fs.readFileSync(
+			path.join( root, 'build', 'assets/menu.view.asset.php' ),
+			'utf8'
+		);
+		expect( asset ).toContain( "'my-theme-shared-ui-counter'" );
+		const shared = fs.readFileSync(
+			path.join( root, 'build', 'assets/shared/ui/Counter.js' ),
+			'utf8'
+		);
+		expect( shared ).toContain( '["ui/Counter"]' );
+	}, 30000 );
+
+	it( 'fails for an import of an unknown shared module', async () => {
+		const root = consumerWithShared( {
+			'menu.view.js': "import '#shared/missing';",
+			'shared/counter.js': '',
+		} );
+
+		const stats = await buildViews( root );
+
+		expect(
+			stats
+				.toJson()
+				.errors.some( ( error ) =>
+					error.message.includes(
+						'#shared/missing is no shared module: assets/shared/missing.js does not exist.'
+					)
+				)
+		).toBe( true );
+	}, 30000 );
+
+	it( 'fails when a view script reaches the editor runtime through a shared module', async () => {
+		const root = consumerWithShared(
+			{
+				'shared/format.js': [
+					"import { registerPanel } from '@saij/wp-app-framework';",
+					'export default registerPanel;',
+				].join( '\n' ),
+			},
+			{
+				'Block/Faq/Faq.view.js': "import '#shared/format';",
+			}
+		);
+
+		const stats = await buildViews( root );
+
+		expect(
+			stats.toJson().errors.map( ( error ) => error.message )
+		).toEqual( [
+			'wp-app-framework: the view script src/Block/Faq/Faq.view.js uses assets/shared/format.js (src/Block/Faq/Faq.view.js → assets/shared/format.js), which imports @saij/wp-app-framework, the editor runtime, which is not loaded on the front end; modules used by view scripts import @saij/wp-app-framework/view.',
+		] );
+	}, 30000 );
+
+	it( 'fails for shared modules that import each other in a cycle', async () => {
+		const root = consumerWithShared( {
+			'shared/a.js': "import '#shared/b';",
+			'shared/b.js': "import '#shared/a';",
+		} );
+
+		const stats = await buildViews( root );
+
+		expect(
+			stats.toJson().errors.map( ( error ) => error.message )
+		).toEqual( [
+			'wp-app-framework: the shared modules import each other in a cycle: assets/shared/a.js → assets/shared/b.js → assets/shared/a.js.',
 		] );
 	}, 30000 );
 } );

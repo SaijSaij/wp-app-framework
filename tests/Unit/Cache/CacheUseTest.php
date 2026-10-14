@@ -27,6 +27,7 @@ use Saij\WpAppFramework\Tests\Support\Requests;
 use Saij\WpAppFramework\Twig\WordPressTemplateFunctions;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\View\ViewAssets;
+use Saij\WpAppFramework\View\ViewData;
 use WP_Block;
 use WP_Error;
 use WP_REST_Response;
@@ -55,6 +56,8 @@ final class CacheUseTest extends TestCase
 
     private CacheStore $cache;
 
+    private ViewData $viewData;
+
     protected function setUp(): void
     {
         $this->file = (string) tempnam(sys_get_temp_dir(), 'manifest');
@@ -67,7 +70,8 @@ final class CacheUseTest extends TestCase
         file_put_contents($this->file, new ManifestGenerator()->generate(CacheBuildTest::buildValid()));
         $this->manifest = Manifest::load($this->file);
         $this->context = new RenderContext();
-        $container = new Container($this->manifest['services'], [RenderContext::class => $this->context]);
+        $this->viewData = new ViewData('my-theme', true);
+        $container = new Container($this->manifest['services'], [RenderContext::class => $this->context, ViewData::class => $this->viewData]);
         $this->cache = new CacheStore(
             'my-theme',
             ['object' => new ObjectBackend('my-theme'), 'file' => new FileBackend($this->build . '/cache'), 'transient' => new TransientBackend('my_theme_')],
@@ -104,7 +108,7 @@ final class CacheUseTest extends TestCase
 
     private function register(bool $debug = true): void
     {
-        $container = new Container($this->manifest['services'], [RenderContext::class => $this->context]);
+        $container = new Container($this->manifest['services'], [RenderContext::class => $this->context, ViewData::class => $this->viewData]);
         new BlockRegistrar(
             $container,
             new ValueFactory($this->manifest['values']),
@@ -113,6 +117,7 @@ final class CacheUseTest extends TestCase
             'my-theme',
             new ViewAssets('my-theme', new BuildAssets('my-theme', $this->build, 'https://example.test/build')),
             $this->cache,
+            $this->viewData,
         )->register($this->manifest['blocks']);
     }
 
@@ -123,7 +128,7 @@ final class CacheUseTest extends TestCase
     private static function latest(array $attributes = [], string $content = '', int $postId = 1): string
     {
         return Recorded::renderCallback('fixture/latest')(
-            ['title' => '', 'fail' => false, 'enqueue' => false, ...$attributes],
+            ['title' => '', 'fail' => false, 'enqueue' => false, 'data' => '', ...$attributes],
             $content,
             new WP_Block(['blockName' => 'fixture/latest'], ['postId' => $postId]),
         );
@@ -213,6 +218,21 @@ final class CacheUseTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Block fixture/latest is cached (#[Cache]) and enqueued the style "fixture-latest" when it rendered, but the style is not registered now that the block comes from the cache; register it before blocks render (e.g. on init) instead of in render().');
         self::latest(['enqueue' => true]);
+    }
+
+    public function testACacheHitSetsTheViewDataTheRenderSet(): void
+    {
+        $this->register();
+
+        self::latest(['data' => 'First']);
+        self::assertSame(['title' => 'First'], $this->viewData->get('latest'));
+
+        // A new request: the value comes from the cache entry, without rendering.
+        $this->viewData = new ViewData('my-theme', true);
+        $this->register();
+        self::latest(['data' => 'First']);
+        self::assertSame(1, self::renders('fixture/latest'));
+        self::assertSame(['title' => 'First'], $this->viewData->get('latest'));
     }
 
     public function testACacheHitEnqueuesTheViewScripts(): void

@@ -1,4 +1,10 @@
-import { BlockView, MARKER, SupportView, destroyView } from './view';
+import {
+	BlockView,
+	DocumentView,
+	MARKER,
+	SupportView,
+	destroyView,
+} from './view';
 
 /**
  * Root elements of blocks of an instance with view scripts within an element (the element included).
@@ -66,6 +72,7 @@ export function mountWithin( slug, classes, root, { isPreview } ) {
 			}
 			try {
 				const view = new ViewClass( element, {
+					slug,
 					isPreview,
 					value: isSupport ? entry.value : undefined,
 				} );
@@ -92,4 +99,44 @@ export function mountWithin( slug, classes, root, { isPreview } ) {
 			}
 		}
 	};
+}
+
+/**
+ * Mounts the document views of an instance (assets/*.view.js): one instance per
+ * script, for the document element. A script whose default export does not
+ * extend DocumentView, or that is not loaded, is reported on the console; the
+ * other views still mount.
+ *
+ * @param {string}                  slug    Slug of the instance.
+ * @param {Object<string, unknown>} classes View classes of the instance by script (wpAppFramework[slug].views).
+ * @param {Array<string>}           scripts The document views to mount, by script.
+ * @param {Document}                doc
+ */
+export function mountDocumentViews( slug, classes, scripts, doc ) {
+	for ( const script of scripts ) {
+		const ViewClass = classes?.[ script ];
+		if ( typeof ViewClass !== 'function' ) {
+			reportError(
+				`the document view ${ script } of ${ slug } is not loaded.`
+			);
+			continue;
+		}
+		if ( ! ( ViewClass.prototype instanceof DocumentView ) ) {
+			reportError(
+				`the default export of the document view ${ script } of ${ slug } must be a class that extends DocumentView from @saij/wp-app-framework/view.`
+			);
+			continue;
+		}
+		try {
+			new ViewClass( doc.documentElement, {
+				slug,
+				isPreview: false,
+			} ).mount();
+		} catch ( error ) {
+			reportError(
+				`the document view ${ script } of ${ slug } failed to mount.`,
+				error
+			);
+		}
+	}
 }

@@ -1,11 +1,14 @@
 /**
- * Base classes of view scripts (front-end scripts of blocks and block supports),
- * imported from `@saij/wp-app-framework/view`.
+ * Base classes of view scripts (front-end scripts of blocks, block supports and
+ * the whole document), imported from `@saij/wp-app-framework/view`.
  *
  * The view runtime creates one instance per root element of a block and calls
  * mount(); when the block goes away (editor preview) it calls unmount() and
- * then undoes everything registered with listen() and onUnmount().
+ * then undoes everything registered with listen() and onUnmount(). A document
+ * view is created once per page, for the document element.
  */
+import { getData } from './data';
+import { loadScript } from './load-script';
 
 /** Attribute of the root element of a block with view scripts, set by block_wrapper_attributes(). */
 export const MARKER = 'data-wp-app-framework-views';
@@ -34,6 +37,7 @@ export class View {
 	 *
 	 * @param {Element}                      element           Root element of the block.
 	 * @param {Object}                       context
+	 * @param {string}                       context.slug      Slug of the instance.
 	 * @param {boolean}                      context.isPreview Whether the view runs in the preview of the block editor.
 	 * @param {(string|number|boolean|null)} context.value     Value of the block support (SupportView).
 	 */
@@ -100,6 +104,27 @@ export class View {
 	}
 
 	/**
+	 * A value of the view data of the instance, set in PHP with ViewData::set().
+	 *
+	 * @param {string} key
+	 * @return {null|boolean|number|string|Array|Object} The value (JSON); an unknown key throws.
+	 */
+	data( key ) {
+		return getData( state( this ).context.slug, key );
+	}
+
+	/**
+	 * Loads an external script into the document of the view, once per URL and document.
+	 *
+	 * @param {string}                         url          An https: URL.
+	 * @param {Object<string, string|boolean>} [attributes] Further attributes of the script element.
+	 * @return {Promise<void>} Fulfilled once the script has loaded.
+	 */
+	loadScript( url, attributes = {} ) {
+		return loadScript( url, attributes, this.document );
+	}
+
+	/**
 	 * Adds an event listener that is removed when the view unmounts.
 	 *
 	 * @param {EventTarget}            target
@@ -136,6 +161,22 @@ export class SupportView extends View {
 	/** @return {(string|number|boolean|null)} The value of the support's attribute in this block. */
 	get value() {
 		return state( this ).context.value;
+	}
+}
+
+/**
+ * Base class of a document view (assets/*.view.js): one instance per page, for the document element,
+ * mounted before the views of blocks. It never unmounts on the front end.
+ */
+export class DocumentView extends View {
+	/**
+	 * The elements of the whole document matching a selector.
+	 *
+	 * @param {string} selector
+	 * @return {Element[]} Elements in document order.
+	 */
+	findAll( selector ) {
+		return [ ...this.element.querySelectorAll( selector ) ];
 	}
 }
 
