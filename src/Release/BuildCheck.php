@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Release;
 
 use Saij\WpAppFramework\Asset\AssetDirectory;
+use Saij\WpAppFramework\Asset\ImageVariants;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Editor\EditorAssets;
 use Saij\WpAppFramework\Instance;
@@ -90,12 +91,21 @@ final class BuildCheck
         if ($manifest['styles']) {
             $required[StyleAssets::BUILD . '.css'] = 'stylesheet (' . AssetDirectory::NAME . '/' . StyleAssets::SOURCE . ')';
         }
+        if ($manifest['stylePreload']) {
+            $required[StyleAssets::PRELOAD] = 'fonts marked for preloading in ' . AssetDirectory::NAME . '/' . StyleAssets::SOURCE;
+        }
 
         $missing = [];
         foreach ($required as $file => $reason) {
             $path = Instance::BUILD_DIRECTORY . '/' . $file;
             if (!is_file($projectDirectory . '/' . $path)) {
                 $missing[] = sprintf('%s (%s)', $path, $reason);
+            }
+        }
+        foreach (array_keys(ImageVariants::files($manifest['assets'])) as $file) {
+            $path = 'generated/' . ImageVariants::DIRECTORY . '/' . $file;
+            if (!is_file($projectDirectory . '/' . $path)) {
+                $missing[] = sprintf('%s (image variant)', $path);
             }
         }
         foreach (array_keys($manifest['assets']) as $name) {

@@ -2279,3 +2279,103 @@ class WP_HTML_Tag_Processor
         return substr($this->html, 0, $this->start) . $tag . '>' . substr($this->html, $this->start + $this->length);
     }
 }
+
+function content_url(string $path = ''): string
+{
+    return 'https://example.test/wp-content' . ($path !== '' ? '/' . ltrim($path, '/') : '');
+}
+
+/**
+ * Simplified: the IDs of the attachments in $GLOBALS['wp_app_framework_test_attachments'] with the meta value of
+ * `meta_key` and `meta_value` (fields "ids" only).
+ *
+ * @param array<string, mixed>|string|null $args
+ * @return list<int>
+ */
+function get_posts($args = null): array
+{
+    $args = is_array($args) ? $args : [];
+    $ids = [];
+    foreach (array_keys($GLOBALS['wp_app_framework_test_attachments'] ?? []) as $id) {
+        if (($GLOBALS['wp_app_framework_test_meta'][$id][$args['meta_key'] ?? ''] ?? null) === ($args['meta_value'] ?? null)) {
+            $ids[] = (int) $id;
+        }
+    }
+
+    return array_slice($ids, 0, is_int($args['numberposts'] ?? null) ? $args['numberposts'] : 5);
+}
+
+/**
+ * Writes the file to $GLOBALS['wp_app_framework_test_uploads'] (a directory) and records the call.
+ *
+ * @param string      $name
+ * @param null|string $deprecated
+ * @param string      $bits
+ * @param string|null $time
+ * @return array{file: string, url: string, type: string, error: string|false}
+ */
+function wp_upload_bits($name, $deprecated, $bits, $time = null): array
+{
+    $directory = $GLOBALS['wp_app_framework_test_uploads'] ?? sys_get_temp_dir();
+    $file = $directory . '/' . $name;
+    file_put_contents($file, $bits);
+
+    return ['file' => $file, 'url' => 'https://example.test/uploads/' . $name, 'type' => '', 'error' => false];
+}
+
+/**
+ * Simplified: the type by extension for a few image and document types.
+ *
+ * @param string                     $filename
+ * @param array<string, string>|null $mimes
+ * @return array{ext: string|false, type: string|false}
+ */
+function wp_check_filetype($filename, $mimes = null): array
+{
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    $types = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'svg' => 'image/svg+xml', 'pdf' => 'application/pdf'];
+
+    return isset($types[$extension]) ? ['ext' => $extension, 'type' => $types[$extension]] : ['ext' => false, 'type' => false];
+}
+
+/**
+ * Records the attachment in $GLOBALS['wp_app_framework_test_attachments'] with the next ID.
+ *
+ * @param array<string, mixed>|string $args
+ * @param string|false                $file
+ * @param int                         $parent_post_id
+ * @param bool                        $wp_error
+ * @param bool                        $fire_after_hooks
+ */
+function wp_insert_attachment($args, $file = false, $parent_post_id = 0, $wp_error = false, $fire_after_hooks = true): int|WP_Error
+{
+    $id = 1000 + count($GLOBALS['wp_app_framework_test_attachments'] ?? []);
+    $GLOBALS['wp_app_framework_test_attachments'][$id] = ['args' => $args, 'file' => $file];
+
+    return $id;
+}
+
+/**
+ * Simplified: the file name, as WordPress stores it for a file without intermediate sizes.
+ *
+ * @param int    $attachment_id
+ * @param string $file
+ * @return array<string, mixed>
+ */
+function wp_generate_attachment_metadata($attachment_id, $file): array
+{
+    return ['file' => basename($file)];
+}
+
+/**
+ * Records the metadata of an attachment of wp_insert_attachment().
+ *
+ * @param int          $attachment_id
+ * @param array<mixed> $data
+ */
+function wp_update_attachment_metadata($attachment_id, $data): int|false
+{
+    $GLOBALS['wp_app_framework_test_attachments'][$attachment_id]['metadata'] = $data;
+
+    return $attachment_id;
+}

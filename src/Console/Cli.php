@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Console;
 
 use ReflectionClass;
+use RuntimeException;
+use Saij\WpAppFramework\Asset\ImageVariants;
 use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Filesystem\AtomicFile;
@@ -181,6 +183,16 @@ final class Cli
                 // cache entries after the templates and the PHP code.
                 $codeVersion = CodeGeneration::codeVersion(array_map(static fn(Source $source): string => $source->getDirectory(), $result->getSources()));
                 AtomicFile::write($output, new ManifestGenerator()->generate($result, self::templateVersion($projectDirectory), $codeVersion), true);
+                // Image variants next to the release manifest: generated/assets/.
+                if ($result->getAssetDirectory() !== null) {
+                    try {
+                        ImageVariants::generate($result->getAssets(), $result->getAssetDirectory(), dirname($output) . '/' . ImageVariants::DIRECTORY);
+                    } catch (RuntimeException $exception) {
+                        fwrite($stderr, $exception->getMessage() . "\n");
+
+                        return 1;
+                    }
+                }
             }
         } catch (BuildException $exception) {
             fwrite($stderr, $exception->getMessage() . "\n");
@@ -220,6 +232,14 @@ final class Cli
         }
         if ($result->getTemplateProviders() !== []) {
             fwrite($stdout, sprintf("Templates use the public template callables of: %s.\n", implode(', ', $result->getTemplateProviders())));
+        }
+
+        foreach ($result->getNotices() as $notice) {
+            fwrite($stdout, $notice . "\n");
+        }
+        $variants = count(ImageVariants::files($result->getAssets()));
+        if ($result->getAssets() !== []) {
+            fwrite($stdout, sprintf("Assets: %d static files, %d image variants.\n", count($result->getAssets()), $variants));
         }
 
         $overrides = TemplateOverrides::find(

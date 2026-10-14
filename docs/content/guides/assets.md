@@ -1,6 +1,6 @@
 # Static assets
 
-A theme ships more than code: a logo, icons, placeholder images, a font, a PDF to download. These files live in the `assets/` directory of the theme or plugin, next to `src/`. The framework gives each a URL that changes with its content, prints images with their size, inlines SVG icons, and lets a child theme replace a file without code.
+A theme ships more than code: a logo, icons, placeholder images, a font, a PDF to download. These files live in the `assets/` directory of the theme or plugin, next to `src/`. The framework gives each a URL that changes with its content, prints images with their size and in smaller versions and modern formats, inlines SVG icons, preloads fonts, imports files into the media library and lets a child theme replace a file without code.
 
 ## How it works
 
@@ -34,6 +34,61 @@ Three Twig functions cover the usual cases. `asset_url()` returns the URL of any
 
 Prefer `asset_svg()` over Twig's own `source()`: it checks that the file is an SVG image of the instance and changes its root element without string operations.
 
+## Responsive images and formats
+
+A large photo should not reach a phone at full size. With `widths` and `sizes`, `asset_image()` adds a `srcset` of smaller versions, and the browser picks the one that fits. With `formats`, it wraps the image in a `<picture>` with a `<source>` per format, so browsers that understand AVIF or WebP load the smaller file:
+
+```twig
+{{ asset_image('images/hero.jpg', 'Our team', {
+    widths: [640, 1280, 1920],
+    sizes: '(min-width: 1200px) 1200px, 100vw',
+    formats: ['avif', 'webp'],
+    class: 'w-full h-auto',
+}) }}
+```
+
+The variants are created by the build, before any template renders. The build therefore reads the templates in `src/` and looks for calls of `asset_image()` with `widths` or `formats`: the name of the image, `widths` and `formats` must be written as literals in the call, and `sizes` must be there. Each variant is a file named after the image, the hash of its content, its width and format, so its URL never needs a version. A width larger than the image is left out, and the build says so. The original image stays the largest candidate of the `srcset`.
+
+The build writes the variants with the PHP extension Imagick, or with GD where Imagick cannot write a format. In development mode that is the PHP of your web server, which writes them to `wp-content/cache/{slug}/assets/` when the manifest is rebuilt. The release build runs on the command line and writes them to `generated/assets/` of the release. If neither extension can write a requested format, the build fails and names the format and what to install. Only JPEG, PNG, WebP and AVIF images have variants; an image of an override or of the child theme is printed without them.
+
+## Preloading fonts
+
+A font the stylesheet needs early, such as the font of the headings, should start loading with the page instead of after the stylesheet. Mark its `@font-face` in `assets/styles.css` with a comment:
+
+```css
+@font-face {
+	/* wp-app-framework: preload */
+	font-family: "Inter";
+	src: url("./fonts/inter-var.woff2") format("woff2");
+	font-display: swap;
+}
+```
+
+The webpack helper finds the marked rules, takes the first `woff2` file of each and lists its built file in `build/styles.preload.php`. The framework adds a `<link rel="preload" as="font" crossorigin>` for each to the head of the front end, through WordPress' filter `wp_preload_resources`. The preload uses the same URL as the built stylesheet, so the browser loads the font once. Fonts declared in `theme.json` cannot be marked; preload only fonts the first view of the page needs.
+
+## In the media library
+
+Some content needs an attachment rather than a file of the theme: an `#[Image]` field stores the ID of an attachment, and so does content a theme creates on activation. The service `MediaLibrary` imports an asset into the media library and returns the ID of its attachment:
+
+```php
+use Saij\WpAppFramework\Asset\MediaLibrary;
+use Saij\WpAppFramework\Lifecycle\OnActivation;
+
+final readonly class StarterContent
+{
+    public function __construct(private MediaLibrary $media) {}
+
+    #[OnActivation]
+    public function create(): void
+    {
+        $image = $this->media->import('images/hero.jpg');
+        // … create a page whose hero block uses $image
+    }
+}
+```
+
+The import is idempotent per site: an asset that was imported with the same content returns its attachment. A changed file becomes a new attachment, and the old one stays, because content may still use it. WordPress creates the intermediate sizes as for any upload. Imported attachments stay in the media library when the theme or plugin is removed, like all attachments (see [Activation and uninstallation](./lifecycle.md)).
+
 ## In PHP
 
 The service `Assets` offers the same as methods, for a pattern written in PHP, a REST response or a mail. Inject it like any service:
@@ -57,7 +112,7 @@ final readonly class Newsletter
 }
 ```
 
-`url()`, `image()` and `svg()` work like the Twig functions. `path()` returns the file's path in the file system, for example to attach it to a mail.
+`url()`, `image()` and `svg()` work like the Twig functions. `path()` returns the file's path in the file system, for example to attach it to a mail. `image()` with variants needs the same variants as a call in a template: the build only reads the templates, not PHP code.
 
 ## Overrides and the child theme's own files
 
@@ -86,7 +141,7 @@ Fonts are a common case. A plugin declares them with `@font-face` in its `assets
 |---|---|---|
 | `asset_url(name)` | `url(string $name): string` | The URL with `?ver=` and the hash of the content, or the modification time for files of overrides and `@child/`. |
 | – | `path(string $name): string` | The path in the file system. |
-| `asset_image(name, alt, attributes = {})` | `image(string $name, string $alt, array $attributes = []): string` | `<img>` with `src`, `width` and `height` (if known), `alt`, `decoding="async"` and the attributes; `true` adds an attribute without value, `false` leaves it out. `src` and `alt` cannot be set as attributes. |
+| `asset_image(name, alt, attributes = {})` | `image(string $name, string $alt, array $attributes = []): string` | `<img>` with `src`, `width` and `height` (if known), `alt`, `decoding="async"` and the attributes; `true` adds an attribute without value, `false` leaves it out. `src`, `srcset` and `alt` cannot be set as attributes. With `widths` (list of pixel widths) and `sizes` the `<img>` gets a `srcset`; with `formats` (`avif`, `webp`, `jpeg`, `png`) a `<picture>` with a `<source>` per format around it. |
 | `asset_svg(name, attributes = {})` | `svg(string $name, array $attributes = []): string` | The SVG markup without XML declaration and doctype, the attributes on its root element (`class` added, `false` removes). |
 
 - A name is a path below `assets/`, without `..` segments, without a leading `/` and without `\`. It may start with `@child/` or with the instance's own prefix (`@theme/` in themes and child themes, `@plugin/` in plugins).
@@ -94,4 +149,17 @@ Fonts are a common case. A plugin declares them with `@font-face` in its `assets
 - The build lists each asset with the first 12 characters of the `xxh128` hash of its content, raster images with the width and height from their header, SVG images with `width` and `height` of the root element in pixels or without unit, otherwise with the size of its `viewBox`.
 - An unknown name, an invalid name, `@child/` without an active child theme, `asset_svg()` with a file that is no `.svg` or has no root element `<svg>` are errors. In a block they behave like [render errors](./blocks.md#errors): thrown with `WP_DEBUG`, otherwise logged, and the block renders nothing.
 - Overrides are searched in the order of the template lookup: for a theme the child theme's `overrides/{theme-slug}/assets/`, for a plugin those of the child theme and the theme. An override needs an asset of the same name in the instance.
-- The release ships `assets/`. A listed asset missing in the release – for example removed by `export-ignore` – stops the release build.
+- The release ships `assets/`. A listed asset missing in the release – for example removed by `export-ignore` – stops the release build, and so does a missing image variant or a missing `build/styles.preload.php` for a stylesheet with marked fonts.
+
+**Image variants**
+
+- The build reads every template in `src/` with Twig's parser. A call of `asset_image()` whose literal attribute map has `widths` or `formats` asks for variants. A template that does not parse is skipped with a remark in the output of the build.
+- Build errors: a name that is no literal string, a name that is no static asset of the project or no JPEG, PNG, WebP or AVIF image, `widths` that are no literal list of positive integers (also missing with `formats`), `widths` without `sizes`, and `formats` that are no literal list of `jpeg`, `png`, `webp` and `avif`.
+- All calls of an image add up: the build creates every requested width in the format of the image and in every requested format. Widths larger than the image are left out.
+- A variant is `{path without extension}.{hash}.{width}.{extension}`, below `generated/assets/` of a release and `wp-content/cache/{slug}/assets/` in development mode, which also removes variants no template asks for any more. JPEG variants have quality 82, WebP 80, AVIF 60; metadata is removed.
+- At run time, a call that asks for variants the build did not create is an error. An image of an override or of the child theme is printed without variants.
+
+**Fonts and the media library**
+
+- `/* wp-app-framework: preload */` in an `@font-face` of `assets/styles.css` marks its first `woff2` file of the project for preloading; a marked rule without one is a build error of the webpack helper. The preloads are printed on the front end only.
+- `MediaLibrary::import(string $name): int` imports an asset of the instance itself, also named with `@theme/` or `@plugin/`; `@child/` is an error. The attachment carries the meta key `_wp_app_framework_asset` with slug, name and hash of the asset.

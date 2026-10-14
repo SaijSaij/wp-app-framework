@@ -68,10 +68,10 @@ final class AssetsTest extends TestCase
         $assets = AssetCollector::collect($this->root . '/theme/assets');
 
         self::assertSame(['docs/My File.pdf', 'icons/menu.svg', 'icons/plain.svg', 'images/dot.png', 'images/logo.svg'], array_keys($assets));
-        self::assertSame(['width' => 120, 'height' => 40], array_slice($assets['images/logo.svg'], 1));
-        self::assertSame(['width' => 24, 'height' => 24], array_slice($assets['icons/menu.svg'], 1));
-        self::assertSame(['width' => 2, 'height' => 3], array_slice($assets['images/dot.png'], 1));
-        self::assertSame(['width' => null, 'height' => null], array_slice($assets['docs/My File.pdf'], 1));
+        self::assertSame(['width' => 120, 'height' => 40, 'variants' => null], array_slice($assets['images/logo.svg'], 1));
+        self::assertSame(['width' => 24, 'height' => 24, 'variants' => null], array_slice($assets['icons/menu.svg'], 1));
+        self::assertSame(['width' => 2, 'height' => 3, 'variants' => null], array_slice($assets['images/dot.png'], 1));
+        self::assertSame(['width' => null, 'height' => null, 'variants' => null], array_slice($assets['docs/My File.pdf'], 1));
         self::assertSame(substr((string) hash_file('xxh128', $this->root . '/theme/assets/images/logo.svg'), 0, 12), $assets['images/logo.svg']['hash']);
         self::assertSame([], AssetCollector::collect(null));
         self::assertSame([], AssetCollector::collect($this->root . '/missing'));

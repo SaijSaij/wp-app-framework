@@ -28,6 +28,12 @@ final readonly class StyleAssets
     /** The stylesheet below the consumer's asset directory (`assets/`). */
     public const string SOURCE = 'styles.css';
 
+    /** List of the fonts marked for preloading below the build directory (webpack helper), with extension. */
+    public const string PRELOAD = 'styles.preload.php';
+
+    /** Comment in an @font-face of the stylesheet that marks its woff2 font for preloading. */
+    public const string PRELOAD_MARKER = '#/\*\s*wp-app-framework:\s*preload\s*\*/#';
+
     /** Where the stylesheet was until 0.13, below the script directory (`src/`); now a build error. */
     public const string FORMER_SOURCE = 'styles.css';
 
@@ -63,6 +69,47 @@ final readonly class StyleAssets
             AssetDirectory::NAME,
             self::SOURCE,
         )];
+    }
+
+    /**
+     * Whether the stylesheet marks fonts for preloading; read by the build.
+     */
+    public static function hasPreloads(string $stylesheet): bool
+    {
+        return preg_match(self::PRELOAD_MARKER, (string) file_get_contents($stylesheet)) === 1;
+    }
+
+    /**
+     * Adds the fonts marked in the stylesheet to the preloads of the front end (filter wp_preload_resources), with
+     * the URLs the built stylesheet loads them from.
+     *
+     * @param array<mixed> $resources
+     * @return array<mixed>
+     */
+    public function preloadFonts(array $resources): array
+    {
+        if (is_admin()) {
+            return $resources;
+        }
+        $file = $this->buildDirectory . '/' . self::PRELOAD;
+        if (!is_file($file)) {
+            throw new LogicException(sprintf(
+                'The fonts of %s/%s marked for preloading are not built: %s is missing. Run "npm run build" (or "npm run start") in the theme or plugin %s.',
+                AssetDirectory::NAME,
+                self::SOURCE,
+                $file,
+                $this->slug,
+            ));
+        }
+        $fonts = require $file;
+        if (!is_array($fonts)) {
+            throw new LogicException(sprintf('%s does not return a list of fonts.', $file));
+        }
+        foreach (array_filter($fonts, is_string(...)) as $font) {
+            $resources[] = ['href' => $this->buildUri . '/' . $font, 'as' => 'font', 'type' => 'font/woff2', 'crossorigin' => 'anonymous'];
+        }
+
+        return $resources;
     }
 
     /**

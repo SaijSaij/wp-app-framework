@@ -10,6 +10,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
 use RuntimeException;
+use Saij\WpAppFramework\Asset\ImageVariants;
 use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\DependencyInjection\NoService;
@@ -212,6 +213,10 @@ final class DevCache
     private function rebuild(): void
     {
         $result = ($this->builder)()->build();
+        // Image variants next to the manifest cache: wp-content/cache/{slug}/assets/.
+        if ($result->getAssetDirectory() !== null) {
+            ImageVariants::generate($result->getAssets(), $result->getAssetDirectory(), dirname($this->directory) . '/' . ImageVariants::DIRECTORY, true);
+        }
         // The rebuild reads the current files; walk them again for the meta file and the code generation.
         $this->scans = [];
         $code = new ManifestGenerator()->generate($result);

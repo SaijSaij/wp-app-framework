@@ -98,6 +98,7 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  *     templateVersion: non-empty-string|null,
  *     codeVersion: non-empty-string|null,
  *     styles: bool,
+ *     stylePreload: bool,
  *     settings: array{title: string|null, groups: list<SettingsGroupEntry>},
  *     posts: array<class-string<\Saij\WpAppFramework\Post\AbstractPost>, PostClassEntry>,
  *     taxonomies: array<class-string, TaxonomyEntry>,

@@ -147,6 +147,7 @@ final class ManifestGenerator
             'templateVersion' => $templateVersion,
             'codeVersion' => $codeVersion,
             'styles' => $result->hasStyles(),
+            'stylePreload' => $result->hasStylePreload(),
             'settings' => ['title' => $result->getSettingsTitle(), 'groups' => $result->getSettings()],
             ...$result->getPosts(),
             'cronEvents' => $cronEvents,

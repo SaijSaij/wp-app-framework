@@ -82,6 +82,8 @@ final readonly class BuildResult
      * @param ScriptsData                                       $scripts      Document views, editor scripts without a block and
      *                                                                         shared modules in the asset directory.
      * @param array<string, AssetEntry>                         $assets       Static files of the asset directory by name.
+     * @param list<string>                                      $notices      Remarks for the output of the build.
+     * @param bool                                              $stylePreload The stylesheet marks fonts for preloading.
      */
     public function __construct(
         private array $sources,
@@ -115,7 +117,22 @@ final readonly class BuildResult
         private ?string $assetDirectory = null,
         private array $scripts = ['documentViews' => [], 'editorScripts' => [], 'shared' => []],
         private array $assets = [],
+        private array $notices = [],
+        private bool $stylePreload = false,
     ) {}
+
+    public function hasStylePreload(): bool
+    {
+        return $this->stylePreload;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getNotices(): array
+    {
+        return $this->notices;
+    }
 
     /**
      * @return array<string, AssetEntry>

@@ -11,6 +11,8 @@ use Saij\WpAppFramework\Asset\AssetCollector;
 use Saij\WpAppFramework\Asset\AssetDirectory;
 use Saij\WpAppFramework\Asset\Assets;
 use Saij\WpAppFramework\Asset\AssetScripts;
+use Saij\WpAppFramework\Asset\ImageVariantCollector;
+use Saij\WpAppFramework\Asset\MediaLibrary;
 use Saij\WpAppFramework\Asset\OrphanScripts;
 use Saij\WpAppFramework\Block\BlockCollector;
 use Saij\WpAppFramework\Block\Markup\BlockMarkupValidator;
@@ -186,7 +188,7 @@ final class ManifestBuilder
         // framework's own template functions (post(), asset_url() …).
         $resolver = ServiceResolver::forClasses(
             $classes,
-            [...$this->predefined, PostStore::class, ViewData::class, Assets::class],
+            [...$this->predefined, PostStore::class, ViewData::class, Assets::class, MediaLibrary::class],
             $this->parent,
             SettingsCollector::groupClasses($classes),
             // Task classes first: a post class keeps its own, more telling description.
@@ -251,6 +253,11 @@ final class ManifestBuilder
         $assetScripts = new AssetScripts($this->slug);
         $scripts = $assetScripts->collect($this->assetDirectory);
 
+        // The content of a static asset versions its URL; templates ask for variants of image assets.
+        $assetFiles = AssetCollector::files($this->assetDirectory);
+        $imageVariants = new ImageVariantCollector();
+        $assets = $imageVariants->collect($this->scriptDirectory, AssetCollector::collect($this->assetDirectory));
+
         $errors = [
             ...$errors,
             ...$hookCollector->errors(),
@@ -274,13 +281,11 @@ final class ManifestBuilder
             ...$assetScripts->errors(),
             ...StyleAssets::sourceErrors($this->scriptDirectory),
             ...OrphanScripts::errors($classes, $this->scriptDirectory),
+            ...$imageVariants->errors(),
         ];
         if ($errors !== []) {
             throw new BuildException($errors);
         }
-
-        // The content of a static asset versions its URL.
-        $assetFiles = AssetCollector::files($this->assetDirectory);
 
         return new BuildResult(
             $this->sources,
@@ -313,7 +318,10 @@ final class ManifestBuilder
             lifecycle: $lifecycle,
             assetDirectory: $this->assetDirectory,
             scripts: $scripts,
-            assets: AssetCollector::collect($this->assetDirectory),
+            assets: $assets,
+            notices: $imageVariants->notices(),
+            stylePreload: $this->assetDirectory !== null && is_file($this->assetDirectory . '/' . StyleAssets::SOURCE)
+                && StyleAssets::hasPreloads($this->assetDirectory . '/' . StyleAssets::SOURCE),
         );
     }
 

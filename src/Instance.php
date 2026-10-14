@@ -10,6 +10,8 @@ use Saij\WpAppFramework\Api\InstanceBridge;
 use Saij\WpAppFramework\Asset\AssetDirectory;
 use Saij\WpAppFramework\Asset\Assets;
 use Saij\WpAppFramework\Asset\BuildAssets;
+use Saij\WpAppFramework\Asset\ImageVariants;
+use Saij\WpAppFramework\Asset\MediaLibrary;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\Cache\Backend\FileBackend;
 use Saij\WpAppFramework\Cache\Backend\ObjectBackend;
@@ -239,14 +241,19 @@ final readonly class Instance
         $viewData = new ViewData($this->slug, $debug);
         $directoryUri = $this->directoryUri;
         $assets = $manifest['assets'];
+        // Image variants: generated/assets/ of a release, the cache directory in development mode (written by DevCache).
+        $variants = $development
+            ? [$cacheDirectory . '/' . ImageVariants::DIRECTORY, content_url('cache/' . $this->slug . '/' . ImageVariants::DIRECTORY)]
+            : [$this->directory . '/generated/' . ImageVariants::DIRECTORY, $this->directoryUri . '/generated/' . ImageVariants::DIRECTORY];
         $container = new Container(
             $manifest['services'],
             [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext, PostStore::class => $postStore, ViewData::class => $viewData],
             [
                 CacheStore::class => static fn(Container $container): CacheStore => new CacheStore($slug, $backends, $tagVersions, $generation, $container, $tagNames),
                 CronScheduler::class => static fn(): CronScheduler => new CronScheduler(CronRegistrar::taskHooks($slug, $cronTasks)),
+                MediaLibrary::class => static fn(Container $container): MediaLibrary => new MediaLibrary($slug, $container->get(Assets::class)),
                 // Created on first use, when the active theme and child theme are final.
-                Assets::class => static function () use ($slug, $directory, $directoryUri, $assets, $exactNamespace, $templateSetup): Assets {
+                Assets::class => static function () use ($slug, $directory, $directoryUri, $assets, $exactNamespace, $templateSetup, $variants): Assets {
                     $overrides = [];
                     foreach ($templateSetup()['overrides'] as $override) {
                         $overrides[] = [$override . '/' . AssetDirectory::NAME, self::themeUri($override) . '/' . AssetDirectory::NAME];
@@ -263,6 +270,7 @@ final readonly class Instance
                         '@' . $exactNamespace . '/',
                         $overrides,
                         $child,
+                        $variants,
                     );
                 },
                 TemplateRenderer::class => static function (Container $container) use (
@@ -383,6 +391,9 @@ final readonly class Instance
         if ($manifest['styles']) {
             $styleAssets = new StyleAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
             add_action('enqueue_block_assets', $styleAssets->enqueue(...));
+            if ($manifest['stylePreload']) {
+                add_filter('wp_preload_resources', $styleAssets->preloadFonts(...));
+            }
         }
 
         if ($settings !== null) {

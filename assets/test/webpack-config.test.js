@@ -442,4 +442,84 @@ describe( 'webpack helper', () => {
 			'wp-app-framework: the shared modules import each other in a cycle: assets/shared/a.js → assets/shared/b.js → assets/shared/a.js.',
 		] );
 	}, 30000 );
+
+	it( 'lists the built files of the fonts marked for preloading', async () => {
+		const root = consumer( {
+			styles: false,
+			packages: [ ...TOOLCHAIN, ...TAILWIND ],
+			assets: {
+				'fonts/marked.woff2': 'woff2',
+				'fonts/plain.woff2': 'woff2',
+				'styles.css': [
+					'@font-face { /* wp-app-framework: preload */ font-family: Marked; src: url("./fonts/marked.woff2") format("woff2"); }',
+					'@font-face { font-family: Plain; src: url("./fonts/plain.woff2") format("woff2"); }',
+					'.a { font-family: Marked, Plain; }',
+				].join( '\n' ),
+			},
+		} );
+		const config = createConfig( { slug: 'my-theme', root } );
+		const webpack = require(
+			path.join( framework, 'node_modules', 'webpack' )
+		);
+
+		const stats = await new Promise( ( resolve, reject ) =>
+			webpack(
+				{
+					...config,
+					mode: 'development',
+					devtool: false,
+					entry: () => ( { styles: config.entry().styles } ),
+				},
+				( error, result ) =>
+					error ? reject( error ) : resolve( result )
+			)
+		);
+
+		expect( stats.hasErrors() ).toBe( false );
+		const list = fs.readFileSync(
+			path.join( root, 'build', 'styles.preload.php' ),
+			'utf8'
+		);
+		expect( list ).toMatch(
+			/^<\?php return array\( 'fonts\/marked\.[0-9a-f]+\.woff2' \);\n$/
+		);
+	}, 30000 );
+
+	it( 'fails for a font marked for preloading without a woff2 file of the project', async () => {
+		const root = consumer( {
+			styles: false,
+			packages: [ ...TOOLCHAIN, ...TAILWIND ],
+			assets: {
+				'styles.css':
+					'@font-face { /* wp-app-framework: preload */ font-family: Remote; src: url("https://fonts.example.com/a.woff2"); }',
+			},
+		} );
+		const config = createConfig( { slug: 'my-theme', root } );
+		const webpack = require(
+			path.join( framework, 'node_modules', 'webpack' )
+		);
+
+		const stats = await new Promise( ( resolve, reject ) =>
+			webpack(
+				{
+					...config,
+					mode: 'development',
+					devtool: false,
+					entry: () => ( { styles: config.entry().styles } ),
+				},
+				( error, result ) =>
+					error ? reject( error ) : resolve( result )
+			)
+		);
+
+		expect(
+			stats.toJson().errors.map( ( error ) => error.message )
+		).toEqual( [
+			`wp-app-framework: an @font-face in ${ path.join(
+				root,
+				'assets',
+				'styles.css'
+			) } is marked for preloading, but has no woff2 file of the project in its src (url("./fonts/….woff2")).`,
+		] );
+	}, 30000 );
 } );

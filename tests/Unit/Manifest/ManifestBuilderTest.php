@@ -136,6 +136,7 @@ final class ManifestBuilderTest extends TestCase
                 \Saij\WpAppFramework\Api\PluginTemplateFunctions::class,
                 \Saij\WpAppFramework\Asset\AssetTemplateFunctions::class,
                 \Saij\WpAppFramework\Asset\Assets::class,
+                \Saij\WpAppFramework\Asset\MediaLibrary::class,
                 \Saij\WpAppFramework\Block\BlockTemplateFunctions::class,
                 \Saij\WpAppFramework\Cache\CacheStore::class,
                 \Saij\WpAppFramework\Cron\CronScheduler::class,

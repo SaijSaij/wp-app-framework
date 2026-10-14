@@ -26,6 +26,7 @@ final class BuildCheckTest extends ReleaseTestCase
             'meta' => $meta,
             'settings' => ['title' => null, 'groups' => $groups],
             'styles' => $styles,
+            'stylePreload' => false,
             'scripts' => [...['documentViews' => [], 'editorScripts' => [], 'shared' => []], ...$scripts],
             'assets' => $assets,
         ];
@@ -87,7 +88,7 @@ final class BuildCheckTest extends ReleaseTestCase
 
     public function testStaticAssetsMustBeInTheRelease(): void
     {
-        $manifest = self::manifest(assets: ['images/logo.svg' => ['hash' => 'a', 'width' => 1, 'height' => 1]]);
+        $manifest = self::manifest(assets: ['images/logo.svg' => ['hash' => 'a', 'width' => 1, 'height' => 1, 'variants' => null]]);
         self::assertSame(['assets/images/logo.svg (static asset, e.g. removed by export-ignore)'], $this->missing($manifest));
 
         mkdir($this->root . '/assets/images', 0777, true);

@@ -20,7 +20,7 @@ use SplFileInfo;
  *
  * @internal
  *
- * @phpstan-type AssetEntry array{hash: non-empty-string, width: int|null, height: int|null}
+ * @phpstan-type AssetEntry array{hash: non-empty-string, width: int|null, height: int|null, variants: array{widths: list<int>, formats: list<string>}|null}
  */
 #[NoService]
 final class AssetCollector
@@ -41,7 +41,7 @@ final class AssetCollector
             if ($hash === '') {
                 throw new RuntimeException(sprintf('The asset %s cannot be read.', $file));
             }
-            $assets[$name] = ['hash' => $hash, 'width' => $width, 'height' => $height];
+            $assets[$name] = ['hash' => $hash, 'width' => $width, 'height' => $height, 'variants' => null];
         }
 
         return $assets;

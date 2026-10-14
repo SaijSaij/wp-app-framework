@@ -26,9 +26,10 @@ final readonly class AssetTemplateFunctions
     }
 
     /**
-     * An `<img>` element for an image asset with its width and height.
+     * An `<img>` element for an image asset with its width and height; with `widths`, `sizes` and `formats` a
+     * `srcset` of variants or a `<picture>` (see Assets::image()).
      *
-     * @param array<string, string|int|bool> $attributes
+     * @param array<string, string|int|bool|list<int>|list<string>> $attributes
      */
     #[TemplateFunction('asset_image', html: true)]
     public function image(string $name, string $alt, array $attributes = []): string

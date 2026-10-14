@@ -18,7 +18,9 @@
  *   `#shared/counter`, script handle `{slug}-shared-counter`),
  * - the consumer's stylesheet, if it has one: assets/styles.css → build/styles.css, compiled
  *   with Tailwind CSS (`tailwindcss` and `@tailwindcss/webpack`, installed by the consumer).
- *   Until 0.13 the stylesheet was src/styles.css; a file there fails the build.
+ *   Until 0.13 the stylesheet was src/styles.css; a file there fails the build. Fonts marked
+ *   with the comment `/* wp-app-framework: preload *\/` in their `@font-face` are listed in
+ *   build/styles.preload.php, from which the framework prints <link rel="preload">.
  *
  * Imports of `@saij/wp-app-framework` resolve to the runtime of the same instance
  * (global `wpAppFramework[slug]`, script handle `{slug}-wp-app-framework`), imports of
@@ -58,6 +60,11 @@ const SHARED_DIRECTORY = 'shared';
 const SHARED_IMPORT_PREFIX = '#shared/';
 const SHARED_IMPORTS_KEY = '#shared/*';
 const SHARED_IMPORTS_TARGET = './assets/shared/*.js';
+
+/** Comment in an `@font-face` of the stylesheet that asks for a preload of its woff2 font. */
+const PRELOAD_MARKER = /\/\*\s*wp-app-framework:\s*preload\s*\*\//;
+/** List of the preloaded fonts, below build/. */
+const PRELOAD_FILE = 'styles.preload.php';
 
 /** Major version of Tailwind CSS the stylesheet is built with (peer dependency). */
 const TAILWIND_MAJOR = 4;
@@ -285,6 +292,97 @@ class ScriptImportCheck {
 				}
 			} );
 		} );
+	}
+}
+
+/**
+ * The woff2 files of the `@font-face` rules of a stylesheet marked for preloading.
+ *
+ * @param {string} styles Path of the stylesheet.
+ * @return {{fonts: string[], errors: string[]}} Absolute paths of the fonts, and errors.
+ */
+function markedFonts( styles ) {
+	const fonts = [];
+	const errors = [];
+	const css = fs.readFileSync( styles, 'utf8' );
+	for ( const [ , body ] of css.matchAll( /@font-face\s*\{([^}]*)\}/g ) ) {
+		if ( ! PRELOAD_MARKER.test( body ) ) {
+			continue;
+		}
+		const url = body.match(
+			/url\(\s*(['"]?)([^'")]+\.woff2)(?:[?#][^'")]*)?\1\s*\)/
+		);
+		if ( ! url || /^[a-z]+:|^\/\//i.test( url[ 2 ] ) ) {
+			errors.push(
+				`wp-app-framework: an @font-face in ${ styles } is marked for preloading, but has no woff2 file of the project in its src (url("./fonts/….woff2")).`
+			);
+			continue;
+		}
+		fonts.push( path.resolve( path.dirname( styles ), url[ 2 ] ) );
+	}
+	return { fonts, errors };
+}
+
+/**
+ * Writes build/styles.preload.php: the built files of the fonts marked for preloading, so that the
+ * framework preloads the same URLs the stylesheet loads.
+ */
+class FontPreload {
+	constructor( styles ) {
+		this.styles = styles;
+	}
+
+	apply( compiler ) {
+		const { Compilation, sources } = compiler.webpack;
+		compiler.hooks.thisCompilation.tap(
+			'wp-app-framework',
+			( compilation ) => {
+				compilation.hooks.processAssets.tap(
+					{
+						name: 'wp-app-framework',
+						stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+					},
+					() => {
+						const { fonts, errors } = markedFonts( this.styles );
+						for ( const message of errors ) {
+							compilation.errors.push(
+								new compiler.webpack.WebpackError( message )
+							);
+						}
+						if ( fonts.length === 0 ) {
+							return;
+						}
+						const built = [];
+						for ( const font of fonts ) {
+							const module = [ ...compilation.modules ].find(
+								( candidate ) => candidate.resource === font
+							);
+							const filename = module?.buildInfo?.filename;
+							if ( ! filename ) {
+								compilation.errors.push(
+									new compiler.webpack.WebpackError(
+										`wp-app-framework: the font ${ font }, marked for preloading in ${ this.styles }, was not built.`
+									)
+								);
+								continue;
+							}
+							built.push( filename );
+						}
+						compilation.emitAsset(
+							PRELOAD_FILE,
+							new sources.RawSource(
+								`<?php return array( ${ built
+									.map(
+										( file ) =>
+											`'${ file.replace( /[\\']/g, '\\$&' ) }'`
+									)
+									.join( ', ' ) } );\n`
+							)
+						);
+					}
+				);
+			}
+		);
 	}
 }
 
@@ -540,6 +638,7 @@ module.exports = function createConfig( { slug, root } = {} ) {
 					'DependencyExtractionWebpackPlugin'
 			),
 			new ScriptImportCheck(),
+			...( tailwind ? [ new FontPreload( styles ) ] : [] ),
 			new webpack.DefinePlugin( {
 				WP_APP_FRAMEWORK_SLUG: JSON.stringify( slug ),
 			} ),

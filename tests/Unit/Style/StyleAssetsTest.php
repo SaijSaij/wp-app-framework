@@ -94,4 +94,38 @@ final class StyleAssetsTest extends TestCase
 
         $this->assets()->enqueue();
     }
+
+    public function testMarkedFontsArePreloadedOnTheFrontEndWithTheirBuiltUrls(): void
+    {
+        file_put_contents($this->build . '/styles.preload.php', "<?php return array( 'fonts/inter.1a2b.woff2' );");
+
+        self::assertSame(
+            [
+                ['href' => 'https://example.test/other.woff2'],
+                ['href' => 'https://example.test/build/fonts/inter.1a2b.woff2', 'as' => 'font', 'type' => 'font/woff2', 'crossorigin' => 'anonymous'],
+            ],
+            $this->assets()->preloadFonts([['href' => 'https://example.test/other.woff2']]),
+        );
+
+        $GLOBALS['wp_app_framework_test_admin'] = true;
+        self::assertSame([], $this->assets()->preloadFonts([]), 'Not in the admin.');
+    }
+
+    public function testAMissingPreloadListIsAnError(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage(sprintf('The fonts of assets/styles.css marked for preloading are not built: %s/styles.preload.php is missing.', $this->build));
+
+        $this->assets()->preloadFonts([]);
+    }
+
+    public function testTheBuildFindsTheMarker(): void
+    {
+        $stylesheet = $this->build . '/source.css';
+        file_put_contents($stylesheet, "@font-face {\n\t/* wp-app-framework: preload */\n\tsrc: url('./fonts/a.woff2');\n}");
+        self::assertTrue(StyleAssets::hasPreloads($stylesheet));
+
+        file_put_contents($stylesheet, "@font-face { src: url('./fonts/a.woff2'); }");
+        self::assertFalse(StyleAssets::hasPreloads($stylesheet));
+    }
 }

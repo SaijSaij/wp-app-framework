@@ -74,7 +74,7 @@ The example does not import Preflight, Tailwind's reset (`tailwindcss/preflight.
 
 If the consumer has `assets/styles.css`, the build records it in the manifest. The framework then loads `build/styles.css` on `enqueue_block_assets` with the handle `{slug}-styles`. That reaches the front end and the canvas iframes of the post and site editor, but not the main document of the editor, so the admin interface stays unstyled. `add_editor_style()` is not needed.
 
-A missing `build/styles.css` is an exception naming the file. A stylesheet in its former place, `src/styles.css`, is a build error, both in the manifest build and in the webpack helper.
+A missing `build/styles.css` is an exception naming the file. Fonts the page needs early can be marked for preloading in their `@font-face` (see [Preloading fonts](./assets.md#preloading-fonts)). A stylesheet in its former place, `src/styles.css`, is a build error, both in the manifest build and in the webpack helper.
 
 The `styles-rtl.css` that `@wordpress/scripts` writes is not used. Tailwind handles the writing direction itself, with logical properties (`ms-4`, `ps-4`) and the `rtl:` variant.
 
