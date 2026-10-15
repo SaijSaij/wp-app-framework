@@ -2,7 +2,14 @@
     "name": "saij/wp-app-framework",
     "description": "Framework for standalone full site editing themes for WordPress.",
     "type": "library",
-    "license": "proprietary",
+    "license": "GPL-2.0-or-later",
+    "keywords": ["wordpress", "full-site-editing", "block-theme", "gutenberg", "twig", "tailwindcss"],
+    "homepage": "https://saijsaij.github.io/wp-app-framework/",
+    "support": {
+        "issues": "https://github.com/saijsaij/wp-app-framework/issues",
+        "source": "https://github.com/saijsaij/wp-app-framework",
+        "docs": "https://saijsaij.github.io/wp-app-framework/"
+    },
     "require": {
         "php": ">=8.5",
         "twig/twig": "^3.30"

@@ -61,8 +61,10 @@ The gates make sure that a framework release works for a theme, a plugin and a c
 
 ## Requiring the framework
 
-Themes and plugins require the framework from its GitHub repository by version, and the lock file pins the exact commit:
+The framework is on [Packagist](https://packagist.org/packages/saij/wp-app-framework). Packagist reads the tags of the GitHub repository and updates itself on every push, so a release can be required as soon as its tag exists. Themes and plugins require a version range, and the lock file pins the exact version:
 
 ```json
-"repositories": [{"type": "vcs", "url": "https://github.com/saijsaij/wp-app-framework"}]
+"require": {"saij/wp-app-framework": "^0.15"}
 ```
+
+The test projects of the framework require `dev-main` instead, so they always build with the latest framework.

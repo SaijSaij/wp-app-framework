@@ -100,3 +100,7 @@ npm --prefix docs run dev        # local preview with reload
 ```
 
 GitHub Actions publish it to the `gh-pages` branch: `main` as `next/`, each release tag as its minor version (`docs/scripts/publish.mjs`).
+
+## License
+
+[GPL-2.0-or-later](LICENSE), like WordPress.

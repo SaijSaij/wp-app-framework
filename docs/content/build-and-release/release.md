@@ -78,3 +78,23 @@ composer release -- --package-source=saij/wp-app-framework=../wp-app-framework
 ```
 
 `--package-source=<package>=<directory>` copies the checkout's files without those marked `export-ignore`, like a distribution archive. The output says that the build is not from the lock file. Composer path repositories are not supported, because the temporary copy has no sibling checkouts.
+
+## Distribution
+
+The release ZIP is what you hand on – the source checkout never goes to a site. Where it goes depends on what you built.
+
+A **plugin** that others may use belongs in the [plugin directory of WordPress.org](https://developer.wordpress.org/plugins/wordpress-org/). You commit the content of the release ZIP to the plugin's SVN repository. The directory requires every file of a plugin to be under a license compatible with the GPL; the framework, Twig and the release build meet that, as long as your own code does too. Sites built with [Bedrock](https://roots.io/bedrock/) then install the plugin with Composer from a mirror of the directory, such as `repo.wp-packages.org`, like any other plugin from WordPress.org.
+
+A **theme** built with the framework cannot go into the theme directory of WordPress.org. Its [review requirements](https://make.wordpress.org/themes/handbook/review/required/) forbid custom blocks and custom post types in themes, and blocks are what a framework theme is made of. A theme built for one site therefore lives in that site's repository – in a Bedrock site under `web/app/themes/<slug>` – and the deployment builds its release there:
+
+```sh
+cd web/app/themes/my-theme && composer release
+```
+
+The release command works in a subdirectory of another repository: it collects the files of the theme's directory with Git. The deployment then puts the content of the ZIP in place of the theme's source directory. The same applies to a plugin that only one site uses.
+
+Rules:
+
+- The release ZIP contains the directory `<slug>/` with everything the theme or plugin needs; nothing is installed on the server.
+- The framework and its dependencies are licensed under the GPL-2.0-or-later; a theme or plugin that ships them must be GPL-compatible as well.
+- Never deploy the source checkout: it runs in development mode, with unprefixed classes and without the release build's checks.

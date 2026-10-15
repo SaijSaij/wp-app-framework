@@ -4,6 +4,12 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.15
+
+**The framework is on Packagist.** Composer finds `saij/wp-app-framework` without a `repositories` entry now. Remove the `vcs` entry for the framework from your `composer.json` and run `composer update saij/wp-app-framework` (see [Releases and CI](../build-and-release/ci.md#requiring-the-framework)); a project that keeps the entry still works.
+
+**The framework is licensed under the GPL-2.0-or-later.** Releases before 0.15 declared a proprietary license. A theme or plugin that ships the framework must be under a GPL-compatible license; this is also what the plugin directory of WordPress.org requires (see [Distribution](../build-and-release/release.md#distribution)).
+
 ## 0.14
 
 **The release workflow tests in wp-test-env.** `consumer-release.yml` used to install the release into the release site of wp-dev-env. Since 0.14 it uses [wp-test-env](https://github.com/saijsaij/wp-test-env), which starts a fresh WordPress for every test run and runs the browser tests with one Playwright worker per instance (see [Releases and CI](../build-and-release/ci.md)). Three things change in your project:

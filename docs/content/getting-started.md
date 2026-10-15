@@ -34,15 +34,13 @@ my-theme/
 
 ### composer.json
 
-Composer installs the framework and tells it where your classes are. The framework is required from its GitHub repository by version; the lock file pins the exact commit. The PSR-4 namespace `Acme\MyTheme\` maps to `src/`, and every class in there is something the framework can use – a block, a hook, a service.
+Composer installs the framework and tells it where your classes are. The framework comes from [Packagist](https://packagist.org/packages/saij/wp-app-framework) like any other package; the lock file pins the exact version. The PSR-4 namespace `Acme\MyTheme\` maps to `src/`, and every class in there is something the framework can use – a block, a hook, a service.
 
 ```json
 {
     "name": "acme/my-theme",
     "type": "wordpress-theme",
-    "repositories": [
-        { "type": "vcs", "url": "https://github.com/saijsaij/wp-app-framework" }
-    ],
+    "license": "GPL-2.0-or-later",
     "require": {
         "php": ">=8.5",
         "saij/wp-app-framework": "^0.9"
