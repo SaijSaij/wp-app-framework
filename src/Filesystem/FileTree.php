@@ -27,9 +27,7 @@ final class FileTree
     public static function remove(string $path): void
     {
         if (is_link($path) || is_file($path)) {
-            if (!unlink($path)) {
-                throw new RuntimeException(sprintf('Cannot remove %s.', $path));
-            }
+            self::check(@unlink($path), $path);
 
             return;
         }
@@ -44,13 +42,21 @@ final class FileTree
         );
         /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
-            $removed = $entry->isDir() && !$entry->isLink() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
-            if (!$removed) {
-                throw new RuntimeException(sprintf('Cannot remove %s.', $entry->getPathname()));
-            }
+            self::check($entry->isDir() && !$entry->isLink() ? @rmdir($entry->getPathname()) : @unlink($entry->getPathname()), $entry->getPathname());
         }
-        if (!rmdir($path)) {
-            throw new RuntimeException(sprintf('Cannot remove %s.', $path));
+        self::check(@rmdir($path), $path);
+    }
+
+    /**
+     * The warning of a failed unlink() or rmdir() becomes part of the exception instead of a second report.
+     *
+     * @throws RuntimeException
+     */
+    private static function check(bool $removed, string $path): void
+    {
+        if (!$removed) {
+            $error = error_get_last();
+            throw new RuntimeException(sprintf('Cannot remove %s%s.', $path, $error === null ? '' : ': ' . preg_replace('/^\w+\([^)]*\): /', '', $error['message'])));
         }
     }
 }

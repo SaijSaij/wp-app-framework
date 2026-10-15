@@ -320,7 +320,7 @@ The build checks the attribute values against the attribute class and the inner 
 
 ## Attributes at render time
 
-WordPress validates the attributes against the schema before rendering: an invalid value falls back to the default. It does not sanitize them, though. The framework's value factory therefore sanitizes each attribute against its schema (`rest_sanitize_value_from_schema()`) and only then creates the attribute object. Attributes of block supports, WordPress' and [your own](./supports.md), are not part of the attribute object.
+WordPress validates the attributes against the schema before rendering: an invalid value falls back to the default. It checks each attribute as a whole, so a list with one invalid item or a value object with one invalid field falls back to its default completely. It does not sanitize them, though. The framework's value factory therefore sanitizes each attribute against its schema (`rest_sanitize_value_from_schema()`) and only then creates the attribute object. Attributes of block supports, WordPress' and [your own](./supports.md), are not part of the attribute object.
 
 ## Caching
 

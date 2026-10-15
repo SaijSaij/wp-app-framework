@@ -166,6 +166,26 @@ final class InstanceTest extends TestCase
         self::assertFalse(get_option('my_plugin_cron'));
     }
 
+    public function testTheCleanUpEventRemovesCompiledTemplatesOfOlderReleases(): void
+    {
+        $twig = WP_CONTENT_DIR . '/cache/my-plugin/twig';
+        foreach (['abc123/ab', '1111111111111111/ab'] as $directory) {
+            mkdir($twig . '/' . $directory, 0777, true);
+            file_put_contents($twig . '/' . $directory . '/compiled.php', '<?php');
+        }
+        $this->writeReleaseManifest();
+        $this->instance(ProjectKind::Plugin)->boot();
+
+        try {
+            do_action(Instance::cacheCleanUpEvent('my-plugin'));
+
+            self::assertFileExists($twig . '/abc123/ab/compiled.php');
+            self::assertDirectoryDoesNotExist($twig . '/1111111111111111');
+        } finally {
+            Files::remove(WP_CONTENT_DIR . '/cache/my-plugin');
+        }
+    }
+
     public function testManifestOfAnotherKindIsAnError(): void
     {
         $this->writeReleaseManifest();

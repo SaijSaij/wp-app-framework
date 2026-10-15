@@ -47,7 +47,7 @@ final readonly class CronRegistrar
      * @param non-empty-string     $slug
      * @param list<CronEventEntry> $events
      * @param list<CronTaskEntry>  $tasks
-     * @param Closure(): void      $cleanUp   Deletes expired cache files; runs daily.
+     * @param Closure(): void      $cleanUp   Deletes expired cache files and compiled templates of older releases; runs daily.
      */
     public function __construct(
         private string $slug,

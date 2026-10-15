@@ -81,7 +81,9 @@ Compiled templates are cached in `wp-content/cache/{slug}/twig/`.
 
 Release mode compiles without auto reload: Twig never checks whether a template changed. Each release therefore uses its own directory, `wp-content/cache/{slug}/twig/{templateVersion}/`. The template version is a hash over the names and contents of all templates of the project and the framework; `build --output` writes it into the release manifest.
 
-Overrides add one more level. If the active theme or child theme overrides templates of another instance – a plugin, or the theme overridden by its child theme – that instance's cache directory gets a further level named after the versions of theme and child theme. A changed override therefore needs a new version of the theme or child theme. Directories of older releases are not removed yet.
+Overrides add one more level. If the active theme or child theme overrides templates of another instance – a plugin, or the theme overridden by its child theme – that instance's cache directory gets a further level named after the versions of theme and child theme. A changed override therefore needs a new version of the theme or child theme.
+
+Directories of older releases are removed by a daily [WP-Cron event](./cron.md), the same event that cleans up the [file cache](./cache.md#where-entries-are-stored). It keeps the directory of the current template version and, below it, the directory of the current theme and child theme versions. On multisite, all sites share the cache directory but may run other themes, so the event keeps the override directories of the current release; they go with the next release.
 
 ## Template functions and filters
 

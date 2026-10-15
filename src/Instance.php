@@ -49,6 +49,7 @@ use Saij\WpAppFramework\Style\StyleAssets;
 use Saij\WpAppFramework\Table\TableRegistry;
 use Saij\WpAppFramework\Table\TableStore;
 use Saij\WpAppFramework\Twig\TemplateRenderer;
+use Saij\WpAppFramework\Twig\TwigCacheCleanUp;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\View\ViewAssets;
 use Saij\WpAppFramework\View\ViewData;
@@ -175,9 +176,8 @@ final readonly class Instance
         $renderContext = new RenderContext();
         $templateCallables = $manifest['templateCallables'];
         $templateProviders = $manifest['templateProviders'];
-        $twigCache = $development
-            ? $cacheDirectory . '/twig'
-            : $cacheDirectory . '/twig/' . self::releaseTemplateVersion($manifest['templateVersion'], $releaseManifest);
+        $releaseTemplateVersion = $development ? null : self::releaseTemplateVersion($manifest['templateVersion'], $releaseManifest);
+        $twigCache = $releaseTemplateVersion === null ? $cacheDirectory . '/twig' : $cacheDirectory . '/twig/' . $releaseTemplateVersion;
         $projectTemplates = $this->directory . '/' . TemplateRenderer::TEMPLATE_DIRECTORY;
         $templateSetup = $this->templateSetup;
         $slug = $this->slug;
@@ -316,7 +316,13 @@ final readonly class Instance
         $cache = $container->get(CacheStore::class);
         $settingsOptions = array_column($settingsGroups, 'name', 'option');
         new TagHooks($tagVersions, $settingsOptions)->register();
-        $cronRegistrar = new CronRegistrar($this->slug, $manifest['cronEvents'], $cronTasks, $hookRegistrar, $container, $values, $debug, $cache->cleanUp(...));
+        $twigCleanUp = $releaseTemplateVersion === null
+            ? null
+            : new TwigCacheCleanUp($cacheDirectory . '/twig', $releaseTemplateVersion, static fn(): ?string => $templateSetup()['cacheKey'], $debug);
+        $cronRegistrar = new CronRegistrar($this->slug, $manifest['cronEvents'], $cronTasks, $hookRegistrar, $container, $values, $debug, static function () use ($cache, $twigCleanUp): void {
+            $cache->cleanUp();
+            $twigCleanUp?->cleanUp();
+        });
         $cronRegistrar->register();
 
         $restRegistrar = new RestRegistrar($container, $values, $debug, $cache);
@@ -446,7 +452,7 @@ final readonly class Instance
     }
 
     /**
-     * Name of the WP-Cron event that deletes expired cache files of an instance.
+     * Name of the WP-Cron event that deletes expired cache files and compiled templates of older releases of an instance.
      *
      * @param non-empty-string $slug
      * @return non-empty-string
