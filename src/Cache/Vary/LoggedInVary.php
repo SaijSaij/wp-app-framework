@@ -9,6 +9,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Whether the visitor is logged in.
+ *
+ * @api Cache
  */
 #[NoService]
 final readonly class LoggedInVary implements CacheVary {}

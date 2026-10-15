@@ -13,6 +13,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  *
  * @template E of BackedEnum
  * @extends EnumField<E>
+ *
+ * @api Query fields
  */
 #[NoService]
 final readonly class NullableEnumField extends EnumField

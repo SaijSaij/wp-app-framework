@@ -16,12 +16,21 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  * It runs as permission_callback, after WordPress validated and sanitized the
  * arguments. Static, because PHP allows first-class callables in attribute
  * arguments only for static methods.
+ *
+ * @api Values and exceptions
  */
 #[NoService]
 final readonly class Callback implements Permission
 {
+    /**
+     * @param Closure $callback A first-class callable of a public static method that returns bool, e.g.
+     *                          `self::canEdit(...)`.
+     */
     public function __construct(private Closure $callback) {}
 
+    /**
+     * The callable that decides.
+     */
     public function getCallback(): Closure
     {
         return $this->callback;

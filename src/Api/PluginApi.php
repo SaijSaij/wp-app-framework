@@ -15,6 +15,8 @@ use Attribute;
  * may be missing; require it as a development dependency for the IDE and static
  * analysis. Resolving the service before `plugins_loaded` is an error, because
  * not all plugins are loaded then.
+ *
+ * @api Attributes/Services and hooks
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class PluginApi

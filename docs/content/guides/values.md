@@ -133,7 +133,7 @@ A stored link whose kind and ID do not match is a [wrong value](#wrong-values). 
 
 A block that links to another page, a setting that names the privacy policy page, a teaser that shows a category: these are references to WordPress objects. Storing the URL or the title would break as soon as someone renames the page. References store the ID instead, and the framework looks up the current data when it renders.
 
-`#[PostReference(postTypes: null)]`, `#[TermReference(taxonomies: null)]` and `#[UserReference]` (namespace `Saij\WpAppFramework\Value\`) mark such IDs in block attributes, value classes and settings groups:
+[`#[PostReference(postTypes: null)]`](../api/php/Value/PostReference.md), [`#[TermReference(taxonomies: null)]`](../api/php/Value/TermReference.md) and [`#[UserReference]`](../api/php/Value/UserReference.md) (namespace `Saij\WpAppFramework\Value\`) mark such IDs in block attributes, value classes and settings groups:
 
 ```php
 #[PostReference(postTypes: ['page'])] public ?int $target = null,   // one page, null without

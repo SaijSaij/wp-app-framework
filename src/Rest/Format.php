@@ -10,6 +10,8 @@ namespace Saij\WpAppFramework\Rest;
  *
  * WordPress validates hex-color, date-time, email, ip and uuid; uri, text-field
  * and textarea-field only sanitize the value.
+ *
+ * @api Enums
  */
 enum Format: string
 {

@@ -20,6 +20,8 @@ use Attribute;
  *
  * Write it by hand or generate it with `wp-app-framework table-fields <row class>`. The build calls every public
  * static method that returns a field and checks the field against the row class. The class is no service.
+ *
+ * @api Attributes/Tables
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class TableFields

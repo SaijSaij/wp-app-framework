@@ -10,6 +10,8 @@ use Attribute;
  * Declares the item type of an `array` parameter: a backed enum or a value
  * class (PHP has no generics). Used in block attribute classes, value classes
  * and REST arguments.
+ *
+ * @api Attributes/Values
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
 final readonly class ListOf

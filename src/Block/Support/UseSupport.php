@@ -10,6 +10,8 @@ use Attribute;
  * Adds a block support declared with `#[BlockSupport]` to a `#[Block]`
  * class. The block's template must print its root element with
  * `block_wrapper_attributes()`, which adds the class names of the support.
+ *
+ * @api Attributes/Blocks
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
 final readonly class UseSupport

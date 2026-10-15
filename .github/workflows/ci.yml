@@ -51,16 +51,30 @@ jobs:
     steps:
       - name: Check out wp-app-framework
         uses: actions/checkout@v5
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
         with:
-          node-version: 24
+          path: workspace/wp-app-framework
 
-      - name: Build the documentation (fails on broken links and anchors)
-        working-directory: docs
+      - name: Check out wp-test-env
+        uses: actions/checkout@v5
+        with:
+          repository: SaijSaij/wp-test-env
+          path: workspace/wp-test-env
+
+      - name: Build the tools image
+        working-directory: workspace/wp-test-env
+        run: bin/build tools
+
+      # The API reference is generated from the code (tools/api-reference, tools/api-reference-js.mjs), so the
+      # documentation is built in the tools image with PHP, Composer and the npm packages of the framework.
+      - name: Build the documentation (fails on an incomplete API reference, broken links and anchors)
+        working-directory: workspace/wp-test-env
         env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
           DOCS_BASE: /wp-app-framework/next/
         run: |
-          npm ci --no-audit --no-fund
-          npm run build
+          bin/tools -e COMPOSER_AUTH -e DOCS_BASE -e CI -w wp-app-framework sh -euc "
+            composer install --no-interaction --no-progress
+            npm ci --no-audit --no-fund
+            npm --prefix docs ci --no-audit --no-fund
+            npm --prefix docs run build
+          "

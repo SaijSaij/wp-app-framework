@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Query;
 
 /**
  * The direction of a sort order.
+ *
+ * @api Enums
  */
 enum Direction: string
 {

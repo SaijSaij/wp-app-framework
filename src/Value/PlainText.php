@@ -10,6 +10,8 @@ use Attribute;
  * An inline text field without markup. Allowed on strings; the attribute gets
  * `role: content`. Templates print it with Twig's autoescaping, a multiline
  * field with `|nl2br`.
+ *
+ * @api Attributes/Values
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
 final readonly class PlainText

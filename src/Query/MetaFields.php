@@ -20,6 +20,8 @@ use Attribute;
  *
  * Write it by hand or generate it with `wp-app-framework meta-fields <meta class>`. The build calls every public
  * static method that returns a field and checks the field against the meta class. The class is no service.
+ *
+ * @api Attributes/Posts
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class MetaFields

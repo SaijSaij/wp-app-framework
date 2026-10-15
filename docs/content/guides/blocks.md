@@ -116,7 +116,7 @@ On the front end `field()`, `inner_blocks()` and `is_editor()` print nothing; th
 
 ## `#[Block]`
 
-`#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [], excerptWrapper: false, parent: null, ancestor: null)]` goes on a service class.
+[`#[Block(name, title, category, icon: '', description: '', keywords: [], usesContext: [], excerptWrapper: false, parent: null, ancestor: null)]`](../api/php/Block/Block.md) goes on a service class.
 
 The **name** is the name of the block without namespace, in lowercase letters, digits and `-`, for example `hero`. The framework registers it in the namespace of your theme or plugin (`extra.wp-app-framework.namespace` in `composer.json`, see [Concepts](../concepts.md#consumers-and-instances)): with the namespace `sections`, `hero` becomes `sections/hero`. That full name is what WordPress stores in posts and what you write in templates, patterns and filters. A name with `/` and duplicate names are build errors. The framework itself declares no blocks.
 
@@ -134,7 +134,7 @@ The framework registers blocks on `init` with `api_version` 3.
 
 `#[Supports]` switches on the block supports of WordPress. Its arguments and their defaults are WordPress' own:
 
-`#[Supports(contentRole: false, anchor: false, align: [], customClassName: true, multiple: true, reusable: true, inserter: true, lock: true, renaming: true, customCSS: true)]`
+[`#[Supports(contentRole: false, anchor: false, align: [], customClassName: true, multiple: true, reusable: true, inserter: true, lock: true, renaming: true, customCSS: true)]`](../api/php/Block/Supports.md)
 
 Only values that differ from WordPress' defaults are registered. `html` is always disabled, because a framework block has no stored HTML to edit.
 
@@ -293,7 +293,7 @@ Without further declarations the preview shows the block with its default attrib
 #[Example(attributes: ['headline' => 'Spring sale', 'tone' => Tone::Dark], viewportWidth: 1200)]
 ```
 
-`#[Example(attributes: [], innerBlocks: [], viewportWidth: null)]` takes the attribute values (a backed enum stands for its value), the inner blocks as [`TemplateBlock`](./containers.md#referring-to-blocks) and the width in pixels the preview is rendered at (WordPress uses 500). `#[Example(false)]` shows no preview. The build checks the attribute values against the attribute class and reports inner blocks for a block without inner blocks.
+[`#[Example(attributes: [], innerBlocks: [], viewportWidth: null)]`](../api/php/Block/Example.md) takes the attribute values (a backed enum stands for its value), the inner blocks as [`TemplateBlock`](./containers.md#referring-to-blocks) and the width in pixels the preview is rendered at (WordPress uses 500). [`#[Example(false)]`](../api/php/Block/Example.md) shows no preview. The build checks the attribute values against the attribute class and reports inner blocks for a block without inner blocks.
 
 ## Variations
 

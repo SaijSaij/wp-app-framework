@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Block;
 
 /**
  * Lock of the inner blocks of a container (`#[InnerBlocks(templateLock)]`).
+ *
+ * @api Enums
  */
 enum TemplateLock: string
 {

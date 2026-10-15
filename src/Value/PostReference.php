@@ -15,6 +15,8 @@ use Attribute;
  * type or is not publicly viewable becomes null (or is left out of the list);
  * renders in the block editor keep posts that are not public, so editors see
  * their choice.
+ *
+ * @api Attributes/Values
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
 final readonly class PostReference

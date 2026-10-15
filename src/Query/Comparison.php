@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Query;
 
 /**
  * A comparison of a number, e.g. of the comment count.
+ *
+ * @api Enums
  */
 enum Comparison: string
 {

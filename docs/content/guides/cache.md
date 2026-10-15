@@ -183,7 +183,7 @@ Data sent with a `POST` request is no variant. A block that shows the result of 
 
 ## Rules
 
-`#[Cache(ttl, tags, vary)]`:
+[`#[Cache(ttl, tags: [], vary: [])]`](../api/php/Cache/Cache.md):
 
 | Parameter | Type | Rule |
 |---|---|---|

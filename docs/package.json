@@ -8,8 +8,9 @@
 		"node": ">=24"
 	},
 	"scripts": {
-		"dev": "rspress dev",
-		"build": "RSPRESS_PERSISTENT_CACHE=false rspress build && node scripts/check-links.mjs build",
+		"api": "php ../tools/api-reference && node ../tools/api-reference-js.mjs",
+		"dev": "npm run api && rspress dev",
+		"build": "npm run api && RSPRESS_PERSISTENT_CACHE=false rspress build && node scripts/check-links.mjs build",
 		"preview": "rspress preview"
 	},
 	"dependencies": {

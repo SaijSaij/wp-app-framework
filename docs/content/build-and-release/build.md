@@ -56,7 +56,7 @@ patterns/teaser.php:6: block my-theme/card: attribute "tone": "pink" is not one 
 
 The build reads every `*.html` below `templates/` and `parts/` and every `*.php` below `patterns/`, the files WordPress uses for a block theme. Each block of your theme is checked against its definition. The JSON in the block comment may only contain the attributes of the attribute class and of the block supports, each with a value that fits its schema: the right type, a value of the enum, the required properties of a value class and no others.
 
-The block's structure is checked too. HTML between the block comments is only allowed in a block with a [`postContent` field](../guides/blocks.md#text-in-the-post-content). Inner blocks are only allowed in a block whose `render()` takes `$content`, and only blocks it allows (`#[InnerBlocks(allowed)]`). A block with `parent` must sit directly in one of those blocks, a block with `ancestor` somewhere inside one. A container whose template is locked with `TemplateLock::All` or `TemplateLock::ContentOnly` must hold the blocks of its template, because the editor replaces differing inner blocks (see [Container blocks](../guides/containers.md#inner-blocks)).
+The block's structure is checked too. HTML between the block comments is only allowed in a block with a [`postContent` field](../guides/blocks.md#text-in-the-post-content). Inner blocks are only allowed in a block whose `render()` takes `$content`, and only blocks it allows (`#[InnerBlocks(allowed: …)]`). A block with `parent` must sit directly in one of those blocks, a block with `ancestor` somewhere inside one. A container whose template is locked with `TemplateLock::All` or `TemplateLock::ContentOnly` must hold the blocks of its template, because the editor replaces differing inner blocks (see [Container blocks](../guides/containers.md#inner-blocks)).
 
 Template parts and patterns with a single top-level block open in contentOnly mode in the editor (see [Content in contentOnly mode](../guides/blocks.md#content-in-contentonly-mode)). There, a block can only be inserted into a container that is itself a content block. A container of your theme without content that holds content blocks of your theme is therefore an error in such a template part or pattern; give it `#[Supports(contentRole: true)]`.
 
@@ -85,7 +85,7 @@ The build reports these errors in block templates, template parts and patterns:
   - a value with the wrong type, a value outside the enum, a missing required property or an unknown property of a value class;
   - the `postContent` field in the JSON instead of between the block comments;
   - HTML between the block comments without a `postContent` field;
-  - inner blocks in a block without `$content`, and inner blocks missing from `#[InnerBlocks(allowed)]`;
+  - inner blocks in a block without `$content`, and inner blocks missing from `#[InnerBlocks(allowed: …)]`;
   - a block outside of the blocks in its `parent` or `ancestor`;
   - inner blocks of a container with a locked template (`TemplateLock::All` or `ContentOnly`) whose block names differ from the template;
   - PHP code in the block comment (patterns);

@@ -22,22 +22,41 @@ jobs:
     steps:
       - name: Check out wp-app-framework
         uses: actions/checkout@v5
+        with:
+          path: workspace/wp-app-framework
+
+      - name: Check out wp-test-env
+        uses: actions/checkout@v5
+        with:
+          repository: SaijSaij/wp-test-env
+          path: workspace/wp-test-env
+
+      - name: Build the tools image
+        working-directory: workspace/wp-test-env
+        run: bin/build tools
+
+      # The API reference is generated from the code (tools/api-reference, tools/api-reference-js.mjs), so the
+      # documentation is built in the tools image with PHP, Composer and the npm packages of the framework.
+      - name: Build the documentation
+        working-directory: workspace/wp-test-env
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
+          DOCS_BASE: /wp-app-framework/next/
+        run: |
+          bin/tools -e COMPOSER_AUTH -e DOCS_BASE -e CI -w wp-app-framework sh -euc "
+            composer install --no-interaction --no-progress
+            npm ci --no-audit --no-fund
+            npm --prefix docs ci --no-audit --no-fund
+            npm --prefix docs run build
+          "
 
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: 24
 
-      - name: Build the documentation
-        working-directory: docs
-        env:
-          DOCS_BASE: /wp-app-framework/next/
-        run: |
-          npm ci --no-audit --no-fund
-          npm run build
-
       - name: Publish to gh-pages
-        working-directory: docs
+        working-directory: workspace/wp-app-framework/docs
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com

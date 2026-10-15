@@ -117,7 +117,7 @@ WordPress itself names context values; the framework derives the names, `{namesp
 
 ## Rules
 
-`#[InnerBlocks(allowed: null, template: null, templateLock: null, orientation: null, defaultBlock: null, directInsert: false, prioritized: [], appender: Appender::Default)]`:
+[`#[InnerBlocks(allowed: null, template: null, templateLock: null, orientation: null, defaultBlock: null, directInsert: false, prioritized: [], appender: Appender::Default)]`](../api/php/Block/InnerBlocks.md):
 
 | Argument | Type | WordPress |
 |---|---|---|

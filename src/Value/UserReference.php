@@ -13,6 +13,8 @@ use Attribute;
  *
  * The search lists the users WordPress shows to the editing user: without the
  * capability `list_users`, only authors of published posts.
+ *
+ * @api Attributes/Values
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
 final readonly class UserReference

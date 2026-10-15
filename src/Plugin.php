@@ -14,6 +14,8 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * The instance is created only by boot() and handed to the container as a
  * predefined instance: the container never builds it, but services of a plugin
  * can inject it to read the paths.
+ *
+ * @api Boot classes
  */
 final class Plugin
 {
@@ -85,11 +87,13 @@ final class Plugin
      * Boots the framework. Called once from the main plugin file:
      * `Plugin::boot(__FILE__)`. The main file must be `{slug}/{slug}.php`.
      *
-     * Release mode applies if the plugin contains generated/manifest.php (created
-     * only by the release build). Caches live in wp-content/cache/{slug}. Templates
+     * Release mode applies if the plugin contains `generated/manifest.php` (created
+     * only by the release build). Caches live in `wp-content/cache/{slug}`. Templates
      * are looked up in `overrides/{slug}/` of the child theme and the theme
      * before the plugin's own `src/`. At its end, boot() fires the action
      * `wp_app_framework/init/{slug}`.
+     *
+     * @param string $file The main plugin file, `__FILE__`.
      */
     public static function boot(string $file): void
     {

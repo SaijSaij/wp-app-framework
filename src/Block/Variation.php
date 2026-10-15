@@ -9,12 +9,17 @@ use Attribute;
 /**
  * A variation of a block: preset attributes and inner blocks the editor
  * offers under their own title. The content stores the block itself.
+ *
+ * @api Attributes/Blocks
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
 final readonly class Variation
 {
     /**
      * @param string               $name        Unique within the block: lowercase letters, digits and "-".
+     * @param string               $title       Title of the variation in the inserter; must not be empty.
+     * @param string               $icon        Name of a Dashicon, e.g. `cover-image`; `''` for the icon of the block.
+     * @param string               $description Description shown in the inserter and the block inspector.
      * @param list<string>         $keywords    Search terms for the inserter.
      * @param array<string, mixed> $attributes  Preset attribute values; backed enums stand for their value.
      * @param list<TemplateBlock>  $innerBlocks Preset inner blocks.

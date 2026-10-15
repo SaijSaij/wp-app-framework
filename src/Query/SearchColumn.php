@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Query;
 
 /**
  * A column the search looks in.
+ *
+ * @api Enums
  */
 enum SearchColumn: string
 {

@@ -18,6 +18,8 @@ use Attribute;
  * any other value. Allowed once per block, on a parameter of the block
  * attribute class itself, in blocks without inner blocks and with the default
  * `''`.
+ *
+ * @api Attributes/Values
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
 final readonly class RichText

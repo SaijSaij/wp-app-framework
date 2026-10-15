@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Block;
 
 /**
  * The block categories WordPress registers by default.
+ *
+ * @api Enums
  */
 enum BlockCategory: string
 {

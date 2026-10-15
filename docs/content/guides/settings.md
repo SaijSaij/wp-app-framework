@@ -41,7 +41,7 @@ final readonly class GeneralSettings
 
 The settings page shows this group as a form: a text field for the tagline, a select for the density, a URL field, a list editor for the social links, and an image picker for the logo.
 
-`#[SettingsGroup(name, title, description: '', position: 10)]` takes these arguments:
+[`#[SettingsGroup(name, title, description: '', position: 10)]`](../api/php/Setting/SettingsGroup.md) takes these arguments:
 
 - **`name`** consists of lowercase letters, digits and `_` and starts with a letter. It is unique within the theme or plugin, and it names the option and the key in templates.
 - **`title`** is the title of the group on the settings page. **`description`** is an optional text above its form.

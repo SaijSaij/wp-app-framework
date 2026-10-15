@@ -5,7 +5,7 @@
  * The import is no module of its own: the webpack helper maps it to the editor runtime of your theme or plugin,
  * `wpAppFramework[slug].api`. These declarations describe that object for your IDE.
  *
- * @see ../docs/content/guides/editor.md
+ * @see guides/editor.md#editor-scripts
  */
 
 /** A React component: a function or a class that takes the props `P`. */

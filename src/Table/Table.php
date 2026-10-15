@@ -20,6 +20,8 @@ use Attribute;
  *
  * The table is called `{$wpdb->prefix}{namespace}_{name}` (`wp_dev_test_log`); every promoted constructor parameter is
  * a column. The framework creates the table and keeps it in line with the class (see the guide on tables).
+ *
+ * @api Attributes/Tables
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class Table

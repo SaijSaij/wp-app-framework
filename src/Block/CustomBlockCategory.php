@@ -9,6 +9,8 @@ namespace Saij\WpAppFramework\Block;
  * theme or plugin: `#[Block(category: Category::Sections)]`. The build calls
  * label() and icon() for every case and registers each case as category
  * `{namespace}-{value}`, before the categories of WordPress.
+ *
+ * @api Values and exceptions
  */
 interface CustomBlockCategory
 {

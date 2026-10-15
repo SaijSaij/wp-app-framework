@@ -10,5 +10,7 @@ namespace Saij\WpAppFramework\Rest\Permission;
  * Only the framework's implementations are supported: PublicAccess, Capability
  * and Callback. The build reports any other implementation as an error, because
  * the manifest cannot represent it.
+ *
+ * @api Values and exceptions
  */
 interface Permission {}

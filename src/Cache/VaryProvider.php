@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework\Cache;
 /**
  * A service that provides a circumstance of your own for ServiceVary, e.g. the
  * region of the visitor.
+ *
+ * @api Cache
  */
 interface VaryProvider
 {

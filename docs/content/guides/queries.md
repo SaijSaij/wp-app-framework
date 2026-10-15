@@ -235,7 +235,7 @@ Fields and their conditions:
 - `Any::of()` and `All::of()` need at least one condition, all on meta fields, all on terms or all on the columns of a table.
 - `DateTimeField` and the `Nullable…` field classes are for [tables](./tables.md#rules) only.
 
-`#[MetaFields(metaClass)]` on a class of your own:
+[`#[MetaFields(metaClass)]`](../api/php/Query/MetaFields.md) on a class of your own:
 
 - `metaClass` is a meta class (`#[PostMeta]`) of the theme or plugin; one class per meta class.
 - Every public static method that returns a field has no parameters and returns a field of `metaClass` with an existing field name and the field class of its type (with the enum or post class of the field). Other methods are ignored.

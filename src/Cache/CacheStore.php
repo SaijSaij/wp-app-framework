@@ -24,6 +24,8 @@ use Saij\WpAppFramework\DependencyInjection\Container;
  *
  * @phpstan-import-type CacheEntry from CachePolicy
  * @phpstan-import-type VaryEntry from CachePolicy
+ *
+ * @api Services
  */
 final class CacheStore
 {
@@ -59,15 +61,20 @@ final class CacheStore
     /**
      * Returns the cached value of the key, or computes, stores and returns it.
      *
-     * Values must be plain data: null, booleans, numbers, strings and arrays of
-     * them. Exceptions of $compute are passed on; nothing is stored then.
+     * Values must be plain data: null, booleans, numbers, strings and arrays of them. Exceptions of $compute are passed
+     * on; nothing is stored then.
      *
      * @template T
-     * @param Closure(): T    $compute
-     * @param int             $ttl  Lifetime in seconds, at least 1.
-     * @param list<CacheTag>  $tags Invalidate the entry.
-     * @param list<CacheVary> $vary Circumstances the entry depends on.
+     * @param string          $key     Names the entry within this theme or plugin; not empty. The values of $vary and
+     *                                 the versions of $tags are part of the key.
+     * @param Closure(): T    $compute Computes the value when the cache has none; not called on a hit. Called on every
+     *                                 call when caching is off.
+     * @param int             $ttl     Lifetime in seconds, at least 1.
+     * @param list<CacheTag>  $tags    Invalidate the entry.
+     * @param list<CacheVary> $vary    Circumstances the entry depends on.
      * @return T
+     * @throws InvalidArgumentException If the key is empty or the ttl, a tag or a variant is invalid.
+     * @throws LogicException If the value is not plain data.
      */
     public function remember(string $key, Closure $compute, int $ttl, array $tags = [], array $vary = []): mixed
     {
@@ -106,6 +113,9 @@ final class CacheStore
 
     /**
      * Invalidates the tags: entries with one of them are never read again.
+     *
+     * @param CacheTag ...$tags The tags to invalidate, in the cache of this theme or plugin.
+     * @throws InvalidArgumentException If a tag is invalid, e.g. names an unknown post class.
      */
     public function invalidate(CacheTag ...$tags): void
     {

@@ -13,6 +13,8 @@ use Saij\WpAppFramework\Query\Condition;
  * A backed enum field of a meta class or a column of a table, stored as the value of its case.
  *
  * @template E of BackedEnum
+ *
+ * @api Query fields
  */
 #[NoService]
 readonly class EnumField extends Field
@@ -28,7 +30,9 @@ readonly class EnumField extends Field
     }
 
     /**
-     * @param E $case
+     * Matches the case $case. Throws an InvalidArgumentException if $case is a case of another enum.
+     *
+     * @param E $case A case of the enum of the field.
      */
     public function equals(BackedEnum $case): Condition
     {
@@ -36,7 +40,10 @@ readonly class EnumField extends Field
     }
 
     /**
-     * @param E $case
+     * Matches every case but $case. On a nullable column, rows whose column is null match as well. Throws an
+     * InvalidArgumentException if $case is a case of another enum.
+     *
+     * @param E $case A case of the enum of the field.
      */
     public function notEquals(BackedEnum $case): Condition
     {
@@ -44,7 +51,10 @@ readonly class EnumField extends Field
     }
 
     /**
-     * @param E ...$cases
+     * Matches one of the cases $cases. Throws an InvalidArgumentException if no case or a case of another enum is
+     * given.
+     *
+     * @param E ...$cases Cases of the enum of the field.
      */
     public function in(BackedEnum ...$cases): Condition
     {
@@ -52,7 +62,10 @@ readonly class EnumField extends Field
     }
 
     /**
-     * @param E ...$cases
+     * Matches none of the cases $cases. On a nullable column, rows whose column is null match as well. Throws an
+     * InvalidArgumentException if no case or a case of another enum is given.
+     *
+     * @param E ...$cases Cases of the enum of the field.
      */
     public function notIn(BackedEnum ...$cases): Condition
     {

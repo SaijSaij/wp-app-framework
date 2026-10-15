@@ -20,6 +20,8 @@ use Saij\WpAppFramework\Project\ProjectKind;
  *
  * The instance is created only by boot() and handed to the container as a
  * predefined instance: services of the child theme can inject it.
+ *
+ * @api Boot classes
  */
 final class ChildTheme
 {

@@ -26,6 +26,8 @@ use OutOfBoundsException;
  *     $viewData->set('map', ['zoom' => 12]);
  * }
  * ```
+ *
+ * @api Services
  */
 final class ViewData
 {
@@ -96,12 +98,20 @@ final class ViewData
         }
     }
 
+    /**
+     * Whether a value is set for the key.
+     *
+     * @param string $key The key the value was set with.
+     */
     public function has(string $key): bool
     {
         return array_key_exists($key, $this->values);
     }
 
     /**
+     * The value set for the key.
+     *
+     * @param string $key The key the value was set with.
      * @throws OutOfBoundsException If no value is set for the key.
      */
     public function get(string $key): mixed

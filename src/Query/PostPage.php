@@ -11,6 +11,8 @@ use Saij\WpAppFramework\Post\AbstractPost;
  * One page of the posts of a query (PostQuery::paginate()) with the number of all matching posts.
  *
  * @template T of AbstractPost
+ *
+ * @api Posts and queries
  */
 #[NoService]
 final readonly class PostPage
@@ -28,6 +30,8 @@ final readonly class PostPage
     ) {}
 
     /**
+     * The posts of the page, in the order of the query; an empty list after the last page.
+     *
      * @return list<T>
      */
     public function getPosts(): array
@@ -51,6 +55,9 @@ final readonly class PostPage
         return $this->page;
     }
 
+    /**
+     * The number of posts per page, as passed to PostQuery::paginate().
+     */
     public function getPerPage(): int
     {
         return $this->perPage;

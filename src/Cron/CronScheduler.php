@@ -20,6 +20,8 @@ use WP_Error;
  * are the same if their values are equal: WP-Cron stores the values of the task
  * as the argument of the event and finds, compares and unschedules events by
  * their arguments.
+ *
+ * @api Services
  */
 final readonly class CronScheduler
 {
@@ -33,8 +35,12 @@ final readonly class CronScheduler
     /**
      * Schedules the task to run at the given time (or on the next request after it).
      *
+     * @param object            $task The task: an object of a value class that is the first parameter of a
+     *                                `#[CronTask]` handler of this theme or plugin.
+     * @param DateTimeInterface $at   The time to run the task, in any time zone.
      * @return bool True if scheduled, false if WordPress already has the same task within 10 minutes of that time.
      * @throws RuntimeException If WordPress refuses the task for another reason (e.g. a time before 1970, or a plugin).
+     * @throws LogicException If the task has no `#[CronTask]` handler in this theme or plugin.
      */
     public function schedule(object $task, DateTimeInterface $at): bool
     {
@@ -52,8 +58,11 @@ final readonly class CronScheduler
     /**
      * Removes every scheduled task equal to the given one.
      *
+     * @param object $task The task: an object of a value class that is the first parameter of a `#[CronTask]` handler
+     *                     of this theme or plugin. Equal to the task to remove: same class, equal values.
      * @return int The number of tasks removed.
      * @throws RuntimeException If WordPress cannot save the cron events.
+     * @throws LogicException If the task has no `#[CronTask]` handler in this theme or plugin.
      */
     public function unschedule(object $task): int
     {
@@ -67,6 +76,10 @@ final readonly class CronScheduler
 
     /**
      * Whether a task equal to the given one is scheduled.
+     *
+     * @param object $task The task: an object of a value class that is the first parameter of a `#[CronTask]` handler
+     *                     of this theme or plugin. Equal to the task to look for: same class, equal values.
+     * @throws LogicException If the task has no `#[CronTask]` handler in this theme or plugin.
      */
     public function isScheduled(object $task): bool
     {

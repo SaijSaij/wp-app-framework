@@ -5,7 +5,7 @@
  * The import is no module of its own: the webpack helper maps it to the view runtime of your theme or plugin,
  * `wpAppFramework[slug].view`. These declarations describe that object for your IDE.
  *
- * @see ../docs/content/guides/frontend.md
+ * @see guides/frontend.md
  */
 
 import type { DataValue } from './index';

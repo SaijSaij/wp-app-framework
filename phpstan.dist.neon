@@ -10,6 +10,7 @@ parameters:
         - src
         - tests
         - bin
+        - tools
     excludePaths:
         # Test doubles of WordPress; the analysis uses the real signatures from the stubs.
         - tests/Stubs/wordpress.php

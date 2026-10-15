@@ -1,0 +1,30 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Generates the PHP and Twig pages of the API reference (docs/content/api/php/, docs/content/api/twig/) and their
+// sidebar (docs/.generated/api-php.json). Run by the documentation build (npm run build in docs/).
+
+use Saij\WpAppFramework\Theme;
+use Saij\WpAppFramework\Tools\ApiReference\Generator;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$root = dirname(__DIR__);
+$prefix = substr(Theme::class, 0, (int) strrpos(Theme::class, '\\') + 1);
+
+try {
+    $sidebar = new Generator($root . '/src', $prefix, $root . '/docs/content')->generate();
+} catch (RuntimeException $exception) {
+    fwrite(STDERR, $exception->getMessage() . "\n");
+    exit(1);
+}
+
+$output = $root . '/docs/.generated';
+if (!is_dir($output) && !mkdir($output, 0o777, true)) {
+    fwrite(STDERR, "Cannot create {$output}.\n");
+    exit(1);
+}
+file_put_contents($output . '/api-php.json', json_encode($sidebar, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
+fwrite(STDOUT, sprintf("API reference: %d groups written.\n", count($sidebar)));

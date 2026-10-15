@@ -12,8 +12,8 @@ return new PhpCsFixer\Config()
     ])
     ->setFinder(
         PhpCsFixer\Finder::create()
-            ->in([__DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/bin'])
+            ->in([__DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/bin', __DIR__ . '/tools'])
             ->append([__FILE__])
-            ->name(['*.php', 'wp-app-framework']),
+            ->name(['*.php', 'wp-app-framework', 'api-reference']),
     )
     ->setCacheFile(sys_get_temp_dir() . '/php-cs-fixer-wp-app-framework.cache');

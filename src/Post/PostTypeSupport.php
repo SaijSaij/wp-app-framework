@@ -8,6 +8,8 @@ namespace Saij\WpAppFramework\Post;
  * Features of a post type (`supports` of register_post_type()). The framework adds
  * `custom-fields` itself when meta is registered for the type: without it, the REST
  * API has no `meta` field.
+ *
+ * @api Enums
  */
 enum PostTypeSupport: string
 {

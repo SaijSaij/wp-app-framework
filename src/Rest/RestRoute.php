@@ -17,14 +17,17 @@ use Saij\WpAppFramework\Rest\Permission\Permission;
  * their schema is derived from the parameter type, default value and `#[Param]`.
  *
  * A method returning `void` responds with 204 No Content.
+ *
+ * @api Attributes/REST
  */
 #[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 final readonly class RestRoute
 {
     /**
-     * @param string                       $path        Empty or starting with a slash, e.g. `/{id}`.
-     * @param HttpMethod|list<HttpMethod>  $methods
-     * @param Permission                   $permission  Who may call the route: PublicAccess, Capability or Callback.
+     * @param string                      $path       Empty or starting with a slash, e.g. `/{id}`.
+     * @param HttpMethod|list<HttpMethod> $methods    The HTTP method or methods the route answers, e.g.
+     *                                                `HttpMethod::Get` or `[HttpMethod::Put, HttpMethod::Patch]`.
+     * @param Permission                  $permission Who may call the route: PublicAccess, Capability or Callback.
      */
     public function __construct(
         public string $path,

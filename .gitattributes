@@ -22,6 +22,8 @@
 /phpstan.dist.neon export-ignore
 /phpunit.xml.dist export-ignore
 /tests export-ignore
+/tools export-ignore
+/tools/** export-ignore
 /types/check export-ignore
 /types/check/** export-ignore
 /types/tsconfig.json export-ignore

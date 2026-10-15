@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { defineConfig } from '@rspress/core';
 
 // Each version is built for its own directory on GitHub Pages: /wp-app-framework/<version>/
@@ -11,6 +12,22 @@ function defaultBase() {
 		);
 	}
 	return '/wp-app-framework/next/';
+}
+
+/**
+ * A sidebar part of the API reference, written by the generators before the build (npm run api).
+ *
+ * @param {string} name File name in .generated/.
+ * @return {Object[]} Sidebar groups.
+ */
+function generatedSidebar( name ) {
+	const file = new URL( `./.generated/${ name }`, import.meta.url );
+	if ( ! fs.existsSync( file ) ) {
+		throw new Error(
+			`.generated/${ name } is missing; run "npm run api" (part of "npm run build" and "npm run dev").`
+		);
+	}
+	return JSON.parse( fs.readFileSync( file, 'utf8' ) );
 }
 
 export default defineConfig( {
@@ -32,6 +49,10 @@ export default defineConfig( {
 			docRepoBaseUrl:
 				'https://github.com/saijsaij/wp-app-framework/tree/main/docs/content',
 		},
+		nav: [
+			{ text: 'Guide', link: '/', activeMatch: '^/(?!api/)' },
+			{ text: 'API reference', link: '/api/', activeMatch: '^/api/' },
+		],
 		socialLinks: [
 			{
 				icon: 'github',
@@ -100,7 +121,25 @@ export default defineConfig( {
 				{
 					text: 'Reference',
 					items: [
+						{ text: 'API reference', link: '/api/' },
 						{ text: 'Upgrading', link: '/reference/upgrading' },
+					],
+				},
+			],
+			'/api/': [
+				{ text: 'Overview', link: '/api/' },
+				...generatedSidebar( 'api-php.json' ),
+				...generatedSidebar( 'api-js.json' ),
+				{
+					text: 'Configuration and commands',
+					collapsible: true,
+					collapsed: false,
+					items: [
+						{ text: 'Hooks', link: '/api/hooks' },
+						{ text: 'composer.json', link: '/api/composer' },
+						{ text: 'Commands', link: '/api/commands' },
+						{ text: 'Webpack helper', link: '/api/webpack' },
+						{ text: 'Release workflow', link: '/api/workflow' },
 					],
 				},
 			],

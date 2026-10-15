@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework\Value;
 /**
  * What a link points to: a URL entered freely or a content object of the site
  * whose URL is resolved when the link is created from its stored value.
+ *
+ * @api Enums
  */
 enum LinkKind: string
 {

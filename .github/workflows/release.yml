@@ -113,6 +113,36 @@ jobs:
       - name: Check out wp-app-framework
         if: steps.docs.outputs.version != ''
         uses: actions/checkout@v5
+        with:
+          path: workspace/wp-app-framework
+
+      - name: Check out wp-test-env
+        if: steps.docs.outputs.version != ''
+        uses: actions/checkout@v5
+        with:
+          repository: SaijSaij/wp-test-env
+          path: workspace/wp-test-env
+
+      - name: Build the tools image
+        if: steps.docs.outputs.version != ''
+        working-directory: workspace/wp-test-env
+        run: bin/build tools
+
+      # The API reference is generated from the code (tools/api-reference, tools/api-reference-js.mjs), so the
+      # documentation is built in the tools image with PHP, Composer and the npm packages of the framework.
+      - name: Build the documentation
+        if: steps.docs.outputs.version != ''
+        working-directory: workspace/wp-test-env
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
+          DOCS_BASE: /wp-app-framework/${{ steps.docs.outputs.version }}/
+        run: |
+          bin/tools -e COMPOSER_AUTH -e DOCS_BASE -e CI -w wp-app-framework sh -euc "
+            composer install --no-interaction --no-progress
+            npm ci --no-audit --no-fund
+            npm --prefix docs ci --no-audit --no-fund
+            npm --prefix docs run build
+          "
 
       - name: Set up Node
         if: steps.docs.outputs.version != ''
@@ -120,18 +150,9 @@ jobs:
         with:
           node-version: 24
 
-      - name: Build the documentation
-        if: steps.docs.outputs.version != ''
-        working-directory: docs
-        env:
-          DOCS_BASE: /wp-app-framework/${{ steps.docs.outputs.version }}/
-        run: |
-          npm ci --no-audit --no-fund
-          npm run build
-
       - name: Publish to gh-pages
         if: steps.docs.outputs.version != ''
-        working-directory: docs
+        working-directory: workspace/wp-app-framework/docs
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com

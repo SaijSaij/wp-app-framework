@@ -18,6 +18,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  * exists or is not public (renders for the block editor keep objects that are
  * not public, so editors see their choice). The stored URL of a linked object
  * is only what the editor showed when it was chosen.
+ *
+ * @api Values and exceptions
  */
 #[NoService]
 final readonly class Link

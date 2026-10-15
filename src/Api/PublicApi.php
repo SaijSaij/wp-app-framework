@@ -16,6 +16,8 @@ use Attribute;
  * classes they use must not use classes of the framework or of other
  * dependencies: a release prefixes them, so their names differ in every
  * consumer (build error). The provider keeps its API compatible itself.
+ *
+ * @api Attributes/Services and hooks
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class PublicApi {}

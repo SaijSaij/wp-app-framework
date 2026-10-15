@@ -10,6 +10,8 @@ use Attribute;
  * An image from the media library, stored as its attachment ID. Allowed on
  * `?int`; the attribute gets `role: content`. In the editor the template marks
  * the image with `field()`, and the canvas offers to select or replace it.
+ *
+ * @api Attributes/Values
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
 final readonly class Image

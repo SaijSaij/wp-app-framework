@@ -185,14 +185,14 @@ WordPress builds the URLs of post types and taxonomies only when its rewrite rul
 
 ## Rules
 
-`#[PostType(name, label, singularLabel, labels: null, description: '', public: true, showUi: true, supports: [Title, Editor], hierarchical: false, archive: false, slug: null, menuIcon: null, menuPosition: null)]` on a subclass of `AbstractPost`:
+[`#[PostType(name, label, singularLabel, labels: null, description: '', public: true, showUi: true, supports: [Title, Editor], hierarchical: false, archive: false, slug: null, menuIcon: null, menuPosition: null)]`](../api/php/Post/PostType.md) on a subclass of `AbstractPost`:
 
 - `name`: lowercase letters, digits and `_`, starting with a letter; the full name `{namespace}_{name}` has at most 20 characters (the limit of WordPress).
 - `label` and `singularLabel` must not be empty; `slug` consists of lowercase letters, digits, `-` and `_`.
 - The class is not abstract and declares no properties.
 - `custom-fields` is added to `supports` when the type has meta; without it the REST API has no meta.
 
-`#[PostMeta(name, title, postTypes)]` on a meta class:
+[`#[PostMeta(name, title, postTypes)]`](../api/php/Post/PostMeta.md) on a meta class:
 
 - The class is not readonly and not abstract; all its fields are promoted constructor parameters (any visibility), each with a default.
 - `name`: lowercase letters, digits and `_`, starting with a letter, unique per post type.
@@ -201,6 +201,6 @@ WordPress builds the URLs of post types and taxonomies only when its rewrite rul
 - A field on the top level may be nullable only if it holds an ID – a reference or an image: the REST API of WordPress leaves out meta fields whose type allows null. A missing ID is stored as no value (0 in the REST API).
 - `#[Content]` and `#[RichText(postContent: true)]` are build errors; `allowedFormats` may only contain the formats of the classic editor.
 
-`#[Taxonomy(name, label, singularLabel, postTypes, labels: null, description: '', public: true, showUi: true, hierarchical: false, slug: null)]` on a class without constructor parameters: the full name has at most 32 characters.
+[`#[Taxonomy(name, label, singularLabel, postTypes, labels: null, description: '', public: true, showUi: true, hierarchical: false, slug: null)]`](../api/php/Post/Taxonomy.md) on a class without constructor parameters: the full name has at most 32 characters.
 
 A class has at most one of `#[PostType]`, `#[PostMeta]` and `#[Taxonomy]`. Post, meta and taxonomy classes cannot be injected and are no parameters of hooks, REST routes or template functions.

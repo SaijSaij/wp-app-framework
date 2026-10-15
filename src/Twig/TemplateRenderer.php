@@ -38,6 +38,8 @@ use Twig\TwigFunction;
  * constructor. The Twig environment is created on the first render.
  *
  * @phpstan-type TemplateCallableEntry array{kind: value-of<TemplateCallableKind>, name: string, class: class-string, method: string, html: bool, public: bool}
+ *
+ * @api Services
  */
 final class TemplateRenderer
 {

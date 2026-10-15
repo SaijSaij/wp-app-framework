@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework\Block;
 /**
  * The element at the end of a container's inner blocks for adding another
  * block (`#[InnerBlocks(appender)]`).
+ *
+ * @api Enums
  */
 enum Appender: string
 {

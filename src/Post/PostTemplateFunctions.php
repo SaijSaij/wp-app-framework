@@ -21,8 +21,21 @@ final readonly class PostTemplateFunctions
     ) {}
 
     /**
-     * The post object, null if the post does not exist, its type has no post class of this theme or plugin, or it
-     * is not published (renders for the block editor show posts in every status).
+     * The post object of a post, for a post type of this theme or plugin, `post` or `page`: an instance of its post
+     * class (e.g. an `Event`), with getters as attributes and meta classes by their `#[PostMeta]` name. Returns null
+     * if the ID is null, the post does not exist, its type has no post class of this theme or plugin, or its status
+     * is not public, e.g. a draft (renders for the block editor return posts in every status). The values are
+     * escaped like any value; print rich text with `|raw`.
+     *
+     * ```twig
+     * {% set event = post(postId) %}
+     * {% if event %}
+     *     <h2>{{ event.title }}</h2>
+     *     <p>{{ event.meta('details').capacity }} seats</p>
+     * {% endif %}
+     * ```
+     *
+     * @param int|null $id ID of the post, e.g. from a reference attribute.
      */
     #[TemplateFunction('post')]
     public function post(?int $id): ?AbstractPost

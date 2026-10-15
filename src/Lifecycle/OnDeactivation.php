@@ -16,6 +16,8 @@ use Attribute;
  * or its child theme. Afterwards the framework removes the cron events and
  * tasks of the instance. The method is public, returns void and takes services
  * only.
+ *
+ * @api Attributes/Lifecycle
  */
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class OnDeactivation {}

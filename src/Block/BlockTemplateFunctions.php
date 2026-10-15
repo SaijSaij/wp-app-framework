@@ -16,10 +16,15 @@ final class BlockTemplateFunctions
 
     /**
      * The attributes of the block's root element from its supports (class
-     * names, anchor, alignment), as returned by get_block_wrapper_attributes(),
-     * plus the class names of its custom block supports (#[UseSupport]) and,
-     * on the front end, the marker its view scripts are mounted on.
-     * Empty outside of rendering a block.
+     * names, anchor, alignment), as returned by `get_block_wrapper_attributes()`,
+     * plus the class names of its custom block supports (`#[UseSupport]`) and,
+     * on the front end, the marker its view scripts are mounted on. The output
+     * is HTML and is printed unescaped. Returns `''` outside of rendering a
+     * block. The template renders exactly one root element with it.
+     *
+     * ```twig
+     * <section {{ block_wrapper_attributes({ class: 'teaser' }) }}>…</section>
+     * ```
      *
      * @param array<string, string> $extra Additional attributes; `class` and `style` are merged.
      */

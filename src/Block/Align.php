@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Block;
 
 /**
  * Alignments for the `align` block support.
+ *
+ * @api Enums
  */
 enum Align: string
 {

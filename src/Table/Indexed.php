@@ -10,6 +10,8 @@ use Attribute;
  * Adds the column to an index. Without a group, the column gets an index of its own, named after the column; with a
  * group, it is part of the index called like the group, at its position (1, 2, …). Repeat the attribute to put a
  * column into several indexes.
+ *
+ * @api Attributes/Tables
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
 final readonly class Indexed

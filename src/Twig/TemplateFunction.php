@@ -21,10 +21,19 @@ use Attribute;
  * signature must not use classes of the framework or of other dependencies.
  * Consumers declare the plugin in `extra.wp-app-framework.template-plugins`
  * of their composer.json and call the function by its name.
+ *
+ * @api Attributes/Twig
  */
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class TemplateFunction
 {
+    /**
+     * @param string $name   Name of the function in templates, a valid identifier, e.g. `price`; it must not reuse a
+     *                       function Twig provides or the framework already uses.
+     * @param bool   $html   The method returns HTML (`string`), which is printed unescaped.
+     * @param bool   $public Offer the function to the templates of other consumers: a plugin to themes and other
+     *                       plugins, a theme to its child themes. The name must then start with the template prefix.
+     */
     public function __construct(
         public string $name,
         public bool $html = false,

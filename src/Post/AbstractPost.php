@@ -24,6 +24,8 @@ use WP_Term;
  *
  * Every get() and find() returns a new object; changes are visible to others only
  * after save(). save() checks no capabilities, like wp_update_post().
+ *
+ * @api Posts and queries
  */
 abstract class AbstractPost
 {
@@ -53,7 +55,9 @@ abstract class AbstractPost
     final public function __construct() {}
 
     /**
-     * The post with the ID.
+     * The post with the ID, in any status.
+     *
+     * @param int $id The ID of the post.
      *
      * @throws InvalidArgumentException If it does not exist or has another post type.
      */
@@ -68,7 +72,9 @@ abstract class AbstractPost
     }
 
     /**
-     * The post with the ID, null if it does not exist or has another post type.
+     * The post with the ID, in any status; null if it does not exist or has another post type.
+     *
+     * @param int $id The ID of the post.
      */
     public static function find(int $id): ?static
     {
@@ -110,11 +116,19 @@ abstract class AbstractPost
         return $this->id;
     }
 
+    /**
+     * The title as stored, or as set by setTitle() before save().
+     */
     public function getTitle(): string
     {
         return $this->string('post_title');
     }
 
+    /**
+     * Sets the title; stored by save().
+     *
+     * @param string $title The title, plain text.
+     */
     public function setTitle(string $title): void
     {
         $this->changes['post_title'] = $title;
@@ -128,6 +142,11 @@ abstract class AbstractPost
         return $this->string('post_content');
     }
 
+    /**
+     * Sets the content; stored by save().
+     *
+     * @param string $content Block markup.
+     */
     public function setContent(string $content): void
     {
         $this->changes['post_content'] = $content;
@@ -141,6 +160,11 @@ abstract class AbstractPost
         return $this->string('post_excerpt');
     }
 
+    /**
+     * Sets the manual excerpt; stored by save().
+     *
+     * @param string $excerpt The excerpt; empty for none.
+     */
     public function setExcerpt(string $excerpt): void
     {
         $this->changes['post_excerpt'] = $excerpt;
@@ -159,6 +183,11 @@ abstract class AbstractPost
         return PostStatus::tryFrom($status) ?? throw new LogicException(sprintf('Post %d has the status "%s", which PostStatus does not know.', $this->id ?? 0, $status));
     }
 
+    /**
+     * Sets the status; stored by save(). The capabilities of the current user are not checked.
+     *
+     * @param PostStatus $status The new status.
+     */
     public function setStatus(PostStatus $status): void
     {
         $this->changes['post_status'] = $status->value;
@@ -172,6 +201,11 @@ abstract class AbstractPost
         return $this->string('post_name');
     }
 
+    /**
+     * Sets the slug (post_name); stored by save().
+     *
+     * @param string $slug The slug; empty lets WordPress derive it from the title when the post is published.
+     */
     public function setSlug(string $slug): void
     {
         $this->changes['post_name'] = $slug;
@@ -203,6 +237,11 @@ abstract class AbstractPost
         return $author > 0 ? $author : null;
     }
 
+    /**
+     * Sets the author; stored by save().
+     *
+     * @param int $author The ID of the user.
+     */
     public function setAuthorId(int $author): void
     {
         $this->changes['post_author'] = $author;
@@ -220,7 +259,12 @@ abstract class AbstractPost
     }
 
     /**
-     * Sets the parent post (hierarchical post types); the parent must have been saved.
+     * Sets the parent post (hierarchical post types); stored by save().
+     *
+     * @param static|null $parent A saved post of the same class; null for none.
+     *
+     * @throws LogicException           If the post type is not hierarchical.
+     * @throws InvalidArgumentException If the parent has another class or has not been saved.
      */
     public function setParent(?self $parent): void
     {
@@ -247,8 +291,9 @@ abstract class AbstractPost
     /**
      * The terms of a taxonomy (a class with #[Taxonomy]), as stored; changes by setTerms() count after save().
      *
-     * @param class-string $taxonomy
-     * @return list<WP_Term>
+     * @param class-string $taxonomy The taxonomy class: a class with #[Taxonomy], Category or Tag.
+     *
+     * @return list<WP_Term> The terms; empty before the post has been saved.
      */
     public function getTerms(string $taxonomy): array
     {
@@ -264,10 +309,10 @@ abstract class AbstractPost
     }
 
     /**
-     * Sets the terms of a taxonomy (a class with #[Taxonomy]); stored by save().
+     * Sets the terms of a taxonomy (a class with #[Taxonomy]); stored by save(), replacing the terms the post had.
      *
-     * @param class-string $taxonomy
-     * @param list<int>    $termIds
+     * @param class-string $taxonomy The taxonomy class: a class with #[Taxonomy], Category or Tag.
+     * @param list<int>    $termIds  The IDs of the terms; empty to remove all terms of the taxonomy.
      */
     public function setTerms(string $taxonomy, array $termIds): void
     {
@@ -351,7 +396,14 @@ abstract class AbstractPost
     }
 
     /**
-     * Moves the post to the trash, or deletes it with $force.
+     * Moves the post to the trash, or deletes it permanently with $force. WordPress moves only posts and pages to the
+     * trash (and only while the trash is enabled, `EMPTY_TRASH_DAYS`); posts of other types and posts already in the
+     * trash are deleted permanently either way.
+     *
+     * @param bool $force Delete permanently instead of moving to the trash.
+     *
+     * @throws LogicException   If the post has not been saved.
+     * @throws RuntimeException If WordPress cannot delete the post.
      */
     public function delete(bool $force = false): void
     {

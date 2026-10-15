@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Rest;
 
 /**
  * HTTP methods of a `#[RestRoute]`.
+ *
+ * @api Enums
  */
 enum HttpMethod: string
 {

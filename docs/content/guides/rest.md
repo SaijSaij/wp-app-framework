@@ -34,9 +34,9 @@ With the namespace `sections` (`extra.wp-app-framework.namespace` in `composer.j
 
 The method returns an array, which becomes a JSON response with status 200. If the item does not exist, it throws a `RestException` with status 404.
 
-`#[RestController(version, base: '')]` takes the version without leading or trailing slash, for example `v1`; the value may be a class constant. The routes are registered under `{namespace}/{version}`, where the namespace is the one of your theme or plugin (see [Concepts](../concepts.md#consumers-and-instances)). A `#[RestRoute]` in a class without `#[RestController]` is a build error.
+[`#[RestController(version, base: '')]`](../api/php/Rest/RestController.md) takes the version without leading or trailing slash, for example `v1`; the value may be a class constant. The routes are registered under `{namespace}/{version}`, where the namespace is the one of your theme or plugin (see [Concepts](../concepts.md#consumers-and-instances)). A [`#[RestRoute]`](../api/php/Rest/RestRoute.md) in a class without [`#[RestController]`](../api/php/Rest/RestController.md) is a build error.
 
-`#[RestRoute(path, methods, permission)]` is repeatable, and all three arguments are required, so the IDE and the build both report a missing permission. `path` is empty or starts with `/`. `methods` is an `HttpMethod` case or a list of them.
+[`#[RestRoute(path, methods, permission)]`](../api/php/Rest/RestRoute.md) is repeatable, and all three arguments are required, so the IDE and the build both report a missing permission. `path` is empty or starts with `/`. `methods` is an `HttpMethod` case or a list of them.
 
 ## Permission
 

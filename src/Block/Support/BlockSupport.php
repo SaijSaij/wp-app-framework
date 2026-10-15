@@ -17,6 +17,8 @@ use Attribute;
  * its default is the default of the attribute. The method returns the class
  * names for the value (separated by spaces), or null or '' for none; it runs
  * while the block renders, so the service may depend on other services.
+ *
+ * @api Attributes/Blocks
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class BlockSupport

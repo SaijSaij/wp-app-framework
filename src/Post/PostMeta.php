@@ -14,6 +14,8 @@ use Attribute;
  *
  * The class is not readonly: the fields are usually private, with getters and
  * setters, and `save()` of the post writes the changed values.
+ *
+ * @api Attributes/Posts
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class PostMeta

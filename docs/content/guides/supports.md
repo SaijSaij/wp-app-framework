@@ -25,7 +25,7 @@ final class Surface
 
 The signature of `className()` describes the whole support. Its parameter type sets the attribute's schema and the control in the inspector, and its default is the attribute's default. Here `SurfaceTone` is a backed enum, so the inspector shows a select, and blocks start with `SurfaceTone::Light`.
 
-`#[BlockSupport(attribute, label, group: SupportGroup::Styles)]` takes three arguments:
+[`#[BlockSupport(attribute, label, group: SupportGroup::Styles)]`](../api/php/Block/Support/BlockSupport.md) takes three arguments:
 
 - **`attribute`** is the name of the block attribute, in camelCase (`colorScheme`). The names WordPress reserves (`lock`, `metadata`, `className`, `anchor`, `align`, `style`) and a name that another support of the same theme or plugin uses are build errors.
 - **`label`** labels the control.

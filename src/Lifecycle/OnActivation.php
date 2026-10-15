@@ -15,6 +15,8 @@ use Attribute;
  * request after the switch (`after_switch_theme`), unless the previous theme
  * was this theme or its child theme. The method is public, returns void and
  * takes services only.
+ *
+ * @api Attributes/Lifecycle
  */
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class OnActivation {}

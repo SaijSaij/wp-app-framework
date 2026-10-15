@@ -123,7 +123,7 @@ An HTML filter receives the filtered value already HTML-escaped, unless the valu
 
 ### Rules
 
-- `#[TemplateFunction(name, html: false)]` and `#[TemplateFilter(name, html: false)]` go on public, non-static methods of services.
+- [`#[TemplateFunction(name, html: false, public: false)]`](../api/php/Twig/TemplateFunction.md) and [`#[TemplateFilter(name, html: false, public: false)]`](../api/php/Twig/TemplateFilter.md) go on public, non-static methods of services.
 - Names are valid identifiers and unique per kind. They must not reuse a function or filter Twig provides, because Twig would silently replace it.
 - Parameters must not be services (inject them through the constructor), variadic or by reference.
 - A filter receives the filtered value as its first parameter.

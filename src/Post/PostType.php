@@ -11,6 +11,8 @@ use Attribute;
  * post of the type. The framework registers the type as `{namespace}_{name}`
  * (namespace of the theme or plugin with "_" instead of "-"), always shown in the
  * REST API and therefore in the block editor if it supports the editor.
+ *
+ * @api Attributes/Posts
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class PostType
@@ -20,10 +22,18 @@ final readonly class PostType
      *                                             with a letter; the full name has at most 20 characters.
      * @param string                $label         Plural name, e.g. "Events".
      * @param string                $singularLabel Singular name, e.g. "Event".
+     * @param PostTypeLabels|null   $labels        Further labels; null derives all of them from the names in English.
+     * @param string                $description   Description of the post type.
+     * @param bool                  $public        The type is shown on the front end and in searches; false for data
+     *                                             without pages of its own. Unlike in WordPress, true by default.
+     * @param bool                  $showUi        The type has screens and a menu entry in the admin.
      * @param list<PostTypeSupport> $supports      Features of the type; `custom-fields` is added for meta.
+     * @param bool                  $hierarchical  Posts have parents, like pages.
      * @param bool                  $archive       The type has an archive page at its slug.
      * @param string|null           $slug          URL slug; null uses the name with "-" instead of "_".
      * @param string|null           $menuIcon      Dashicon class or URL of the admin menu icon.
+     * @param int|null              $menuPosition  Position in the admin menu (WordPress' `menu_position`); null puts it
+     *                                             below Comments.
      */
     public function __construct(
         public string $name,

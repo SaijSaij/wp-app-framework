@@ -22,10 +22,20 @@ use Attribute;
  * signature must not use classes of the framework or of other dependencies.
  * Consumers declare the plugin in `extra.wp-app-framework.template-plugins`
  * of their composer.json and call the filter by its name.
+ *
+ * @api Attributes/Twig
  */
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class TemplateFilter
 {
+    /**
+     * @param string $name   Name of the filter in templates, a valid identifier, e.g. `highlight`; it must not reuse
+     *                       a filter Twig provides.
+     * @param bool   $html   The method returns HTML (`string`), which is printed unescaped; it receives the filtered
+     *                       value HTML-escaped unless the value is already safe.
+     * @param bool   $public Offer the filter to the templates of other consumers: a plugin to themes and other
+     *                       plugins, a theme to its child themes. The name must then start with the template prefix.
+     */
     public function __construct(
         public string $name,
         public bool $html = false,

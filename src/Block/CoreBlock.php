@@ -9,6 +9,8 @@ namespace Saij\WpAppFramework\Block;
  * block references (`#[InnerBlocks(allowed)]`, `#[Block(parent, ancestor)]`,
  * `TemplateBlock`). A core block newer than this list is named by its full
  * name as a string; a string naming a block of this list is a build error.
+ *
+ * @api Enums
  */
 enum CoreBlock: string
 {

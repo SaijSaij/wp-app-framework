@@ -17,6 +17,8 @@ use Attribute;
  * require the parent theme as a development dependency for the IDE and static
  * analysis. Resolving the service before `after_setup_theme` is an error,
  * because the parent theme boots after the child theme.
+ *
+ * @api Attributes/Services and hooks
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class ThemeApi {}

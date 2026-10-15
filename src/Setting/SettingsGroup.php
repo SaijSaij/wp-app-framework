@@ -16,6 +16,8 @@ use Attribute;
  * `{namespace}_{name}` (namespace of the theme or plugin with "_" instead of "-"), edits it on the settings page
  * of the theme or plugin and injects it into the constructor of services that
  * declare a parameter of its type; templates read it as `settings.{name}`.
+ *
+ * @api Attributes/Settings
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class SettingsGroup

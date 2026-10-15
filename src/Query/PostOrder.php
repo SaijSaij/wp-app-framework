@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Query;
 
 /**
  * Post data to sort by; meta fields sort through their field (`EventDetailsFields::capacity()`).
+ *
+ * @api Enums
  */
 enum PostOrder: string
 {

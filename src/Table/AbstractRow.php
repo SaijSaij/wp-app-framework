@@ -17,12 +17,15 @@ use InvalidArgumentException;
  *
  * Every get(), find() and query returns new objects; when two of them change the same row, the last save() of a
  * column wins. save() and delete() check no capabilities.
+ *
+ * @api Tables
  */
 abstract class AbstractRow
 {
     /**
      * The row with the primary key.
      *
+     * @param int $id The primary key of the row.
      * @throws InvalidArgumentException If it does not exist.
      */
     public static function get(int $id): static
@@ -32,6 +35,8 @@ abstract class AbstractRow
 
     /**
      * The row with the primary key, null if it does not exist.
+     *
+     * @param int $id The primary key of the row.
      */
     public static function find(int $id): ?static
     {

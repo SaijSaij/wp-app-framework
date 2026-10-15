@@ -10,6 +10,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 /**
  * Thrown by AbstractPost::save() when a meta value does not match its schema;
  * nothing is written then.
+ *
+ * @api Posts and queries
  */
 #[NoService]
 final class PostValidationException extends InvalidArgumentException
@@ -23,6 +25,8 @@ final class PostValidationException extends InvalidArgumentException
     }
 
     /**
+     * The messages of the invalid values, one per value, with the meta class and the path of the value.
+     *
      * @return list<string>
      */
     public function getErrors(): array

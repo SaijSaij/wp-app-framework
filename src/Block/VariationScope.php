@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Block;
 
 /**
  * Where the editor offers a block variation (`#[Variation(scope)]`).
+ *
+ * @api Enums
  */
 enum VariationScope: string
 {

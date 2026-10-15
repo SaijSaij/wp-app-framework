@@ -14,6 +14,8 @@ use Attribute;
  * values; URL parameters and arguments of a route), on the current value of
  * each variant in `vary` and on the code. It expires after `ttl` seconds or
  * when one of its tags is invalidated, whichever comes first.
+ *
+ * @api Attributes/Cache
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 final readonly class Cache

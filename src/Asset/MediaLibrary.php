@@ -17,6 +17,8 @@ use RuntimeException;
  * content returns its attachment. A changed file becomes a new attachment; the
  * old one stays, because content may use it. Attachments stay in the media
  * library when the theme or plugin is removed.
+ *
+ * @api Services
  */
 final readonly class MediaLibrary
 {

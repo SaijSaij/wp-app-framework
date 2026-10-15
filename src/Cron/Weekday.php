@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Cron;
 
 /**
  * A day of the week, numbered as in ISO 8601 (PHP date format `N`).
+ *
+ * @api Enums
  */
 enum Weekday: int
 {

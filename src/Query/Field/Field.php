@@ -16,6 +16,8 @@ use Saij\WpAppFramework\Query\FieldCondition;
  *
  * A meta value that is not stored counts as the default of its constructor parameter, in conditions and in the
  * sort order. Columns of a table are compared as stored; see the Nullable… field classes for null.
+ *
+ * @api Query fields
  */
 #[NoService]
 abstract readonly class Field
@@ -39,6 +41,9 @@ abstract readonly class Field
         return $this->class;
     }
 
+    /**
+     * The name of the field: the name of the constructor parameter.
+     */
     public function getField(): string
     {
         return $this->field;

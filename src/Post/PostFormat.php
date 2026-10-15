@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework\Post;
 /**
  * The post formats of WordPress, stored as terms `post-format-{value}` of the taxonomy `post_format`; Standard is a
  * post without such a term.
+ *
+ * @api Enums
  */
 enum PostFormat: string
 {

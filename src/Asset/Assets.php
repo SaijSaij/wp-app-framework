@@ -23,6 +23,8 @@ use WP_HTML_Tag_Processor;
  * ignores overrides.
  *
  * @phpstan-import-type AssetEntry from AssetCollector
+ *
+ * @api Services
  */
 final class Assets
 {
@@ -63,6 +65,11 @@ final class Assets
     /**
      * The URL of an asset, versioned with a hash of its content (or, for a file of a higher layer, its
      * modification time).
+     *
+     * @param string $name The asset: its path below `assets/`, e.g. `images/logo.svg`, optionally with `@child/` or the
+     *                     prefix of the instance (`@theme/`, `@plugin/`).
+     * @throws InvalidArgumentException If the name is invalid or names no asset.
+     * @throws LogicException If the name starts with `@child/` but no child theme is active.
      */
     public function url(string $name): string
     {
@@ -73,6 +80,11 @@ final class Assets
 
     /**
      * The path of an asset in the file system.
+     *
+     * @param string $name The asset: its path below `assets/`, e.g. `images/logo.svg`, optionally with `@child/` or the
+     *                     prefix of the instance (`@theme/`, `@plugin/`).
+     * @throws InvalidArgumentException If the name is invalid or names no asset.
+     * @throws LogicException If the name starts with `@child/` but no child theme is active.
      */
     public function path(string $name): string
     {
@@ -101,15 +113,23 @@ final class Assets
     }
 
     /**
-     * An `<img>` element for an image: `src`, `width` and `height` (so the page does not jump while it loads),
-     * `alt`, `decoding="async"` and further attributes. With `widths` and `sizes` the element gets a `srcset` of
-     * smaller versions; with `formats` (e.g. ['avif', 'webp']) it is wrapped in a `<picture>` with a `<source>` per
-     * format. The build creates these variants from the literal calls of asset_image() in the templates.
+     * An `<img>` element for an image: `src`, `width` and `height` (so the page does not jump while it loads), `alt`,
+     * `decoding="async"` and further attributes. With `widths` and `sizes` the element gets a `srcset` of smaller
+     * versions; with `formats` (e.g. ['avif', 'webp']) it is wrapped in a `<picture>` with a `<source>` per format. The
+     * build creates these variants from the literal calls of asset_image() in the templates.
      *
-     * @param string                                              $alt        The alternative text; '' for a decorative image.
-     * @param array<string, string|int|bool|list<int>|list<string>> $attributes Further attributes; true adds one without
-     *                                                                        value, false leaves it out. `widths` (list of
-     *                                                                        pixel widths) and `formats` ask for variants.
+     * @param string $name The asset: its path below `assets/`, e.g. `images/logo.svg`, optionally with `@child/` or the
+     *                     prefix of the instance (`@theme/`, `@plugin/`).
+     * @param string $alt The alternative text; '' for a decorative image.
+     * @param array<string, string|int|bool|list<int>|list<string>> $attributes Further attributes; true adds one
+     *                                                                          without value, false leaves it out.
+     *                                                                          `widths` (list of pixel widths) and
+     *                                                                          `formats` ask for variants and then need
+     *                                                                          `sizes`; `src`, `alt` and `srcset`
+     *                                                                          cannot be set.
+     * @throws InvalidArgumentException If the name is invalid or names no asset, or an attribute is invalid.
+     * @throws LogicException If the variants the attributes ask for were not built, or the name starts with `@child/`
+     *                        but no child theme is active.
      */
     public function image(string $name, string $alt, array $attributes = []): string
     {
@@ -214,11 +234,18 @@ final class Assets
     }
 
     /**
-     * The markup of an SVG image, to place it inline (for example icons styled with CSS), with further attributes
-     * on its root element; classes are added to its own.
+     * The markup of an SVG image, to place it inline (for example icons styled with CSS), with further attributes on
+     * its root element; classes are added to its own.
      *
-     * @param array<string, string|int|bool> $attributes
-     * @throws InvalidArgumentException If the asset is no SVG image or has no root element `<svg>`.
+     * @param string                         $name       The asset: its path below `assets/`, e.g. `images/logo.svg`,
+     *                                                   optionally with `@child/` or the prefix of the instance
+     *                                                   (`@theme/`, `@plugin/`). The file must have the extension
+     *                                                   `.svg`.
+     * @param array<string, string|int|bool> $attributes Attributes to set on the root element; true sets one without
+     *                                                   value, false removes it. `class` adds its classes to those of
+     *                                                   the file.
+     * @throws InvalidArgumentException If the asset is no SVG image or has no root element `<svg>`, or the name is
+     *                                  invalid or names no asset.
      */
     public function svg(string $name, array $attributes = []): string
     {

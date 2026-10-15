@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework\Cron;
 /**
  * The intervals WordPress defines for recurring WP-Cron events; the values are
  * the names of their schedules (`wp_get_schedules()`).
+ *
+ * @api Enums
  */
 enum CronInterval: string
 {

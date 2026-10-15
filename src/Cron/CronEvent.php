@@ -20,6 +20,8 @@ use Attribute;
  *
  * `$at` (`HH:MM`, in the time zone of the site) fixes the start time of daily,
  * twice daily and weekly events; weekly events with `$at` also need `$weekday`.
+ *
+ * @api Attributes/Cron
  */
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class CronEvent

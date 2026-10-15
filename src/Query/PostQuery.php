@@ -42,6 +42,8 @@ use wpdb;
  * statuses are taken as given, without checking the capabilities of the current user, like save().
  *
  * @template T of AbstractPost
+ *
+ * @api Posts and queries
  */
 #[NoService]
 final readonly class PostQuery
@@ -101,6 +103,11 @@ final readonly class PostQuery
 
     /**
      * Posts that meet all conditions (meta fields, terms, Any, All); adds to the conditions of earlier calls.
+     *
+     * @param Condition ...$conditions Conditions from fields of meta classes, Terms, Any and All; not on the
+     *                                 columns of a table.
+     *
+     * @throws InvalidArgumentException With a condition on the columns of a table.
      */
     #[\NoDiscard]
     public function where(Condition ...$conditions): static
@@ -116,7 +123,10 @@ final readonly class PostQuery
 
     /**
      * Posts with one of the statuses, instead of published posts only. The capabilities of the current user are not
-     * checked.
+     * checked. Replaces the statuses of earlier calls.
+     *
+     * @param PostStatus $status  The first status.
+     * @param PostStatus ...$more Further statuses.
      */
     #[\NoDiscard]
     public function status(PostStatus $status, PostStatus ...$more): static
@@ -131,6 +141,8 @@ final readonly class PostQuery
 
     /**
      * Only these posts; without arguments, no posts at all.
+     *
+     * @param AbstractPost|int ...$posts Saved posts or their IDs.
      */
     #[\NoDiscard]
     public function ids(AbstractPost|int ...$posts): static
@@ -139,7 +151,9 @@ final readonly class PostQuery
     }
 
     /**
-     * Not these posts.
+     * Not these posts; adds to the posts of earlier calls.
+     *
+     * @param AbstractPost|int ...$posts Saved posts or their IDs.
      */
     #[\NoDiscard]
     public function exclude(AbstractPost|int ...$posts): static
@@ -148,7 +162,10 @@ final readonly class PostQuery
     }
 
     /**
-     * Posts of one of the authors (user IDs).
+     * Posts of one of the authors (user IDs); replaces the authors of earlier calls.
+     *
+     * @param int $author  User ID of the first author.
+     * @param int ...$more User IDs of further authors.
      */
     #[\NoDiscard]
     public function author(int $author, int ...$more): static
@@ -159,7 +176,9 @@ final readonly class PostQuery
     /**
      * Children of the post (an object or its ID), or top-level posts with null (hierarchical post types).
      *
-     * @param T|int|null $parent
+     * @param T|int|null $parent A saved post of the type or its ID; null for posts without parent.
+     *
+     * @throws LogicException If the post type is not hierarchical.
      */
     #[\NoDiscard]
     public function parent(AbstractPost|int|null $parent): static
@@ -174,7 +193,9 @@ final readonly class PostQuery
     /**
      * Children of one of the posts (hierarchical post types).
      *
-     * @param T|int ...$parents
+     * @param T|int ...$parents Saved posts of the type or their IDs; at least one.
+     *
+     * @throws LogicException If the post type is not hierarchical.
      */
     #[\NoDiscard]
     public function parentIn(AbstractPost|int ...$parents): static
@@ -185,7 +206,9 @@ final readonly class PostQuery
     /**
      * Posts that are no children of the posts (hierarchical post types).
      *
-     * @param T|int ...$parents
+     * @param T|int ...$parents Saved posts of the type or their IDs; at least one.
+     *
+     * @throws LogicException If the post type is not hierarchical.
      */
     #[\NoDiscard]
     public function parentNotIn(AbstractPost|int ...$parents): static
@@ -197,7 +220,10 @@ final readonly class PostQuery
      * Posts that contain the words, searched like the search of WordPress: in the title, excerpt and content, or in
      * the given columns; with $exact the text must be a whole column value, with $sentence the words are one phrase.
      *
-     * @param list<SearchColumn> $columns
+     * @param string             $text     The words to search for; not empty.
+     * @param list<SearchColumn> $columns  Columns to search in; empty for title, excerpt and content.
+     * @param bool               $exact    The text must be the whole value of a column.
+     * @param bool               $sentence Search the words as one phrase instead of each word on its own.
      */
     #[\NoDiscard]
     public function search(string $text, array $columns = [], bool $exact = false, bool $sentence = false): static
@@ -222,6 +248,8 @@ final readonly class PostQuery
 
     /**
      * Posts with one of the slugs (post_name).
+     *
+     * @param string ...$slugs Slugs (post_name); empty strings are ignored, at least one must remain.
      */
     #[\NoDiscard]
     public function slug(string ...$slugs): static
@@ -236,6 +264,8 @@ final readonly class PostQuery
 
     /**
      * Posts with exactly this title.
+     *
+     * @param string $title The whole title, not empty.
      */
     #[\NoDiscard]
     public function title(string $title): static
@@ -249,6 +279,8 @@ final readonly class PostQuery
 
     /**
      * Posts last changed after the time (not at the time).
+     *
+     * @param DateTimeInterface $time A time in any time zone.
      */
     #[\NoDiscard]
     public function modifiedAfter(DateTimeInterface $time): static
@@ -258,6 +290,8 @@ final readonly class PostQuery
 
     /**
      * Posts last changed before the time (not at the time).
+     *
+     * @param DateTimeInterface $time A time in any time zone.
      */
     #[\NoDiscard]
     public function modifiedBefore(DateTimeInterface $time): static
@@ -266,7 +300,11 @@ final readonly class PostQuery
     }
 
     /**
-     * Posts with one of the templates, by slug (`page-wide` for templates/page-wide.html).
+     * Posts with one of the templates, by slug (`page-wide` for templates/page-wide.html); replaces earlier calls of
+     * template() and defaultTemplate().
+     *
+     * @param string ...$slugs Template slugs; "default" and empty strings are ignored, at least one must
+     *                         remain (defaultTemplate() finds posts without template).
      */
     #[\NoDiscard]
     public function template(string ...$slugs): static
@@ -290,6 +328,10 @@ final readonly class PostQuery
 
     /**
      * Posts with one of the formats; PostFormat::Standard is a post without format.
+     * Replaces the formats of earlier calls.
+     *
+     * @param PostFormat $format  The first format.
+     * @param PostFormat ...$more Further formats.
      */
     #[\NoDiscard]
     public function format(PostFormat $format, PostFormat ...$more): static
@@ -303,7 +345,12 @@ final readonly class PostQuery
     }
 
     /**
-     * Sticky posts only, or with false no sticky posts (posts of WordPress only).
+     * Sticky posts only, or with false no sticky posts (`Post::query()` only). The sticky
+     * posts are read when the query runs.
+     *
+     * @param bool $sticky True for sticky posts only, false for posts that are not sticky.
+     *
+     * @throws LogicException In a query of another post type than Post.
      */
     #[\NoDiscard]
     public function sticky(bool $sticky = true): static
@@ -317,6 +364,8 @@ final readonly class PostQuery
 
     /**
      * Posts with a password, or with false without one.
+     *
+     * @param bool $password True for posts with a password, false for posts without one.
      */
     #[\NoDiscard]
     public function hasPassword(bool $password = true): static
@@ -326,6 +375,8 @@ final readonly class PostQuery
 
     /**
      * Posts with this menu order (page attributes).
+     *
+     * @param int $order The menu order, at least 0.
      */
     #[\NoDiscard]
     public function menuOrder(int $order): static
@@ -339,6 +390,9 @@ final readonly class PostQuery
 
     /**
      * Posts whose number of approved comments compares to $count.
+     *
+     * @param int        $count      Number of approved comments, at least 0.
+     * @param Comparison $comparison How the number of a post compares to $count.
      */
     #[\NoDiscard]
     public function commentCount(int $count, Comparison $comparison = Comparison::Equal): static
@@ -352,6 +406,8 @@ final readonly class PostQuery
 
     /**
      * Posts whose comments are open or closed.
+     *
+     * @param DiscussionStatus $status Open or closed.
      */
     #[\NoDiscard]
     public function commentStatus(DiscussionStatus $status): static
@@ -361,6 +417,8 @@ final readonly class PostQuery
 
     /**
      * Posts whose pings (trackbacks, pingbacks) are open or closed.
+     *
+     * @param DiscussionStatus $status Open or closed.
      */
     #[\NoDiscard]
     public function pingStatus(DiscussionStatus $status): static
@@ -370,6 +428,8 @@ final readonly class PostQuery
 
     /**
      * Posts published after the time (not at the time).
+     *
+     * @param DateTimeInterface $time A time in any time zone.
      */
     #[\NoDiscard]
     public function publishedAfter(DateTimeInterface $time): static
@@ -379,6 +439,8 @@ final readonly class PostQuery
 
     /**
      * Posts published before the time (not at the time).
+     *
+     * @param DateTimeInterface $time A time in any time zone.
      */
     #[\NoDiscard]
     public function publishedBefore(DateTimeInterface $time): static
@@ -389,6 +451,9 @@ final readonly class PostQuery
     /**
      * Sorts by post data or a meta field; further calls sort posts that are equal so far. A post without a stored
      * meta value sorts like the default of the field.
+     *
+     * @param PostOrder|Field $by        Post data or a field of a meta class.
+     * @param Direction       $direction Ascending by default.
      */
     #[\NoDiscard]
     public function orderBy(PostOrder|Field $by, Direction $direction = Direction::Asc): static
@@ -397,7 +462,9 @@ final readonly class PostQuery
     }
 
     /**
-     * At most this many posts.
+     * At most this many posts; without limit() a query returns all matching posts.
+     *
+     * @param int $limit The maximum number of posts, at least 1.
      */
     #[\NoDiscard]
     public function limit(int $limit): static
@@ -410,7 +477,9 @@ final readonly class PostQuery
     }
 
     /**
-     * Skips this many posts (with limit()).
+     * Skips this many posts (needs limit(); get() throws a LogicException without it).
+     *
+     * @param int $offset The number of posts to skip, at least 0.
      */
     #[\NoDiscard]
     public function offset(int $offset): static
@@ -476,7 +545,12 @@ final readonly class PostQuery
     /**
      * One page of the matching posts with the number of all of them.
      *
+     * @param int $perPage The number of posts per page, at least 1.
+     * @param int $page    The page, starting with 1; a page after the last one has no posts.
+     *
      * @return PostPage<T>
+     *
+     * @throws LogicException With limit() or offset(): paginate() sets them itself.
      */
     public function paginate(int $perPage, int $page): PostPage
     {

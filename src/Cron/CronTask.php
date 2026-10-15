@@ -14,6 +14,8 @@ use Attribute;
  * has exactly one handler. The hook of the task is
  * `wp_app_framework/cron/{slug}/task/{name}`; scheduled tasks stay attached to
  * the name, so keep it when you rename the class or the method.
+ *
+ * @api Attributes/Cron
  */
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class CronTask

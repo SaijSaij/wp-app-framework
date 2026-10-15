@@ -187,7 +187,7 @@ A task whose stored values no longer match its class – for example because you
 
 ## Rules
 
-`#[CronEvent(name, interval, at: null, weekday: null)]`:
+[`#[CronEvent(name, interval, at: null, weekday: null)]`](../api/php/Cron/CronEvent.md):
 
 | Parameter | Type | Rule |
 |---|---|---|
@@ -196,7 +196,7 @@ A task whose stored values no longer match its class – for example because you
 | `at` | `?string` | Start time `HH:MM` (00:00 to 23:59) in the time zone of the site; only with `Daily`, `TwiceDaily` and `Weekly`. |
 | `weekday` | `?Weekday` | Required for `Weekly` with `at`; only there. |
 
-`#[CronTask(name)]`:
+[`#[CronTask(name)]`](../api/php/Cron/CronTask.md):
 
 | Parameter | Type | Rule |
 |---|---|---|

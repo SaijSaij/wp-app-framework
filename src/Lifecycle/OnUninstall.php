@@ -14,6 +14,8 @@ use Attribute;
  * Only plugins can be uninstalled: WordPress loads no code of a theme that is
  * deleted, so the attribute in a theme or child theme is a build error. The
  * method is public, returns void and takes services only.
+ *
+ * @api Attributes/Lifecycle
  */
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class OnUninstall {}

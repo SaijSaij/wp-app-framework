@@ -9,6 +9,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The path of the requested URL, without the query string.
+ *
+ * @api Cache
  */
 #[NoService]
 final readonly class UrlVary implements CacheVary {}

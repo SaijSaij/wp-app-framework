@@ -31,6 +31,8 @@ use Saij\WpAppFramework\Query\Group;
  * match rows without value. NULL sorts first in ascending order (MariaDB).
  *
  * @template T of AbstractRow
+ *
+ * @api Tables
  */
 #[NoService]
 final readonly class RowQuery
@@ -65,6 +67,11 @@ final readonly class RowQuery
 
     /**
      * Rows that meet all conditions (columns, Any, All); adds to the conditions of earlier calls.
+     *
+     * @param Condition ...$conditions Conditions created by the field classes of this table (a class with
+     *                                 `#[TableFields]`), or groups of them with Any and All. Throws an
+     *                                 InvalidArgumentException for conditions on meta fields or terms, or on a column
+     *                                 of another table.
      */
     #[\NoDiscard]
     public function where(Condition ...$conditions): static
@@ -82,6 +89,10 @@ final readonly class RowQuery
     /**
      * Sorts by a column; further calls sort rows that are equal so far. Without orderBy(), rows come in the order of
      * their primary key.
+     *
+     * @param Field     $field     A field of this table, from its class with `#[TableFields]`; a field of another table
+     *                             throws an InvalidArgumentException.
+     * @param Direction $direction Ascending (default) or descending.
      */
     #[\NoDiscard]
     public function orderBy(Field $field, Direction $direction = Direction::Asc): static
@@ -93,6 +104,8 @@ final readonly class RowQuery
 
     /**
      * At most this many rows.
+     *
+     * @param int $limit The maximum number of rows, at least 1; a smaller number throws an InvalidArgumentException.
      */
     #[\NoDiscard]
     public function limit(int $limit): static
@@ -106,6 +119,9 @@ final readonly class RowQuery
 
     /**
      * Skips this many rows (with limit()).
+     *
+     * @param int $offset The number of rows to skip, at least 0; a negative number throws an InvalidArgumentException.
+     *                    Takes effect only together with limit(); delete() does not allow it.
      */
     #[\NoDiscard]
     public function offset(int $offset): static

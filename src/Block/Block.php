@@ -11,6 +11,8 @@ use Attribute;
  * `render()` method returning the block's HTML; its parameters are matched by
  * type: the block attribute class, `string` (the rendered inner blocks) and
  * `WP_Block`, besides values of ancestors marked with `#[Context]`.
+ *
+ * @api Attributes/Blocks
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class Block
@@ -18,8 +20,11 @@ final readonly class Block
     /**
      * @param string       $name        Block name without namespace, e.g. "hero"; registered in the namespace of the
      *                                  theme or plugin (`extra.wp-app-framework.namespace`), e.g. "sections/hero".
+     * @param string       $title       Title of the block in the inserter and the block inspector.
      * @param BlockCategory|CustomBlockCategory $category A category of WordPress or a case of an enum of the theme
      *                                  or plugin that implements CustomBlockCategory.
+     * @param string       $icon        Name of a Dashicon, e.g. `cover-image`; `''` for the default icon.
+     * @param string       $description Description shown in the inserter and the block inspector.
      * @param list<string> $keywords    Search terms for the inserter.
      * @param list<string> $usesContext Context values of other blocks the block reads from WP_Block::$context, e.g.
      *                                  "postId"; values of blocks of the same theme or plugin are read with

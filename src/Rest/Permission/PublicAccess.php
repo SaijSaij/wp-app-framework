@@ -8,6 +8,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Everybody may call the route, including anonymous visitors.
+ *
+ * @api Values and exceptions
  */
 #[NoService]
 final readonly class PublicAccess implements Permission {}

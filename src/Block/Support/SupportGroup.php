@@ -7,6 +7,8 @@ namespace Saij\WpAppFramework\Block\Support;
 /**
  * Where the inspector shows the control of a block support. Neither is shown
  * in contentOnly mode.
+ *
+ * @api Enums
  */
 enum SupportGroup: string
 {

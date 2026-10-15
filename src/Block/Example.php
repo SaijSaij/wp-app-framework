@@ -10,6 +10,8 @@ use Attribute;
  * The preview of a block in the inserter. Without this attribute the preview
  * shows the block with its default attributes and, for a container, the
  * template of #[InnerBlocks]; `#[Example(false)]` shows no preview.
+ *
+ * @api Attributes/Blocks
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final readonly class Example
@@ -17,7 +19,7 @@ final readonly class Example
     /**
      * @param array<string, mixed>|false $attributes    Attribute values (backed enums stand for their value); false
      *                                                  for no preview.
-     * @param list<TemplateBlock>        $innerBlocks
+     * @param list<TemplateBlock>        $innerBlocks   Inner blocks of the preview, for a container block.
      * @param int|null                   $viewportWidth Width in pixels the preview is rendered at (WordPress: 500).
      */
     public function __construct(

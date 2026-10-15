@@ -9,6 +9,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 /**
  * A nullable string column of a table (`?string`). notEquals() and notIn() also match rows whose column is null, like
  * `null !== $value` in PHP.
+ *
+ * @api Query fields
  */
 #[NoService]
 final readonly class NullableStringField extends StringField

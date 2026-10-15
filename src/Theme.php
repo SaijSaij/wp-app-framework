@@ -14,6 +14,8 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  * The instance is created only by boot() and handed to the container as a
  * predefined instance: the container never builds it, but services of a theme
  * can inject it to read the paths.
+ *
+ * @api Boot classes
  */
 final class Theme
 {

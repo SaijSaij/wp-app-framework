@@ -11,6 +11,8 @@ use Attribute;
  * ancestor block provides (`#[ProvidesContext]`). The parameter has the type
  * of that attribute; it keeps its default (or null) if no ancestor provides
  * the value.
+ *
+ * @api Attributes/Blocks
  */
 #[Attribute(Attribute::TARGET_PARAMETER)]
 final readonly class Context

@@ -6,6 +6,8 @@ namespace Saij\WpAppFramework\Post;
 
 /**
  * The statuses of a post that WordPress registers itself.
+ *
+ * @api Enums
  */
 enum PostStatus: string
 {

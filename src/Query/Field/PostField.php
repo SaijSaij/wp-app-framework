@@ -14,6 +14,8 @@ use Saij\WpAppFramework\Query\Condition;
  * or not at all.
  *
  * @template P of AbstractPost
+ *
+ * @api Query fields
  */
 #[NoService]
 final readonly class PostField extends Field
@@ -29,7 +31,10 @@ final readonly class PostField extends Field
     }
 
     /**
-     * @param P|int $post
+     * Matches posts whose field refers to $post. Throws an InvalidArgumentException for a post of another post class or
+     * a post that has not been saved yet.
+     *
+     * @param P|int $post A post of the post class of the field or its ID.
      */
     public function equals(AbstractPost|int $post): Condition
     {
@@ -37,7 +42,10 @@ final readonly class PostField extends Field
     }
 
     /**
-     * @param P|int ...$posts
+     * Matches posts whose field refers to one of $posts. Throws an InvalidArgumentException for a post of another post
+     * class or a post that has not been saved yet, or if no post is given.
+     *
+     * @param P|int ...$posts Posts of the post class of the field or their IDs.
      */
     public function in(AbstractPost|int ...$posts): Condition
     {
@@ -45,7 +53,11 @@ final readonly class PostField extends Field
     }
 
     /**
-     * @param P|int ...$posts
+     * Matches posts whose field refers to none of $posts, including posts without a post in the field. Throws an
+     * InvalidArgumentException for a post of another post class or a post that has not been saved yet, or if no post is
+     * given.
+     *
+     * @param P|int ...$posts Posts of the post class of the field or their IDs.
      */
     public function notIn(AbstractPost|int ...$posts): Condition
     {

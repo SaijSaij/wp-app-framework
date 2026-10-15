@@ -260,7 +260,7 @@ The tables of a theme stay when the site switches to another theme, so they are 
 
 ## Rules
 
-`#[Table(name, renamedFrom: [])]` on a class that extends `AbstractRow`:
+[`#[Table(name, renamedFrom: [])]`](../api/php/Table/Table.md) on a class that extends `AbstractRow`:
 
 - `name` and each earlier name: lowercase letters, digits and `_`, starting with a letter; unique among the tables of the theme or plugin. `{namespace}_{name}` has at most 50 characters.
 - The class is concrete and has a public constructor of its own. Every constructor parameter is a promoted property, private or protected; the class declares no other properties.
@@ -310,6 +310,6 @@ Columns and their field classes:
 | `DateTimeImmutable` | `DateTimeField` | as `IntField`, with `DateTimeInterface` |
 | nullable (`?string`, …) | `NullableStringField`, `NullableIntField`, `NullableFloatField`, `NullableBoolField`, `NullableEnumField<E>`, `NullableDateTimeField` | as above, and `isNull`, `isNotNull` |
 
-`#[TableFields(rowClass)]` on a class of your own: one class per row class; every public static method that returns a field has no parameters and returns a field of `rowClass` with an existing column and its field class (with the enum of the column). The class is no service. In development mode the build runs again when signatures change, not when only a method body changes; a query checks its fields again when it runs.
+[`#[TableFields(rowClass)]`](../api/php/Table/TableFields.md) on a class of your own: one class per row class; every public static method that returns a field has no parameters and returns a field of `rowClass` with an existing column and its field class (with the enum of the column). The class is no service. In development mode the build runs again when signatures change, not when only a method body changes; a query checks its fields again when it runs.
 
 `wp-app-framework table-fields <row class> [--force]` writes `{RowClass}Fields.php` next to the row class. An existing file is replaced only with `--force`.
