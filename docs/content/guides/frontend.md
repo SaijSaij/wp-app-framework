@@ -223,11 +223,11 @@ A view script outside the directory your build compiles (`src/`) is a build erro
 |---|---|
 | `mount()` | Override: set the view up. |
 | `unmount()` | Override if needed: runs before the cleanups of `listen()` and `onUnmount()`. |
-| `element` | The root element of the block. |
+| `element` | The root element of the block; the document element in a `DocumentView`. |
 | `document`, `window` | The document and window of the element; in the editor preview those of the canvas iframe. |
 | `isPreview` | `true` in the editor preview. |
-| `find( selector )` | The first matching element in the block, or `null`. |
-| `findAll( selector )` | All matching elements in the block, in document order. |
+| `find( selector )` | The first matching element below `element`, or `null`. |
+| `findAll( selector )` | All matching elements below `element`, in document order. |
 | `listen( target, type, handler, options )` | Adds an event listener, removed when the view unmounts. |
 | `onUnmount( callback )` | Runs a function when the view unmounts. |
 | `data( key )` | A value set with `ViewData::set()`; an unknown key throws an error that names the known ones. |

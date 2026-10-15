@@ -21,13 +21,14 @@ window.wpAppFramework = window.wpAppFramework || {};
 const instance = ( window.wpAppFramework[ slug ] =
 	window.wpAppFramework[ slug ] || {} );
 
-instance.view = {
+// Only what types/view.d.ts declares.
+instance.view = Object.freeze( {
 	BlockView,
 	SupportView,
 	DocumentView,
-	loadScript,
+	loadScript: ( url, attributes ) => loadScript( url, attributes ),
 	getData: ( key ) => getData( slug, key ),
-};
+} );
 instance.viewRuntime = {
 	mountWithin: ( root, options ) =>
 		mountWithin( slug, instance.views, root, options ),

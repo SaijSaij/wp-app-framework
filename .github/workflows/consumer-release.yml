@@ -13,7 +13,7 @@
 #
 # Builds the release ZIP in the tools image of wp-test-env, installs it into fresh,
 # plain WordPress instances of wp-test-env (release mode) and runs the consumer's
-# browser tests (one Playwright worker per instance) and, with cli-tests, its WP-CLI
+# browser tests (one Playwright worker per instance) and, with cli, its WP-CLI
 # tests against them. Only if everything passes, the GitHub release of the tag gets the ZIP.
 # The repository name is the slug of the theme or plugin; the type in its
 # composer.json (wordpress-theme, wordpress-plugin) and the Template: header of
@@ -37,7 +37,7 @@ on:
         description: Run the consumer's browser tests (npm script test:e2e) against the release.
         type: boolean
         default: true
-      cli-tests:
+      cli:
         description: Run the consumer's WP-CLI tests against the release, the executable tests/cli/run with the name of an instance of wp-test-env as argument (wp-test-env is checked out next to the consumer).
         type: boolean
         default: false
@@ -222,7 +222,7 @@ jobs:
 
       - name: Install the release and run the CLI and browser tests
         id: e2e
-        if: inputs.e2e || inputs.cli-tests
+        if: inputs.e2e || inputs.cli
         working-directory: workspace/wp-test-env
         env:
           SLUG: ${{ steps.project.outputs.slug }}
@@ -231,7 +231,7 @@ jobs:
           KIND: ${{ steps.kind.outputs.kind }}
           E2E: ${{ inputs.e2e }}
           E2E_INSTANCES: ${{ inputs.e2e-instances }}
-          CLI_TESTS: ${{ inputs.cli-tests }}
+          CLI_TESTS: ${{ inputs.cli }}
         run: |
           case "${KIND}" in
             plugin) zips=(--theme-zip "${THEME_ZIP}" --plugin-zip "${ZIP}") ;;

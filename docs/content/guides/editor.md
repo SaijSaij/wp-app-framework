@@ -121,6 +121,10 @@ registerPanel( 'hero', ( { attributes, setAttributes } ) => <PanelBody title="He
 
 `registerControl()` replaces the generated control of one attribute. `registerPanel()` adds a panel of your own. Like `registerToolbarButton()` below, they take the block name without namespace, as in `#[Block]`. All of them warn in the console about unknown blocks and attributes, and about names with a namespace.
 
+Every component you register receives the same props: the block's `attributes`, `setAttributes`, its `clientId` and `isPreview` (whether the block shows its [preview](#preview)). A control receives the `value` of its attribute and `onChange` as well.
+
+The import `@saij/wp-app-framework` is not a module that webpack bundles. The webpack helper maps it to the runtime of your theme or plugin in the editor, `window.wpAppFramework[slug].api`, which holds exactly these functions: `registerControl()`, `registerSupportControl()`, `registerPanel()`, `registerToolbarButton()`, `loadScript()` and `getData()`. The package ships TypeScript declarations for this import and for `@saij/wp-app-framework/view`, so your IDE knows the functions and their props; you write plain JavaScript all the same.
+
 ### Editor scripts without a block
 
 Some extensions of the editor belong to no block of your own: a format for rich text, a control added to a core block with a filter, a block variation, a sidebar of `registerPlugin()`. Such a script lives in the `assets/` directory, with a name ending in `.editor.js`, and needs no PHP class: `assets/highlight.editor.js`. The framework loads it in the post and site editor after the runtime, also when the theme or plugin has no blocks:
@@ -146,7 +150,7 @@ registerFormatType( 'my-theme/highlight', {
 } );
 ```
 
-`getData()` reads [data from PHP](./frontend.md#data-from-php), which the framework prints with the runtime. Editor scripts can import [shared modules](./frontend.md#shared-modules) and load [external scripts](./frontend.md#external-scripts) with `loadScript()` of `@saij/wp-app-framework`. Their handle is `{slug}-document-{path}-editor`.
+`getData()` reads [data from PHP](./frontend.md#data-from-php), which the framework prints with the runtime. Editor scripts can import [shared modules](./frontend.md#shared-modules) and load [external scripts](./frontend.md#external-scripts) with `loadScript()` of `@saij/wp-app-framework`. Their handle is `{slug}-document-{path}-editor` (`assets/highlight.editor.js` → `my-theme-document-highlight-editor`).
 
 ### Toolbar buttons
 
@@ -192,7 +196,7 @@ The framework ships only the sources of the runtime, in `assets/`. The theme or 
 
 ```js
 // webpack.config.js of the theme or plugin
-module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( {
+module.exports = require( '@saij/wp-app-framework/webpack' )( {
 	slug: 'theme-dev-test', // get_template() of a theme, the directory name of a plugin
 	root: __dirname,
 } );
@@ -219,4 +223,18 @@ Without a build, the editor fails with an exception that names the missing file.
 
 ## Instances
 
-Everything global is derived from the slug of the instance: the render and preview routes, the script handles (`{slug}-wp-app-framework`, `{slug}-{block}-editor`, `{slug}-wp-app-framework-view`, `{slug}-{block}-view`, `{slug}-document-{path}-view`, `{slug}-document-{path}-editor`, `{slug}-shared-{name}`, `{slug}-wp-app-framework-settings`) and the JavaScript global `window.wpAppFramework[slug]`. Several framework instances, even in different versions, therefore run side by side in the same editor.
+Everything global is derived from the slug of the instance: the render and preview routes, the script and style handles and the JavaScript global `window.wpAppFramework[slug]`. Several framework instances, even in different versions, therefore run side by side in the same editor.
+
+| Handle | Script or style |
+|---|---|
+| `{slug}-wp-app-framework` | the editor runtime |
+| `{slug}-wp-app-framework-view` | the view runtime |
+| `{slug}-{namespace}-{block}-editor`, `{slug}-{namespace}-{block}-view` | the editor and view script of a block (`my-theme-sections-hero-view`) |
+| `{slug}-support-{attribute}-editor`, `{slug}-support-{attribute}-view` | the editor and view script of a block support, the attribute in kebab case (`my-theme-support-color-scheme-view`) |
+| `{slug}-document-{path}-editor`, `{slug}-document-{path}-view` | editor scripts and document views in `assets/` (`my-theme-document-nav-menu-view`) |
+| `{slug}-shared-{name}` | a shared module (`my-theme-shared-ui-dialog`) |
+| `{slug}-wp-app-framework-settings` | the settings page |
+| `{slug}-wp-app-framework-meta-box` | the forms of meta classes on the classic edit screen |
+| `{slug}-styles` | the compiled `assets/styles.css` |
+
+Use a handle as a dependency of a script of your own, for example. The other parts of `window.wpAppFramework[slug]` besides `api` and `view` are internal.

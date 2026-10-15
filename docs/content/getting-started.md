@@ -132,7 +132,7 @@ The block editor needs JavaScript: the framework's editor runtime, which makes y
 The helper needs the slug of the theme, which is its directory name:
 
 ```js
-module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( {
+module.exports = require( '@saij/wp-app-framework/webpack' )( {
 	slug: 'my-theme',
 	root: __dirname,
 } );

@@ -1,6 +1,6 @@
 # Development files of the framework: excluded from distribution archives (Composer dist
 # downloads, the release package ZIP) and from the prefixed copy in a consumer's release.
-# Consumers need package.json, assets/, webpack.config.js and bin/ – they stay.
+# Consumers need package.json, assets/, types/, webpack.config.js and bin/ – they stay.
 # Directories are matched as dir/** so the attribute applies to the files inside (git check-attr
 # per file, as the release command asks it), and as dir so git archive writes no empty directory.
 /.gitattributes export-ignore
@@ -22,4 +22,7 @@
 /phpstan.dist.neon export-ignore
 /phpunit.xml.dist export-ignore
 /tests export-ignore
+/types/check export-ignore
+/types/check/** export-ignore
+/types/tsconfig.json export-ignore
 /tests/** export-ignore

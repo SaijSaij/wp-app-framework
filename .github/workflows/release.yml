@@ -27,7 +27,7 @@ jobs:
       repository: SaijSaij/theme-dev-test
       ref: main
       framework-ref: ${{ github.ref }}
-      cli-tests: true
+      cli: true
       publish: false
 
   gate-plugin:
@@ -39,7 +39,7 @@ jobs:
       repository: SaijSaij/plugin-dev-test
       ref: main
       framework-ref: ${{ github.ref }}
-      cli-tests: true
+      cli: true
       with-theme: SaijSaij/theme-dev-test@v0.1.0
       publish: false
 

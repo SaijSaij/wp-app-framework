@@ -64,9 +64,11 @@ const FIELD_CONTROLS = {
  * the controls and panels the theme or plugin registered.
  *
  * @param {Object} props
- * @param {Object} props.registry Registered controls and panels.
+ * @param {Object} props.registry       Registered controls and panels.
+ * @param {Object} props.componentProps Props of every registered component: attributes, setAttributes, clientId
+ *                                      and isPreview.
  */
-export function Inspector( { registry } ) {
+export function Inspector( { registry, componentProps } ) {
 	const { name, block, attributes, setAttributes } = useBlockData();
 	const mode = useBlockEditingMode();
 	if ( mode === 'disabled' ) {
@@ -106,12 +108,11 @@ export function Inspector( { registry } ) {
 			element: (
 				<Control
 					key={ attribute }
+					{ ...componentProps }
 					value={ attributes[ attribute ] }
 					onChange={ ( value ) =>
 						setAttributes( { [ attribute ]: value } )
 					}
-					attributes={ attributes }
-					setAttributes={ setAttributes }
 				/>
 			),
 		} );
@@ -150,11 +151,7 @@ export function Inspector( { registry } ) {
 						</PanelBody>
 					) }
 					{ panels.map( ( Panel, index ) => (
-						<Panel
-							key={ index }
-							attributes={ attributes }
-							setAttributes={ setAttributes }
-						/>
+						<Panel key={ index } { ...componentProps } />
 					) ) }
 				</InspectorControls>
 			) }

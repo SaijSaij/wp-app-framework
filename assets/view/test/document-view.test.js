@@ -192,7 +192,7 @@ describe( 'loadScript()', () => {
 		await expect(
 			loadScript( 'http://cdn.example.test/lib.js' )
 		).rejects.toThrow(
-			'wp-app-framework: loadScript() loads https: URLs only, got "http://cdn.example.test/lib.js".'
+			'wp-app-framework: loadScript() loads https: and protocol-relative (//…) URLs only, got "http://cdn.example.test/lib.js".'
 		);
 		expect( document.scripts ).toHaveLength( 0 );
 	} );

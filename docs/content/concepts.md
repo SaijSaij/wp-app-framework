@@ -14,6 +14,8 @@ Every consumer that boots creates its own *instance* of the framework. Instances
 
 The **namespace** names what your content and data refer to. You choose it once in `composer.json`, as `extra.wp-app-framework.namespace`, for example `sections`. Your blocks are registered as `sections/hero`, your REST routes live under `sections/v1`, your WP-CLI commands under `wp sections`, your settings are stored in options such as `sections_general`, and your post types, taxonomies and meta keys are named `sections_event` and the like. These names end up in posts and in the database, so they must stay the same for as long as the content exists.
 
+The names you give in attributes follow two patterns. Names that become part of a database name – post types, taxonomies, settings groups, meta classes, tables – consist of lowercase letters, digits and `_`, because they are joined to the namespace with `_` (`sections_event`). Names that become part of a block name, a hook or a command – blocks, variations, cron events and tasks, WP-CLI commands – consist of lowercase letters, digits and `-` (`sections/hero`, `wp sections import-events`).
+
 The **slug** is the directory name of the theme or plugin. It names the technical parts: the REST route of the editor, the script handles, the JavaScript global `window.wpAppFramework[slug]`, the cache directory `wp-content/cache/{slug}/` and the init action `wp_app_framework/init/{slug}`. The directory name can change when a theme or plugin is installed under another name; that's why no content depends on it.
 
 Two consumers that boot with the same slug or the same namespace are an error.

@@ -2,17 +2,35 @@
 	"name": "@saij/wp-app-framework",
 	"version": "0.0.0",
 	"private": true,
-	"description": "Editor runtime of saij/wp-app-framework. Built by the consumer's build through webpack.config.js; not published.",
+	"description": "Editor and view runtime of saij/wp-app-framework, the webpack helper (`@saij/wp-app-framework/webpack`) and the type declarations of both imports. Installed from the Composer package (file:vendor/saij/wp-app-framework); not published.",
 	"license": "GPL-2.0-or-later",
+	"types": "./types/index.d.ts",
+	"typesVersions": {
+		"*": {
+			"view": [
+				"./types/view.d.ts"
+			]
+		}
+	},
+	"exports": {
+		".": {
+			"types": "./types/index.d.ts"
+		},
+		"./view": {
+			"types": "./types/view.d.ts"
+		},
+		"./webpack": "./webpack.config.js"
+	},
 	"engines": {
 		"node": ">=24"
 	},
 	"scripts": {
 		"test": "wp-scripts test-unit-js --dir assets",
-		"lint": "npm run lint:js && npm run lint:style",
+		"lint": "npm run lint:js && npm run lint:style && npm run lint:types",
 		"lint:js": "wp-scripts lint-js assets webpack.config.js eslint.config.cjs docs/theme docs/scripts docs/rspress.config.mjs",
 		"lint:style": "wp-scripts lint-style 'assets/**/*.scss' 'docs/theme/**/*.css'",
-		"format": "wp-scripts format assets webpack.config.js docs/theme docs/scripts docs/rspress.config.mjs"
+		"format": "wp-scripts format assets webpack.config.js docs/theme docs/scripts docs/rspress.config.mjs",
+		"lint:types": "tsc -p types"
 	},
 	"dependencies": {
 		"html-react-parser": "^6.1.8"
@@ -37,6 +55,7 @@
 		"@wordpress/scripts": "^36.1.0",
 		"jsdom": "^30.1.2",
 		"tailwindcss": "^4.3.3",
+		"typescript": "^6.0.3",
 		"vite": "^8.3.4",
 		"vitest": "^5.0.3"
 	}

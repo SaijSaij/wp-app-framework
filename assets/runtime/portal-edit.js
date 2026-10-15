@@ -342,6 +342,9 @@ export function PortalEdit( {
 		);
 	}
 
+	// Props of every registered component: toolbar buttons, controls and panels.
+	const componentProps = { attributes, setAttributes, clientId, isPreview };
+
 	return (
 		<BlockDataContext.Provider value={ data }>
 			{ content }
@@ -350,14 +353,12 @@ export function PortalEdit( {
 				hasView={ block.view }
 				isPreview={ isPreview }
 				setPreview={ setPreview }
-				buttonProps={ {
-					attributes,
-					setAttributes,
-					clientId,
-					isPreview,
-				} }
+				buttonProps={ componentProps }
 			/>
-			<Inspector registry={ runtime.registry } />
+			<Inspector
+				registry={ runtime.registry }
+				componentProps={ componentProps }
+			/>
 		</BlockDataContext.Provider>
 	);
 }

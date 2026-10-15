@@ -14,6 +14,12 @@ The documentation is published for each minor version. The version switcher in t
 
 **The arguments of `#[Variation]` follow `#[Block]`.** The order is now `name, title, icon, description, keywords, …`, as in `#[Block]`; `icon` and `description` swapped places. Only a variation that passes `description` or `icon` positionally is affected; name these arguments (`icon: 'columns'`), because the build cannot tell the two strings apart.
 
+**`@saij/wp-app-framework` is the editor API only.** The import used to resolve to the whole global `wpAppFramework[slug]`, so internal parts such as `config` were importable. It now resolves to `wpAppFramework[slug].api`, which holds `registerControl()`, `registerSupportControl()`, `registerPanel()`, `registerToolbarButton()`, `loadScript()` and `getData()` (see [Editor](../guides/editor.md#editor-scripts)). Code that imports only these needs no change. Code that called them on the global, `window.wpAppFramework[slug].registerPanel(…)`, calls them on `window.wpAppFramework[slug].api` now. `loadScript()` of both imports takes two arguments, the URL and the attributes.
+
+**The webpack helper is `@saij/wp-app-framework/webpack`.** The package declares its entry points now, with TypeScript declarations for both imports that your IDE picks up. Replace `require( './vendor/saij/wp-app-framework/webpack.config.js' )` in your `webpack.config.js` with `require( '@saij/wp-app-framework/webpack' )`; the old path still works.
+
+**The release workflow input `cli-tests` is now `cli`.** It goes with `e2e` (see [Releases and CI](../build-and-release/ci.md)). Rename it in the workflow of your project that calls `consumer-release.yml`.
+
 **Internal services cannot be injected.** The render context of the editor (`Editor\RenderContext`) and the post store (`Post\PostStore`) are internal to the framework. A class of your theme or plugin that injects one of them is now a build error. Use the template functions `is_editor()`, `field()` and `inner_blocks()` in templates, and `Event::get()`, `find()` and `query()` for posts.
 
 **The framework is on Packagist.** Composer finds `saij/wp-app-framework` without a `repositories` entry now. Remove the `vcs` entry for the framework from your `composer.json` and run `composer update saij/wp-app-framework` (see [Releases and CI](../build-and-release/ci.md#requiring-the-framework)); a project that keeps the entry still works.

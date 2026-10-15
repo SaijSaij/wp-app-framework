@@ -42,7 +42,7 @@ Not every post type is a page of its own. A venue that events refer to is data: 
 final class Venue extends AbstractPost {}
 ```
 
-`public: false` hides it from the front end and searches; `showUi` (true by default) keeps it in the admin menu. Without `PostTypeSupport::Editor`, WordPress edits it on the classic edit screen instead of the block editor. The framework shows the meta of the type there as a form (see [Editing](#editing)).
+A post type of the framework is public unless you say otherwise; WordPress' own default for `register_post_type()` is the opposite. `public: false` hides it from the front end and searches; `showUi` (true by default) keeps it in the admin menu. Without `PostTypeSupport::Editor`, WordPress edits it on the classic edit screen instead of the block editor. The framework shows the meta of the type there as a form (see [Editing](#editing)).
 
 ## Meta fields
 

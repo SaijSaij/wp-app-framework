@@ -116,7 +116,7 @@ export class View {
 	/**
 	 * Loads an external script into the document of the view, once per URL and document.
 	 *
-	 * @param {string}                         url          An https: URL.
+	 * @param {string}                         url          An https: URL or a protocol-relative one (//…).
 	 * @param {Object<string, string|boolean>} [attributes] Further attributes of the script element.
 	 * @return {Promise<void>} Fulfilled once the script has loaded.
 	 */

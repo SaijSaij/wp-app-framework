@@ -3,8 +3,7 @@ import { InnerBlocks } from '@wordpress/block-editor';
 import { getBlockType, registerBlockType } from '@wordpress/blocks';
 import { RawHTML } from '@wordpress/element';
 
-import { getData } from '../view/data';
-import { loadScript } from '../view/load-script';
+import { createApi } from './api';
 import { PortalEdit } from './portal-edit';
 import { registerMetaPanels } from './meta-panels';
 import { createRegistry } from './registry';
@@ -12,8 +11,9 @@ import { createRenderer } from './renderer';
 
 /**
  * Starts the runtime of one framework instance: registers its blocks and the
- * panels of its meta classes with the editor and adds the API for its editor scripts to the instance global wpAppFramework[slug],
- * which the server prefilled with the configuration.
+ * panels of its meta classes with the editor and provides the API for its
+ * editor scripts as wpAppFramework[slug].api (the import `@saij/wp-app-framework`).
+ * The server prefilled wpAppFramework[slug].config with the configuration.
  *
  * @param {string} slug Slug of the instance.
  */
@@ -51,12 +51,7 @@ export function startRuntime( slug ) {
 
 	registerMetaPanels( slug, config.meta );
 
-	instance.registerControl = runtime.registry.registerControl;
-	instance.registerSupportControl = runtime.registry.registerSupportControl;
-	instance.registerPanel = runtime.registry.registerPanel;
-	instance.registerToolbarButton = runtime.registry.registerToolbarButton;
-	instance.loadScript = loadScript;
-	instance.getData = ( key ) => getData( slug, key );
+	instance.api = createApi( slug, runtime.registry );
 }
 
 /**

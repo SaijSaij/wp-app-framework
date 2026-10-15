@@ -28,7 +28,7 @@ export function loadScript( url, attributes = {}, doc = document ) {
 	) {
 		return Promise.reject(
 			new Error(
-				`wp-app-framework: loadScript() loads https: URLs only, got ${ JSON.stringify(
+				`wp-app-framework: loadScript() loads https: and protocol-relative (//…) URLs only, got ${ JSON.stringify(
 					url
 				) }.`
 			)

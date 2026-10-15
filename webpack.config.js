@@ -23,14 +23,14 @@
  *   build/styles.preload.php, from which the framework prints <link rel="preload">.
  *
  * Imports of `@saij/wp-app-framework` resolve to the runtime of the same instance
- * (global `wpAppFramework[slug]`, script handle `{slug}-wp-app-framework`), imports of
+ * (global `wpAppFramework[slug].api`, script handle `{slug}-wp-app-framework`), imports of
  * `@saij/wp-app-framework/view` to its view runtime (global `wpAppFramework[slug].view`,
  * script handle `{slug}-wp-app-framework-view`). A view script must not import
  * `@saij/wp-app-framework`: the editor runtime is not loaded on the front end.
  *
  * Usage in the consumer's webpack.config.js:
  *
- *     module.exports = require( './vendor/saij/wp-app-framework/webpack.config.js' )( {
+ *     module.exports = require( '@saij/wp-app-framework/webpack' )( {
  *         slug: 'theme-dev-test',
  *         root: __dirname,
  *     } );
@@ -645,7 +645,7 @@ module.exports = function createConfig( { slug, root } = {} ) {
 			new DependencyExtractionWebpackPlugin( {
 				requestToExternal: ( request ) => {
 					if ( request === IMPORT_NAME ) {
-						return [ 'wpAppFramework', slug ];
+						return [ 'wpAppFramework', slug, 'api' ];
 					}
 					if ( request.startsWith( SHARED_IMPORT_PREFIX ) ) {
 						return [

@@ -51,7 +51,7 @@ In development (0.x): framework core, REST routes, WP-CLI commands, Twig, server
 
 New areas get their own directory following the same pattern. Tests in `tests/Unit/` mirror this layout.
 
-The editor runtime and its styles live in `assets/` (`editor.js` entry, `editor.scss` styles of the inspector, `settings.js` and `settings.scss` of the settings page, `meta-box.js` and `meta-box.scss` of the meta boxes, `_controls.scss` styles of the controls they share, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`; `view.js` entry of the view runtime with its modules and tests in `view/`); `webpack.config.js` is the helper for the consumer's build, tested in `assets/test/`. The documentation website lives in `docs/` (see Development).
+The editor runtime and its styles live in `assets/` (`editor.js` entry, `editor.scss` styles of the inspector, `settings.js` and `settings.scss` of the settings page, `meta-box.js` and `meta-box.scss` of the meta boxes, `_controls.scss` styles of the controls they share, `canvas.scss` styles of the editor canvas, `runtime/` modules, tests in `runtime/test/`; `view.js` entry of the view runtime with its modules and tests in `view/`); `webpack.config.js` is the helper for the consumer's build (`@saij/wp-app-framework/webpack`), tested in `assets/test/`. `types/` declares the JS API of both imports for IDEs, checked by `tsc` over `types/check/` (`npm run lint:types`); `assets/test/public-api.test.js` checks the runtime objects against the declarations. The documentation website lives in `docs/` (see Development).
 
 ## Conventions
 

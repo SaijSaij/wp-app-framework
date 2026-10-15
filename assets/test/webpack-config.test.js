@@ -294,6 +294,7 @@ describe( 'webpack helper', () => {
 							Object.entries( entry() ).filter(
 								( [ name ] ) =>
 									name.endsWith( '.view' ) ||
+									name.endsWith( '.editor' ) ||
 									name.startsWith( 'assets/shared/' )
 							)
 						),
@@ -332,6 +333,31 @@ describe( 'webpack helper', () => {
 		);
 		expect( asset ).toContain( "'my-theme-wp-app-framework-view'" );
 		expect( asset ).toContain( "'wp-dom-ready'" );
+	}, 30000 );
+
+	it( 'maps the editor import to the public API of the instance', async () => {
+		const root = consumer( {
+			styles: false,
+			packages: TOOLCHAIN,
+			files: {
+				'Block/Faq/Faq.php': '<?php',
+				'Block/Faq/Faq.editor.js': [
+					"import { registerPanel } from '@saij/wp-app-framework';",
+					"registerPanel( 'faq', () => null );",
+				].join( '\n' ),
+			},
+		} );
+
+		const stats = await buildViews( root );
+
+		expect( stats.hasErrors() ).toBe( false );
+		const script = fs.readFileSync(
+			path.join( root, 'build', 'Block/Faq/Faq.editor.js' ),
+			'utf8'
+		);
+		expect( script ).toContain(
+			'module.exports = window["wpAppFramework"]["my-theme"]["api"];'
+		);
 	}, 30000 );
 
 	it( 'fails when a view script imports the editor runtime', async () => {

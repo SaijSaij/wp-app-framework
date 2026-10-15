@@ -91,7 +91,7 @@ import { registerSupportControl } from '@saij/wp-app-framework';
 registerSupportControl( 'surface', ( { value, onChange } ) => <SurfacePicker value={ value } onChange={ onChange } /> );
 ```
 
-The component receives `{ value, onChange, attributes, setAttributes }`. A control that a block registers with [`registerControl()`](./editor.md#editor-scripts) for the same attribute wins over the support's control.
+The component receives `{ value, onChange, attributes, setAttributes, clientId, isPreview }`. A control that a block registers with [`registerControl()`](./editor.md#editor-scripts) for the same attribute wins over the support's control.
 
 ## On the front end
 

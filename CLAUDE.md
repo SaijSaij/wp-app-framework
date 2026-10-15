@@ -55,7 +55,7 @@ All checks run in the tools image of [wp-test-env](https://github.com/saijsaij/w
 ../wp-test-env/bin/tools -w wp-app-framework composer lint   # PHPStan (level max) + PHP-CS-Fixer (PER-CS); fix: composer fix
 ../wp-test-env/bin/tools -w wp-app-framework npm ci
 ../wp-test-env/bin/tools -w wp-app-framework npm test             # Vitest
-../wp-test-env/bin/tools -w wp-app-framework npm run lint         # ESLint + Stylelint; fix: npm run format
+../wp-test-env/bin/tools -w wp-app-framework npm run lint         # ESLint + Stylelint + tsc over types/; fix: npm run format
 docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12  # after changing .github/workflows/
 ../wp-test-env/bin/tools -w wp-app-framework/docs npm ci
 ../wp-test-env/bin/tools -w wp-app-framework/docs npm run build  # documentation; fails on broken links and anchors
@@ -87,7 +87,7 @@ Browser, WP-CLI and release tests of the consumers run in pools of wp-test-env (
 
 ## Compatibility and releases
 
-- Within a major version the consumer API only grows: nothing is renamed, removed or changed in behavior. Consumer API: attributes and their parameters, boot methods, Twig functions, JS exports of `@saij/wp-app-framework`, the webpack helper and its conventions, the `release` command and its options, the inputs of `.github/workflows/consumer-release.yml`. Breaking changes before 1.0 are listed in `docs/content/reference/upgrading.md`.
+- Within a major version the consumer API only grows: nothing is renamed, removed or changed in behavior. Consumer API: attributes and their parameters, boot methods, Twig functions, JS exports of `@saij/wp-app-framework` and `@saij/wp-app-framework/view` (exactly what `types/*.d.ts` declares; `assets/test/public-api.test.js` checks the runtime objects against them), the `exports` of `package.json`, the webpack helper and its conventions, the documented script handles, the filter `wp_app_framework/cache/backends/{slug}`, the `release` command and its options, the inputs of `.github/workflows/consumer-release.yml`. Breaking changes before 1.0 are listed in `docs/content/reference/upgrading.md`.
 - The filters `wp_app_framework/api/{slug}` and `wp_app_framework/template/{slug}`, the init action `wp_app_framework/init/{slug}`, the action `wp_app_framework/namespace/{namespace}` and the shape of their values are a contract between framework versions: they may only be extended, also across major versions. Internals such as the manifest format are excluded.
 - Tags `v<semver>`. `release.yml` gates a tag with theme-dev-test, plugin-dev-test and theme-dev-test-child built with the framework of the tag. Order when releasing changes that consumers depend on: wp-test-env → framework (`main`) → consumers update their lock file and tag their releases → framework tag. The child and plugin gates use a released theme (`with-theme`), so that theme release must exist first.
 - Every change of the consumer API or of observable behavior updates the documentation pages in `docs/content/` in the same change.

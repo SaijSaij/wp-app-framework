@@ -50,11 +50,12 @@ export function createRegistry( blocks, getBlockType, namespace ) {
 
 	return {
 		/**
-		 * Replaces the generated control of a top-level attribute.
+		 * Replaces the generated control of a top-level attribute of the block, or of the attribute of a block
+		 * support the block uses (it wins over registerSupportControl()).
 		 *
 		 * @param {string}                                localName Block name without namespace.
 		 * @param {string}                                attribute Attribute name.
-		 * @param {import('react').ComponentType<Object>} Component Receives {value, onChange, attributes, setAttributes}.
+		 * @param {import('react').ComponentType<Object>} Component Receives {value, onChange, attributes, setAttributes, clientId, isPreview}.
 		 */
 		registerControl( localName, attribute, Component ) {
 			const name = ownBlock( localName, 'registerControl' );
@@ -78,7 +79,7 @@ export function createRegistry( blocks, getBlockType, namespace ) {
 		 * in every block of the theme or plugin that uses it.
 		 *
 		 * @param {string}                                attribute Attribute of the support.
-		 * @param {import('react').ComponentType<Object>} Component Receives {value, onChange, attributes, setAttributes}.
+		 * @param {import('react').ComponentType<Object>} Component Receives {value, onChange, attributes, setAttributes, clientId, isPreview}.
 		 */
 		registerSupportControl( attribute, Component ) {
 			const used = Object.values( blocks ).some( ( block ) =>
@@ -98,7 +99,7 @@ export function createRegistry( blocks, getBlockType, namespace ) {
 		 * Adds a panel to the inspector of a block.
 		 *
 		 * @param {string}                                localName Block name without namespace.
-		 * @param {import('react').ComponentType<Object>} Component Receives {attributes, setAttributes}.
+		 * @param {import('react').ComponentType<Object>} Component Receives {attributes, setAttributes, clientId, isPreview}.
 		 */
 		registerPanel( localName, Component ) {
 			const name = ownBlock( localName, 'registerPanel' );
