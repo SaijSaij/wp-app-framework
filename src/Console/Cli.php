@@ -234,6 +234,16 @@ final class Cli
             fwrite($stdout, sprintf("Templates use the public template callables of: %s.\n", implode(', ', $result->getTemplateProviders())));
         }
 
+        if ($result->getUnloadedClasses() !== []) {
+            fwrite($stdout, sprintf(
+                "Not loaded by the build (building on a class outside the project, its Composer dependencies and PHP): %s.\n",
+                implode(', ', array_map(
+                    static fn(string $class, string $parent): string => sprintf('%s (%s)', $class, $parent),
+                    array_keys($result->getUnloadedClasses()),
+                    $result->getUnloadedClasses(),
+                )),
+            ));
+        }
         foreach ($result->getNotices() as $notice) {
             fwrite($stdout, $notice . "\n");
         }

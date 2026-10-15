@@ -9,6 +9,7 @@ use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
+use Saij\WpAppFramework\Tests\Fixtures\ExternalParent;
 use Saij\WpAppFramework\Tests\Fixtures\Valid;
 use Saij\WpAppFramework\Tests\Support\Files;
 
@@ -116,6 +117,64 @@ final class ManifestBuilderTest extends TestCase
         $this->expectExceptionMessage('Declared.php does not declare Saij\\WpAppFramework\\Tests\\Fixtures\\Mismatch\\Declared as expected by PSR-4.');
 
         new ManifestBuilder([self::fixture('Mismatch')])->build();
+    }
+
+    public function testClassesBuildingOnClassesOutsideTheProjectAreNotLoaded(): void
+    {
+        $result = new ManifestBuilder([self::fixture('ExternalParent')])->build();
+
+        self::assertSame(
+            [
+                // Abstract, but excluded for the same reason: its subclasses must not be loaded either.
+                ExternalParent\AbstractTable::class => 'WP_List_Table',
+                ExternalParent\CachingModel::class => 'WordPress\\AiClient\\Common\\Contracts\\CachesDataInterface',
+                ExternalParent\EventTable::class => 'WP_List_Table',
+                ExternalParent\TagProcessor::class => 'WP_HTML_Tag_Processor',
+                ExternalParent\UsesTrait::class => 'WordPress\\AiClient\\Common\\Traits\\WithDataCachingTrait',
+                ExternalParent\Widget::class => 'WP_Widget',
+            ],
+            $result->getUnloadedClasses(),
+        );
+        foreach (array_keys($result->getUnloadedClasses()) as $class) {
+            self::assertFalse(class_exists($class, false), $class . ' is not loaded.');
+        }
+        self::assertSame(
+            [ExternalParent\Extension::class, ExternalParent\Storage::class, ExternalParent\Widgets::class],
+            $result->getCandidates(),
+        );
+        self::assertSame([ExternalParent\Storage::class => [], ExternalParent\Widgets::class => []], $result->getServices());
+        // Whether such a class stays outside depends on its content.
+        self::assertContains((string) realpath(__DIR__ . '/../../Fixtures/ExternalParent/Widget.php'), $result->getTrackedFiles());
+    }
+
+    public function testClassesBuildingOnClassesOutsideTheProjectAreNoServicesAndCarryNoFrameworkAttributes(): void
+    {
+        try {
+            new ManifestBuilder([self::fixture('ExternalParentBroken')])->build();
+            self::fail('BuildException expected.');
+        } catch (BuildException $exception) {
+            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\ExternalParentBroken\\';
+            self::assertSame([
+                "{$ns}Widget has #[Hook], but the build does not load it: it builds on WP_Widget, which is outside the project, its Composer dependencies and PHP. Framework attributes have no effect there; move them to a service that creates the class.",
+                "Cannot autowire parameter \$widget of {$ns}NeedsWidget::__construct(): {$ns}Widget is a class building on WP_Widget, which is outside the project, its Composer dependencies and PHP, and therefore not loaded by the build and cannot be injected; create it yourself where you need it (new Widget(…) in a hook, for example).",
+            ], $exception->getErrors());
+            self::assertFalse(class_exists($ns . 'Widget', false));
+        }
+    }
+
+    public function testLoadingAClassTheBuildDoesNotLoadIsABuildError(): void
+    {
+        $autoloaders = spl_autoload_functions();
+
+        try {
+            new ManifestBuilder([self::fixture('ExternalParentAccess')])->build();
+            self::fail('BuildException expected.');
+        } catch (BuildException $exception) {
+            self::assertSame([
+                'The build needs Saij\\WpAppFramework\\Tests\\Fixtures\\ExternalParentAccess\\Widget, but does not load it: it builds on WP_Widget, which is outside the project, its Composer dependencies and PHP. Use it only in code that runs in WordPress, not as a type or attribute argument the build reads.',
+            ], $exception->getErrors());
+        }
+        self::assertSame($autoloaders, spl_autoload_functions(), 'The guard is removed after the build.');
     }
 
     public function testFrameworkSourceIsTheFrameworkSrcDirectory(): void

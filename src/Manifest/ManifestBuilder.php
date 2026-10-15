@@ -29,8 +29,11 @@ use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Hook\HookCollector;
 use Saij\WpAppFramework\Lifecycle\LifecycleCollector;
+use Saij\WpAppFramework\Manifest\Discovery\ClassDeclaration;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
+use Saij\WpAppFramework\Manifest\Discovery\ExternalParents;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
+use Saij\WpAppFramework\Manifest\Discovery\UnloadedClassException;
 use Saij\WpAppFramework\Plugin;
 use Saij\WpAppFramework\Post\PostMeta;
 use Saij\WpAppFramework\Post\PostStore;
@@ -69,6 +72,15 @@ final class ManifestBuilder
     /** Namespace of builds of fixtures, which have no composer.json. */
     public const string FIXTURE_NAMESPACE = 'fixture';
 
+    /** Why the build does not load a class; completes "… builds on %s, which …". */
+    private const string OUTSIDE = 'which is outside the project, its Composer dependencies and PHP';
+
+    /** @var array<string, string> Scanned classes that are not loaded, with the outside class they build on. */
+    private array $unloaded = [];
+
+    /** @var list<string> Files of the classes that are not loaded. */
+    private array $unloadedFiles = [];
+
     /**
      * @param list<Source>       $sources
      * @param list<string>       $trackedFiles Absolute paths of files whose content affects the build.
@@ -90,6 +102,9 @@ final class ManifestBuilder
      * @param string|null            $assetDirectory    The consumer's `assets/` directory, also if it does not exist yet
      *                                                  (scripts and styles without a PHP class, static files); null for
      *                                                  builds of fixtures.
+     * @param string|null            $projectDirectory  Root of the project: only its Composer autoloader resolves parent
+     *                                                  classes outside the sources; null for builds of fixtures (every
+     *                                                  registered Composer autoloader).
      */
     public function __construct(
         private readonly array $sources,
@@ -107,6 +122,7 @@ final class ManifestBuilder
         private readonly ?string $version = null,
         private readonly ?string $pluginDirectory = null,
         private readonly ?string $assetDirectory = null,
+        private readonly ?string $projectDirectory = null,
     ) {}
 
     /**
@@ -164,6 +180,7 @@ final class ManifestBuilder
             version: $project->getVersion(),
             pluginDirectory: $project->getKind() === ProjectKind::Plugin ? $root : null,
             assetDirectory: $root . '/' . AssetDirectory::NAME,
+            projectDirectory: $root,
         );
     }
 
@@ -179,7 +196,15 @@ final class ManifestBuilder
         return new Source($prefix, $directory);
     }
 
+    /**
+     * @throws BuildException
+     */
     public function build(): BuildResult
+    {
+        return $this->guarded($this->collect(...));
+    }
+
+    private function collect(): BuildResult
     {
         $errors = [];
         $classes = $this->loadClasses($errors);
@@ -193,6 +218,7 @@ final class ManifestBuilder
             SettingsCollector::groupClasses($classes),
             // Task classes first: a post class keeps its own, more telling description.
             [...CronCollector::taskClasses($classes), ...PostTypeCollector::nonServices($classes), ...TableCollector::nonServices($classes)],
+            array_map(static fn(string $parent): string => sprintf('a class building on %s, %s, and therefore not loaded by the build', $parent, self::OUTSIDE), $this->unloaded),
         );
         $postClasses = PostTypeCollector::postClasses($classes, $this->namespace);
         $taxonomyClasses = PostTypeCollector::taxonomyClasses($classes, $this->namespace);
@@ -289,7 +315,8 @@ final class ManifestBuilder
 
         return new BuildResult(
             $this->sources,
-            [...$this->trackedFiles, ...array_values($assetFiles)],
+            // Classes that are not loaded have no signature; their content decides whether they stay outside.
+            [...$this->trackedFiles, ...array_values($assetFiles), ...$this->unloadedFiles],
             $classes,
             $resolver->candidates(),
             $resolver->resolved(),
@@ -322,6 +349,7 @@ final class ManifestBuilder
             notices: $imageVariants->notices(),
             stylePreload: $this->assetDirectory !== null && is_file($this->assetDirectory . '/' . StyleAssets::SOURCE)
                 && StyleAssets::hasPreloads($this->assetDirectory . '/' . StyleAssets::SOURCE),
+            unloaded: $this->unloaded,
         );
     }
 
@@ -334,6 +362,15 @@ final class ManifestBuilder
      * @throws BuildException If the class is no valid meta class.
      */
     public function metaFieldValues(string $metaClass): array
+    {
+        return $this->guarded(fn(): array => $this->collectMetaFieldValues($metaClass));
+    }
+
+    /**
+     * @param class-string $metaClass
+     * @return array<string, Value>
+     */
+    private function collectMetaFieldValues(string $metaClass): array
     {
         $errors = [];
         $classes = $this->loadClasses($errors);
@@ -366,6 +403,15 @@ final class ManifestBuilder
      */
     public function tableFieldValues(string $rowClass): array
     {
+        return $this->guarded(fn(): array => $this->collectTableFieldValues($rowClass));
+    }
+
+    /**
+     * @param class-string $rowClass
+     * @return array<string, array{class-string<Field>, class-string|null}>
+     */
+    private function collectTableFieldValues(string $rowClass): array
+    {
         $errors = [];
         $classes = $this->loadClasses($errors);
         $reflection = $classes[$rowClass] ?? null;
@@ -387,44 +433,116 @@ final class ManifestBuilder
     }
 
     /**
+     * Runs a build step while an autoloader stops every attempt to load a class the build does not load: without
+     * WordPress, PHP would end with a fatal error; with WordPress, the result would depend on the loaded files.
+     *
+     * @template T
+     * @param callable(): T $step
+     * @return T
+     * @throws BuildException
+     */
+    private function guarded(callable $step): mixed
+    {
+        $this->unloaded = [];
+        $this->unloadedFiles = [];
+        $guard = function (string $class): void {
+            foreach ($this->unloaded as $name => $parent) {
+                if (strcasecmp($name, $class) === 0) {
+                    throw new UnloadedClassException(sprintf(
+                        'The build needs %s, but does not load it: it builds on %s, %s. Use it only in code that runs in WordPress, not as a type or attribute argument the build reads.',
+                        $name,
+                        $parent,
+                        self::OUTSIDE,
+                    ));
+                }
+            }
+        };
+        spl_autoload_register($guard, true, true);
+
+        try {
+            return $step();
+        } catch (UnloadedClassException $exception) {
+            throw new BuildException([$exception->getMessage()]);
+        } finally {
+            spl_autoload_unregister($guard);
+        }
+    }
+
+    /**
+     * Loads the classes of the sources, except those building on a class outside the project (see ExternalParents),
+     * which are read with the tokenizer only.
+     *
      * @param list<string> $errors
      * @return array<class-string, ReflectionClass<object>>
      */
     private function loadClasses(array &$errors): array
     {
-        $classes = [];
+        $found = [];
+        $external = new ExternalParents($this->projectDirectory);
+        $declarations = [];
 
         foreach ($this->sources as $source) {
             try {
-                $found = ClassDiscovery::classes($source);
+                $sourceClasses = ClassDiscovery::classes($source);
             } catch (BuildException $exception) {
                 array_push($errors, ...$exception->getErrors());
                 continue;
             }
 
-            foreach ($found as $file => $name) {
-                if (isset($classes[$name])) {
+            foreach ($sourceClasses as $file => $name) {
+                if (isset($declarations[$name])) {
                     continue;
                 }
-
-                try {
-                    $exists = class_exists($name)
-                        || interface_exists($name, false)
-                        || trait_exists($name, false)
-                        || enum_exists($name, false);
-                } catch (Throwable $exception) {
-                    $errors[] = sprintf('Cannot load %s from %s: %s', $name, $file, $exception->getMessage());
-                    continue;
+                $found[$file] = $name;
+                // A file without the declaration is loaded and reported below.
+                $declarations[$name] = ClassDeclaration::read($file, $name);
+                if ($declarations[$name] !== null) {
+                    $external->add($name, $declarations[$name]);
                 }
-
-                if (!$exists) {
-                    $errors[] = sprintf('%s does not declare %s as expected by PSR-4.', $file, $name);
-                    continue;
-                }
-
-                $classes[$name] = new ReflectionClass($name);
             }
         }
+
+        $framework = self::frameworkSource()->getPrefix();
+        $classes = [];
+        foreach ($found as $file => $name) {
+            $parent = $external->of($name);
+            if ($parent !== null) {
+                $this->unloaded[$name] = $parent;
+                $this->unloadedFiles[] = $file;
+                foreach ($declarations[$name]?->getAttributes() ?? [] as $attribute) {
+                    if (str_starts_with($attribute, $framework)) {
+                        $errors[] = sprintf(
+                            '%s has #[%s], but the build does not load it: it builds on %s, %s. Framework attributes have no effect there; move them to a service that creates the class.',
+                            $name,
+                            substr($attribute, (int) strrpos($attribute, '\\') + 1),
+                            $parent,
+                            self::OUTSIDE,
+                        );
+                    }
+                }
+                continue;
+            }
+
+            try {
+                $exists = class_exists($name)
+                    || interface_exists($name, false)
+                    || trait_exists($name, false)
+                    || enum_exists($name, false);
+            } catch (UnloadedClassException $exception) {
+                throw $exception;
+            } catch (Throwable $exception) {
+                $errors[] = sprintf('Cannot load %s from %s: %s', $name, $file, $exception->getMessage());
+                continue;
+            }
+
+            if (!$exists) {
+                $errors[] = sprintf('%s does not declare %s as expected by PSR-4.', $file, $name);
+                continue;
+            }
+
+            $classes[$name] = new ReflectionClass($name);
+        }
+        ksort($this->unloaded, SORT_STRING);
 
         return $classes;
     }

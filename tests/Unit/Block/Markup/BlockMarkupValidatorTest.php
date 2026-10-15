@@ -10,6 +10,7 @@ use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Tests\Support\Files;
+use Saij\WpAppFramework\Tests\Support\ProjectLoader;
 use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 final class BlockMarkupValidatorTest extends TestCase
@@ -61,6 +62,7 @@ final class BlockMarkupValidatorTest extends TestCase
         file_put_contents($project . '/' . basename($project) . '.php', "<?php\n/**\n * Plugin Name: Probe\n */\n");
         // WordPress registers patterns of themes only.
         file_put_contents($project . '/patterns/broken.php', '<!-- wp:fixture/card {"title":} /-->');
+        $loader = ProjectLoader::register($project);
 
         try {
             foreach (['wordpress-theme' => true, 'wordpress-plugin' => false] as $type => $checked) {
@@ -83,6 +85,7 @@ final class BlockMarkupValidatorTest extends TestCase
                 }
             }
         } finally {
+            $loader->unregister();
             Files::remove($project);
         }
     }

@@ -33,8 +33,55 @@ Every concrete class under the consumer's PSR-4 directories (`autoload.psr-4` in
 - [post, meta and taxonomy classes](./posts.md#working-with-posts): they are data. Load posts with their class, `Event::get($id)`;
 - classes with [`#[MetaFields]`](./queries.md#meta-fields-in-queries): their static methods provide fields for queries;
 - [row classes](./tables.md) (`#[Table]`) and classes with [`#[TableFields]`](./tables.md#field-classes): rows are data. Load them with their class, `LogEntry::get($id)`.
+- [classes that build on WordPress](#classes-that-build-on-wordpress), such as a widget extending `WP_Widget`.
 
 The container wires services by the types of their constructor parameters. A parameter with a scalar type (`string`, `int` …) cannot be filled from the container and must have a default value. There is exactly one instance of each service per request; every class that asks for it gets the same object.
+
+## Classes that build on WordPress
+
+Some WordPress features expect a class of your own that extends a class of WordPress: a widget extends `WP_Widget`, a list table in the admin extends `WP_List_Table`. Such a class cannot be loaded without WordPress. The build of a release runs without WordPress, and during development the classes of WordPress that are loaded differ from request to request (`WP_List_Table`, for example, only exists in the admin). The build therefore never loads these classes, so it gives the same result everywhere.
+
+The build reads every class in your PSR-4 directories as text first. A class whose parent class, interfaces or traits come from outside your project is not loaded. *Outside* means: not in your PSR-4 directories or the framework, not found by the Composer autoloader of your project, and not part of PHP. That covers WordPress and other plugins. A class that extends such a class of your own is not loaded either.
+
+These classes are not services. You create them yourself where WordPress needs them, typically in a hook:
+
+```php
+final class NoteWidget extends WP_Widget
+{
+    public function __construct()
+    {
+        parent::__construct('my-theme-note', 'Note');
+    }
+
+    public function widget($args, $instance): void
+    {
+        echo $args['before_widget'] . esc_html('A note') . $args['after_widget'];
+    }
+}
+```
+
+`NoteWidget` extends `WP_Widget`, so the build leaves it alone. A service registers it:
+
+```php
+final class Widgets
+{
+    #[Hook('widgets_init')]
+    public function register(): void
+    {
+        register_widget(new NoteWidget());
+    }
+}
+```
+
+When the hook runs, WordPress is loaded, and Composer's autoloader loads `NoteWidget` like any other class. The [build](../build-and-release/build.md#checking) lists the classes it did not load, with the class each one builds on.
+
+Rules:
+
+- A class is not loaded if a class it extends, an interface it implements or a trait it uses is outside the project: not in the scanned PSR-4 directories, not found by the Composer autoloader in the project's vendor directory and not part of PHP or one of its extensions. This applies even if the class is already loaded, as `WP_Widget` is in WordPress.
+- A parameter typed with such a class is a build error: the container cannot create it.
+- Attributes of the framework (`#[Hook]`, `#[Block]`, `#[NoService]` …) on such a class or its members are a build error, because the build does not read them. Attributes of PHP, such as `#[\Override]`, are allowed.
+- If the build itself needs such a class – as the type of a REST parameter, for example – that is a build error as well.
+- Classes of your Composer dependencies are loaded. A dependency whose classes extend WordPress classes therefore fails the build with `Cannot load …`.
 
 ## Only what is used is built
 

@@ -23,7 +23,11 @@ Manifest OK (theme my-theme): 40 service candidates, 25 services, 3 hooks, 12 ro
 
 The CLI commands are the subcommands of [WP-CLI commands](../guides/cli.md). Cron events and cron tasks are the recurring events and one-time tasks of [Cron events and tasks](../guides/cron.md), and tables are the row classes of [Tables](../guides/tables.md).
 
-The command also lists the templates of the project that override templates of the framework.
+The command also lists the templates of the project that override templates of the framework, and the classes it did not load because they build on a class outside the project, such as a widget extending `WP_Widget` (see [Classes that build on WordPress](../guides/services.md#classes-that-build-on-wordpress)):
+
+```
+Not loaded by the build (building on a class outside the project, its Composer dependencies and PHP): MyTheme\Widget\NoteWidget (WP_Widget).
+```
 
 ## Checking templates, parts and patterns
 

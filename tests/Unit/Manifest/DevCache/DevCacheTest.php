@@ -327,14 +327,23 @@ final class DevCacheTest extends TestCase
 
     public function testParentClassesOutsideTheSourcesAreNotTracked(): void
     {
-        $outside = dirname($this->theme) . '/outside';
-        mkdir($outside);
-        file_put_contents($outside . '/Base.php', "<?php\n\nnamespace DevCacheOutside;\n\nabstract class Base\n{\n}\n");
-        $this->writeSource('Loader.php', "<?php\n\nnamespace DevCacheProbe;\n\nfinal class Loader extends \\DevCacheOutside\\Base\n{\n}\n");
+        // A parent from a dependency: in development mode, it may come from the vendor directory of another consumer.
+        $this->writeSource('Extension.php', "<?php\n\nnamespace DevCacheProbe;\n\nfinal class Extension extends \\Twig\\Extension\\AbstractExtension\n{\n}\n");
 
         self::assertSame('probe_filter', $this->probe('load'));
-        self::assertStringNotContainsString('Base.php', (string) file_get_contents($this->cache . '/manifest.meta.php'));
+        self::assertStringNotContainsString('AbstractExtension.php', (string) file_get_contents($this->cache . '/manifest.meta.php'));
         self::assertSame('fresh', $this->probe('check'));
+    }
+
+    public function testClassesTheBuildDoesNotLoadRebuildWhenTheirContentChanges(): void
+    {
+        $this->writeSource('Widget.php', "<?php\n\nnamespace DevCacheProbe;\n\nfinal class Widget extends \\WP_Widget\n{\n}\n");
+        self::assertSame('probe_filter', $this->probe('load'));
+        self::assertSame('fresh', $this->probe('check'));
+
+        // Without the parent outside the project, the class becomes a service candidate.
+        $this->writeSource('Widget.php', "<?php\n\nnamespace DevCacheProbe;\n\nfinal class Widget\n{\n}\n");
+        self::assertSame('stale', $this->probe('check'));
     }
 
     public function testNewAndDeletedFilesRebuild(): void

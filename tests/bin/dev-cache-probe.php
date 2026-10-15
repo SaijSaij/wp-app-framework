@@ -14,6 +14,7 @@ declare(strict_types=1);
 use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\Manifest\DevCache\DevCache;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
+use Saij\WpAppFramework\Tests\Support\ProjectLoader;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
@@ -21,17 +22,16 @@ require __DIR__ . '/../../vendor/autoload.php';
 [, $mode, $cacheDirectory, $themeDirectory] = $argv;
 
 spl_autoload_register(static function (string $class) use ($themeDirectory): void {
-    // DevCacheOutside\ lives next to the project, outside every base directory (like a dependency loaded from
-    // another consumer's vendor directory in development mode).
-    foreach (['DevCacheProbe\\' => $themeDirectory . '/src/', 'DevCacheOutside\\' => dirname($themeDirectory) . '/outside/'] as $prefix => $directory) {
-        if (str_starts_with($class, $prefix)) {
-            $file = $directory . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-            if (is_file($file)) {
-                require $file;
-            }
+    if (str_starts_with($class, 'DevCacheProbe\\')) {
+        $file = $themeDirectory . '/src/' . str_replace('\\', '/', substr($class, strlen('DevCacheProbe\\'))) . '.php';
+        if (is_file($file)) {
+            require $file;
         }
     }
 });
+
+// A consumer resolves the parents of its classes and of the framework's classes with its own Composer autoloader.
+ProjectLoader::register($themeDirectory);
 
 $bases = ['project' => $themeDirectory, 'framework' => (string) realpath(__DIR__ . '/../..')];
 if ($mode === 'load-without-project-base') {

@@ -84,6 +84,8 @@ final readonly class BuildResult
      * @param array<string, AssetEntry>                         $assets       Static files of the asset directory by name.
      * @param list<string>                                      $notices      Remarks for the output of the build.
      * @param bool                                              $stylePreload The stylesheet marks fonts for preloading.
+     * @param array<string, string>                             $unloaded     Scanned classes the build does not load, with the
+     *                                                                         class outside the project they build on.
      */
     public function __construct(
         private array $sources,
@@ -119,7 +121,19 @@ final readonly class BuildResult
         private array $assets = [],
         private array $notices = [],
         private bool $stylePreload = false,
+        private array $unloaded = [],
     ) {}
+
+    /**
+     * Scanned classes the build does not load, because they build on a class outside the project, its Composer
+     * dependencies and PHP (typically WordPress), with that class; sorted by name.
+     *
+     * @return array<string, string>
+     */
+    public function getUnloadedClasses(): array
+    {
+        return $this->unloaded;
+    }
 
     public function hasStylePreload(): bool
     {

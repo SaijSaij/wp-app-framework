@@ -47,6 +47,7 @@ final class ServiceResolver
      * @param list<class-string>                           $predefined Candidates provided at runtime instead of built.
      * @param non-empty-string|null                        $parentTheme Slug of the parent theme of a child theme (`#[ThemeApi]`).
      * @param list<class-string>                           $settingsGroups Classes with `#[SettingsGroup]`, injected from their option.
+     * @param list<string>                                 $unloaded   Excluded classes the build does not load.
      */
     public function __construct(
         private readonly array $candidates,
@@ -54,6 +55,7 @@ final class ServiceResolver
         private readonly array $predefined,
         private readonly ?string $parentTheme = null,
         private readonly array $settingsGroups = [],
+        private readonly array $unloaded = [],
     ) {}
 
     /**
@@ -66,11 +68,15 @@ final class ServiceResolver
      *                                                                     from their option.
      * @param array<class-string, string>                  $nonServices    Classes that are data, not services, and what they
      *                                                                     are (post, meta, taxonomy and row classes).
+     * @param array<string, string>                        $unloaded       Scanned classes the build does not load (they build
+     *                                                                     on a class outside the project) and why.
      */
-    public static function forClasses(array $classes, array $predefined, ?string $parentTheme = null, array $settingsGroups = [], array $nonServices = []): self
+    public static function forClasses(array $classes, array $predefined, ?string $parentTheme = null, array $settingsGroups = [], array $nonServices = [], array $unloaded = []): self
     {
         $candidates = [];
-        $excluded = [];
+        /** @var array<class-string, string> $excluded Not loaded, but the names of scanned classes. */
+        $excluded = $unloaded;
+        $unloadedNames = array_keys($unloaded);
         foreach ($classes as $name => $class) {
             $reason = match (true) {
                 in_array($name, $predefined, true) => null,
@@ -85,7 +91,7 @@ final class ServiceResolver
             }
         }
 
-        return new self($candidates, $excluded, $predefined, $parentTheme, $settingsGroups);
+        return new self($candidates, $excluded, $predefined, $parentTheme, $settingsGroups, $unloadedNames);
     }
 
     /**
@@ -352,7 +358,10 @@ final class ServiceResolver
                 '%s is %s and cannot be injected%s.',
                 $name,
                 $this->excluded[$name],
-                match ($this->excluded[$name]) {
+                match (true) {
+                    in_array($name, $this->unloaded, true) => sprintf('; create it yourself where you need it (new %s(…) in a hook, for example)', substr($name, (int) strrpos($name, '\\') + 1)),
+                    default => '',
+                } . match ($this->excluded[$name]) {
                     'an interface' => ' (aliases are not supported)',
                     'a post class' => sprintf('; load posts with %s::get($id)', substr($name, (int) strrpos($name, '\\') + 1)),
                     'a meta class' => '; meta objects are reached through their post: $post->meta(…)',
