@@ -6,10 +6,10 @@ namespace Saij\WpAppFramework\Tests\Fixtures\TableBroken;
 
 use DateTime;
 use DateTimeInterface;
-use Saij\WpAppFramework\Block\PlainText;
 use Saij\WpAppFramework\Table\AbstractRow;
 use Saij\WpAppFramework\Table\PrimaryKey;
 use Saij\WpAppFramework\Table\Table;
+use Saij\WpAppFramework\Value\PlainText;
 
 /**
  * Types that are no columns, and a marker of another kind.

@@ -10,7 +10,7 @@ final class Exports
 {
     private int $runs = 0;
 
-    #[CronTask]
+    #[CronTask('html-export')]
     public function export(HTMLExport $task): void
     {
         $this->runs++;

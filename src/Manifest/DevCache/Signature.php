@@ -11,8 +11,8 @@ use ReflectionEnum;
 use ReflectionEnumBackedCase;
 use ReflectionFunction;
 use ReflectionMethod;
-use Saij\WpAppFramework\Block\Labeled;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Value\Labeled;
 use Throwable;
 use UnitEnum;
 

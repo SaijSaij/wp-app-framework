@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace Saij\WpAppFramework\Value;
 
 /**
  * Implemented by a backed enum to label its cases in the editor. The build

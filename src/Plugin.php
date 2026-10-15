@@ -17,7 +17,11 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  */
 final class Plugin
 {
-    /** Manifest of a release build, relative to the plugin directory. Its presence selects release mode. */
+    /**
+     * Manifest of a release build, relative to the plugin directory. Its presence selects release mode.
+     *
+     * @internal
+     */
     public const string RELEASE_MANIFEST = Instance::RELEASE_MANIFEST;
 
     /**

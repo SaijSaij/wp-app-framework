@@ -6,6 +6,16 @@ The documentation is published for each minor version. The version switcher in t
 
 ## 0.15
 
+0.15 is the last review of the API before 1.0. It renames and tightens what would otherwise stay inconsistent for the whole 1.x series.
+
+**The field markers moved to `Saij\WpAppFramework\Value`.** `#[PlainText]`, `#[RichText]`, `#[Image]`, `#[Label]`, `#[Hidden]`, `#[Content]` and the interface `Labeled` are not only for blocks: settings groups, meta classes and value classes use them too. They now live next to `#[ListOf]`, `#[Url]` and the references. Replace `Saij\WpAppFramework\Block\` with `Saij\WpAppFramework\Value\` in the `use` lines of these seven names; the old names no longer exist, so PHP or the build reports every place you missed.
+
+**`#[CronTask]` takes a name.** The name of a task used to come from the short name of its class, so renaming the class silently dropped the planned tasks. Now you name it, like a recurring event: `#[CronTask('send-reminder')]` (see [Cron events and tasks](../guides/cron.md)). To keep tasks that are already planned, use the name the framework derived before: the short class name in kebab case (`SendReminder` → `send-reminder`, `HTMLExport` → `html-export`). A `#[CronTask]` without a name is a build error.
+
+**The arguments of `#[Variation]` follow `#[Block]`.** The order is now `name, title, icon, description, keywords, …`, as in `#[Block]`; `icon` and `description` swapped places. Only a variation that passes `description` or `icon` positionally is affected; name these arguments (`icon: 'columns'`), because the build cannot tell the two strings apart.
+
+**Internal services cannot be injected.** The render context of the editor (`Editor\RenderContext`) and the post store (`Post\PostStore`) are internal to the framework. A class of your theme or plugin that injects one of them is now a build error. Use the template functions `is_editor()`, `field()` and `inner_blocks()` in templates, and `Event::get()`, `find()` and `query()` for posts.
+
 **The framework is on Packagist.** Composer finds `saij/wp-app-framework` without a `repositories` entry now. Remove the `vcs` entry for the framework from your `composer.json` and run `composer update saij/wp-app-framework` (see [Releases and CI](../build-and-release/ci.md#requiring-the-framework)); a project that keeps the entry still works.
 
 **The framework is licensed under the GPL-2.0-or-later.** Releases before 0.15 declared a proprietary license. A theme or plugin that ships the framework must be under a GPL-compatible license; this is also what the plugin directory of WordPress.org requires (see [Distribution](../build-and-release/release.md#distribution)).

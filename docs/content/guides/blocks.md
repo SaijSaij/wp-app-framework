@@ -53,11 +53,11 @@ final class Hero
 ### The attribute class
 
 ```php
-use Saij\WpAppFramework\Block\Content;
-use Saij\WpAppFramework\Block\Image;
-use Saij\WpAppFramework\Block\Label;
-use Saij\WpAppFramework\Block\PlainText;
-use Saij\WpAppFramework\Block\RichText;
+use Saij\WpAppFramework\Value\Content;
+use Saij\WpAppFramework\Value\Image;
+use Saij\WpAppFramework\Value\Label;
+use Saij\WpAppFramework\Value\PlainText;
+use Saij\WpAppFramework\Value\RichText;
 use Saij\WpAppFramework\Value\ListOf;
 use Saij\WpAppFramework\Value\Url;
 
@@ -199,7 +199,7 @@ The marks have no effect on REST arguments.
 
 The editor needs a label for each value. `#[Label('…')]` sets the label in the inspector and the placeholder of an inline field. Without it, the label is derived from the parameter name: `imageId` becomes "Image id".
 
-A backed enum labels its cases by implementing `Block\Labeled` with a method `label(): string`. The build evaluates it, so it may not depend on run-time state. Without it, the editor shows the case values.
+A backed enum labels its cases by implementing `Value\Labeled` with a method `label(): string`. The build evaluates it, so it may not depend on run-time state. Without it, the editor shows the case values.
 
 `#[Hidden]` keeps a value out of the generated inspector. It is not allowed on inline fields.
 
@@ -309,7 +309,7 @@ Some blocks come in a few typical setups: a dark hero, tabs with three tabs. A *
 | Argument | Meaning |
 |---|---|
 | `name` | unique within the block; lowercase letters, digits and `-` |
-| `title`, `description`, `icon`, `keywords` | how the inserter shows the variation |
+| `title`, `icon`, `description`, `keywords` | how the inserter shows the variation (in the order of `#[Block]`) |
 | `attributes` | preset attribute values; a backed enum stands for its value |
 | `innerBlocks` | preset inner blocks as `TemplateBlock`, for containers |
 | `scope` | where the editor offers it: `VariationScope::Inserter` (an item of its own), `VariationScope::Block` (the placeholder, like the layouts of `core/columns`), `VariationScope::Transform` (a switch in the toolbar); default inserter and block |

@@ -71,6 +71,6 @@ final class Events
     public function weeklyWeekday(): void {}
 
     #[CronEvent('both', CronInterval::Hourly)]
-    #[CronTask]
+    #[CronTask('both')]
     public function both(Plain $task): void {}
 }

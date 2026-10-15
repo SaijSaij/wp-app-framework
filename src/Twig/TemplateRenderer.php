@@ -69,6 +69,8 @@ final class TemplateRenderer
      * @param array<non-empty-string, non-empty-string> $templateProviders  Template prefix => slug of the plugins and the parent
      *                                                                      theme whose public template callables the templates use.
      * @param array<string, mixed>                      $globals            Global template variables of the instance (`settings`).
+     *
+     * @internal Created by the framework; inject the service.
      */
     public function __construct(
         private readonly string $slug,

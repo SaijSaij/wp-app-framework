@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\BlockEditor;
 
-use Saij\WpAppFramework\Block\Content;
-use Saij\WpAppFramework\Block\Hidden;
-use Saij\WpAppFramework\Block\Image;
-use Saij\WpAppFramework\Block\Label;
-use Saij\WpAppFramework\Block\PlainText;
-use Saij\WpAppFramework\Block\RichText;
+use Saij\WpAppFramework\Value\Content;
+use Saij\WpAppFramework\Value\Hidden;
+use Saij\WpAppFramework\Value\Image;
+use Saij\WpAppFramework\Value\Label;
 use Saij\WpAppFramework\Value\ListOf;
+use Saij\WpAppFramework\Value\PlainText;
+use Saij\WpAppFramework\Value\RichText;
 use Saij\WpAppFramework\Value\Url;
 
 final readonly class TeaserAttributes

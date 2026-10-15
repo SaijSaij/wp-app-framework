@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\ContainerValid;
 
-use Saij\WpAppFramework\Block\PlainText;
 use Saij\WpAppFramework\Block\ProvidesContext;
+use Saij\WpAppFramework\Value\PlainText;
 
 final readonly class TabsAttributes
 {

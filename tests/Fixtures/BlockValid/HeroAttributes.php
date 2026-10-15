@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\BlockValid;
 
-use Saij\WpAppFramework\Block\Content;
-use Saij\WpAppFramework\Block\PlainText;
-use Saij\WpAppFramework\Block\RichText;
+use Saij\WpAppFramework\Value\Content;
 use Saij\WpAppFramework\Value\ListOf;
+use Saij\WpAppFramework\Value\PlainText;
+use Saij\WpAppFramework\Value\RichText;
 
 final readonly class HeroAttributes
 {

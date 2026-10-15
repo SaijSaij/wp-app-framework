@@ -12,7 +12,7 @@ final readonly class Reminders
 {
     public function __construct(private CronScheduler $cron) {}
 
-    #[CronTask]
+    #[CronTask('send-reminder')]
     public function send(SendReminder $task, Journal $journal): void
     {
         $journal->write($task);

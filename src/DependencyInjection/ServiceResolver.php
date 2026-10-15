@@ -13,7 +13,9 @@ use ReflectionUnionType;
 use Saij\WpAppFramework\Api\PluginApi;
 use Saij\WpAppFramework\Api\ThemeApi;
 use Saij\WpAppFramework\ChildTheme;
+use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Plugin;
+use Saij\WpAppFramework\Post\PostStore;
 use Saij\WpAppFramework\Project\ComposerProject;
 use Saij\WpAppFramework\Theme;
 
@@ -34,6 +36,12 @@ final class ServiceResolver
         ChildTheme::class => 'available in child themes only',
         Plugin::class => 'available in plugins only',
     ];
+
+    /**
+     * Services the framework provides at run time for its own classes only: classes of the theme or plugin cannot
+     * inject them.
+     */
+    private const array INTERNAL = [RenderContext::class, PostStore::class];
 
     /** @var array<class-string, array<string, ServiceArgument>> */
     private array $resolved = [];
@@ -154,10 +162,20 @@ final class ServiceResolver
             /** @var class-string $class A key of the candidates. */
             $class = $type->getName();
 
-            return $class;
+            return in_array($class, self::INTERNAL, true) && !self::isFrameworkCode($parameter) ? null : $class;
         }
 
         return null;
+    }
+
+    /**
+     * Whether a parameter belongs to a class of the framework, which may inject internal services.
+     */
+    private static function isFrameworkCode(ReflectionParameter $parameter): bool
+    {
+        $directory = dirname((string) new ReflectionClass(Theme::class)->getFileName()) . '/';
+
+        return str_starts_with((string) $parameter->getDeclaringFunction()->getFileName(), $directory);
     }
 
     /**
@@ -352,6 +370,10 @@ final class ServiceResolver
         }
 
         $name = $type->getName();
+
+        if (in_array($name, self::INTERNAL, true)) {
+            return sprintf('%s is internal to the framework and cannot be injected into classes of a theme or plugin.', $name);
+        }
 
         if (isset($this->excluded[$name])) {
             return sprintf(

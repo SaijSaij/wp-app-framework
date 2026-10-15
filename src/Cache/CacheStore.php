@@ -27,7 +27,11 @@ use Saij\WpAppFramework\DependencyInjection\Container;
  */
 final class CacheStore
 {
-    /** Default order of the backends; the first available one stores the entries. */
+    /**
+     * Default order of the backends; the first available one stores the entries.
+     *
+     * @internal
+     */
     public const array DEFAULT_BACKENDS = ['object', 'file', 'transient'];
 
     private ?Backend $backend = null;
@@ -40,6 +44,8 @@ final class CacheStore
      * @param non-empty-string            $slug
      * @param array<value-of<CacheBackend>, Backend> $backends
      * @param TagNames                    $names    Classes tags may name: settings groups, post and taxonomy classes.
+     *
+     * @internal Created by the framework; inject the service.
      */
     public function __construct(
         private readonly string $slug,

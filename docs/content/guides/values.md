@@ -60,7 +60,7 @@ The value factory never coerces silently. A value that does not match its type t
 A call to action, a link in a footer setting, a registration link of an event: a link points either to content of the site or to any address. `#[Url]` stores the address as text, so a link to a page breaks when someone changes the page's slug. A `Link` (namespace `Saij\WpAppFramework\Value\`) stores the ID of the page instead, and the framework looks up its current URL when it renders – the same idea as [references](#references), plus a URL entered freely and "Open in new tab".
 
 ```php
-use Saij\WpAppFramework\Block\Label;
+use Saij\WpAppFramework\Value\Label;
 use Saij\WpAppFramework\Value\Link;
 
 final readonly class TeaserAttributes

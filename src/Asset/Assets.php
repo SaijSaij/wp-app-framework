@@ -46,6 +46,8 @@ final class Assets
      *                                                 without a child theme.
      * @param array{string, string}|null  $variants    Directory of the image variants with its URL: generated/assets/
      *                                                 of a release, the cache directory in development mode.
+     *
+     * @internal Created by the framework; inject the service.
      */
     public function __construct(
         private readonly string $slug,

@@ -27,8 +27,8 @@ final readonly class Variation
     public function __construct(
         public string $name,
         public string $title,
-        public string $description = '',
         public string $icon = '',
+        public string $description = '',
         public array $keywords = [],
         public array $attributes = [],
         public array $innerBlocks = [],

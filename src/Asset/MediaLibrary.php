@@ -20,11 +20,17 @@ use RuntimeException;
  */
 final readonly class MediaLibrary
 {
-    /** Meta key of an imported attachment: slug, name and hash of the asset. */
+    /**
+     * Meta key of an imported attachment: slug, name and hash of the asset.
+     *
+     * @internal
+     */
     public const string META_KEY = '_wp_app_framework_asset';
 
     /**
      * @param string $slug Slug of the instance; part of the key of each imported asset.
+     *
+     * @internal Created by the framework; inject the service.
      */
     public function __construct(
         private string $slug,

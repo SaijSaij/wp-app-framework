@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace Saij\WpAppFramework\Value;
 
 use Attribute;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\BlockPostContentBroken;
 
-use Saij\WpAppFramework\Block\RichText;
+use Saij\WpAppFramework\Value\RichText;
 
 final readonly class TwoPostContentsAttributes
 {

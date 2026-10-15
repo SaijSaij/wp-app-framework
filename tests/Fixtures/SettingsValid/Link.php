@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\SettingsValid;
 
-use Saij\WpAppFramework\Block\Image;
+use Saij\WpAppFramework\Value\Image;
 use Saij\WpAppFramework\Value\Url;
 
 final readonly class Link

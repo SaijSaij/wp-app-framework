@@ -23,7 +23,11 @@ use Saij\WpAppFramework\Project\ProjectKind;
  */
 final class ChildTheme
 {
-    /** Manifest of a release build, relative to the child theme directory. Its presence selects release mode. */
+    /**
+     * Manifest of a release build, relative to the child theme directory. Its presence selects release mode.
+     *
+     * @internal
+     */
     public const string RELEASE_MANIFEST = Instance::RELEASE_MANIFEST;
 
     /**

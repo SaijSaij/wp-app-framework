@@ -114,6 +114,7 @@ final class PostQueryTest extends TestCase
             'post__in' => [5, 20],
         ], $args);
         self::assertSame(0, Venue::query()->parent(null)->toArgs()['post_parent']);
+        self::assertSame(20, Venue::query()->parent(20)->toArgs()['post_parent']);
     }
 
     public function testQueriesNeverChangeAndWarnWhenAResultIsDiscarded(): void

@@ -12,49 +12,53 @@ use Saij\WpAppFramework\Post\Post;
  */
 final class Tasks
 {
+    // @phpstan-ignore arguments.count (no name on purpose)
     #[CronTask]
+    public function unnamed(Plain $task): void {}
+
+    #[CronTask('none')]
     public function none(): void {}
 
-    #[CronTask]
+    #[CronTask('scalar')]
     public function scalar(int $id): void {}
 
-    #[CronTask]
+    #[CronTask('nullable')]
     public function nullable(?Plain $task): void {}
 
-    #[CronTask]
+    #[CronTask('union')]
     public function union(Plain|Other $task): void {}
 
-    #[CronTask]
+    #[CronTask('mutable')]
     public function mutable(Mutable $task): void {}
 
-    #[CronTask]
+    #[CronTask('post')]
     public function post(Post $task): void {}
 
-    #[CronTask]
+    #[CronTask('enum')]
     public function enum(Kind $task): void {}
 
-    #[CronTask]
+    #[CronTask('references')]
     public function references(Linked $task): void {}
 
-    #[CronTask]
+    #[CronTask('extra')]
     public function extra(Other $task, string $note): void {}
 
-    #[CronTask]
+    #[CronTask('plain')]
     public function plain(Plain $task): void {}
 
-    #[CronTask]
+    #[CronTask('plain-again')]
     public function plainAgain(Plain $task): void {}
 
-    #[CronTask]
+    #[CronTask('ping')]
     public function ping(Ping $task): void {}
 
-    #[CronTask]
+    #[CronTask('ping')]
     public function pingAgain(Duplicate\Ping $task): void {}
 
-    #[CronTask]
+    #[CronTask('bad_task')]
     public function badTask(Bad_Task $task): void {}
 
-    #[CronTask]
+    #[CronTask('returns')]
     public function returns(Plain $task): bool
     {
         return true;

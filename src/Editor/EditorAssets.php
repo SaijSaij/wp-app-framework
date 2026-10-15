@@ -220,7 +220,7 @@ final readonly class EditorAssets
         ];
 
         return sprintf(
-            'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework[%s] = { config: %s };',
+            'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework[%1$s] = window.wpAppFramework[%1$s] || {}; window.wpAppFramework[%1$s].config = %2$s;',
             wp_json_encode($this->slug),
             wp_json_encode($config, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP),
         );

@@ -13,8 +13,8 @@ Settings that several blocks share but that are stored per block, such as a colo
 Settings come in groups. A group is a `readonly` class with `#[SettingsGroup]`, and each setting is a public promoted constructor parameter with a default:
 
 ```php
-use Saij\WpAppFramework\Block\Image;
-use Saij\WpAppFramework\Block\Label;
+use Saij\WpAppFramework\Value\Image;
+use Saij\WpAppFramework\Value\Label;
 use Saij\WpAppFramework\Setting\SettingsGroup;
 use Saij\WpAppFramework\Value\ListOf;
 use Saij\WpAppFramework\Value\Url;

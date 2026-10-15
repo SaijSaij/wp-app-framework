@@ -140,7 +140,7 @@ final class EditorBuildTest extends TestCase
             sprintf($a, 'emptyLabel') . ' has an empty #[Label].',
             sprintf($a, 'badFormats') . ': allowedFormats of #[RichText] must be a list of format names such as "core/bold", or null for all formats.',
             sprintf($a, 'emptyCaseLabel') . ': ' . BlockEditorBroken\EmptyLabel::class . '::A->label() returned an empty label.',
-            sprintf($a, 'labeledValue') . ': value class ' . BlockEditorBroken\LabeledValue::class . ' implements Saij\WpAppFramework\Block\Labeled, which only labels the cases of backed enums.',
+            sprintf($a, 'labeledValue') . ': value class ' . BlockEditorBroken\LabeledValue::class . ' implements Saij\WpAppFramework\Value\Labeled, which only labels the cases of backed enums.',
             BlockEditorBroken\AllowedWithoutContent::class . ' has #[InnerBlocks], but ' . BlockEditorBroken\AllowedWithoutContent::class . '::render() accepts no string $content, so the block has no inner blocks.',
             '#[InnerBlocks] on ' . BlockEditorBroken\AllowedInvalid::class . ': allowed must contain block classes, CoreBlock cases and full block names, string given.',
             '#[InnerBlocks] on ' . BlockEditorBroken\AllowedUnknown::class . ': allowed names missing, which is no block class of this theme or plugin (a class with #[Block]); name core blocks by CoreBlock and other blocks in full, e.g. "acme/slider".',

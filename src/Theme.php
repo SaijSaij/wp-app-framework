@@ -17,10 +17,15 @@ use Saij\WpAppFramework\Twig\TemplateRenderer;
  */
 final class Theme
 {
-    /** Manifest of a release build, relative to the theme directory. Its presence selects release mode. */
+    /**
+     * Manifest of a release build, relative to the theme directory. Its presence selects release mode.
+     *
+     * @internal
+     */
     public const string RELEASE_MANIFEST = Instance::RELEASE_MANIFEST;
 
     /**
+     * @param string $slug                  get_template(): the directory name of the theme
      * @param string $templateDirectory     get_template_directory()
      * @param string $templateDirectoryUri  get_template_directory_uri()
      * @param string $stylesheetDirectory   get_stylesheet_directory() – the child theme, if active
@@ -28,12 +33,21 @@ final class Theme
      * @param string $frameworkDirectory    Filesystem path of the framework package; never derive URLs from it.
      */
     private function __construct(
+        private readonly string $slug,
         private readonly string $templateDirectory,
         private readonly string $templateDirectoryUri,
         private readonly string $stylesheetDirectory,
         private readonly string $stylesheetDirectoryUri,
         private readonly string $frameworkDirectory,
     ) {}
+
+    /**
+     * Slug of the theme: its directory name, as returned by get_template().
+     */
+    public function getSlug(): string
+    {
+        return $this->slug;
+    }
 
     /**
      * Directory of the parent theme, as returned by get_template_directory().
@@ -91,18 +105,19 @@ final class Theme
      */
     public static function boot(): void
     {
+        $slug = get_template();
+        if ($slug === '') {
+            throw new LogicException('get_template() is empty; Theme::boot() must be called from the functions.php of the active theme.');
+        }
+
         $theme = new self(
+            $slug,
             get_template_directory(),
             get_template_directory_uri(),
             get_stylesheet_directory(),
             get_stylesheet_directory_uri(),
             dirname(__DIR__),
         );
-
-        $slug = get_template();
-        if ($slug === '') {
-            throw new LogicException('get_template() is empty; Theme::boot() must be called from the functions.php of the active theme.');
-        }
 
         new Instance(
             ProjectKind::Theme,

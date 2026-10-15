@@ -138,10 +138,10 @@ final class EditorAssetsTest extends TestCase
         );
 
         [$before] = $scripts['my-theme-wp-app-framework']['before'];
-        $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = { config: ';
+        $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = window.wpAppFramework["my-theme"] || {}; window.wpAppFramework["my-theme"].config = ';
         self::assertStringStartsWith($prefix, $before);
         /** @var array{slug: string, namespace: string, renderPath: string, maxBlocks: int, development: bool, blocks: array<string, array{fields: array<string, array<string, mixed>>, controls: array<string, mixed>, innerBlocks: bool}>} $config */
-        $config = json_decode(substr($before, strlen($prefix), -strlen(' };')), true, 512, JSON_THROW_ON_ERROR);
+        $config = json_decode(substr($before, strlen($prefix), -strlen(';')), true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame('my-theme', $config['slug']);
         self::assertSame('fixture', $config['namespace']);
@@ -207,9 +207,9 @@ final class EditorAssetsTest extends TestCase
         self::assertSame('https://example.test/build/Accent.editor.js', $scripts['my-theme-support-accent-editor']['src']);
         self::assertTrue($scripts['my-theme-support-accent-editor']['enqueued']);
 
-        $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = { config: ';
+        $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = window.wpAppFramework["my-theme"] || {}; window.wpAppFramework["my-theme"].config = ';
         /** @var array{blocks: array<string, array{supports: list<string>}>} $config */
-        $config = json_decode(substr($assets->configScript(), strlen($prefix), -strlen(' };')), true, 512, JSON_THROW_ON_ERROR);
+        $config = json_decode(substr($assets->configScript(), strlen($prefix), -strlen(';')), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(['surface', 'framed', 'accent'], $config['blocks']['fixture/card']['supports']);
         self::assertSame([], $config['blocks']['fixture/plain']['supports']);
     }
@@ -235,9 +235,9 @@ final class EditorAssetsTest extends TestCase
             self::assertTrue($script['enqueued'], $handle);
         }
 
-        $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = { config: ';
+        $prefix = 'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = window.wpAppFramework["my-theme"] || {}; window.wpAppFramework["my-theme"].config = ';
         /** @var array{previewPath: string, blocks: array<string, array{view: bool}>} $config */
-        $config = json_decode(substr($assets->configScript(), strlen($prefix), -strlen(' };')), true, 512, JSON_THROW_ON_ERROR);
+        $config = json_decode(substr($assets->configScript(), strlen($prefix), -strlen(';')), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('/wp-app-framework/v1/my-theme/preview', $config['previewPath']);
         self::assertSame(
             ['fixture/bare' => true, 'fixture/faq' => true, 'fixture/note' => true, 'fixture/plain' => false],

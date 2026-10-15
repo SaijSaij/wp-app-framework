@@ -157,12 +157,12 @@ final readonly class PostQuery
     }
 
     /**
-     * Children of the post, or top-level posts with null (hierarchical post types).
+     * Children of the post (an object or its ID), or top-level posts with null (hierarchical post types).
      *
-     * @param T|null $parent
+     * @param T|int|null $parent
      */
     #[\NoDiscard]
-    public function parent(?AbstractPost $parent): static
+    public function parent(AbstractPost|int|null $parent): static
     {
         if (!PostRegistry::postStore($this->class)->post($this->class)['hierarchical']) {
             throw new LogicException(sprintf('%s::query()->parent(): the post type is not hierarchical.', $this->class));

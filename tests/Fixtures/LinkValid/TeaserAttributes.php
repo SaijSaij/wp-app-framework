@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\LinkValid;
 
-use Saij\WpAppFramework\Block\Label;
-use Saij\WpAppFramework\Block\PlainText;
+use Saij\WpAppFramework\Value\Label;
 use Saij\WpAppFramework\Value\Link;
 use Saij\WpAppFramework\Value\ListOf;
+use Saij\WpAppFramework\Value\PlainText;
 
 final readonly class TeaserAttributes
 {

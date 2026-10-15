@@ -85,7 +85,7 @@ use Saij\WpAppFramework\Cron\CronTask;
 
 final readonly class Reminders
 {
-    #[CronTask]
+    #[CronTask('send-reminder')]
     public function send(SendReminder $task, Mailer $mailer): void
     {
         $post = get_post($task->postId);
@@ -94,7 +94,7 @@ final readonly class Reminders
 }
 ```
 
-The first parameter of the handler is the task; further parameters are services. Each task class has exactly one handler.
+The first parameter of the handler is the task; further parameters are services. Each task class has exactly one handler. The name, here `send-reminder`, identifies the task in WordPress: keep it when you rename the class or the method.
 
 To plan a task, inject `CronScheduler` and pass it a task object and a time:
 
@@ -162,10 +162,10 @@ Each event and task has a WordPress hook, which you see in tools like WP-CLI:
 | Task | `wp_app_framework/cron/{slug}/task/{name}` |
 | Interval in seconds | schedule `wp_app_framework/cron/{slug}/every-{seconds}` |
 
-The name of a task is the short name of its class in kebab case: `SendReminder` becomes `send-reminder`, `HTMLExport` becomes `html-export`.
+The name of a task is the name in its `#[CronTask]`.
 
-:::warning Renaming a task class
-The name of a task is part of what WordPress stores. If you rename a task class, the tasks planned under the old name are unscheduled on the next request and never run.
+:::warning Renaming a task
+The name of a task is part of what WordPress stores. If you change the name in `#[CronTask]`, the tasks planned under the old name are unscheduled on the next request and never run. Renaming the class or the method is safe.
 :::
 
 With WP-CLI you can list the events and run one by hand:
@@ -196,7 +196,11 @@ A task whose stored values no longer match its class – for example because you
 | `at` | `?string` | Start time `HH:MM` (00:00 to 23:59) in the time zone of the site; only with `Daily`, `TwiceDaily` and `Weekly`. |
 | `weekday` | `?Weekday` | Required for `Weekly` with `at`; only there. |
 
-`#[CronTask]` has no parameters.
+`#[CronTask(name)]`:
+
+| Parameter | Type | Rule |
+|---|---|---|
+| `name` | `string` | Required; lowercase letters, digits and hyphens, starting with a letter; unique among the tasks of the theme or plugin. |
 
 Build errors for both:
 
@@ -215,7 +219,7 @@ Build errors for `#[CronTask]`:
 - No first parameter, or one that is not typed with a value class: no type, a scalar, nullable, a union, a post class, variadic or by reference.
 - A task class that is no valid value class, or that contains a reference at any depth (the error names the path, such as `task.author.user`).
 - A further parameter that is no service.
-- Two handlers for one task class; two task classes with the same short name; a short name that gives no valid name (such as `Bad_Task`).
+- Two handlers for one task class; an invalid or duplicate name.
 - A task class injected into a constructor.
 
 At run time:

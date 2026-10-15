@@ -41,6 +41,8 @@ final class ViewData
     /**
      * @param string $slug  Slug of the instance, for messages.
      * @param bool   $debug WP_DEBUG: a value set after printing throws instead of being logged.
+     *
+     * @internal Created by the framework; inject the service.
      */
     public function __construct(
         private readonly string $slug,

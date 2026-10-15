@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\SettingsBroken;
 
-use Saij\WpAppFramework\Block\RichText;
 use Saij\WpAppFramework\Setting\SettingsGroup;
+use Saij\WpAppFramework\Value\RichText;
 
 #[SettingsGroup('block_marker', title: 'Block marker')]
 final readonly class BlockMarker

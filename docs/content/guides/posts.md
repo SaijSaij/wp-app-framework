@@ -49,8 +49,8 @@ final class Venue extends AbstractPost {}
 Meta fields are declared in a class of their own, a *meta class*. Its promoted constructor parameters are the fields, usually private with getters and setters of your own:
 
 ```php
-use Saij\WpAppFramework\Block\Label;
-use Saij\WpAppFramework\Block\RichText;
+use Saij\WpAppFramework\Value\Label;
+use Saij\WpAppFramework\Value\RichText;
 use Saij\WpAppFramework\Post\PostMeta;
 use Saij\WpAppFramework\Value\ListOf;
 

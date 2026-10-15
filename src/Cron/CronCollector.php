@@ -80,23 +80,13 @@ final class CronCollector
     }
 
     /**
-     * The name of the task of a task class: its short name in kebab case (`SendReminder` → `send-reminder`).
-     */
-    public static function taskName(string $class): string
-    {
-        $short = substr($class, (int) strrpos('\\' . $class, '\\'));
-
-        return strtolower((string) preg_replace('/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', '-', $short));
-    }
-
-    /**
      * @param array<class-string, ReflectionClass<object>> $classes All scanned classes.
      */
     public function collect(array $classes): void
     {
         /** @var array<string, string> $eventNames Name => location of the first event with it. */
         $eventNames = [];
-        /** @var array<string, class-string> $taskNames Name => task class. */
+        /** @var array<string, string> $taskNames Name => handler (`Class::method()`). */
         $taskNames = [];
         /** @var array<class-string, string> $handlers Task class => location of its handler. */
         $handlers = [];
@@ -151,14 +141,14 @@ final class CronCollector
                     $handlers[$taskClass] = $location;
                     if (isset($taskNames[$definition->getName()])) {
                         $this->errors[] = sprintf(
-                            'The task classes %s and %s have the same short name, so both tasks would be named "%s"; rename one of them.',
-                            $taskNames[$definition->getName()],
-                            $taskClass,
+                            '#[CronTask] name "%s" is used by %s and %s; each task needs a name of its own.',
                             $definition->getName(),
+                            $taskNames[$definition->getName()],
+                            $location,
                         );
                         continue;
                     }
-                    $taskNames[$definition->getName()] = $taskClass;
+                    $taskNames[$definition->getName()] = $location;
                     $this->tasks[] = $definition;
                 }
 
@@ -269,7 +259,7 @@ final class CronCollector
     private function task(string $class, ReflectionMethod $method, string $location): ?CronTaskDefinition
     {
         try {
-            $method->getAttributes(CronTask::class)[0]->newInstance();
+            $attribute = $method->getAttributes(CronTask::class)[0]->newInstance();
         } catch (Throwable $exception) {
             $this->errors[] = self::invalid('#[CronTask]', $location, $exception);
 
@@ -308,9 +298,9 @@ final class CronCollector
         }
 
         $errors = $this->referenceErrors($fields, 'task', $taskLocation);
-        $name = self::taskName($task);
+        $name = $attribute->name;
         if (preg_match(self::NAME_PATTERN, $name) !== 1) {
-            $errors[] = sprintf('%s: the task name "%s" derived from the class name %s must consist of lowercase letters, digits and hyphens and start with a letter; rename the class.', $taskLocation, $name, $task);
+            $errors[] = sprintf('#[CronTask] on %s: the name "%s" must consist of lowercase letters, digits and hyphens and start with a letter.', $location, $name);
         }
 
         /** @var list<CronArgument> $arguments */

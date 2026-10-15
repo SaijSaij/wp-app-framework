@@ -195,7 +195,7 @@ public function render(EventListAttributes $attrs): string
 | `ids(AbstractPost\|int ...)` | Only these posts; without arguments no posts at all. |
 | `exclude(AbstractPost\|int ...)` | Not these posts; adds to earlier calls. Next to `ids()` the posts are taken out of the IDs, because WordPress ignores its own exclusion when IDs are given. |
 | `author(int ...)` | Posts of these authors. |
-| `parent(?AbstractPost)` | Children of the post, or top-level posts with null; hierarchical post types only. |
+| `parent(AbstractPost\|int\|null)` | Children of the post (an object or its ID), or top-level posts with null; hierarchical post types only. |
 | `search(string, list<SearchColumn> $columns = [], bool $exact = false, bool $sentence = false)` | The search of WordPress; the text must not be empty. Without columns: title, excerpt and content. |
 | `slug(string ...)` | Posts with one of the slugs (`post_name`). |
 | `title(string)` | Posts with exactly this title. |

@@ -201,8 +201,8 @@ final class DevCacheTest extends TestCase
 
     public function testEditorChangesRebuild(): void
     {
-        $enum = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Labeled;\n\nenum Tone: string implements Labeled\n{\n    case Light = 'light';\n\n    public function label(): string\n    {\n        return '{$label}';\n    }\n}\n";
-        $attributes = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Label;\n\nfinal readonly class Attributes\n{\n    public function __construct(#[Label('{$label}')] public Tone \$tone = Tone::Light)\n    {\n    }\n}\n";
+        $enum = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Value\\Labeled;\n\nenum Tone: string implements Labeled\n{\n    case Light = 'light';\n\n    public function label(): string\n    {\n        return '{$label}';\n    }\n}\n";
+        $attributes = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Value\\Label;\n\nfinal readonly class Attributes\n{\n    public function __construct(#[Label('{$label}')] public Tone \$tone = Tone::Light)\n    {\n    }\n}\n";
 
         $this->writeSource('Tone.php', $enum('Bright'));
         $this->writeSource('Attributes.php', $attributes('Tone'));

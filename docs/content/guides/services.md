@@ -106,10 +106,21 @@ The project object describes the theme or plugin itself and gives you its paths 
 
 | Project | Class | Methods |
 |---|---|---|
-| Theme | `Saij\WpAppFramework\Theme` | `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()`, `getFrameworkDirectory()` |
+| Theme | `Saij\WpAppFramework\Theme` | `getSlug()`, `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()`, `getFrameworkDirectory()` |
 | Plugin | `Saij\WpAppFramework\Plugin` | `getSlug()`, `getFile()`, `getDirectory()`, `getDirectoryUri()`, `getFrameworkDirectory()` |
 | Child theme | `Saij\WpAppFramework\ChildTheme` | `getSlug()`, `getParentSlug()`, `getDirectory()`, `getDirectoryUri()`, `getParentDirectory()`, `getParentDirectoryUri()`, `getFrameworkDirectory()` |
 
 The boot method creates the object (its constructor is private) and hands it to the container, which never builds it itself. Injecting the class of another kind – `Plugin` in a theme, for example – is a build error.
 
-`Saij\WpAppFramework\Twig\TemplateRenderer` is predefined as well. The framework creates it on first use (see [Twig templates](./twig.md)).
+The framework also provides these services. Inject them like your own; the framework creates them, so you never call their constructors:
+
+| Class | What for |
+|---|---|
+| `Saij\WpAppFramework\Twig\TemplateRenderer` | Renders Twig templates in your own code, such as mails (see [Twig templates](./twig.md)). |
+| `Saij\WpAppFramework\Cache\CacheStore` | Caches values of your own code (see [Cache](./cache.md)). |
+| `Saij\WpAppFramework\Cron\CronScheduler` | Plans one-time tasks (see [Cron events and tasks](./cron.md)). |
+| `Saij\WpAppFramework\View\ViewData` | Passes data to the front-end scripts (see [Front-end scripts](./frontend.md#data-from-php)). |
+| `Saij\WpAppFramework\Asset\Assets` | URLs, paths, images and SVGs of static assets (see [Static assets](./assets.md#in-php)). |
+| `Saij\WpAppFramework\Asset\MediaLibrary` | Imports a static asset into the media library (see [Static assets](./assets.md#in-the-media-library)). |
+
+Other classes of the framework that it uses itself, such as the render context of the editor, are internal: injecting them into a class of your theme or plugin is a build error.

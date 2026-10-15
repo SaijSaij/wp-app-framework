@@ -6,7 +6,6 @@ namespace Saij\WpAppFramework\Tests\Unit\Cron;
 
 use PHPUnit\Framework\TestCase;
 use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\Cron\CronCollector;
 use Saij\WpAppFramework\Cron\CronScheduler;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Manifest\BuildException;
@@ -95,14 +94,6 @@ final class CronCollectorTest extends TestCase
         self::assertSame(['cron' => CronScheduler::class], $manifest['services'][CronValid\Reminders::class]);
     }
 
-    public function testTheTaskNameIsTheShortClassNameInKebabCase(): void
-    {
-        self::assertSame('send-reminder', CronCollector::taskName(CronValid\SendReminder::class));
-        self::assertSame('html-export', CronCollector::taskName(CronValid\HTMLExport::class));
-        self::assertSame('task2-go', CronCollector::taskName('Task2Go'));
-        self::assertSame('bad_task', CronCollector::taskName(CronBroken\Bad_Task::class));
-    }
-
     public function testReportsEveryErrorWithItsLocation(): void
     {
         $events = CronBroken\Events::class . '::';
@@ -129,6 +120,7 @@ final class CronCollectorTest extends TestCase
             $event . 'weeklyWeekday(): weekday needs the interval CronInterval::Weekly and at.',
             $events . 'both() has #[CronEvent] and #[CronTask]; a method is either a recurring event or the handler of a task.',
             CronBroken\NotAService::class . '::run() has #[CronEvent], but ' . CronBroken\NotAService::class . ' is marked #[NoService] and therefore not a service.',
+            'Invalid #[CronTask] on ' . $tasks . 'unnamed(): Too few arguments to function Saij\\WpAppFramework\\Cron\\CronTask::__construct(), 0 passed in ' . dirname(__DIR__, 2) . '/Fixtures/CronBroken/Tasks.php on line 16 and exactly 1 expected',
             $tasks . 'none() has #[CronTask] and needs the task as first parameter: a value class whose object carries the data of the task.',
             'parameter $id of ' . $tasks . 'scalar(): the task must be typed with a value class, int given.',
             $task . 'nullable(): the task must not be nullable.',
@@ -139,8 +131,8 @@ final class CronCollectorTest extends TestCase
             $task . 'references(): "task.authors[*].user' . $reference,
             'parameter $note of ' . $tasks . 'extra(): the parameters after the task of a #[CronTask] method must be services.',
             CronBroken\Plain::class . ' is handled by ' . $tasks . 'plain() and ' . $tasks . 'plainAgain(); each task class has exactly one #[CronTask] handler.',
-            'The task classes ' . CronBroken\Ping::class . ' and ' . CronBroken\Duplicate\Ping::class . ' have the same short name, so both tasks would be named "ping"; rename one of them.',
-            $task . 'badTask(): the task name "bad_task" derived from the class name ' . CronBroken\Bad_Task::class . ' must consist of lowercase letters, digits and hyphens and start with a letter; rename the class.',
+            '#[CronTask] name "ping" is used by ' . $tasks . 'ping() and ' . $tasks . 'pingAgain(); each task needs a name of its own.',
+            '#[CronTask] on ' . $tasks . 'badTask(): the name "bad_task" must consist of lowercase letters, digits and hyphens and start with a letter.',
             $tasks . 'returns() has #[CronTask] and must return void.',
             // Reported by the value schema builder, whose errors follow those of the collectors.
             $task . 'mutable(): value class ' . CronBroken\Mutable::class . ' must be declared readonly.',

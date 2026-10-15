@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\BlockEditor;
 
-use Saij\WpAppFramework\Block\Labeled;
+use Saij\WpAppFramework\Value\Labeled;
 
 enum Tone: string implements Labeled
 {

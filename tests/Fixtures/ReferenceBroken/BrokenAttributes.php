@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\ReferenceBroken;
 
-use Saij\WpAppFramework\Block\Content;
+use Saij\WpAppFramework\Value\Content;
 use Saij\WpAppFramework\Value\ListOf;
 use Saij\WpAppFramework\Value\PostReference;
 use Saij\WpAppFramework\Value\TermReference;

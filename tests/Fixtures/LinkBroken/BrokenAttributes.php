@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\LinkBroken;
 
-use Saij\WpAppFramework\Block\Content;
-use Saij\WpAppFramework\Block\Image;
-use Saij\WpAppFramework\Block\PlainText;
-use Saij\WpAppFramework\Block\RichText;
+use Saij\WpAppFramework\Value\Content;
+use Saij\WpAppFramework\Value\Image;
 use Saij\WpAppFramework\Value\Link;
+use Saij\WpAppFramework\Value\PlainText;
 use Saij\WpAppFramework\Value\PostReference;
+use Saij\WpAppFramework\Value\RichText;
 use Saij\WpAppFramework\Value\Url;
 
 final readonly class BrokenAttributes

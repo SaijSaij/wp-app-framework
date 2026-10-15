@@ -15,6 +15,7 @@ final class BrokenHooks
         ScalarDependent $c,
         OutsideDependent $d,
         CycleA $e,
+        InternalDependent $f,
     ): void {}
 
     // @phpstan-ignore missingType.return (fixture: the missing return type is the error under test)

@@ -17,6 +17,8 @@ final readonly class PostPage
 {
     /**
      * @param list<T> $posts
+     *
+     * @internal Created by PostQuery::paginate().
      */
     public function __construct(
         private array $posts,

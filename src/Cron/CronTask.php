@@ -11,10 +11,18 @@ use Attribute;
  *
  * The first parameter of the method is the task: a value class whose object
  * carries the data of the task. Further parameters are services. Each task class
- * has exactly one handler. The name of the task is the short name of its class
- * in kebab case (`SendReminder` → `send-reminder`), its hook
- * `wp_app_framework/cron/{slug}/task/{name}`; renaming the class drops the
- * tasks scheduled under the old name.
+ * has exactly one handler. The hook of the task is
+ * `wp_app_framework/cron/{slug}/task/{name}`; scheduled tasks stay attached to
+ * the name, so keep it when you rename the class or the method.
  */
 #[Attribute(Attribute::TARGET_METHOD)]
-final readonly class CronTask {}
+final readonly class CronTask
+{
+    /**
+     * @param string $name Lowercase letters, digits and hyphens, starting with a letter; unique among the tasks of
+     *                     the theme or plugin.
+     */
+    public function __construct(
+        public string $name,
+    ) {}
+}

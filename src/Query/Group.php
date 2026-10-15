@@ -40,6 +40,8 @@ abstract readonly class Group implements Condition
 
     /**
      * @return list<Condition>
+     *
+     * @internal
      */
     public function getConditions(): array
     {
@@ -48,6 +50,8 @@ abstract readonly class Group implements Condition
 
     /**
      * @return 'meta'|'terms'|'row'
+     *
+     * @internal
      */
     public function getKind(): string
     {
@@ -56,6 +60,8 @@ abstract readonly class Group implements Condition
 
     /**
      * @return 'OR'|'AND'
+     *
+     * @internal
      */
     abstract public function getRelation(): string;
 

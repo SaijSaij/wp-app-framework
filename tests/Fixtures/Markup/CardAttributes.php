@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\Markup;
 
-use Saij\WpAppFramework\Block\PlainText;
 use Saij\WpAppFramework\Value\Link as ContentLink;
 use Saij\WpAppFramework\Value\ListOf;
+use Saij\WpAppFramework\Value\PlainText;
 
 final readonly class CardAttributes
 {

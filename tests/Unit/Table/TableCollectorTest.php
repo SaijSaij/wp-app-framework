@@ -149,7 +149,7 @@ final class TableCollectorTest extends TestCase
                 "Parameter \$anything of {$ns}Types::__construct() has the type mixed; columns are int, float, bool, string, backed enums and DateTimeImmutable, each also nullable.",
                 "Parameter \$time of {$ns}Types::__construct() has the type ?DateTime; columns are int, float, bool, string, backed enums and DateTimeImmutable, each also nullable (use DateTimeImmutable).",
                 "Parameter \$moment of {$ns}Types::__construct() has the type ?DateTimeInterface; columns are int, float, bool, string, backed enums and DateTimeImmutable, each also nullable (use DateTimeImmutable).",
-                "Parameter \$marked of {$ns}Types::__construct() has #[{$fw}Block\\PlainText]; columns of tables take #[PrimaryKey], #[Indexed], #[RenamedFrom], #[Length] and #[Text] only.",
+                "Parameter \$marked of {$ns}Types::__construct() has #[{$fw}Value\\PlainText]; columns of tables take #[PrimaryKey], #[Indexed], #[RenamedFrom], #[Length] and #[Text] only.",
                 "#[Table] on {$ns}Valid uses the name \"valid\", which {$ns}Names already uses.",
                 "#[Table] on {$ns}Wide: a row needs 65538 bytes without long text, more than the 65535 that MariaDB and MySQL allow; shorten #[Length] or use #[Text].",
                 "{$ns}WithoutTable extends {$fw}Table\\AbstractRow, but has no #[Table]; row classes declare their table.",

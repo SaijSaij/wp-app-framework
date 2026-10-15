@@ -97,6 +97,8 @@ final class ManifestBuilderTest extends TestCase
                 "Cannot autowire parameter \$excluded of {$ns}ExcludedDependent::__construct(): {$ns}Excluded is marked #[NoService] and cannot be injected.",
                 "Cannot autowire parameter \$name of {$ns}ScalarDependent::__construct(): type string is not a service and the parameter has no default value.",
                 "Cannot autowire parameter \$storage of {$ns}OutsideDependent::__construct(): ArrayObject is outside the scanned PSR-4 directories of the project and the framework and cannot be injected.",
+                "Cannot autowire parameter \$context of {$ns}InternalDependent::__construct(): Saij\\WpAppFramework\\Editor\\RenderContext is internal to the framework and cannot be injected into classes of a theme or plugin.",
+                "Cannot autowire parameter \$posts of {$ns}InternalDependent::__construct(): Saij\\WpAppFramework\\Post\\PostStore is internal to the framework and cannot be injected into classes of a theme or plugin.",
                 "Circular dependency: {$ns}CycleA -> {$ns}CycleB -> {$ns}CycleA",
                 "{$ns}ExcludedWithHook::run() has #[Hook], but {$ns}ExcludedWithHook is marked #[NoService] and therefore not a service.",
                 "{$ns}BrokenHooks::missingReturnType() has #[Hook] and needs a declared return type: void for an action, the filtered type for a filter.",
