@@ -5,12 +5,12 @@
 <title>Cron events and tasks - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-83de7c6ddc91.306e0cfedf.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-83de7c6ddc91.1cccd3026c.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.d23ca40952.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.d9c2b915f7.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.f658be706e.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.73a9b0719a.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -115,7 +115,7 @@ WordPress keeps every planned task, with its values, in the option <code>cron</c
 </ul>
 <p>The framework remembers the events and tasks of your theme or plugin in an autoloaded option (<code>{slug}_cron</code>, with underscores instead of hyphens). When nothing changed, the comparison costs no database query and writes nothing.</p>
 <p>When a plugin is deactivated, or the site switches to another theme, the framework removes all events and tasks of that plugin or theme and its option. Switching from a theme to its own child theme keeps them, because the theme stays active as parent theme. Activating the plugin or switching back to the theme schedules them again on the next request. See <a href="/wp-app-framework/next/guides/lifecycle.html" class="rp-link">Activation, deactivation and uninstallation</a> for what else happens at these moments.</p>
-<p>The daily clean-up of the <a href="/wp-app-framework/next/guides/cache.html#where-entries-are-stored" class="rp-link">file cache</a> is an event of the same kind.</p>
+<p>The daily clean-up of the <a href="/wp-app-framework/next/guides/cache.html#where-entries-are-stored" class="rp-link">file cache</a> and of <a href="/wp-app-framework/next/guides/twig.html#cache" class="rp-link">compiled templates of older releases</a> is an event of the same kind.</p>
 <h2 class="rp-toc-include" id="hook-names"><a href="#hook-names" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Hook names</h2>
 <p>Each event and task has a WordPress hook, which you see in tools like WP-CLI:</p>
 

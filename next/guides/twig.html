@@ -5,12 +5,12 @@
 <title>Twig templates - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-03fb1368cb29.d9000a33dd.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-03fb1368cb29.0975eb51a3.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.d23ca40952.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.d9c2b915f7.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.f658be706e.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.73a9b0719a.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -72,7 +72,8 @@
 <h3 class="rp-toc-include" id="cache"><a href="#cache" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Cache</h3>
 <p>Compiled templates are cached in <code>wp-content/cache/{slug}/twig/</code>.</p>
 <p>Release mode compiles without auto reload: Twig never checks whether a template changed. Each release therefore uses its own directory, <code>wp-content/cache/{slug}/twig/{templateVersion}/</code>. The template version is a hash over the names and contents of all templates of the project and the framework; <code>build --output</code> writes it into the release manifest.</p>
-<p>Overrides add one more level. If the active theme or child theme overrides templates of another instance – a plugin, or the theme overridden by its child theme – that instance&#x27;s cache directory gets a further level named after the versions of theme and child theme. A changed override therefore needs a new version of the theme or child theme. Directories of older releases are not removed yet.</p>
+<p>Overrides add one more level. If the active theme or child theme overrides templates of another instance – a plugin, or the theme overridden by its child theme – that instance&#x27;s cache directory gets a further level named after the versions of theme and child theme. A changed override therefore needs a new version of the theme or child theme.</p>
+<p>Directories of older releases are removed by a daily <a href="/wp-app-framework/next/guides/cron.html" class="rp-link">WP-Cron event</a>, the same event that cleans up the <a href="/wp-app-framework/next/guides/cache.html#where-entries-are-stored" class="rp-link">file cache</a>. It keeps the directory of the current template version and, below it, the directory of the current theme and child theme versions. On multisite, all sites share the cache directory but may run other themes, so the event keeps the override directories of the current release; they go with the next release.</p>
 <h2 class="rp-toc-include" id="template-functions-and-filters"><a href="#template-functions-and-filters" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Template functions and filters</h2>
 <p>Your own Twig functions and filters are methods of services with <code>#[TemplateFunction]</code> or <code>#[TemplateFilter]</code>:</p>
 <div class="rp-codeblock language-php"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="php"><code><span class="line"><span style="color:var(--shiki-token-keyword)">use</span><span style="color:var(--shiki-token-constant)"> Saij</span><span style="color:var(--shiki-token-punctuation)">\</span><span style="color:var(--shiki-token-constant)">WpAppFramework</span><span style="color:var(--shiki-token-punctuation)">\</span><span style="color:var(--shiki-token-constant)">Twig</span><span style="color:var(--shiki-token-punctuation)">\</span><span style="color:var(--shiki-token-constant)">TemplateFilter</span><span style="color:var(--shiki-foreground)">;</span></span>
