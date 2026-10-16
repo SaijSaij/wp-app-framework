@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture - wp-app-framework</title>
+<script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
+<link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-eb52bbbec061.da366f9ad1.js" as="script">
+<script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
+<script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
+<script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
+<script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.3581f1a523.js"></script>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Rspress v2.0.23">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Architecture - wp-app-framework">
+<meta name="description" content="This page describes how the framework works inside: what happens in the build and what at run time, how instances stay apart, how the container, the editor runtime and the release build work, and where each part lives in the source. Concepts explains the same ideas from the point of view of a consumer; read it first if you haven't.">
+<meta property="og:description" content="This page describes how the framework works inside: what happens in the build and what at run time, how instances stay apart, how the container, the editor runtime and the release build work, and where each part lives in the source. Concepts explains the same ideas from the point of view of a consumer; read it first if you haven't."></head>
+
+  <body>
+    <div id="__rspress_root"><header class="rp-nav"><div class="rp-nav__left"><div class="rp-nav__title"><a href="/wp-app-framework/next/" class="rp-nav__title__link rp-link"><span>wp-app-framework</span></a></div><select class="version-switcher" aria-label="Documentation version"><option value="next" selected="">next</option></select></div><div class="rp-nav__right"><button class="rp-search-button"><div class="rp-search-button__content"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 20 21" class="rp-search-button__icon"><path fill="currentColor" d="M8.333 1.913A6.667 6.667 0 0 1 15 8.58c0 1.54-.525 2.957-1.402 4.085l4.49 4.492a.834.834 0 0 1-1.177 1.178l-4.491-4.49a6.64 6.64 0 0 1-4.087 1.402 6.667 6.667 0 0 1 0-13.334m0 1.667a5 5 0 1 0 0 10 5 5 0 0 0 0-10"></path></svg><span class="rp-search-button__word">Search</span></div><div class="rp-search-button__hotkey" style="opacity:0"><span></span><span>K</span></div></button><div class="rp-search-button--mobile"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 20 21"><path fill="currentColor" d="M8.333 1.913A6.667 6.667 0 0 1 15 8.58c0 1.54-.525 2.957-1.402 4.085l4.49 4.492a.834.834 0 0 1-1.177 1.178l-4.491-4.49a6.64 6.64 0 0 1-4.087 1.402 6.667 6.667 0 0 1 0-13.334m0 1.667a5 5 0 1 0 0 10 5 5 0 0 0 0-10"></path></svg></div><ul class="rp-nav-menu rp-nav-menu--right"><li class="rp-nav-menu__item"><a href="/wp-app-framework/next/index.html" class="rp-nav-menu__item__container rp-link">Guide</a></li><li class="rp-nav-menu__item"><a href="/wp-app-framework/next/api/index.html" class="rp-nav-menu__item__container rp-link">API reference</a></li><li class="rp-nav-menu__item rp-nav-menu__item--active"><a href="/wp-app-framework/next/development/index.html" class="rp-nav-menu__item__container rp-link">Development</a></li></ul><div class="rp-nav__others"><div class="rp-nav-menu__divider"></div><div class="rp-switch-appearance"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="rp-switch-appearance__icon rp-switch-appearance__icon--sun"><path fill="currentColor" d="m7.001 15.848-1.226 1.226a.58.58 0 0 0 0 .818.58.58 0 0 0 .818 0l1.226-1.226a.58.58 0 0 0 0-.818.58.58 0 0 0-.818 0m-.352-8.735a.584.584 0 0 0 .825-.825L6.237 5.051a.584.584 0 0 0-.825.825zM5.011 11.07h-1.75a.584.584 0 0 0 0 1.167h1.75c.324 0 .584-.26.584-.583a.585.585 0 0 0-.584-.584m7.003-5.835c.324 0 .584-.26.584-.584V2.9a.58.58 0 0 0-.584-.584.58.58 0 0 0-.583.583V4.65c0 .323.262.584.583.584m5.616 1.621 1.226-1.225a.58.58 0 0 0 0-.818.58.58 0 0 0-.818 0l-1.226 1.225a.58.58 0 0 0 0 .818.576.576 0 0 0 .818 0m3.138 4.214h-1.75a.58.58 0 0 0-.584.584c0 .324.26.584.583.584h1.751a.584.584 0 1 0 0-1.167m-3.389 5.124a.584.584 0 0 0-.825.825l1.238 1.238a.584.584 0 0 0 .825-.826zm-5.365-9.795a5.256 5.256 0 0 0-5.257 5.258 5.256 5.256 0 0 0 5.257 5.257 5.256 5.256 0 0 0 5.257-5.257 5.256 5.256 0 0 0-5.257-5.258m0 11.675a.58.58 0 0 0-.583.583v1.751a.582.582 0 1 0 1.167 0v-1.75a.584.584 0 0 0-.584-.584"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="currentColor" viewBox="0 0 19 19" class="rp-switch-appearance__icon rp-switch-appearance__icon--moon"><path fill="currentColor" d="M9.166 0a9.2 9.2 0 0 1 1.857.188.834.834 0 0 1 .042 1.623 4.47 4.47 0 1 0 5.457 5.457l.048-.135a.834.834 0 0 1 1.575.177q.186.902.188 1.856A9.168 9.168 0 1 1 9.166 0"></path></svg></div><div class="rp-social-links"><a href="https://github.com/saijsaij/wp-app-framework" target="_blank" rel="noopener noreferrer" class="rp-social-links__item"><div class="rp-social-links__icon"><div class="rp-social-links__icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12c0 5.303 3.438 9.8 8.205 11.385c.6.113.82-.258.82-.577c0-.285-.01-1.04-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729c1.205.084 1.838 1.236 1.838 1.236c1.07 1.835 2.809 1.305 3.495.998c.108-.776.417-1.305.76-1.605c-2.665-.3-5.466-1.332-5.466-5.93c0-1.31.465-2.38 1.235-3.22c-.135-.303-.54-1.523.105-3.176c0 0 1.005-.322 3.3 1.23c.96-.267 1.98-.399 3-.405c1.02.006 2.04.138 3 .405c2.28-1.552 3.285-1.23 3.285-1.23c.645 1.653.24 2.873.12 3.176c.765.84 1.23 1.91 1.23 3.22c0 4.61-2.805 5.625-5.475 5.92c.42.36.81 1.096.81 2.22c0 1.606-.015 2.896-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div></div></a><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--right"></ul></div></div><button aria-label="mobile hamburger" class="rp-nav-hamburger rp-nav-hamburger__sm"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 21 21"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M3.645 5.225h13.333M3.645 10.225h13.333M3.645 15.225h13.333"></path></svg></button><button aria-label="mobile hamburger" class="rp-nav-hamburger rp-nav-hamburger__md"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 21 21"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M3.645 5.225h13.333M3.645 10.225h13.333M3.645 15.225h13.333"></path></svg><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--right"><div class="rp-nav-menu__others-mobile__container"><div class="rp-nav-hamburger__md__hover-group"><div class="rp-nav-screen-appearance"><div class="rp-nav-screen-appearance__left">Theme</div><div class="rp-nav-screen-appearance__right"></div></div><div class="rp-nav-screen-divider"></div><div class="rp-social-links"><a href="https://github.com/saijsaij/wp-app-framework" target="_blank" rel="noopener noreferrer" class="rp-social-links__item"><div class="rp-social-links__icon"><div class="rp-social-links__icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12c0 5.303 3.438 9.8 8.205 11.385c.6.113.82-.258.82-.577c0-.285-.01-1.04-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729c1.205.084 1.838 1.236 1.838 1.236c1.07 1.835 2.809 1.305 3.495.998c.108-.776.417-1.305.76-1.605c-2.665-.3-5.466-1.332-5.466-5.93c0-1.31.465-2.38 1.235-3.22c-.135-.303-.54-1.523.105-3.176c0 0 1.005-.322 3.3 1.23c.96-.267 1.98-.399 3-.405c1.02.006 2.04.138 3 .405c2.28-1.552 3.285-1.23 3.285-1.23c.645 1.653.24 2.873.12 3.176c.765.84 1.23 1.91 1.23 3.22c0 4.61-2.805 5.625-5.475 5.92c.42.36.81 1.096.81 2.22c0 1.606-.015 2.896-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div></div></a><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--right"></ul></div></div></div></ul></button></div></header><div class="rp-doc-layout__menu"><div class="rp-sidebar-menu"><button type="button" class="rp-sidebar-menu__left"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"></path></svg><span>Menu</span></button><button type="button" class="rp-sidebar-menu__right"><span class="rp-sidebar-menu__right__text">ON THIS PAGE</span><svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-sidebar-menu__right__icon" style="transform:rotate(0deg);transition:transform 0.2s ease-out"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></button></div></div><div class="rp-doc-layout__container"><aside class="rp-doc-layout__sidebar rp-scrollbar"><div class="rp-sidebar-item rp-sidebar-group" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">Developing the framework</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(90deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:1fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/wp-app-framework/next/development/index.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Overview</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/next/development/architecture.html" class="rp-sidebar-item rp-sidebar-item--active rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Architecture</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/next/development/design.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Design decisions</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/next/development/conventions.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Conventions</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/next/development/testing.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Testing</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/next/development/pipelines.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Pipelines and releases</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/next/development/adding-a-feature.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Adding a feature</span></div><div class="rp-sidebar-item__right"></div></a></div></div></aside><div class="rp-doc-layout__doc"><main class="rp-doc-layout__doc-container"><div class="version-banner" role="note">This documentation describes unreleased changes on the main branch.</div><div class="rp-doc rspress-doc"><!--$--><h1 class="rp-toc-include" id="architecture"><a href="#architecture" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Architecture<!-- --> </h1>
+<p>This page describes how the framework works inside: what happens in the build and what at run time, how instances stay apart, how the container, the editor runtime and the release build work, and where each part lives in the source. <a href="/wp-app-framework/next/concepts.html" class="rp-link">Concepts</a> explains the same ideas from the point of view of a consumer; read it first if you haven&#x27;t.</p>
+<h2 class="rp-toc-include" id="build-and-run-time"><a href="#build-and-run-time" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Build and run time</h2>
+<p>The framework reads PHP attributes – <code>#[Block]</code>, <code>#[Hook]</code>, <code>#[RestRoute]</code> and all the others – only in the <strong>build</strong>. The build discovers the classes of a consumer, reads their attributes with reflection, checks everything it can and writes a <strong>manifest</strong>: a plain PHP array (<code>var_export</code>), no generated code. At <strong>run time</strong>, the framework loads the manifest and registers blocks, hooks, routes and the rest from it, without reflection.</p>
+<p>This split is the most important rule of the framework: <em>compile only in the build, never at run time</em>. It makes errors surface early – every build error names the class, file and parameter at fault – and it keeps a request in release mode free of extra work. Release mode uses no reflection, no stat checks and no <code>composer.json</code>, and it never writes into the consumer&#x27;s directory.</p>
+<p>The build runs in two places:</p>
+<ul>
+<li><strong>Development mode</strong> – the consumer has no <code>generated/manifest.php</code> – builds the manifest on the first request and caches it in <code>wp-content/cache/{slug}/manifest/</code> (<code>src/Manifest/DevCache/</code>). On every request it compares the modification times of the source files with the cache, and only if a file changed, a hash of the <em>signatures</em> (attributes, signatures of constructors and public methods; no method bodies). The manifest is rebuilt only when that hash changes. A new kind of input to the build must therefore be part of the signature or of the listing hash, or changes to it would not trigger a rebuild.</li>
+<li><strong>The release build</strong> (<code>wp-app-framework release</code>) writes <code>generated/manifest.php</code> into a copy of the consumer, after prefixing (see below).</li>
+</ul>
+<p><code>Manifest::FORMAT</code> (<code>src/Manifest/Manifest.php</code>) versions the structure of the manifest. Every change of its structure raises it; a cached or released manifest of another format is rejected instead of misread.</p>
+<h2 class="rp-toc-include" id="from-attribute-to-wordpress"><a href="#from-attribute-to-wordpress" class="rp-header-anchor rp-link" aria-hidden="true">#</a>From attribute to WordPress</h2>
+<p>Each feature follows the same chain. Taking hooks as the simplest example (<code>src/Hook/</code>):</p>
+<ol>
+<li><strong>The attribute</strong> – <code>Hook.php</code>, a <code>final readonly</code> class with public promoted properties – is what a consumer writes.</li>
+<li><strong>The collector</strong> – <code>HookCollector.php</code> – runs in the build. It finds the attribute on the discovered classes, checks it (method visibility, parameters, return type, names) and produces plain data. Every mistake is a build error with class and method name.</li>
+<li><strong>The definition</strong> – <code>HookDefinition.php</code> – describes the shape of that data for PHPStan (array shapes), shared by the collector and the registrar.</li>
+<li><strong>The manifest</strong> – <code>src/Manifest/ManifestBuilder.php</code> – calls all collectors in order and puts their data into the manifest.</li>
+<li><strong>The registrar</strong> – <code>HookRegistrar.php</code> – runs at run time. <code>src/Instance.php</code> boots one instance: it loads the manifest, builds the container and hands each part of the manifest to its registrar, which calls <code>add_action()</code>, <code>register_block_type()</code>, <code>register_rest_route()</code> and so on. Services are resolved only when a hook fires, a route is called or a block renders.</li>
+</ol>
+<p>Larger areas add more classes to the same directory – stores, codecs, template functions – but keep this order. <a href="/wp-app-framework/next/development/adding-a-feature.html" class="rp-link">Adding a feature</a> turns it into a checklist.</p>
+<h2 class="rp-toc-include" id="instances"><a href="#instances" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Instances</h2>
+<p>Every consumer that boots creates its own instance (<code>Instance</code>), and instances share nothing. All global names are derived from the consumer:</p>
+<ul>
+<li>the <strong>namespace</strong> (<code>extra.wp-app-framework.namespace</code>, stored in the manifest) for everything content and data refer to: blocks, REST routes, WP-CLI commands, settings options, post types, taxonomies, meta keys and tables;</li>
+<li>the <strong>slug</strong> (the directory name) for technical names: script handles, the JavaScript global <code>wpAppFramework[slug]</code>, cache paths, the editor routes, hooks of the framework such as <code>wp_app_framework/init/{slug}</code>.</li>
+</ul>
+<p>Instances talk to each other only through WordPress filters named after the slug: the public API (<code>#[PublicApi]</code>, filter <code>wp_app_framework/api/{slug}</code>) and public template functions and filters (filter <code>wp_app_framework/template/{slug}</code>). Only plain PHP and WordPress types cross that boundary, because every release prefixes the framework differently: a <code>Twig\Markup</code> of one instance is a different class in another. The build rejects framework or dependency classes in such signatures.</p>
+<p>In development mode, all consumers share the unprefixed framework and Twig classes – whichever autoloader runs first provides them. The boot checks that the loaded framework is the consumer&#x27;s own (by real path) and that the loaded Twig version is the one it installed, so a consumer never silently runs another framework checkout.</p>
+<h2 class="rp-toc-include" id="the-container"><a href="#the-container" class="rp-header-anchor rp-link" aria-hidden="true">#</a>The container</h2>
+<p>The framework has its own minimal dependency injection container (<code>src/DependencyInjection/</code>). It does what the consumers of earlier frameworks actually used: constructor autowiring of concrete classes, one shared instance per class, nothing else – no public <code>get()</code>, no aliases, no tags, no string IDs. All concrete classes of the consumer&#x27;s PSR-4 directories are <em>candidates</em>; only those reachable from an entry point (a block, hook, route …) are built and checked. Unresolvable parameters and cycles are build errors.</p>
+<p>A few instances are provided by the framework (<code>Theme</code>, <code>Plugin</code>, <code>ChildTheme</code>, <code>TemplateRenderer</code>, <code>CacheStore</code>, <code>CronScheduler</code>, <code>ViewData</code>, <code>Assets</code>, <code>MediaLibrary</code>); internal ones such as the editor&#x27;s render context or the post store may only be injected into framework classes. Post and row objects (<code>Event::get()</code>, <code>LogEntry::query()</code>) are active records and no services: they reach the store of their instance through internal static registries (<code>PostRegistry</code>, <code>TableRegistry</code>), filled at boot.</p>
+<p>The build never loads a class that builds on a class outside the project, its Composer dependencies and PHP – for example <code>extends WP_Widget</code> – because loading it would fail outside WordPress. <code>src/Manifest/Discovery/</code> reads such classes with the tokenizer, excludes them from the candidates and lists them.</p>
+<h2 class="rp-toc-include" id="the-editor-runtime"><a href="#the-editor-runtime" class="rp-header-anchor rp-link" aria-hidden="true">#</a>The editor runtime</h2>
+<p>Blocks are rendered on the server, also in the editor. The editor runtime (<code>assets/runtime/</code>, built by the consumer&#x27;s webpack) sends the attributes of the blocks to a batch route of the instance, <code>POST /wp-app-framework/v1/{slug}/render</code>, and receives their HTML. Twig marks editable elements only in these renders: <code>field()</code> adds <code>data-field</code>, <code>inner_blocks()</code> adds <code>data-inner-blocks</code>. The runtime parses the HTML with <code>html-react-parser</code> and replaces the marked elements with WordPress&#x27; <code>RichText</code>, <code>InnerBlocks</code> and image controls; the markup exists only once, in Twig. Changes of inline text fields need no new render; every other attribute change re-renders, with the old HTML kept until the new one arrives.</p>
+<p>The inspector is generated from the attribute schema in the manifest; consumers extend it with <code>registerControl()</code>, <code>registerPanel()</code>, <code>registerSupportControl()</code> and <code>registerToolbarButton()</code>. Front-end scripts (<code>*.view.js</code>) run in their own view runtime (<code>assets/view/</code>). The framework ships only JavaScript sources and the webpack helper (<code>webpack.config.js</code>); each consumer builds the runtime of its own instance into its <code>build/</code>.</p>
+<h2 class="rp-toc-include" id="the-release-build"><a href="#the-release-build" class="rp-header-anchor rp-link" aria-hidden="true">#</a>The release build</h2>
+<p>A release ZIP must run next to other themes and plugins built with other framework versions. The release build (<code>src/Release/</code>, command <code>wp-app-framework release</code>) therefore copies the consumer and prefixes the framework and every dependency into the consumer&#x27;s own namespace:</p>
+<ol>
+<li>Copy the files Git knows (<code>git ls-files -co --exclude-standard</code>).</li>
+<li><code>composer install --no-dev --classmap-authoritative</code> in the copy.</li>
+<li>Prefix with <strong>Strauss</strong> into <code>vendor-prefixed/</code>, including the call sites in the consumer&#x27;s code; then patch <strong>Twig</strong>, whose compiler writes class names as strings into compiled templates (a fixed list of replacements with expected counts – a Twig update that changes them fails the build on purpose).</li>
+<li>Build the manifest and compile the templates in the copy.</li>
+<li><code>npm ci &amp;&amp; npm run build</code>, then check that every file the manifest needs at run time exists (<code>BuildCheck</code>).</li>
+<li>Remove the development files (everything <code>export-ignore</code>) and check with the tokenizer that no unprefixed name is left.</li>
+<li>Write <code>dist/{slug}-{version}.zip</code>.</li>
+</ol>
+<p>The order is fixed, because the manifest needs the prefixed class names.</p>
+<h2 class="rp-toc-include" id="source-layout"><a href="#source-layout" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Source layout</h2>
+<p><code>src/</code> is organized by feature: each directory holds everything of one area – the attributes consumers use, the build-time collectors and the runtime classes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar"><table><thead><tr><th>Directory</th><th>Contents</th></tr></thead><tbody><tr><td><code>Theme.php</code>, <code>ChildTheme.php</code>, <code>Plugin.php</code></td><td>Boot and paths of the active theme, child theme or of a plugin</td></tr><tr><td><code>Instance.php</code></td><td>Boot of one framework instance</td></tr><tr><td><code>Api/</code></td><td>Public API between instances (<code>#[PublicApi]</code>, <code>#[PluginApi]</code>, <code>#[ThemeApi]</code>)</td></tr><tr><td><code>Asset/</code></td><td>Scripts next to classes, static assets, image variants, media library</td></tr><tr><td><code>Block/</code></td><td>Blocks, their attributes and categories; <code>Support/</code> for block supports</td></tr><tr><td><code>Cache/</code></td><td><code>#[Cache]</code>, tags, variants, <code>CacheStore</code> and its backends</td></tr><tr><td><code>Console/</code></td><td>Command line entry point <code>bin/wp-app-framework</code></td></tr><tr><td><code>Cron/</code></td><td>Cron events and tasks</td></tr><tr><td><code>DependencyInjection/</code></td><td>Candidates and resolver (build), container (run time)</td></tr><tr><td><code>Editor/</code></td><td>Editor template functions, render context, render and preview routes, editor assets</td></tr><tr><td><code>Filesystem/</code></td><td>Atomic file writes, removal of directory trees</td></tr><tr><td><code>Hook/</code></td><td><code>#[Hook]</code></td></tr><tr><td><code>Lifecycle/</code></td><td>Activation, deactivation, uninstallation</td></tr><tr><td><code>Manifest/</code></td><td>Manifest builder, generator and loader; <code>Discovery/</code> (classes), <code>DevCache/</code> (development mode)</td></tr><tr><td><code>Post/</code></td><td>Post types, meta, taxonomies, post objects</td></tr><tr><td><code>Project/</code></td><td>Kind, slug, namespace and settings of a consumer from its <code>composer.json</code></td></tr><tr><td><code>Query/</code></td><td>Post queries and the field classes shared with tables</td></tr><tr><td><code>Release/</code></td><td>The release build</td></tr><tr><td><code>Rest/</code></td><td>REST controllers and routes</td></tr><tr><td><code>Setting/</code></td><td>Settings groups and the settings page</td></tr><tr><td><code>Style/</code></td><td>Loading of the consumer&#x27;s stylesheet</td></tr><tr><td><code>Table/</code></td><td>Tables, row objects, row queries, schema sync</td></tr><tr><td><code>Twig/</code></td><td>Twig environment, template functions and filters, WordPress functions</td></tr><tr><td><code>Value/</code></td><td>Field markers, typed values, references, links, the value factory</td></tr><tr><td><code>View/</code></td><td>Front-end scripts of blocks and supports</td></tr><tr><td><code>WpCli/</code></td><td>WP-CLI commands</td></tr></tbody></table></div>
+<p>New areas get their own directory following the same pattern; <code>tests/Unit/</code> mirrors the layout.</p>
+<p>Next to <code>src/</code>:</p>
+<ul>
+<li><code>assets/</code> – the JavaScript and styles of the runtimes: <code>editor.js</code> (editor runtime, modules in <code>runtime/</code>), <code>view.js</code> (view runtime, <code>view/</code>), <code>settings.js</code> and <code>meta-box.js</code> (settings page and meta boxes) with their styles, and their Vitest tests in <code>test/</code> directories;</li>
+<li><code>webpack.config.js</code> – the webpack helper consumers use (<code>@saij/wp-app-framework/webpack</code>);</li>
+<li><code>types/</code> – TypeScript declarations of both JavaScript imports, checked by <code>tsc</code> over <code>types/check/</code>;</li>
+<li><code>tools/</code> – the generators of the API reference, run by the documentation build;</li>
+<li><code>docs/</code> – this website (Rspress, <code>docs/content/</code>), not part of the package;</li>
+<li><code>tests/</code> – PHPUnit tests, fixtures and the test doubles of WordPress.</li>
+</ul><!--/$--></div><footer class="rp-doc-footer"><div class="rp-doc-footer__edit"><a href="https://github.com/saijsaij/wp-app-framework/tree/main/docs/content/development/architecture.md" target="_blank" rel="noopener noreferrer" class="rp-edit-link rp-link">Edit this page</a></div><div class="rp-doc-footer__divider"></div><div class="rp-prev-next-page"><a href="/wp-app-framework/next/development/index.html" class="rp-prev-next-page__item rp-prev-next-page__prev rp-link"><span class="rp-prev-next-page__item__desc">Previous page</span><span class="rp-prev-next-page__item__title"><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon rp-prev-next-page__rotate_180"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg><span>Overview</span></span></a><a href="/wp-app-framework/next/development/design.html" class="rp-prev-next-page__item rp-prev-next-page__next rp-link"><span class="rp-prev-next-page__item__desc">Next page</span><span class="rp-prev-next-page__item__title"><span>Design decisions</span><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></span></a></div></footer></main></div><aside class="rp-doc-layout__outline rp-scrollbar"><div class="rp-outline"><div class="rp-outline__title">ON THIS PAGE<svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg></div><nav class="rp-outline__toc rp-scrollbar"><a href="#build-and-run-time" class="rp-toc-item rp-link" title="Build and run time" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Build and run time</span></a><a href="#from-attribute-to-wordpress" class="rp-toc-item rp-link" title="From attribute to WordPress" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">From attribute to WordPress</span></a><a href="#instances" class="rp-toc-item rp-link" title="Instances" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Instances</span></a><a href="#the-container" class="rp-toc-item rp-link" title="The container" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">The container</span></a><a href="#the-editor-runtime" class="rp-toc-item rp-link" title="The editor runtime" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">The editor runtime</span></a><a href="#the-release-build" class="rp-toc-item rp-link" title="The release build" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">The release build</span></a><a href="#source-layout" class="rp-toc-item rp-link" title="Source layout" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Source layout</span></a></nav><div class="rp-outline__divider"></div><div class="rp-outline__bottom"><a href="https://github.com/saijsaij/wp-app-framework/tree/main/docs/content/development/architecture.md" target="_blank" rel="noopener noreferrer" class="rp-outline__action-row rp-edit-link rp-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg><span>Edit this page</span></a></div></div></aside></div></div>
+    <div id="__rspress_modal_container"></div>
+  </body>
+</html>
