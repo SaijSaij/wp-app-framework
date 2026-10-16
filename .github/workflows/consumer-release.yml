@@ -9,7 +9,7 @@
 #     release:
 #       uses: SaijSaij/wp-app-framework/.github/workflows/consumer-release.yml@<framework tag>
 #       with:
-#         with-theme: SaijSaij/theme-dev-test@v1.0.0   # plugins and child themes only
+#         with-theme: SaijSaij/theme-dev-test@v1.0.0   # child themes (required) and plugins (optional) only
 #
 # Builds the release ZIP in the tools image of wp-test-env, installs it into fresh,
 # plain WordPress instances of wp-test-env (release mode) and runs the consumer's
@@ -17,9 +17,10 @@
 # tests against them. Only if everything passes, the GitHub release of the tag gets the ZIP.
 # The repository name is the slug of the theme or plugin; the type in its
 # composer.json (wordpress-theme, wordpress-plugin) and the Template: header of
-# style.css (child themes) decide how it is installed. A plugin is tested next to
-# the release ZIP of a theme, a child theme on top of the release ZIP of its
-# parent theme (input with-theme).
+# style.css (child themes) decide how it is installed. A child theme is tested on
+# top of the release ZIP of its parent theme (input with-theme). A plugin is tested
+# next to the release ZIP of a theme with with-theme, otherwise on the theme
+# WordPress activates on installation (WP_DEFAULT_THEME, e.g. twentytwentyfive).
 name: Consumer release
 
 on:
@@ -58,7 +59,7 @@ on:
         type: number
         default: 2
       with-theme:
-        description: 'Plugins and child themes only (required there): theme release whose ZIP the release test installs, as <owner>/<repository>@<tag>; for a child theme its parent theme.'
+        description: 'Child themes (required) and plugins (optional) only: theme release whose ZIP the release test installs, as <owner>/<repository>@<tag>; for a child theme its parent theme. A plugin without it is tested on the default theme of WordPress.'
         type: string
         default: ''
 
@@ -143,7 +144,8 @@ jobs:
               fi
               ;;
             wordpress-plugin)
-              needs_theme 'Plugin'
+              # Optional: without a theme release, the plugin runs on the default theme of WordPress.
+              [[ -z "${WITH_THEME}" ]] || needs_theme 'Plugin'
               echo "kind=plugin" >> "$GITHUB_OUTPUT"
               ;;
             *)
@@ -154,7 +156,7 @@ jobs:
 
       - name: Download the theme release
         id: theme
-        if: steps.kind.outputs.kind != 'theme'
+        if: inputs.with-theme != ''
         env:
           GH_TOKEN: ${{ github.token }}
           WITH_THEME: ${{ inputs.with-theme }}
@@ -234,7 +236,10 @@ jobs:
           CLI_TESTS: ${{ inputs.cli }}
         run: |
           case "${KIND}" in
-            plugin) zips=(--theme-zip "${THEME_ZIP}" --plugin-zip "${ZIP}") ;;
+            plugin)
+              zips=(--plugin-zip "${ZIP}")
+              [[ -z "${THEME_ZIP}" ]] || zips=(--theme-zip "${THEME_ZIP}" "${zips[@]}")
+              ;;
             child-theme) zips=(--theme-zip "${THEME_ZIP}" --child-theme-zip "${ZIP}") ;;
             *) zips=(--theme-zip "${ZIP}") ;;
           esac

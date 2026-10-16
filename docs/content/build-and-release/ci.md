@@ -23,10 +23,10 @@ The workflow:
 
 A theme can be tested on its own, but a plugin or a child theme needs a theme to run in. The workflow decides from the `type` in `composer.json` and the `Template:` header of `style.css`:
 
-- a **plugin** is installed next to the release ZIP of a theme;
-- a **child theme** is installed on top of the release ZIP of its parent theme.
+- a **child theme** is installed on top of the release ZIP of its parent theme;
+- a **plugin** is installed next to the release ZIP of a theme, if you name one. Without, it runs on the theme WordPress activates when it is installed, the default theme `WP_DEFAULT_THEME` (Twenty Twenty-Five in WordPress 7.1).
 
-The input `with-theme: <owner>/<repository>@<tag>` names that theme release. It is required for plugins and child themes.
+The input `with-theme: <owner>/<repository>@<tag>` names that theme release. It is required for child themes and optional for plugins. Name a theme for a plugin when its tests depend on the theme, for example on public template functions it calls.
 
 ### WP-CLI tests
 
@@ -48,7 +48,7 @@ The workflow runs the browser tests with `bin/e2e` of wp-test-env: `npm run test
 | `framework-ref` | the locked version | build with another revision of the framework (the framework's release gate uses it) |
 | `e2e-instances` | `2` | number of WordPress instances and Playwright workers for the browser tests |
 | `wp-test-env-ref` | `main` | the revision of wp-test-env that provides the tools and the WordPress instances |
-| `with-theme` | – | the theme release for plugins and child themes, `<owner>/<repository>@<tag>` |
+| `with-theme` | – | the theme release, `<owner>/<repository>@<tag>`: required for child themes, optional for plugins (without, the default theme of WordPress) |
 
 ## The framework
 
