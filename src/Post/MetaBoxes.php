@@ -198,7 +198,7 @@ final class MetaBoxes
         wp_enqueue_script($handle);
         $this->assets->registerStyle($handle, self::SCRIPT, ['wp-components'], $version);
         wp_enqueue_style($handle);
-        FormAssets::enqueue(array_map(fn(string $class): array => $this->store->getMeta()[$class]['controls'], $classes));
+        FormAssets::enqueue(array_map(fn(string $class): array => $this->store->getMeta()[$class]['controls'], $classes), $handle, $this->slug);
     }
 
     /**

@@ -86,6 +86,48 @@ A `min` below 0, a `max` below 1, a `min` greater than `max` and a default outsi
 
 `#[Url]` on a string adds `format: uri` to the schema, so the value is sanitized with `sanitize_url()`. Disallowed protocols such as `javascript:` become an empty string.
 
+## Colors
+
+A background, an accent, the color of a banner: some values are colors that editors choose freely. Mark such a string with [`#[Color]`](../api/php/Value/Color.md) (namespace `Saij\WpAppFramework\Value\`):
+
+```php
+use Saij\WpAppFramework\Value\Color;
+
+final readonly class BannerAttributes
+{
+    public function __construct(
+        #[Color] public string $background = '',
+        #[Color] public string $overlay = '#00000080',
+    ) {}
+}
+```
+
+The value is a hex color – `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`, the last two digits being the transparency – or an empty string for no color. Editors choose it with a color picker: it offers the colors of the theme's palette, a picker for any color with transparency, and "Clear" for no color. The palette is the one of the block editor: the colors changed in the site editor if there are any, else those of `theme.json`. Only its hex colors can be chosen, because a color is stored as hex value, not as the slug of the palette entry. A color picked from the palette therefore stays as it is when the palette changes later.
+
+The schema of a color has a `pattern`, so WordPress rejects any other value, and the value factory checks it again – also values that were stored without the schema, such as an option changed with `update_option()`. A template can therefore print the color into a `style` attribute:
+
+```twig
+<section {{ block_wrapper_attributes({style: attrs.background ? 'background-color: ' ~ attrs.background : ''}) }}>
+```
+
+### Rules
+
+| Rule | |
+|---|---|
+| Type | `string`, never nullable; `''` means no color |
+| Allowed in | block attributes, value classes, lists, settings groups, meta classes, REST arguments |
+| Schema | `string` with a `pattern` that allows the four hex formats and the empty string |
+| Control | the color palette of the theme and a color picker with transparency |
+
+The following are build errors:
+
+- `#[Color]` on another type than `string`, or on `?string`;
+- `#[Color]` together with `#[PlainText]`, `#[RichText]`, `#[Image]` or `#[Url]`;
+- a default that is no hex color, such as `'red'`;
+- `#[Color]` together with `#[Param(pattern:)]` on a REST argument.
+
+A stored value that is no color is a [wrong value](#wrong-values). The build checks colors in templates and patterns against the pattern.
+
 ## Links
 
 A call to action, a link in a footer setting, a registration link of an event: a link points either to content of the site or to any address. `#[Url]` stores the address as text, so a link to a page breaks when someone changes the page's slug. A `Link` (namespace `Saij\WpAppFramework\Value\`) stores the ID of the page instead, and the framework looks up its current URL when it renders – the same idea as [references](#references), plus a URL entered freely and "Open in new tab".

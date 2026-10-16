@@ -30,6 +30,8 @@ use Throwable;
  * description and its control, never into the schema: WordPress would drop a
  * stored list outside them as invalid.
  *
+ * A color (`#[Color]`) is a string with a `pattern` and a control of its own.
+ *
  * References (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are
  * IDs on `?int` (one) or `array` (a list of IDs) with a search control; in
  * blocks they count as content.
@@ -58,7 +60,7 @@ use Throwable;
  * @phpstan-type ClassField array{schema: array<string, mixed>, value: ClassValue, content: bool, fields: list<EditorField>, control: Control|null}
  * @phpstan-import-type Reference from ValueFactory
  * @phpstan-type PostClass array{name: non-empty-string, restBase: non-empty-string}
- * @phpstan-type Markers array{content: bool, url: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, multiline: bool, label: string, hidden: bool, reference: Reference|null}
+ * @phpstan-type Markers array{content: bool, url: bool, color: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, multiline: bool, label: string, hidden: bool, reference: Reference|null}
  */
 #[NoService]
 final class ValueSchemaBuilder
@@ -199,6 +201,15 @@ final class ValueSchemaBuilder
             if ($markers['url']) {
                 $schema['format'] = 'uri';
             }
+            if ($markers['color']) {
+                $default = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : '';
+                if (is_string($default) && !Color::isColor($default)) {
+                    $this->errors[] = sprintf('%s: the default "%s" is no color; use a hex color such as "#1e4d8c" or "#1e4d8c80", or an empty string for no color.', $location, $default);
+
+                    return null;
+                }
+                $schema['pattern'] = Color::PATTERN;
+            }
             if ($markers['postContent']) {
                 // Without selector, WordPress parses the whole inner HTML of the block into the value.
                 $schema['source'] = 'html';
@@ -231,10 +242,15 @@ final class ValueSchemaBuilder
             if ($markers['url']) {
                 $control['url'] = true;
             }
+            $value = ['type' => $name, 'nullable' => $nullable];
+            if ($markers['color']) {
+                $control['type'] = 'color';
+                $value['color'] = true;
+            }
 
             return [
                 'schema' => $schema,
-                'value' => ['type' => $name, 'nullable' => $nullable],
+                'value' => $value,
                 'content' => $markers['content'],
                 'fields' => $fields,
                 // Canvas fields have no inspector control; fields with inspector: true and images in settings have one instead.
@@ -526,6 +542,7 @@ final class ValueSchemaBuilder
         $image = $imageAttributes !== [];
         $content = $parameter->getAttributes(Content::class) !== [];
         $url = $parameter->getAttributes(Url::class) !== [];
+        $color = $parameter->getAttributes(Color::class) !== [];
         $hidden = $parameter->getAttributes(Hidden::class) !== [];
         $labelAttributes = $parameter->getAttributes(Label::class);
         $referenceAttributes = [
@@ -555,6 +572,9 @@ final class ValueSchemaBuilder
             $image && ($type->getName() !== 'int' || !$type->allowsNull()) => 'has #[Image], which is only allowed on ?int (the attachment ID, null without image)',
             $url && !$isString => 'has #[Url], which is only allowed on strings',
             $url && ($plain || $rich) => sprintf('has #[Url] and #[%s]; a URL is not inline text, mark it with #[Content] instead', $kind),
+            $color && !$isString => 'has #[Color], which is only allowed on strings (a hex color, an empty string for no color)',
+            $color && $type->allowsNull() => 'has #[Color] on ?string; use string, an empty string means no color',
+            $color && ($kind !== null || $url) => sprintf('has #[Color] and #[%s]; a color has a control of its own', $kind ?? 'Url'),
             $hidden && $kind !== null => sprintf('has #[Hidden] and #[%s]; the field is edited in the canvas or, with inspector: true, in the inspector, so it cannot be hidden', $kind),
             default => null,
         };
@@ -620,6 +640,7 @@ final class ValueSchemaBuilder
         return [
             'content' => $kind !== null || $content,
             'url' => $url,
+            'color' => $color,
             'kind' => match ($kind) {
                 'PlainText' => 'plain',
                 'RichText' => 'rich',

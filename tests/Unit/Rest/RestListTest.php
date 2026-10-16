@@ -93,6 +93,7 @@ final class RestListTest extends TestCase
                 "parameter \$item of {$c}::single(): a single value class is not supported as REST argument (a class type without #[ListOf] is injected as service); use #[ListOf({$ns}Item::class)] array for a list.",
                 "#[Param] on parameter \$kinds of {$c}::keyword(): minLength does not apply to list arguments.",
                 "parameter \$link of {$c}::format() has #[Url] and #[Param(format:)]; use one of them.",
+                "parameter \$color of {$c}::pattern() has #[Color] and #[Param(pattern:)]; use one of them.",
                 "parameter \$kinds of permission callback {$c}::allowed() must be a service, WP_REST_Request or a request argument of {$c}::callback() with the same name and type (the route declares array<{$ns}Kind>).",
             ];
 

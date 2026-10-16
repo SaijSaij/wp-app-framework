@@ -8,7 +8,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Checks a value from block markup against an attribute schema as the build derives it (ValueSchemaBuilder):
- * `type` (one or several, including `null`), `enum`, `properties` with `required` and `items`. Unlike WordPress,
+ * `type` (one or several, including `null`), `enum`, `pattern`, `properties` with `required` and `items`. Unlike WordPress,
  * which ignores unknown properties and converts some types when sanitizing, unknown properties and other types
  * are errors: the markup is written by hand and should match what the editor stores.
  */
@@ -34,6 +34,12 @@ final class AttributeValidator
                 self::encode($value),
                 implode(', ', array_map(self::encode(...), $schema['enum'])),
             )];
+        }
+
+        // WordPress matches patterns like this in rest_validate_json_schema_pattern().
+        if (isset($schema['pattern']) && is_string($schema['pattern']) && is_string($value)
+            && preg_match('#' . str_replace('#', '\\#', $schema['pattern']) . '#u', $value) !== 1) {
+            return [sprintf('attribute "%s": %s does not match the pattern %s.', $path, self::encode($value), $schema['pattern'])];
         }
 
         if (!is_array($value)) {

@@ -710,6 +710,18 @@ function wp_enqueue_media(array $args = []): void
 }
 
 /**
+ * The settings of theme.json at a path, from `$GLOBALS['wp_app_framework_test_global_settings']` (by path joined with
+ * "."); null for others.
+ *
+ * @param list<string>         $path
+ * @param array<string, mixed> $context
+ */
+function wp_get_global_settings(array $path = [], array $context = []): mixed
+{
+    return $GLOBALS['wp_app_framework_test_global_settings'][implode('.', $path)] ?? null;
+}
+
+/**
  * Like WordPress: the properties come from the given object.
  */
 final class WP_Post

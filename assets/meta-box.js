@@ -11,6 +11,7 @@ import { createRoot, useState } from '@wordpress/element';
 import { MediaUpload } from '@wordpress/media-utils';
 
 import { ClassicRichTextControl } from './runtime/classic-rich-text';
+import { createColorControl } from './runtime/color-control';
 import { createImageControl } from './runtime/image-control';
 import { LinkFormControl } from './runtime/link-form-control';
 import { MetaForm } from './runtime/meta-form';
@@ -20,12 +21,16 @@ import './meta-box.scss';
 
 /**
  * Controls of rich text (classic editor), images (media library of
- * `@wordpress/media-utils`) and links (a search form).
+ * `@wordpress/media-utils`), links (a search form) and colors (the palette of
+ * the page, `wpAppFramework[slug].palette`).
  */
 const FIELD_CONTROLS = {
 	rich: ClassicRichTextControl,
 	image: createImageControl( { MediaUpload } ),
 	link: LinkFormControl,
+	color: createColorControl(
+		() => window.wpAppFramework?.[ WP_APP_FRAMEWORK_SLUG ]?.palette
+	),
 };
 
 /**

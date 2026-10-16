@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Tests\Fixtures\SettingsValid;
 
 use Saij\WpAppFramework\Setting\SettingsGroup;
+use Saij\WpAppFramework\Value\Color;
 use Saij\WpAppFramework\Value\Hidden;
 use Saij\WpAppFramework\Value\Image;
 use Saij\WpAppFramework\Value\Label;
@@ -47,5 +48,7 @@ final readonly class General
         public ContentLink $imprint = new ContentLink(),
         #[PlainText(multiline: true)]
         public string $address = '',
+        #[Color]
+        public string $brand = '#1e4d8c',
     ) {}
 }

@@ -4,10 +4,12 @@ import {
 	MediaUploadCheck,
 	RichText,
 	useBlockEditingMode,
+	useSettings,
 } from '@wordpress/block-editor';
 import { getBlockType } from '@wordpress/blocks';
 import { BaseControl, PanelBody } from '@wordpress/components';
 
+import { createColorControl } from './color-control';
 import { useBlockData } from './context';
 import { useBufferedText, ValueControl } from './controls';
 import { groupControls } from './groups';
@@ -50,11 +52,12 @@ function RichTextValueControl( { control, value, onChange, label } ) {
 	);
 }
 
-/** Controls of block fields and links, which need the block editor. */
+/** Controls of block fields, links and colors, which need the block editor. */
 const FIELD_CONTROLS = {
 	rich: RichTextValueControl,
 	image: createImageControl( { MediaUpload, MediaUploadCheck } ),
 	link: LinkValueControl,
+	color: createColorControl( () => useSettings( 'color.palette' )[ 0 ] ),
 };
 
 /**

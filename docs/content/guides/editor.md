@@ -91,6 +91,7 @@ The runtime generates the block inspector from the attribute class. Each type ge
 | `bool` | toggle |
 | `int`, `float` | number |
 | `string` | text; with `#[Url]` a URL field |
+| [`#[Color]`](./values.md#colors) | the colors of the theme's palette and a color picker with transparency |
 | value class | the controls of its values |
 | field with `inspector: true` | text, rich text or image selection |
 | `#[PlainText(inspector: true, multiline: true)]` | text area |
@@ -100,7 +101,7 @@ The runtime generates the block inspector from the attribute class. Each type ge
 
 Fields of list items that are edited in the canvas stay in the canvas. Typed text is applied after a short pause.
 
-The controls use only stable components of `@wordpress/components`, plus `LinkControl` of `@wordpress/block-editor` for links, so they keep working across WordPress updates. The settings page and classic meta boxes do not load the block editor; there a link has a form of its own, whose search finds posts only (see [Links](./values.md#links)). Their styles (`assets/editor.scss`) are part of the runtime build.
+The controls use only stable components of `@wordpress/components`, plus `LinkControl` of `@wordpress/block-editor` for links and its `useSettings()` for the color palette, so they keep working across WordPress updates. The settings page and classic meta boxes do not load the block editor; there a link has a form of its own, whose search finds posts only (see [Links](./values.md#links)). Their styles (`assets/editor.scss`) are part of the runtime build.
 
 Content attributes (`role: content`) appear in the "Content" group, which stays available in contentOnly mode. All other attributes appear in "Settings". Controls of [block supports](./supports.md) appear in the "Styles" tab (panel "Appearance") or in "Settings", depending on the support's group; like "Settings", they show only in the default editing mode.
 

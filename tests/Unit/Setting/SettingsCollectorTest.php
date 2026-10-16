@@ -56,11 +56,11 @@ final class SettingsCollectorTest extends TestCase
         $links = $properties['links'];
         self::assertSame(['type' => 'string', 'required' => true], $links['items']['properties']['label']);
         self::assertSame(
-            ['tagline' => '', 'density' => 'normal', 'contactUrl' => '', 'count' => 3, 'ratio' => null, 'links' => [], 'secret' => 'x', 'logo' => null, 'footer' => '', 'notice' => '', 'privacyPage' => null, 'featured' => [], 'imprint' => ['url' => '', 'opensInNewTab' => false, 'kind' => 'url', 'id' => 0], 'address' => ''],
+            ['tagline' => '', 'density' => 'normal', 'contactUrl' => '', 'count' => 3, 'ratio' => null, 'links' => [], 'secret' => 'x', 'logo' => null, 'footer' => '', 'notice' => '', 'privacyPage' => null, 'featured' => [], 'imprint' => ['url' => '', 'opensInNewTab' => false, 'kind' => 'url', 'id' => 0], 'address' => '', 'brand' => '#1e4d8c'],
             $general['default'],
         );
         // Hidden settings have no control.
-        self::assertSame(['tagline', 'density', 'contactUrl', 'count', 'ratio', 'links', 'logo', 'footer', 'notice', 'privacyPage', 'featured', 'imprint', 'address'], array_keys($general['controls']));
+        self::assertSame(['tagline', 'density', 'contactUrl', 'count', 'ratio', 'links', 'logo', 'footer', 'notice', 'privacyPage', 'featured', 'imprint', 'address', 'brand'], array_keys($general['controls']));
         self::assertSame(['type' => 'string', 'label' => 'Tagline', 'nullable' => false], $general['controls']['tagline']);
         self::assertSame('list', $general['controls']['links']['type']);
     }
@@ -75,6 +75,7 @@ final class SettingsCollectorTest extends TestCase
         self::assertSame(['type' => 'reference', 'label' => 'Privacy page', 'nullable' => true, 'target' => 'post', 'subtypes' => ['page']], $general['controls']['privacyPage']);
         self::assertSame('references', $general['controls']['featured']['type']);
         self::assertSame(['type' => 'plain', 'label' => 'Address', 'nullable' => false, 'multiline' => true], $general['controls']['address']);
+        self::assertSame(['type' => 'color', 'label' => 'Brand', 'nullable' => false], $general['controls']['brand']);
     }
 
     public function testLinksHaveTheLinkControl(): void

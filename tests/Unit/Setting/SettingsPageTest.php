@@ -40,7 +40,7 @@ final class SettingsPageTest extends TestCase
     protected function tearDown(): void
     {
         Files::remove($this->build);
-        unset($GLOBALS['wp_app_framework_test_scripts'], $GLOBALS['wp_app_framework_test_styles'], $GLOBALS['wp_app_framework_test_pages'], $GLOBALS['wp_app_framework_test_media'], $GLOBALS['wp_app_framework_test_editor']);
+        unset($GLOBALS['wp_app_framework_test_scripts'], $GLOBALS['wp_app_framework_test_styles'], $GLOBALS['wp_app_framework_test_pages'], $GLOBALS['wp_app_framework_test_media'], $GLOBALS['wp_app_framework_test_editor'], $GLOBALS['wp_app_framework_test_global_settings']);
     }
 
     private function page(ProjectKind $kind = ProjectKind::Theme): SettingsPage
@@ -84,6 +84,7 @@ final class SettingsPageTest extends TestCase
     public function testScriptAndStylesLoadOnTheSettingsPageOnly(): void
     {
         $this->writeBuild();
+        $GLOBALS['wp_app_framework_test_global_settings'] = ['color.palette' => ['theme' => [['name' => 'Primary', 'slug' => 'primary', 'color' => '#1e4d8c']]]];
         $page = $this->page();
 
         // Before the menu exists and on other pages, nothing is loaded.
@@ -97,7 +98,14 @@ final class SettingsPageTest extends TestCase
         self::assertSame('https://example.test/build/vendor/wp-app-framework/settings.js', $script['src']);
         self::assertSame(['wp-components', 'wp-core-data'], $script['deps']);
         self::assertTrue($script['enqueued']);
-        self::assertSame([$page->configScript()], $script['before']);
+        // The fixture has a color setting: the hex colors of the palette follow the configuration.
+        self::assertSame(
+            [
+                $page->configScript(),
+                'window.wpAppFramework = window.wpAppFramework || {}; window.wpAppFramework["my-theme"] = window.wpAppFramework["my-theme"] || {}; window.wpAppFramework["my-theme"].palette = [{"name":"Primary","color":"#1e4d8c"}];',
+            ],
+            $script['before'],
+        );
 
         // The fixture has image and rich text settings: media library and classic editor.
         self::assertSame(1, $GLOBALS['wp_app_framework_test_media'] ?? 0);

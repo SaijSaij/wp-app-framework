@@ -11,6 +11,7 @@ use Saij\WpAppFramework\Rest\Permission\Callback;
 use Saij\WpAppFramework\Rest\Permission\PublicAccess;
 use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestRoute;
+use Saij\WpAppFramework\Value\Color;
 use Saij\WpAppFramework\Value\ListOf;
 use Saij\WpAppFramework\Value\Url;
 
@@ -34,6 +35,12 @@ final class BrokenListController
 
     #[RestRoute('/format', HttpMethod::Get, new PublicAccess())]
     public function format(#[Url] #[Param(format: Format::Uri)] string $link = ''): bool
+    {
+        return true;
+    }
+
+    #[RestRoute('/pattern', HttpMethod::Get, new PublicAccess())]
+    public function pattern(#[Color] #[Param(pattern: '^#')] string $color = ''): bool
     {
         return true;
     }

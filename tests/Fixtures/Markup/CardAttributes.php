@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\Markup;
 
+use Saij\WpAppFramework\Value\Color;
 use Saij\WpAppFramework\Value\Link as ContentLink;
 use Saij\WpAppFramework\Value\ListOf;
 use Saij\WpAppFramework\Value\PlainText;
@@ -22,5 +23,7 @@ final readonly class CardAttributes
         public array $items = [],
         public int $count = 1,
         public ContentLink $cta = new ContentLink(),
+        #[Color]
+        public string $accent = '',
     ) {}
 }

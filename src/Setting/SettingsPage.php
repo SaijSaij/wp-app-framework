@@ -105,8 +105,8 @@ final class SettingsPage
         $this->assets->registerStyle($handle, self::SCRIPT, ['wp-components'], $version);
         wp_enqueue_style($handle);
 
-        // The media library for #[Image] settings, the classic editor for #[RichText] settings.
-        FormAssets::enqueue(array_column($this->groups, 'controls'));
+        // The media library for #[Image] settings, the classic editor for #[RichText] settings, the palette for #[Color].
+        FormAssets::enqueue(array_column($this->groups, 'controls'), $handle, $this->slug);
     }
 
     /**

@@ -423,8 +423,8 @@ export function ListControl( {
  * @param {(value: import('./paths').AttributeValue) => void} props.onChange
  * @param {string}                                            [props.label]         Overrides the label (list items).
  * @param {string}                                            [props.path]          Pattern of the value, for list item titles.
- * @param {Object}                                            [props.fieldControls] Controls of block fields and links by type
- *                                                                                  ("rich", "image", "link"), passed in by the
+ * @param {Object}                                            [props.fieldControls] Controls of block fields, links and colors by
+ *                                                                                  type ("rich", "image", "link", "color"), passed in by the
  *                                                                                  inspector, the settings page and the meta forms.
  */
 export function ValueControl( props ) {
@@ -449,7 +449,8 @@ export function ValueControl( props ) {
 			return <TextValueControl { ...props } />;
 		case 'rich':
 		case 'image':
-		case 'link': {
+		case 'link':
+		case 'color': {
 			const FieldControl = fieldControls?.[ control.type ];
 			if ( ! FieldControl ) {
 				throw new Error(

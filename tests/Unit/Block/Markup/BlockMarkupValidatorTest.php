@@ -122,6 +122,7 @@ final class BlockMarkupValidatorTest extends TestCase
             'templates/index.html:17: block core/heading: not in #[InnerBlocks(allowed)] of fixture/section (fixture/card, core/paragraph).',
             'templates/index.html:22: block fixture/card: attribute "cta.opensInNewTab": expected boolean, got string.',
             'templates/index.html:22: block fixture/card: attribute "cta.kind": "page" is not one of "url", "post", "term", "attachment".',
+            'templates/index.html:22: block fixture/card: attribute "accent": "red" does not match the pattern ^(#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8}))?$.',
             'templates/slides.html:1: block fixture/slide: the block can only be placed directly in fixture/slides (parent).',
             'templates/slides.html:2: block fixture/slide-caption: the block can only be placed inside fixture/slides (ancestor).',
             'templates/slides.html:3: block fixture/slides: the inner blocks differ from the template of the block (fixture/slides: expected [fixture/slide, fixture/slide], found [fixture/slide]), which is locked (templateLock all): the editor replaces them with the template.',

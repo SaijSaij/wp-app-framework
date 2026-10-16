@@ -1,4 +1,8 @@
-import { MediaUpload, MediaUploadCheck } from '@wordpress/block-editor';
+import {
+	MediaUpload,
+	MediaUploadCheck,
+	useSettings,
+} from '@wordpress/block-editor';
 import { useEntityProp } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
 import {
@@ -8,6 +12,7 @@ import {
 import { registerPlugin } from '@wordpress/plugins';
 
 import { ClassicRichTextControl } from './classic-rich-text';
+import { createColorControl } from './color-control';
 import { createImageControl } from './image-control';
 import { LinkValueControl } from './link-control';
 import { MetaForm } from './meta-form';
@@ -15,12 +20,14 @@ import { changeMeta, valueFromMeta } from './meta-data';
 
 /**
  * Controls of rich text (classic editor), images (media library of the block
- * editor) and links (LinkControl of the block editor).
+ * editor), links (LinkControl of the block editor) and colors (palette of the
+ * block editor's settings).
  */
 const FIELD_CONTROLS = {
 	rich: ClassicRichTextControl,
 	image: createImageControl( { MediaUpload, MediaUploadCheck } ),
 	link: LinkValueControl,
+	color: createColorControl( () => useSettings( 'color.palette' )[ 0 ] ),
 };
 
 /**
