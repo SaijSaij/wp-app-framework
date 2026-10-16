@@ -1,4 +1,5 @@
 import { createValue } from './defaults';
+import { createItem } from './identifiers';
 import { getPath, setPath, splitPath } from './paths';
 
 /**
@@ -86,19 +87,29 @@ export function withGhostItems( attributes, ghosts, schemas ) {
 }
 
 /**
- * The attributes with one new item added to a list.
+ * The attributes with one new item added to a list. Unlike the new item
+ * rendered before the click, it gets its identifier (#[Identifier]) here:
+ * a random one in every render would change the render key each time.
  *
  * @param {Object} attributes
  * @param {string} path       Path of the list.
  * @param {Object} schemas    Attribute schemas of the block type.
+ * @param {Object} controls   Inspector controls of the block by attribute.
  * @return {Object} Changed top-level attribute, for setAttributes().
  */
-export function addItem( attributes, path, schemas ) {
+export function addItem( attributes, path, schemas, controls ) {
 	const head = splitPath( path )[ 0 ];
+	const list = getPath( attributes, path );
+	const items = Array.isArray( list ) ? list : [];
 	return {
-		[ head ]: withGhostItems( attributes, { [ path ]: {} }, schemas )[
-			head
-		],
+		[ head ]: setPath( attributes, path, [
+			...items,
+			createItem(
+				schemaAt( schemas, path ).items,
+				controlAt( controls, path )?.identifier,
+				items
+			),
+		] )[ head ],
 	};
 }
 

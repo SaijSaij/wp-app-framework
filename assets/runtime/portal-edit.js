@@ -249,11 +249,12 @@ export function PortalEdit( {
 				addItem(
 					attributes,
 					path,
-					getBlockType( name )?.attributes ?? {}
+					getBlockType( name )?.attributes ?? {},
+					block.controls
 				)
 			);
 		},
-		[ ghosts, attributes, setAttributes, name ]
+		[ ghosts, attributes, setAttributes, name, block.controls ]
 	);
 	const innerOptions = useMemo(
 		() =>

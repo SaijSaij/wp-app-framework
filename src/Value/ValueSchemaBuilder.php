@@ -32,6 +32,9 @@ use Throwable;
  *
  * A color (`#[Color]`) is a string with a `pattern` and a control of its own.
  *
+ * An identifier (`#[Identifier]`) is a string of a list item with a `pattern` and no control; the list it belongs to
+ * names it in its value description and its control (`identifier`), so the list editors can generate it.
+ *
  * References (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are
  * IDs on `?int` (one) or `array` (a list of IDs) with a search control; in
  * blocks they count as content.
@@ -57,10 +60,10 @@ use Throwable;
  * @phpstan-type EditorField array{path: string, kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true, postContent?: true, excerpt?: true, multiline?: true}
  * @phpstan-type Control array<string, mixed>
  * @phpstan-type Field array{schema: array<string, mixed>, value: Value, content: bool, fields: list<EditorField>, control: Control|null}
- * @phpstan-type ClassField array{schema: array<string, mixed>, value: ClassValue, content: bool, fields: list<EditorField>, control: Control|null}
+ * @phpstan-type ClassField array{schema: array<string, mixed>, value: ClassValue, content: bool, fields: list<EditorField>, control: Control|null, identifier?: non-empty-string}
  * @phpstan-import-type Reference from ValueFactory
  * @phpstan-type PostClass array{name: non-empty-string, restBase: non-empty-string}
- * @phpstan-type Markers array{content: bool, url: bool, color: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, multiline: bool, label: string, hidden: bool, reference: Reference|null}
+ * @phpstan-type Markers array{content: bool, url: bool, color: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, multiline: bool, label: string, hidden: bool, reference: Reference|null, identifier: bool}
  */
 #[NoService]
 final class ValueSchemaBuilder
@@ -86,6 +89,9 @@ final class ValueSchemaBuilder
 
     /** @var list<class-string> Value classes being checked, to detect recursion. */
     private array $pending = [];
+
+    /** @var array<class-string, true> Value classes used as items of #[ListOf]. */
+    private array $listItems = [];
 
     /** @var list<string> */
     private array $errors = [];
@@ -181,14 +187,22 @@ final class ValueSchemaBuilder
                     'control' => $markers['hidden'] ? null : ['type' => 'references', 'label' => $markers['label'], 'nullable' => $nullable] + array_diff_key((array) $item['control'], ['type' => true, 'label' => true, 'nullable' => true]) + $limits + ['itemLabel' => self::itemLabel($listOf)],
                 ];
             }
+            $this->listItems[$listOf->class] = true;
             $item = $this->classField($listOf->class, false, sprintf('%s: #[ListOf]', $location), $settings);
             if ($item === null) {
+                return null;
+            }
+            $identifier = $item['identifier'] ?? null;
+            $error = $identifier === null ? null : self::defaultIdentifierError($parameter, $identifier, $location);
+            if ($error !== null) {
+                $this->errors[] = $error;
+
                 return null;
             }
 
             return [
                 'schema' => ['type' => self::type('array', $nullable), 'items' => $item['schema']],
-                'value' => ['type' => 'list', 'items' => $item['value'], 'nullable' => $nullable, ...$limits],
+                'value' => ['type' => 'list', 'items' => $item['value'], 'nullable' => $nullable, ...$limits, ...($identifier !== null ? ['identifier' => $identifier] : [])],
                 'content' => $markers['content'] || $item['content'],
                 'fields' => self::prefixFields('*', $item['fields']),
                 'control' => $markers['hidden'] ? null : [
@@ -199,6 +213,7 @@ final class ValueSchemaBuilder
                     ...$limits,
                     'itemLabel' => self::itemLabel($listOf),
                     ...($listOf->appender ? ['appender' => true] : []),
+                    ...($identifier !== null ? ['identifier' => $identifier] : []),
                 ],
             ];
         }
@@ -222,6 +237,20 @@ final class ValueSchemaBuilder
                     return null;
                 }
                 $schema['pattern'] = Color::PATTERN;
+            }
+            if ($markers['identifier']) {
+                $default = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null;
+                $error = match (true) {
+                    $this->pending === [] => ': #[Identifier] is only allowed on a parameter of a value class that is an item of #[ListOf]',
+                    $default !== '' => ': the default of an identifier must be \'\', the value of an item without identifier yet; the list editors generate it',
+                    default => null,
+                };
+                if ($error !== null) {
+                    $this->errors[] = $location . $error . '.';
+
+                    return null;
+                }
+                $schema['pattern'] = Identifier::PATTERN;
             }
             if ($markers['postContent']) {
                 // Without selector, WordPress parses the whole inner HTML of the block into the value.
@@ -260,14 +289,18 @@ final class ValueSchemaBuilder
                 $control['type'] = 'color';
                 $value['color'] = true;
             }
+            if ($markers['identifier']) {
+                $value['identifier'] = true;
+            }
 
             return [
                 'schema' => $schema,
                 'value' => $value,
                 'content' => $markers['content'],
                 'fields' => $fields,
-                // Canvas fields have no inspector control; fields with inspector: true and images in settings have one instead.
-                'control' => ($markers['kind'] !== null && !$markers['inspector'] && !$settings) || $markers['hidden'] ? null : $control,
+                // Canvas fields have no inspector control; fields with inspector: true and images in settings have one
+                // instead. Identifiers are generated, never edited.
+                'control' => ($markers['kind'] !== null && !$markers['inspector'] && !$settings) || $markers['hidden'] || $markers['identifier'] ? null : $control,
             ];
         }
 
@@ -283,6 +316,11 @@ final class ValueSchemaBuilder
 
         $field = $this->classField($name, $nullable, $location, $settings);
         if ($field === null) {
+            return null;
+        }
+        if (isset($field['identifier'])) {
+            $this->errors[] = sprintf('%s: value class %s has #[Identifier] on $%s, which is only allowed in items of #[ListOf]; here the class is a value of its own.', $location, $name, $field['identifier']);
+
             return null;
         }
         $field['content'] = $field['content'] || $markers['content'];
@@ -538,8 +576,81 @@ final class ValueSchemaBuilder
      */
     public function errors(): array
     {
+        $errors = $this->errors;
+        foreach ([...$this->settingsObjects, ...$this->objects] as $class => $fields) {
+            foreach ($fields ?? [] as $name => $field) {
+                if (($field['value']['identifier'] ?? null) === true && !isset($this->listItems[$class])) {
+                    $errors[] = sprintf('parameter $%s of %s::__construct() has #[Identifier], which is only allowed in value classes that are items of #[ListOf]; %s is no list item.', $name, $class, self::shortName($class));
+                }
+            }
+        }
+
         // A value class used by blocks and settings reports its errors once.
-        return array_values(array_unique($this->errors));
+        return array_values(array_unique($errors));
+    }
+
+    /**
+     * The paths of the identifiers in the given fields, e.g. "schemes.*.id" (`*` for list items), for filling them
+     * in when a value is saved.
+     *
+     * @param array<string, Field> $fields
+     * @return list<string>
+     */
+    public function identifierPaths(array $fields): array
+    {
+        $paths = [];
+        foreach ($fields as $name => $field) {
+            array_push($paths, ...$this->valueIdentifierPaths($field['value'], $name));
+        }
+
+        return $paths;
+    }
+
+    /**
+     * @param Value $value
+     * @return list<string>
+     */
+    private function valueIdentifierPaths(array $value, string $path): array
+    {
+        if ($value['type'] === 'list') {
+            $paths = isset($value['identifier']) ? [$path . '.*.' . $value['identifier']] : [];
+
+            return [...$paths, ...$this->valueIdentifierPaths($value['items'], $path . '.*')];
+        }
+        if ($value['type'] !== 'object' || !isset($value['class'])) {
+            return [];
+        }
+        $fields = $this->settingsObjects[$value['class']] ?? $this->objects[$value['class']] ?? [];
+        $paths = [];
+        foreach ($fields as $name => $field) {
+            array_push($paths, ...$this->valueIdentifierPaths($field['value'], $path . '.' . $name));
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Checks the identifiers of the items in the default of a list: valid and unique, or empty.
+     */
+    private static function defaultIdentifierError(ReflectionParameter $parameter, string $identifier, string $location): ?string
+    {
+        $default = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null;
+        $seen = [];
+        foreach (is_array($default) ? $default : [] as $index => $item) {
+            $value = is_object($item) ? (get_object_vars($item)[$identifier] ?? '') : '';
+            if (!is_string($value) || $value === '') {
+                continue;
+            }
+            if (!Identifier::isIdentifier($value)) {
+                return sprintf('%s: item %d of the default has the identifier "%s"; an identifier has eight lowercase hex digits, or is empty to be generated.', $location, $index, $value);
+            }
+            if (in_array($value, $seen, true)) {
+                return sprintf('%s: the identifier "%s" appears twice in the default.', $location, $value);
+            }
+            $seen[] = $value;
+        }
+
+        return null;
     }
 
     /**
@@ -557,6 +668,7 @@ final class ValueSchemaBuilder
         $url = $parameter->getAttributes(Url::class) !== [];
         $color = $parameter->getAttributes(Color::class) !== [];
         $hidden = $parameter->getAttributes(Hidden::class) !== [];
+        $identifier = $parameter->getAttributes(Identifier::class) !== [];
         $labelAttributes = $parameter->getAttributes(Label::class);
         $referenceAttributes = [
             ...$parameter->getAttributes(PostReference::class),
@@ -589,6 +701,11 @@ final class ValueSchemaBuilder
             $color && $type->allowsNull() => 'has #[Color] on ?string; use string, an empty string means no color',
             $color && ($kind !== null || $url) => sprintf('has #[Color] and #[%s]; a color has a control of its own', $kind ?? 'Url'),
             $hidden && $kind !== null => sprintf('has #[Hidden] and #[%s]; the field is edited in the canvas or, with inspector: true, in the inspector, so it cannot be hidden', $kind),
+            $identifier && (!$isString || $type->allowsNull()) => 'has #[Identifier], which is only allowed on string (eight hex digits, an empty string until the identifier is generated)',
+            $identifier && ($referenceAttributes !== [] || $kind !== null || $content || $url || $color || $hidden) => sprintf(
+                'has #[Identifier] and #[%s]; an identifier is generated and has no control',
+                $referenceAttributes !== [] ? self::shortName($referenceAttributes[0]->getName()) : ($kind ?? ($content ? 'Content' : ($url ? 'Url' : ($color ? 'Color' : 'Hidden')))),
+            ),
             default => null,
         };
         if ($error !== null) {
@@ -668,6 +785,7 @@ final class ValueSchemaBuilder
             'label' => $label,
             'hidden' => $hidden,
             'reference' => $reference,
+            'identifier' => $identifier,
         ];
     }
 
@@ -924,8 +1042,12 @@ final class ValueSchemaBuilder
         $content = false;
         $editorFields = [];
         $controls = [];
+        $identifiers = [];
         foreach ($this->classes[$class]->getConstructor()?->getParameters() ?? [] as $parameter) {
             $field = $fields[$parameter->getName()];
+            if (($field['value']['identifier'] ?? null) === true) {
+                $identifiers[] = $parameter->getName();
+            }
             if (array_filter($field['fields'], static fn(array $editorField): bool => $editorField['path'] === '' && ($editorField['postContent'] ?? false)) !== []) {
                 $this->errors[] = sprintf(
                     '%s: parameter $%s of %s::__construct() has #[RichText(postContent: true)], which is only allowed on a parameter of the block attribute class itself, not in value classes or list items.',
@@ -950,8 +1072,15 @@ final class ValueSchemaBuilder
             }
         }
 
+        if (count($identifiers) > 1) {
+            $this->errors[] = sprintf('%s: value class %s has #[Identifier] on $%s; an item has one identifier.', $location, $class, implode(' and $', $identifiers));
+
+            return null;
+        }
+
         /** @var class-string $class */
         return [
+            ...($identifiers !== [] ? ['identifier' => $identifiers[0]] : []),
             'schema' => ['type' => self::type('object', $nullable), 'properties' => $properties],
             'value' => ['type' => 'object', 'class' => $class, 'nullable' => $nullable],
             // A link is content with a control of its own instead of the controls of its values.

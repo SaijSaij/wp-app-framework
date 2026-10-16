@@ -24,7 +24,8 @@ use Throwable;
  *     schema: array{type: 'object', properties: array<string, array<string, mixed>>},
  *     default: array<string, mixed>,
  *     controls: array<string, Control>,
- *     richText: list<string>
+ *     richText: list<string>,
+ *     identifiers: list<string>
  * }
  */
 #[NoService]
@@ -197,6 +198,7 @@ final class SettingsCollector
             'default' => $default,
             'controls' => $controls,
             'richText' => $richText,
+            'identifiers' => $this->values->identifierPaths($fields ?? []),
         ];
     }
 }

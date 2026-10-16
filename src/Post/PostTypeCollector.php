@@ -57,7 +57,8 @@ use Throwable;
  *     schema: array<string, mixed>,
  *     default: mixed,
  *     id: bool,
- *     richText: list<string>
+ *     richText: list<string>,
+ *     identifiers: list<string>
  * }
  * @phpstan-type MetaEntry array{
  *     name: non-empty-string,
@@ -413,6 +414,11 @@ final class PostTypeCollector
                     static fn(array $editorField): string => $editorField['path'],
                     array_filter($field['fields'], static fn(array $editorField): bool => $editorField['kind'] === 'rich'),
                 )),
+                // Relative to the value of the meta key, like the paths of rich text.
+                'identifiers' => array_map(
+                    static fn(string $path): string => substr($path, strlen($name) + 1),
+                    $this->values->identifierPaths([$name => $field]),
+                ),
             ];
             if ($field['control'] !== null) {
                 $controls[$name] = $field['control'];

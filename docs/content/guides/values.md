@@ -140,6 +140,61 @@ The following are build errors:
 
 A stored value that is no color is a [wrong value](#wrong-values). The build checks colors in templates and patterns against the pattern.
 
+## Identifiers
+
+Some list items are referred to from elsewhere: a block picks one of the color schemes listed in the settings, a tab is opened by a link. The position of the item is no good reference, because editors reorder lists, and neither is its name, because they rename items. Mark a string of the item class with [`#[Identifier]`](../api/php/Value/Identifier.md) (namespace `Saij\WpAppFramework\Value\`), and each item gets an identifier that never changes:
+
+```php
+use Saij\WpAppFramework\Value\Color;
+use Saij\WpAppFramework\Value\Identifier;
+use Saij\WpAppFramework\Value\PlainText;
+
+final readonly class ColorScheme
+{
+    public function __construct(
+        #[Identifier] public string $id = '',
+        #[PlainText] public string $name = '',
+        #[Color] public string $background = '#ffffff',
+    ) {}
+}
+```
+
+An identifier is eight lowercase hex digits, such as `3f9a1c2e`. The list editors generate it when an item is added – in the block inspector, in the canvas of the block editor, on the settings page and in meta boxes – unique within the list. Editors never see or change it; it has no control. Store it wherever you refer to the item, and look the item up by it:
+
+```twig
+{% set scheme = settings.design.schemes|filter(s => s.id == attrs.scheme)|first %}
+```
+
+An item that was stored before its class had an identifier has the empty string. When a settings group or post meta is saved, the framework fills in such missing identifiers and gives a duplicate a new one; the first item with an identifier keeps it. Block attributes are saved by the block editor without the framework, so an old item of a block keeps `''` until it is removed and added again.
+
+Items in the default of a list have no identifier either, unless you give them one. Write a fixed identifier into an item the theme refers to itself, for example the first color scheme:
+
+```php
+#[ListOf(ColorScheme::class, min: 1)]
+public array $schemes = [new ColorScheme('a1b2c3d4', 'Page')],
+```
+
+### Rules
+
+| Rule | |
+|---|---|
+| Type | `string`, never nullable; default `''` |
+| Allowed in | value classes that are items of `#[ListOf]`, in block attributes, settings groups, meta classes and REST arguments; one identifier per item class |
+| Schema | `string` with a `pattern` that allows eight lowercase hex digits and the empty string |
+| Control | none; generated when an item is added |
+| Filled in | when a settings group or post meta is saved: missing, invalid and duplicate identifiers |
+
+The following are build errors:
+
+- `#[Identifier]` on another type than `string`, or on `?string`;
+- a default other than `''`;
+- `#[Identifier]` together with `#[PlainText]`, `#[RichText]`, `#[Image]`, `#[Content]`, `#[Url]`, `#[Color]`, `#[Hidden]` or a reference;
+- `#[Identifier]` on a parameter of a class that is no list item – a block attribute class, a settings group, a meta class, a value class used as a single value, a REST argument;
+- two identifiers in one item class;
+- an item in the default of a list whose identifier is invalid or appears twice.
+
+A stored value that is no identifier is a [wrong value](#wrong-values). The build checks identifiers in templates and patterns against the pattern.
+
 ## Links
 
 A call to action, a link in a footer setting, a registration link of an event: a link points either to content of the site or to any address. `#[Url]` stores the address as text, so a link to a page breaks when someone changes the page's slug. A `Link` (namespace `Saij\WpAppFramework\Value\`) stores the ID of the page instead, and the framework looks up its current URL when it renders – the same idea as [references](#references), plus a URL entered freely and "Open in new tab".

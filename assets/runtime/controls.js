@@ -10,6 +10,7 @@ import { useContext, useEffect, useRef, useState } from '@wordpress/element';
 
 import { BlockDataContext } from './context';
 import { createValue } from './defaults';
+import { createItem } from './identifiers';
 import { listItemTitle, listLimits, moveItem } from './list';
 import { ListCards, useListCards } from './list-cards';
 import { LimitNotice } from './list-notice';
@@ -362,7 +363,14 @@ export function ListControl( {
 					accessibleWhenDisabled
 					onClick={ () => {
 						cards.add();
-						onChange( [ ...items, createValue( schema.items ) ] );
+						onChange( [
+							...items,
+							createItem(
+								schema.items,
+								control.identifier,
+								items
+							),
+						] );
 					} }
 				>
 					Add item

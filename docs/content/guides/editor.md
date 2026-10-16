@@ -48,7 +48,7 @@ To know which element is an item, the template marks the root element of each it
 {% endfor %}
 ```
 
-The new item is an item of the list for your template: in renders for the editor, `attrs.buttons` has one more entry, created like an item added in the inspector (the defaults of the item class, empty values otherwise). So a template that hides an empty list shows it in the editor, and a template that computes something from the number of items sees one more there. On the front end, the list holds only the stored items, and `list_item()` returns an empty string.
+The new item is an item of the list for your template: in renders for the editor, `attrs.buttons` has one more entry, created like an item added in the inspector (the defaults of the item class, empty values otherwise), except for an [identifier](./values.md#identifiers): it is `''` until the click adds the item. So a template that hides an empty list shows it in the editor, and a template that computes something from the number of items sees one more there. On the front end, the list holds only the stored items, and `list_item()` returns an empty string.
 
 If the template renders the new item without `list_item()`, the block shows an error in the editor instead of an item that looks real but is not stored. A path that names no list with appender throws an exception, like a wrong path of `field()`.
 
@@ -113,7 +113,7 @@ The runtime generates the block inspector from the attribute class. Each type ge
 | `#[PlainText(inspector: true, multiline: true)]` | text area |
 | [`Link`](./values.md#links) | the label and the shortened URL; a click opens the link control of the block editor (search of posts, terms and media files, "Open in new tab") |
 | [reference](./values.md#references) | search; a list shows cards with move and remove |
-| list | one collapsed card per item (and, with `appender: true`, a [new item in the canvas](#new-list-items-in-the-canvas)): a drag handle, the title (its first text value, the label of an enum case, else the [item label](./values.md#lists) with its number, e.g. "Badge 2"), which expands and collapses the item's controls, and an actions menu (move up, move down, remove); "Add item" adds an expanded item; the [limits](./values.md#lists) of the list disable adding and removing, and items beyond `max` are marked as unused |
+| list | one collapsed card per item (and, with `appender: true`, a [new item in the canvas](#new-list-items-in-the-canvas)): a drag handle, the title (its first text value, the label of an enum case, else the [item label](./values.md#lists) with its number, e.g. "Badge 2"), which expands and collapses the item's controls, and an actions menu (move up, move down, remove); "Add item" adds an expanded item, with a new [identifier](./values.md#identifiers) if the items have one; the [limits](./values.md#lists) of the list disable adding and removing, and items beyond `max` are marked as unused |
 
 Fields of list items that are edited in the canvas stay in the canvas. Typed text is applied after a short pause.
 

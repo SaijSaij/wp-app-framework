@@ -60,6 +60,7 @@ Some markers from blocks have a meaning in settings too:
 - **[`Link`](./values.md#links)** is a link to a post or a free URL, with "Open in new tab": a search of published posts and a URL field. Print it with `link_attributes()`.
 - **`#[RichText(allowedFormats: null)]`** is edited with WordPress' classic editor, because the rich text of the block editor works only inside a block. `allowedFormats` may contain `core/bold`, `core/italic`, `core/link`, `core/strikethrough`, `core/subscript` and `core/superscript`; other formats are build errors. The editor keeps only these elements and line breaks, without paragraphs. Print rich text with `|raw`. When a user without `unfiltered_html` saves (for example on multisite), it is filtered with `wp_kses_post()`.
 - **[References](./values.md#references)** (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are chosen with a search, one or as a list.
+- **[`#[Identifier]`](./values.md#identifiers)** in a list item gives each item an identifier that blocks and other settings can refer to. The settings page generates it when an item is added and never shows it.
 
 Other markers do not fit:
 
@@ -71,7 +72,7 @@ A group class is not a service. It is created from the stored values, never auto
 
 ## Storage
 
-Each group is stored in its own option, named `{namespace}_{name}`, where `{namespace}` is the namespace of the theme or plugin (`extra.wp-app-framework.namespace`) with `_` instead of `-`. A theme with the namespace `my-theme` stores the group `general` in `my_theme_general`. The option holds an object with every setting of the group; settings missing from a saved object get their default.
+Each group is stored in its own option, named `{namespace}_{name}`, where `{namespace}` is the namespace of the theme or plugin (`extra.wp-app-framework.namespace`) with `_` instead of `-`. A theme with the namespace `my-theme` stores the group `general` in `my_theme_general`. The option holds an object with every setting of the group; settings missing from a saved object get their default, and list items with [`#[Identifier]`](./values.md#identifiers) get missing, invalid and duplicate identifiers filled in.
 
 The framework registers the option with `register_setting()` on `init`, with its schema and `show_in_rest`. That makes it readable and writable through `/wp/v2/settings` under the same name. WordPress validates and sanitizes saved values against the schema there, and requires the capability `manage_options` for reading and saving.
 

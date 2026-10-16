@@ -85,7 +85,7 @@ final class EventDetails
 }
 ```
 
-Each field is stored in its own meta key: the namespace, `_` and the field name in snake case, here `sections_start`, `sections_capacity`, `sections_venue`. The framework registers each key with `register_post_meta()`, with the schema of the field, so the REST API validates every value. Meta classes follow the rules of [values](./values.md) with the markers of [settings](./settings.md#types-of-settings): rich text is edited with the classic editor, images with the media library.
+Each field is stored in its own meta key: the namespace, `_` and the field name in snake case, here `sections_start`, `sections_capacity`, `sections_venue`. The framework registers each key with `register_post_meta()`, with the schema of the field, so the REST API validates every value. Meta classes follow the rules of [values](./values.md) with the markers of [settings](./settings.md#types-of-settings): rich text is edited with the classic editor, images with the media library, and list items with [`#[Identifier]`](./values.md#identifiers) get missing, invalid and duplicate identifiers filled in when a value is saved.
 
 A field typed as a post class – `?Venue` here – refers to a post: it is stored as the ID and you get the object of the post. A list of `#[ListOf(Venue::class)]` stores IDs as well.
 

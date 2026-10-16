@@ -8,6 +8,7 @@ use LogicException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Project\NamePrefix;
 use Saij\WpAppFramework\Value\HtmlFilter;
+use Saij\WpAppFramework\Value\Identifiers;
 use Saij\WpAppFramework\Value\ValueFactory;
 
 /**
@@ -159,7 +160,8 @@ final class SettingsStore
     /**
      * The value to store: settings missing in a saved object get their default,
      * so the option always holds every setting (the REST API also accepts
-     * objects with only some of them).
+     * objects with only some of them), and list items without a valid or with
+     * a duplicate identifier (`#[Identifier]`) get a new one.
      *
      * @param SettingsGroupEntry $group
      * @return array<string, mixed>
@@ -179,8 +181,8 @@ final class SettingsStore
         /** @var array<string, mixed> $value */
         $value += $group['default'];
 
-        /** @var array<string, mixed> The filter keeps the shape of an array. */
-        return HtmlFilter::filter($value, $group['richText']);
+        /** @var array<string, mixed> Filter and fill keep the shape of an array. */
+        return Identifiers::fill(HtmlFilter::filter($value, $group['richText']), $group['identifiers']);
     }
 
     private static function log(string $message): void

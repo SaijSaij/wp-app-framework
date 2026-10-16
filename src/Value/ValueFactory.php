@@ -50,10 +50,10 @@ use WP_User;
  * @phpstan-type ReferenceValue array{type: 'int', nullable: bool, reference: Reference}
  * Times (`datetime`, columns of tables only) are UTC strings `Y-m-d H:i:s` and become DateTimeImmutable in UTC.
  *
- * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool'|'datetime', nullable: bool, color?: true}
+ * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool'|'datetime', nullable: bool, color?: true, identifier?: true}
  *     |ReferenceValue
  *     |ClassValue
- *     |array{type: 'list', items: ClassValue|ReferenceValue, nullable: bool, min?: int<1, max>, max?: int<1, max>}
+ *     |array{type: 'list', items: ClassValue|ReferenceValue, nullable: bool, min?: int<1, max>, max?: int<1, max>, identifier?: non-empty-string}
  * @phpstan-type ValueField array{value: Value, required: bool}
  */
 #[NoService]
@@ -116,7 +116,11 @@ final readonly class ValueFactory
                 : throw self::mismatch($path, $value, $raw),
             // JSON does not distinguish 1 from 1.0.
             'float' => is_float($raw) || is_int($raw) ? (float) $raw : throw self::mismatch($path, $value, $raw),
-            'string' => is_string($raw) ? (isset($value['color']) ? self::createColor($raw, $path) : $raw) : throw self::mismatch($path, $value, $raw),
+            'string' => is_string($raw) ? match (true) {
+                isset($value['color']) => self::createColor($raw, $path),
+                isset($value['identifier']) => self::createIdentifier($raw, $path),
+                default => $raw,
+            } : throw self::mismatch($path, $value, $raw),
             'bool' => is_bool($raw) ? $raw : throw self::mismatch($path, $value, $raw),
             'datetime' => is_string($raw) ? self::createDateTime($raw, $path) : throw self::mismatch($path, $value, $raw),
             'enum' => $this->createEnum($value['class'], $raw, $path),
@@ -248,6 +252,19 @@ final readonly class ValueFactory
     {
         if (!Color::isColor($raw)) {
             throw new InvalidArgumentException(sprintf('Value "%s" must be a hex color or an empty string, %s given.', $path, var_export($raw, true)));
+        }
+
+        return $raw;
+    }
+
+    /**
+     * An identifier (`#[Identifier]`): checked again, because not every way a value is stored validates it against
+     * its schema.
+     */
+    private static function createIdentifier(string $raw, string $path): string
+    {
+        if (!Identifier::isIdentifier($raw)) {
+            throw new InvalidArgumentException(sprintf('Value "%s" must be an identifier of eight lowercase hex digits or an empty string, %s given.', $path, var_export($raw, true)));
         }
 
         return $raw;

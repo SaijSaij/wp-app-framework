@@ -6,6 +6,7 @@ namespace Saij\WpAppFramework\Post;
 
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Value\HtmlFilter;
+use Saij\WpAppFramework\Value\Identifiers;
 
 /**
  * Registers the post types, taxonomies and meta fields of an instance on `init`
@@ -57,13 +58,15 @@ final readonly class PostTypeRegistrar
                 $type = $posts[$postClass]['name'];
                 foreach ($meta['fields'] as $field) {
                     $richText = $field['richText'];
+                    $identifiers = $field['identifiers'];
                     register_post_meta($type, $field['key'], [
                         'type' => $field['type'],
                         'single' => true,
                         'default' => $field['default'],
                         'show_in_rest' => ['schema' => $field['schema']],
-                        // Like block attributes (filter_block_kses()): HTML of users without unfiltered_html is filtered.
-                        'sanitize_callback' => static fn(mixed $value): mixed => HtmlFilter::filter($value, $richText),
+                        // Like block attributes (filter_block_kses()): HTML of users without unfiltered_html is
+                        // filtered. List items get missing and duplicate identifiers (#[Identifier]).
+                        'sanitize_callback' => static fn(mixed $value): mixed => Identifiers::fill(HtmlFilter::filter($value, $richText), $identifiers),
                         // register_meta() requires revision support of the type for revisioned meta (meta.php).
                         'revisions_enabled' => post_type_supports($type, 'revisions'),
                     ]);
