@@ -5,12 +5,12 @@
 <title>Twig templates - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-03fb1368cb29.95d2574a43.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-03fb1368cb29.bb80715261.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.262748710a.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.db9b86ab11.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -115,7 +115,7 @@
 <p>The functions handle missing data for you:</p>
 <ul>
 <li>IDs may be <code>null</code>, for example an empty <code>#[Image]</code> or <a href="/wp-app-framework/next/guides/values.html#references" class="rp-link">reference</a>. <code>null</code> and objects that do not exist give <code>&#x27;&#x27;</code>, so a template does not need to check first.</li>
-<li>Posts that are not publicly viewable count as missing, except when the block editor renders the block. Attachments are not checked for visibility.</li>
+<li>Posts that are not publicly viewable count as missing, except when the block editor renders the block: a draft, or a post of a type that is not public. Attachments are not checked for visibility. <code>post()</code> checks only the status, so it also returns posts of your data types (see <a href="/wp-app-framework/next/guides/posts.html#templates" class="rp-link">Posts</a>).</li>
 </ul>
 <p>Text is escaped by Twig. Some values come from WordPress already escaped: term and user names, the site name and description, and the logout URL. The framework decodes them first, so they are not escaped twice. Functions marked HTML below print their result unescaped.</p>
 

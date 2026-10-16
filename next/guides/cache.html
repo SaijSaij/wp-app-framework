@@ -5,12 +5,12 @@
 <title>Cache - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-6c9393be44f1.b18fb3e3fb.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-6c9393be44f1.dfc24584a0.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.262748710a.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.db9b86ab11.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -107,8 +107,8 @@
 <p>Three tags are invalidated by the framework itself:</p>
 <ul>
 <li><code>PostTypeTag(&#x27;product&#x27;)</code> when a post of that type is created, changed, trashed, deleted, changes its status or its post meta. The edit lock the block editor sets while somebody edits a post does not count. Name your own post types by their <a href="/wp-app-framework/next/guides/posts.html" class="rp-link">post class</a>: <code>new PostTypeTag(Event::class)</code>.</li>
-<li><code>TaxonomyTag(&#x27;category&#x27;)</code> or <code>TaxonomyTag(Category::class)</code> when a term of that taxonomy is created, changed or deleted, changes its term meta, or is assigned to or removed from a post.</li>
-<li><code>SettingsTag(SiteSettings::class)</code> when the <a href="/wp-app-framework/next/guides/settings.html" class="rp-link">settings group</a> is saved.</li>
+<li><code>TaxonomyTag(&#x27;category&#x27;)</code> or <code>TaxonomyTag(Category::class)</code> when a term of that taxonomy is created, changed or deleted, changes its term meta, or is assigned to or removed from a post or another object, such as a user in a taxonomy for users.</li>
+<li><code>SettingsTag(SiteSettings::class)</code> when the <a href="/wp-app-framework/next/guides/settings.html" class="rp-link">settings group</a> is saved, or when its option is deleted, which resets the group to its defaults.</li>
 </ul>
 <p>For everything else, define tags of your own. A tag is a case of a string-backed enum that implements <code>CacheTag</code>:</p>
 <div class="rp-codeblock language-php"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="php"><code><span class="line"><span style="color:var(--shiki-token-keyword)">use</span><span style="color:var(--shiki-token-constant)"> Saij</span><span style="color:var(--shiki-token-punctuation)">\</span><span style="color:var(--shiki-token-constant)">WpAppFramework</span><span style="color:var(--shiki-token-punctuation)">\</span><span style="color:var(--shiki-token-constant)">Cache</span><span style="color:var(--shiki-token-punctuation)">\</span><span style="color:var(--shiki-token-constant)">CacheTag</span><span style="color:var(--shiki-foreground)">;</span></span>

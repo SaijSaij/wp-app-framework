@@ -5,12 +5,12 @@
 <title>Tables - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-7113197d4b84.19aaf4595b.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-7113197d4b84.76b8d78ecb.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.262748710a.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.db9b86ab11.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -306,6 +306,7 @@ The sync makes the tables match your classes, also when that loses data, and als
 
 
 <div class="rp-table-scroll-container rp-scrollbar"><table><thead><tr><th>Method</th><th>Effect</th></tr></thead><tbody><tr><td><code>where(Condition ...$conditions)</code></td><td>All conditions must be met; adds to earlier calls. Conditions on columns of the class only.</td></tr><tr><td><code>orderBy(Field $field, Direction = Asc)</code></td><td>Sorts; further calls sort what is still equal. Without it: by primary key.</td></tr><tr><td><code>limit(int)</code>, <code>offset(int)</code></td><td>At most this many rows (at least 1), skipping some (with <code>limit()</code>).</td></tr><tr><td><code>get()</code></td><td>The rows, as objects of the row class.</td></tr><tr><td><code>first()</code></td><td>The first row or null.</td></tr><tr><td><code>count()</code></td><td>The number of all matching rows, regardless of <code>limit()</code> and <code>offset()</code>.</td></tr><tr><td><code>delete()</code></td><td>Deletes the matching rows (with <code>limit()</code> the first ones) and returns their number; not with <code>offset()</code>.</td></tr></tbody></table></div>
+<p>As in <a href="/wp-app-framework/next/guides/queries.html" class="rp-link">post queries</a>, a value outside the allowed range, such as <code>limit(0)</code>, throws an <code>InvalidArgumentException</code> when you call the method. A combination that does not fit, <code>offset()</code> without <code>limit()</code> in <code>get()</code> or <code>offset()</code> in <code>delete()</code>, throws a <code>LogicException</code> when the query runs.</p>
 <p>Columns and their field classes:</p>
 
 
