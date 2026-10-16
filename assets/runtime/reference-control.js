@@ -1,19 +1,11 @@
 import apiFetch from '@wordpress/api-fetch';
-import {
-	BaseControl,
-	Card,
-	CardHeader,
-	ComboboxControl,
-	DropdownMenu,
-	Flex,
-	FlexBlock,
-	FlexItem,
-} from '@wordpress/components';
+import { BaseControl, ComboboxControl } from '@wordpress/components';
 import { useEffect, useRef, useState } from '@wordpress/element';
 
-import { listLimits } from './list';
-import { LimitNotice, listItemClass, UNUSED_MARK } from './list-notice';
-import { includePath, move, searchPath, titles } from './references';
+import { listLimits, moveItem } from './list';
+import { ListCards, useListCards } from './list-cards';
+import { LimitNotice } from './list-notice';
+import { includePath, searchPath, titles } from './references';
 
 /** Delay before a typed search is sent. */
 const SEARCH_DELAY = 300;
@@ -119,7 +111,7 @@ export function ReferenceControl( { control, value, onChange, label } ) {
 
 /**
  * A list of references (#[PostReference] on array …): search to add, cards to
- * move and remove.
+ * drag, move and remove.
  *
  * @param {Object}                         props
  * @param {Object}                         props.control  Control description.
@@ -132,76 +124,27 @@ export function ReferencesControl( { control, value, onChange, label } ) {
 	const { known, results, search } = useReferences( control, ids );
 	const name = label ?? control.label;
 	const limits = listLimits( control, ids.length );
+	const cards = useListCards( ids.length );
 
 	return (
 		<div className="wp-app-framework-list">
 			<BaseControl.VisualLabel>{ name }</BaseControl.VisualLabel>
 			<LimitNotice limits={ limits } />
-			{ ids.map( ( id, index ) => (
-				<Card
-					size="small"
-					className={ listItemClass( limits, index ) }
-					key={ id }
-				>
-					<CardHeader size="xSmall">
-						<Flex>
-							<FlexBlock className="wp-app-framework-list__title">
-								{ known[ id ] ?? `#${ id }` }
-								{ limits.isUnused( index ) && UNUSED_MARK }
-							</FlexBlock>
-							<FlexItem>
-								<DropdownMenu
-									icon="ellipsis"
-									label={ `Actions for ${
-										known[ id ] ?? `#${ id }`
-									}` }
-									controls={ [
-										{
-											title: 'Move up',
-											icon: 'arrow-up-alt2',
-											isDisabled: index === 0,
-											onClick: () =>
-												onChange(
-													move(
-														ids,
-														index,
-														index - 1
-													)
-												),
-										},
-										{
-											title: 'Move down',
-											icon: 'arrow-down-alt2',
-											isDisabled:
-												index === ids.length - 1,
-											onClick: () =>
-												onChange(
-													move(
-														ids,
-														index,
-														index + 1
-													)
-												),
-										},
-										{
-											title: 'Remove',
-											icon: 'trash',
-											isDisabled: ! limits.canRemove,
-											onClick: () =>
-												onChange(
-													ids.filter(
-														( other ) =>
-															other !== id
-													)
-												),
-										},
-									] }
-								/>
-							</FlexItem>
-						</Flex>
-					</CardHeader>
-				</Card>
-			) ) }
+			<ListCards
+				cards={ cards }
+				limits={ limits }
+				title={ ( index ) =>
+					known[ ids[ index ] ] ?? `#${ ids[ index ] }`
+				}
+				actionsLabel={ ( index ) =>
+					`Actions for ${ known[ ids[ index ] ] ?? `#${ ids[ index ] }` }`
+				}
+				body={ () => null }
+				onMove={ ( from, to ) => onChange( moveItem( ids, from, to ) ) }
+				onRemove={ ( index ) =>
+					onChange( ids.filter( ( _, other ) => other !== index ) )
+				}
+			/>
 			{ limits.canAdd && (
 				<ComboboxControl
 					__next40pxDefaultSize
@@ -215,6 +158,7 @@ export function ReferencesControl( { control, value, onChange, label } ) {
 					onFilterValueChange={ search }
 					onChange={ ( selected ) => {
 						if ( selected ) {
+							cards.add();
 							onChange( [ ...ids, Number( selected ) ] );
 						}
 					} }

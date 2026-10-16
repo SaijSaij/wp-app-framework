@@ -62,14 +62,14 @@ final class ListLimitTest extends TestCase
         $controls = self::gallery($result)->getEditor()['controls'];
         $tone = ['type' => 'enum', 'nullable' => false, 'options' => [['value' => 'light', 'label' => 'light'], ['value' => 'dark', 'label' => 'dark']]];
 
-        self::assertSame(['type' => 'list', 'label' => 'Tones', 'nullable' => false, 'item' => $tone, 'min' => 1, 'max' => 2, 'content' => false], $controls['tones']);
+        self::assertSame(['type' => 'list', 'label' => 'Tones', 'nullable' => false, 'item' => $tone, 'min' => 1, 'max' => 2, 'itemLabel' => 'Tone', 'content' => false], $controls['tones']);
         self::assertSame(3, $controls['slides']['max']);
         self::assertArrayNotHasKey('min', $controls['slides']);
         /** @var array{item: array{fields: array<string, mixed>}} $slides */
         $slides = $controls['slides'];
-        self::assertSame(['type' => 'list', 'label' => 'Tones', 'nullable' => false, 'item' => $tone, 'min' => 1, 'max' => 1], $slides['item']['fields']['tones']);
-        self::assertSame(['type' => 'list', 'label' => 'Free', 'nullable' => false, 'item' => $tone, 'content' => false], $controls['free']);
-        self::assertSame(['type' => 'list', 'label' => 'Optional', 'nullable' => true, 'item' => $tone, 'min' => 2, 'content' => false], $controls['optional']);
+        self::assertSame(['type' => 'list', 'label' => 'Tones', 'nullable' => false, 'item' => $tone, 'min' => 1, 'max' => 1, 'itemLabel' => 'Tone'], $slides['item']['fields']['tones']);
+        self::assertSame(['type' => 'list', 'label' => 'Free', 'nullable' => false, 'item' => $tone, 'itemLabel' => 'Tone', 'content' => false], $controls['free']);
+        self::assertSame(['type' => 'list', 'label' => 'Optional', 'nullable' => true, 'item' => $tone, 'min' => 2, 'itemLabel' => 'Tone', 'content' => false], $controls['optional']);
 
         $values = $result->getValues();
         self::assertSame(
@@ -120,6 +120,7 @@ final class ListLimitTest extends TestCase
             $at('tooMany') . ': the default has 2 item(s), but #[ListOf] allows 0 to 1; a new value would start outside the limits.',
             $at('tooFew') . ': the default has 0 item(s), but #[ListOf] allows at least 1; a new value would start outside the limits.',
             $at('notExactly') . ': the default has 1 item(s), but #[ListOf] allows exactly 2; a new value would start outside the limits.',
+            $at('emptyLabel') . ': itemLabel of #[ListOf] is empty; use null for the name of the class.',
         ];
 
         try {

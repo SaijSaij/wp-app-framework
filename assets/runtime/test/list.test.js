@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { itemTitle, listLimits } from '../list';
+import {
+	dropIndex,
+	itemTitle,
+	listItemTitle,
+	listLimits,
+	moveItem,
+} from '../list';
 
 const fields = {
 	'buttons.*.note': { kind: 'rich' },
@@ -95,5 +101,65 @@ describe( 'listLimits', () => {
 		const limits = listLimits( { min: 2 }, 0 );
 		expect( limits.canRemove ).toBe( false );
 		expect( limits.notice ).toBe( '0 of at least 2 items. Add 2.' );
+	} );
+} );
+
+describe( 'listItemTitle', () => {
+	const options = [
+		{ value: 'star', label: 'Star' },
+		{ value: 'check', label: 'Check' },
+	];
+	const enumList = {
+		item: { type: 'enum', options },
+		itemLabel: 'Icon',
+	};
+	const objectList = {
+		item: { type: 'object', fields: {} },
+		itemLabel: 'Badge',
+	};
+	const badgeFields = { 'badges.*.text': { kind: 'plain' } };
+
+	it( 'uses the label of an enum case', () => {
+		expect( listItemTitle( enumList, 'check', 0, 'icons', {} ) ).toBe(
+			'Check'
+		);
+		expect( listItemTitle( enumList, 'gone', 1, 'icons', {} ) ).toBe(
+			'Icon 2'
+		);
+	} );
+
+	it( 'uses the text of an item, else the item label with its number', () => {
+		expect(
+			listItemTitle(
+				objectList,
+				{ text: 'Fast' },
+				0,
+				'badges',
+				badgeFields
+			)
+		).toBe( 'Fast' );
+		expect(
+			listItemTitle( objectList, { text: '' }, 2, 'badges', badgeFields )
+		).toBe( 'Badge 3' );
+	} );
+} );
+
+describe( 'moveItem and dropIndex', () => {
+	it( 'moves an item', () => {
+		expect( moveItem( [ 1, 2, 3 ], 0, 2 ) ).toEqual( [ 2, 3, 1 ] );
+		expect( moveItem( [ 1, 2, 3 ], 2, 0 ) ).toEqual( [ 3, 1, 2 ] );
+	} );
+
+	it( 'drops before or after another item', () => {
+		// Down: after the last item, before the last item.
+		expect( dropIndex( 0, 2, true ) ).toBe( 2 );
+		expect( dropIndex( 0, 2, false ) ).toBe( 1 );
+		// Up: before the first item, after the first item.
+		expect( dropIndex( 2, 0, false ) ).toBe( 0 );
+		expect( dropIndex( 2, 0, true ) ).toBe( 1 );
+		// On itself or its neighbours' near edges: no move.
+		expect( dropIndex( 1, 1, true ) ).toBe( 1 );
+		expect( dropIndex( 1, 0, true ) ).toBe( 1 );
+		expect( dropIndex( 1, 2, false ) ).toBe( 1 );
 	} );
 } );

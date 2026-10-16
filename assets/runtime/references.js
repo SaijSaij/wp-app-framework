@@ -74,17 +74,3 @@ export function titles( control, items ) {
 	}
 	return result;
 }
-
-/**
- * Moves an entry of a list.
- *
- * @param {Array<number>} ids
- * @param {number}        from
- * @param {number}        to
- * @return {Array<number>} The new list.
- */
-export function move( ids, from, to ) {
-	const next = [ ...ids ];
-	next.splice( to, 0, next.splice( from, 1 )[ 0 ] );
-	return next;
-}

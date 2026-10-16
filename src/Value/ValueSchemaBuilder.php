@@ -167,7 +167,7 @@ final class ValueSchemaBuilder
                     'value' => ['type' => 'list', 'items' => ['type' => 'int', 'nullable' => false, 'reference' => $item['value']['reference']], 'nullable' => $nullable, ...$limits],
                     'content' => true,
                     'fields' => [],
-                    'control' => $markers['hidden'] ? null : ['type' => 'references', 'label' => $markers['label'], 'nullable' => $nullable] + array_diff_key((array) $item['control'], ['type' => true, 'label' => true, 'nullable' => true]) + $limits,
+                    'control' => $markers['hidden'] ? null : ['type' => 'references', 'label' => $markers['label'], 'nullable' => $nullable] + array_diff_key((array) $item['control'], ['type' => true, 'label' => true, 'nullable' => true]) + $limits + ['itemLabel' => self::itemLabel($listOf)],
                 ];
             }
             $item = $this->classField($listOf->class, false, sprintf('%s: #[ListOf]', $location), $settings);
@@ -186,6 +186,7 @@ final class ValueSchemaBuilder
                     'nullable' => $nullable,
                     'item' => $item['control'],
                     ...$limits,
+                    'itemLabel' => self::itemLabel($listOf),
                 ],
             ];
         }
@@ -748,6 +749,14 @@ final class ValueSchemaBuilder
     }
 
     /**
+     * What one item of a list is: `itemLabel` of #[ListOf], else the short name of the item class in words.
+     */
+    private static function itemLabel(ListOf $listOf): string
+    {
+        return $listOf->itemLabel ?? self::humanize(self::shortName($listOf->class));
+    }
+
+    /**
      * A label from a parameter name: "imageId" becomes "Image id".
      */
     private static function humanize(string $name): string
@@ -790,7 +799,8 @@ final class ValueSchemaBuilder
      * The limits of a list as they appear in its value and control: `min` only above 0, `max` only if set. Checks
      * them and the default of the parameter against them.
      *
-     * @return array{min?: int<1, max>, max?: int<1, max>}|null Null if the limits are invalid; the error is recorded.
+     * @return array{min?: int<1, max>, max?: int<1, max>}|null Null if the limits or the item label are invalid; the
+     *                                                         error is recorded.
      */
     private function listLimits(ListOf $listOf, ReflectionParameter $parameter, string $location): ?array
     {
@@ -801,6 +811,7 @@ final class ValueSchemaBuilder
             $min < 0 => sprintf('%s: min of #[ListOf] must be 0 or more, %d given.', $location, $min),
             $max !== null && $max < 1 => sprintf('%s: max of #[ListOf] must be 1 or more, %d given; use null for no limit.', $location, $max),
             $max !== null && $min > $max => sprintf('%s: min of #[ListOf] (%d) is greater than max (%d).', $location, $min, $max),
+            $listOf->itemLabel !== null && trim($listOf->itemLabel) === '' => sprintf('%s: itemLabel of #[ListOf] is empty; use null for the name of the class.', $location),
             is_array($default) && (count($default) < $min || ($max !== null && count($default) > $max)) => sprintf(
                 '%s: the default has %d item(s), but #[ListOf] allows %s; a new value would start outside the limits.',
                 $location,

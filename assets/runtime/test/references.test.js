@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { includePath, move, searchPath, titles } from '../references';
+import { includePath, searchPath, titles } from '../references';
 
 const pages = { target: 'post', subtypes: [ 'page', 'post' ] };
 const anyTerm = { target: 'term', subtypes: null };
@@ -55,9 +55,5 @@ describe( 'reference requests', () => {
 		expect( titles( user, [ { id: 5, name: 'Ann' } ] ) ).toEqual( {
 			5: 'Ann',
 		} );
-	} );
-
-	it( 'moves entries of a list', () => {
-		expect( move( [ 1, 2, 3 ], 0, 2 ) ).toEqual( [ 2, 3, 1 ] );
 	} );
 } );

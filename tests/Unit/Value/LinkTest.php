@@ -108,7 +108,7 @@ final class LinkTest extends TestCase
 
         $controls = $block->getEditor()['controls'];
         self::assertSame(['type' => 'link', 'label' => 'Call to action', 'nullable' => false, 'content' => true], $controls['cta']);
-        self::assertSame(['type' => 'list', 'label' => 'Links', 'nullable' => false, 'item' => ['type' => 'link', 'nullable' => false], 'content' => true], $controls['links']);
+        self::assertSame(['type' => 'list', 'label' => 'Links', 'nullable' => false, 'item' => ['type' => 'link', 'nullable' => false], 'itemLabel' => 'Link', 'content' => true], $controls['links']);
         self::assertSame(
             ['type' => 'object', 'label' => 'Card', 'nullable' => false, 'fields' => ['link' => ['type' => 'link', 'label' => 'Link', 'nullable' => false]], 'content' => true],
             $controls['card'],

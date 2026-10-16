@@ -1,13 +1,6 @@
 import {
 	BaseControl,
 	Button,
-	Card,
-	CardBody,
-	CardHeader,
-	DropdownMenu,
-	Flex,
-	FlexBlock,
-	FlexItem,
 	SelectControl,
 	TextareaControl,
 	TextControl,
@@ -17,8 +10,9 @@ import { useContext, useEffect, useRef, useState } from '@wordpress/element';
 
 import { BlockDataContext } from './context';
 import { createValue } from './defaults';
-import { itemTitle, listLimits } from './list';
-import { LimitNotice, listItemClass, UNUSED_MARK } from './list-notice';
+import { listItemTitle, listLimits, moveItem } from './list';
+import { ListCards, useListCards } from './list-cards';
+import { LimitNotice } from './list-notice';
 import { ReferenceControl, ReferencesControl } from './reference-control';
 
 /**
@@ -273,9 +267,9 @@ function hasItemControls( control ) {
 }
 
 /**
- * Editor of a list: one card per item with its title, an actions menu (move,
- * remove) and the controls of the item; inline values of items are edited in
- * the canvas. Items are keyed by index, so reordering remounts their controls.
+ * Editor of a list: one collapsed card per item (ListCards) with its title,
+ * the controls of the item when expanded, drag and drop and an actions menu;
+ * inline values of items are edited in the canvas. A new item is expanded.
  * The limits of the list (`min`, `max`) disable adding and removing; items a
  * stored list has beyond `max` are marked as unused.
  *
@@ -298,103 +292,63 @@ export function ListControl( {
 	const fields = useContext( BlockDataContext )?.block.fields ?? {};
 	const items = value ?? [];
 	const limits = listLimits( control, items.length );
-	const move = ( from, to ) => {
-		const next = [ ...items ];
-		next.splice( to, 0, next.splice( from, 1 )[ 0 ] );
-		onChange( next );
-	};
+	const cards = useListCards( items.length );
 	const replace = ( index, next ) =>
 		onChange(
 			items.map( ( other, otherIndex ) =>
 				otherIndex === index ? next : other
 			)
 		);
+	const body = ( index ) => {
+		if ( ! hasItemControls( control.item ) ) {
+			return null;
+		}
+		return control.item.type === 'object' ? (
+			<ObjectFields
+				control={ control.item }
+				value={ items[ index ] }
+				onChange={ ( next ) => replace( index, next ) }
+				schema={ schema.items }
+				fieldControls={ fieldControls }
+			/>
+		) : (
+			<ValueControl
+				control={ control.item }
+				schema={ schema.items }
+				value={ items[ index ] }
+				path={ `${ path }.*` }
+				label={ `${ control.itemLabel } ${ index + 1 }` }
+				onChange={ ( next ) => replace( index, next ) }
+				fieldControls={ fieldControls }
+			/>
+		);
+	};
 
 	return (
 		<div className="wp-app-framework-list">
 			<BaseControl.VisualLabel>{ control.label }</BaseControl.VisualLabel>
 			<LimitNotice limits={ limits } />
-			{ items.map( ( item, index ) => (
-				<Card
-					size="small"
-					className={ listItemClass( limits, index ) }
-					key={ index }
-				>
-					<CardHeader size="xSmall">
-						<Flex>
-							<FlexBlock className="wp-app-framework-list__title">
-								{ itemTitle( item, index, path, fields ) }
-								{ limits.isUnused( index ) && UNUSED_MARK }
-							</FlexBlock>
-							<FlexItem>
-								<DropdownMenu
-									icon="ellipsis"
-									label={ `Actions for item ${ index + 1 }` }
-									controls={ [
-										{
-											title: 'Move up',
-											icon: 'arrow-up-alt2',
-											isDisabled: index === 0,
-											onClick: () =>
-												move( index, index - 1 ),
-										},
-										{
-											title: 'Move down',
-											icon: 'arrow-down-alt2',
-											isDisabled:
-												index === items.length - 1,
-											onClick: () =>
-												move( index, index + 1 ),
-										},
-										{
-											title: 'Remove',
-											icon: 'trash',
-											isDisabled: ! limits.canRemove,
-											onClick: () =>
-												onChange(
-													items.filter(
-														( _, other ) =>
-															other !== index
-													)
-												),
-										},
-									] }
-								/>
-							</FlexItem>
-						</Flex>
-					</CardHeader>
-					{ hasItemControls( control.item ) && (
-						<CardBody
-							size="small"
-							className="wp-app-framework-list__body"
-						>
-							{ control.item.type === 'object' ? (
-								<ObjectFields
-									control={ control.item }
-									value={ item }
-									onChange={ ( next ) =>
-										replace( index, next )
-									}
-									schema={ schema.items }
-									fieldControls={ fieldControls }
-								/>
-							) : (
-								<ValueControl
-									control={ control.item }
-									schema={ schema.items }
-									value={ item }
-									path={ `${ path }.*` }
-									label={ `Item ${ index + 1 }` }
-									onChange={ ( next ) =>
-										replace( index, next )
-									}
-									fieldControls={ fieldControls }
-								/>
-							) }
-						</CardBody>
-					) }
-				</Card>
-			) ) }
+			<ListCards
+				cards={ cards }
+				limits={ limits }
+				title={ ( index ) =>
+					listItemTitle(
+						control,
+						items[ index ],
+						index,
+						path,
+						fields
+					)
+				}
+				actionsLabel={ ( index ) => `Actions for item ${ index + 1 }` }
+				body={ body }
+				onMove={ ( from, to ) =>
+					onChange( moveItem( items, from, to ) )
+				}
+				onRemove={ ( index ) =>
+					onChange( items.filter( ( _, other ) => other !== index ) )
+				}
+			/>
 			<div>
 				<Button
 					variant="secondary"
@@ -402,9 +356,10 @@ export function ListControl( {
 					aria-label={ `Add item to ${ control.label }` }
 					disabled={ ! limits.canAdd }
 					accessibleWhenDisabled
-					onClick={ () =>
-						onChange( [ ...items, createValue( schema.items ) ] )
-					}
+					onClick={ () => {
+						cards.add();
+						onChange( [ ...items, createValue( schema.items ) ] );
+					} }
 				>
 					Add item
 				</Button>

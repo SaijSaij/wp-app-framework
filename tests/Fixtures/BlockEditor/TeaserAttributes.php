@@ -28,7 +28,7 @@ final readonly class TeaserAttributes
         public ?int $imageId = null,
         public Tone $tone = Tone::Light,
         public ?Size $size = null,
-        #[ListOf(Cta::class)]
+        #[ListOf(Cta::class, itemLabel: 'Call to action')]
         public array $ctas = [],
         #[Hidden]
         public int $version = 1,

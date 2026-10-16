@@ -53,7 +53,7 @@ The value factory never coerces silently. A value that does not match its type t
 
 ## Lists
 
-A list holds items of one backed enum or one value class, declared with [`#[ListOf(class, min: 0, max: null)]`](../api/php/Value/ListOf.md). Many lists have a natural size: a hero shows at most three buttons, a comparison needs at least two columns. `min` and `max` set these limits:
+A list holds items of one backed enum or one value class, declared with [`#[ListOf(class, min: 0, max: null, itemLabel: null)]`](../api/php/Value/ListOf.md). Many lists have a natural size: a hero shows at most three buttons, a comparison needs at least two columns. `min` and `max` set these limits:
 
 ```php
 #[ListOf(Button::class, max: 3)] public array $buttons = [],
@@ -70,17 +70,26 @@ A stored list can still be outside the limits, for example after you lowered `ma
 
 This is why the limits are not part of the JSON schema of stored values. WordPress would treat a list with too many items as invalid and replace the whole list with its default. REST arguments are different: a request is not stored content, so their schema contains `minItems` and `maxItems`, also for lists inside value classes, and WordPress answers a request outside the limits with 400.
 
+Editors see each item as a card that shows only its title, so a list stays clear even when its items have many values. A click on the title expands the item's controls; several items can be expanded at once, and a new item starts expanded. Items are sorted by dragging them at their handle, or with "Move up" and "Move down" in their menu, which also work with the keyboard.
+
+The title is the first text of the item, such as the text of a badge, or the label of an enum case. An item without text is titled with `itemLabel` and its number, "Badge 2". Without `itemLabel`, the framework uses the short name of the item class in words: `Badge` becomes "Badge", `SocialLink` becomes "Social link". Set `itemLabel` when the class name does not fit, for example for a German editor interface:
+
+```php
+#[ListOf(Badge::class, max: 3, itemLabel: 'Auszeichnung')] public array $badges = [],
+```
+
 ### Rules
 
 | Rule | |
 |---|---|
+| `itemLabel` | not empty; `null` (default) for the short name of the class in words |
 | `min` | 0 or more; default 0 |
 | `max` | 1 or more and at least `min`; `null` (default) for no limit |
 | Default value | must have between `min` and `max` items, because a new block or setting starts with it; `null` for a nullable list is allowed |
 | Stored values | not validated against the limits; the value factory creates the first `max` items |
 | REST arguments | validated with `minItems` and `maxItems` |
 
-A `min` below 0, a `max` below 1, a `min` greater than `max` and a default outside the limits are build errors. Lists of [references](#references) without `#[ListOf]` have no limits.
+A `min` below 0, a `max` below 1, a `min` greater than `max`, a default outside the limits and an empty `itemLabel` are build errors. Lists of [references](#references) without `#[ListOf]` have no limits.
 
 ## URLs
 
@@ -236,7 +245,7 @@ The single reference must be nullable. It resolves if the post has the type of t
 
 ### Editing
 
-References are edited with a search, in the block inspector and on the settings page. Posts and terms are searched through `/wp/v2/search`, which finds published posts only. Users are searched through `/wp/v2/users`; users without the capability `list_users` see only authors of published posts. A list shows its entries as cards that can be moved up, moved down and removed.
+References are edited with a search, in the block inspector and on the settings page. Posts and terms are searched through `/wp/v2/search`, which finds published posts only. Users are searched through `/wp/v2/users`; users without the capability `list_users` see only authors of published posts. A list shows its entries as cards that can be dragged, moved up, moved down and removed.
 
 ### Resolution
 

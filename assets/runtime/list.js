@@ -1,14 +1,16 @@
 /**
  * Title of a list item: its first plain text field (the first line of a
- * multiline one), else the text of its first rich text field, else "Item n".
+ * multiline one), else the text of its first rich text field, else the label
+ * of an item (`itemLabel` of #[ListOf]) with its number.
  *
  * @param {import('./paths').AttributeValue} item
  * @param {number}                           index
- * @param {string}                           path   Pattern of the list, e.g. "buttons".
- * @param {Object}                           fields Inline fields of the block by pattern.
+ * @param {string}                           path        Pattern of the list, e.g. "buttons".
+ * @param {Object}                           fields      Inline fields of the block by pattern.
+ * @param {string}                           [itemLabel] What one item is, e.g. "Badge".
  * @return {string} Title.
  */
-export function itemTitle( item, index, path, fields ) {
+export function itemTitle( item, index, path, fields, itemLabel = 'Item' ) {
 	const prefix = `${ path }.*.`;
 	const candidates = Object.entries( fields )
 		.filter(
@@ -36,7 +38,7 @@ export function itemTitle( item, index, path, fields ) {
 			return text;
 		}
 	}
-	return `Item ${ index + 1 }`;
+	return `${ itemLabel } ${ index + 1 }`;
 }
 
 /**
@@ -66,4 +68,55 @@ export function listLimits( control, count ) {
 		isUnused: ( index ) => max !== null && index >= max,
 		notice,
 	};
+}
+
+/**
+ * Title of an item of a list control: the label of an enum case, else the
+ * title of a value (itemTitle()).
+ *
+ * @param {Object}                           control Control of the list.
+ * @param {import('./paths').AttributeValue} item
+ * @param {number}                           index
+ * @param {string}                           path    Pattern of the list.
+ * @param {Object}                           fields  Inline fields of the block by pattern.
+ * @return {string} Title.
+ */
+export function listItemTitle( control, item, index, path, fields ) {
+	if ( control.item.type === 'enum' ) {
+		const option = control.item.options.find(
+			( candidate ) => candidate.value === item
+		);
+		if ( option ) {
+			return option.label;
+		}
+	}
+	return itemTitle( item, index, path, fields, control.itemLabel );
+}
+
+/**
+ * The list with one item moved.
+ *
+ * @template T
+ * @param {Array<T>} list
+ * @param {number}   from Index of the item.
+ * @param {number}   to   Its new index.
+ * @return {Array<T>} New list.
+ */
+export function moveItem( list, from, to ) {
+	const next = [ ...list ];
+	next.splice( to, 0, next.splice( from, 1 )[ 0 ] );
+	return next;
+}
+
+/**
+ * The new index of a dragged item dropped before or after another one.
+ *
+ * @param {number}  from  Index of the dragged item.
+ * @param {number}  over  Index of the item it is dropped on.
+ * @param {boolean} after Dropped on the lower half of that item.
+ * @return {number} New index of the dragged item.
+ */
+export function dropIndex( from, over, after ) {
+	const to = over + ( after ? 1 : 0 );
+	return from < to ? to - 1 : to;
 }

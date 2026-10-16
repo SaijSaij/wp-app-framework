@@ -85,6 +85,7 @@ final class EditorBuildTest extends TestCase
                             'iconId' => ['type' => 'image', 'label' => 'Icon id', 'nullable' => true],
                         ],
                     ],
+                    'itemLabel' => 'Call to action',
                     'content' => true,
                 ],
                 'featured' => ['type' => 'bool', 'label' => 'Featured', 'nullable' => false, 'content' => false],

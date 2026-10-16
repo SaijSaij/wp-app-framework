@@ -97,7 +97,7 @@ The runtime generates the block inspector from the attribute class. Each type ge
 | `#[PlainText(inspector: true, multiline: true)]` | text area |
 | [`Link`](./values.md#links) | the label and the shortened URL; a click opens the link control of the block editor (search of posts, terms and media files, "Open in new tab") |
 | [reference](./values.md#references) | search; a list shows cards with move and remove |
-| list | one card per item with its title (its first text value, else "Item n"), an actions menu (move up, move down, remove) and the item's controls, plus "Add item"; the [limits](./values.md#lists) of the list disable adding and removing, and items beyond `max` are marked as unused |
+| list | one collapsed card per item: a drag handle, the title (its first text value, the label of an enum case, else the [item label](./values.md#lists) with its number, e.g. "Badge 2"), which expands and collapses the item's controls, and an actions menu (move up, move down, remove); "Add item" adds an expanded item; the [limits](./values.md#lists) of the list disable adding and removing, and items beyond `max` are marked as unused |
 
 Fields of list items that are edited in the canvas stay in the canvas. Typed text is applied after a short pause.
 

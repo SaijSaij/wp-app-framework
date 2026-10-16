@@ -31,6 +31,38 @@
 	font-weight: 500;
 }
 
+// The title of an item toggles its controls: full width, title left,
+// chevron right, in the color of the text (stronger than .components-button).
+.components-button.wp-app-framework-list__toggle {
+	justify-content: space-between;
+	width: 100%;
+	min-width: 0;
+	padding-inline: 4px;
+	color: inherit;
+	text-align: start;
+
+	&:hover:not(:disabled) {
+		color: var(--wp-admin-theme-color);
+	}
+}
+
+.wp-app-framework-list__handle {
+	cursor: grab;
+}
+
+// Where a dragged item would be dropped.
+.wp-app-framework-list__item.is-drop-before {
+	box-shadow: 0 -2px 0 var(--wp-admin-theme-color);
+}
+
+.wp-app-framework-list__item.is-drop-after {
+	box-shadow: 0 2px 0 var(--wp-admin-theme-color);
+}
+
+.wp-app-framework-list__item.is-dragged {
+	opacity: 0.4;
+}
+
 // Items of a stored list beyond its max: kept, but not used.
 .wp-app-framework-list__item.is-unused {
 	opacity: 0.6;

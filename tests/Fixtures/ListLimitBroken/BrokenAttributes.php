@@ -15,6 +15,7 @@ final readonly class BrokenAttributes
      * @param list<Tone> $tooMany
      * @param list<Tone> $tooFew
      * @param list<Tone> $notExactly
+     * @param list<Tone> $emptyLabel
      */
     public function __construct(
         #[ListOf(Tone::class, min: -1)]
@@ -29,5 +30,7 @@ final readonly class BrokenAttributes
         public array $tooFew = [],
         #[ListOf(Tone::class, min: 2, max: 2)]
         public array $notExactly = [Tone::Light],
+        #[ListOf(Tone::class, itemLabel: ' ')]
+        public array $emptyLabel = [],
     ) {}
 }
