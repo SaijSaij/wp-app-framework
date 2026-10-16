@@ -5,12 +5,12 @@
 <title>Releases and CI - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/0.17/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/0.17/static/js/async/route-f1989dcdc5e5.a1b95545f7.js" as="script">
+<link rel="preload" href="/wp-app-framework/0.17/static/js/async/route-f1989dcdc5e5.5bc1373831.js" as="script">
 <script defer src="/wp-app-framework/0.17/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/0.17/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/0.17/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/0.17/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/0.17/static/js/index.833dd346c1.js"></script>
+<script defer src="/wp-app-framework/0.17/static/js/index.9006332da0.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -32,8 +32,10 @@
 <li>builds the release; when it publishes, with <code>--expect-version</code> set to the version of the tag, so a tag that doesn&#x27;t match <code>Version:</code> fails;</li>
 <li>installs the ZIP into fresh, plain WordPress instances of wp-test-env, with the plugin and theme directories read-only;</li>
 <li>with the input <code>cli: true</code>, runs the project&#x27;s WP-CLI tests against the installed release (see below);</li>
-<li>runs the project&#x27;s browser tests (<code>npm run test:e2e</code>) with <code>E2E_TARGET=release</code>, one Playwright worker per instance (input <code>e2e-instances</code>, default 2); the input <code>e2e: false</code> skips them.</li>
+<li>runs the project&#x27;s browser tests (<code>npm run test:e2e</code>) with <code>E2E_TARGET=release</code>, one Playwright worker per instance (input <code>e2e-instances</code>, default 2); the input <code>e2e: false</code> skips them;</li>
+<li>attaches the ZIP to the GitHub release of the tag, which it creates if needed.</li>
 </ol>
+<p>If any step fails while it publishes, the workflow deletes the tag, and the GitHub release if it already created one. A failed release thus leaves nothing behind: fix the cause and push the same tag again. A failure that has nothing to do with your release, such as a network error, needs no fix; push the tag again right away. A rerun of the failed workflow does not work, because its tag is gone.</p>
 <h3 class="rp-toc-include" id="plugins-and-child-themes-need-a-theme"><a href="#plugins-and-child-themes-need-a-theme" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Plugins and child themes need a theme</h3>
 <p>A theme can be tested on its own, but a plugin or a child theme needs a theme to run in. The workflow decides from the <code>type</code> in <code>composer.json</code> and the <code>Template:</code> header of <code>style.css</code>:</p>
 <ul>
@@ -106,7 +108,7 @@
 <p>The framework repository tests itself in two workflows:</p>
 <ul>
 <li><strong><code>ci.yml</code></strong> runs PHPUnit, Vitest and all linters on pushes and pull requests, and builds this documentation.</li>
-<li><strong><code>release.yml</code></strong> runs on a tag. It runs the same checks and then the release gates: theme-dev-test, plugin-dev-test and theme-dev-test-child are built with the framework of the tag (<code>framework-ref</code>) and tested in the browser, the plugin and the child theme with an older release of the theme, without publishing anything. Only then does it attach <code>wp-app-framework-&lt;version&gt;.zip</code> to the GitHub release – made with <code>git archive</code>, without the development files marked <code>export-ignore</code> – and publish the documentation of the tag&#x27;s minor version.</li>
+<li><strong><code>release.yml</code></strong> runs on a tag. It runs the same checks and then the release gates: theme-dev-test, plugin-dev-test and theme-dev-test-child are built with the framework of the tag (<code>framework-ref</code>) and tested in the browser, the plugin and the child theme with an older release of the theme, without publishing anything. Only then does it attach <code>wp-app-framework-&lt;version&gt;.zip</code> to the GitHub release – made with <code>git archive</code>, without the development files marked <code>export-ignore</code> – and publish the documentation of the tag&#x27;s minor version. If a check or a gate fails, the workflow deletes the tag, so the version can be tagged again after the fix; Packagist, which reads tags as they are pushed, drops it again with the next update.</li>
 </ul>
 <p>The gates make sure that a framework release works for a theme, a plugin and a child theme before anyone can depend on it.</p>
 <h2 class="rp-toc-include" id="requiring-the-framework"><a href="#requiring-the-framework" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Requiring the framework</h2>

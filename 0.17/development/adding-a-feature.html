@@ -5,12 +5,12 @@
 <title>Adding a feature - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/0.17/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/0.17/static/js/async/route-ed1ac53e4df7.f41c80930e.js" as="script">
+<link rel="preload" href="/wp-app-framework/0.17/static/js/async/route-ed1ac53e4df7.72604e80f0.js" as="script">
 <script defer src="/wp-app-framework/0.17/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/0.17/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/0.17/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/0.17/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/0.17/static/js/index.833dd346c1.js"></script>
+<script defer src="/wp-app-framework/0.17/static/js/index.9006332da0.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -37,7 +37,7 @@
 <li><strong>Unit tests</strong> in <code>tests/Unit/&lt;Area&gt;/</code>: the collector with valid fixtures (<code>tests/Fixtures/&lt;Area&gt;Valid/</code>) and a fixture for <strong>every build error</strong> (<code>&lt;Area&gt;Broken/</code>, with <code>@phpstan-ignore</code> and the reason), the registrar against the WordPress doubles. Add missing doubles to <code>tests/Stubs/</code> with the real signatures.</li>
 <li><strong>JavaScript</strong>, if the editor or the front end is involved: the runtime modules in <code>assets/</code>, Vitest tests next to them, the declarations in <code>types/</code> if consumers import something new.</li>
 <li><strong>Test consumer:</strong> use the feature in theme-dev-test (and in plugin-dev-test or theme-dev-test-child if plugins or child themes behave differently), with a browser spec, a render case, a WP-CLI or a lifecycle check – whatever proves it in WordPress. List new specs in its README; update the expected output of <code>composer build-manifest</code> there.</li>
-<li><strong>Benchmark:</strong> if the feature runs on requests, add a scenario to theme-bench and check <code>bin/bench --coverage</code>.</li>
+<li><strong>Benchmark:</strong> if the feature runs on requests, add a scenario to theme-bench, so the next benchmark (run on request) measures it; <code>bin/bench --coverage</code> shows that the scenario reaches the code.</li>
 <li><strong>Documentation:</strong> the guide page of the area (or a new one, linked in <code>docs/rspress.config.mjs</code>), with what it is for, how it works, an example and the rules; <a href="/wp-app-framework/0.17/reference/upgrading.html" class="rp-link">Upgrading</a> if anything a consumer relies on changes; these development pages if conventions, tests or pipelines change.</li>
 <li><strong>Checks before the commit:</strong> <code>composer lint</code>, <code>npm run lint</code>, the documentation build (it fails on missing doc comments of the API), and lint and build of the changed consumers. Before the push, the development build with the browser suites (see <a href="/wp-app-framework/0.17/development/testing.html#when-to-run-what" class="rp-link">Testing</a>).</li>
 </ol>
