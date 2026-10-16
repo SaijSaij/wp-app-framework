@@ -116,7 +116,7 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 24;
+    public const int FORMAT = 25;
 
     /**
      * @return ManifestData

@@ -21,10 +21,10 @@ final class ListController
      */
     #[RestRoute('/entries', HttpMethod::Post, new Callback(self::canPost(...)))]
     public function entries(
-        #[ListOf(Entry::class)]
+        #[ListOf(Entry::class, min: 1)]
         array $entries,
         #[Param(description: 'Filter')]
-        #[ListOf(Priority::class)]
+        #[ListOf(Priority::class, max: 2)]
         array $priorities = [Priority::High],
     ): array {
         return ['entries' => $entries, 'priorities' => $priorities];

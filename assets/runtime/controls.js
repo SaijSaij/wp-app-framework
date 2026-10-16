@@ -17,7 +17,8 @@ import { useContext, useEffect, useRef, useState } from '@wordpress/element';
 
 import { BlockDataContext } from './context';
 import { createValue } from './defaults';
-import { itemTitle } from './list';
+import { itemTitle, listLimits } from './list';
+import { LimitNotice, listItemClass, UNUSED_MARK } from './list-notice';
 import { ReferenceControl, ReferencesControl } from './reference-control';
 
 /**
@@ -275,6 +276,8 @@ function hasItemControls( control ) {
  * Editor of a list: one card per item with its title, an actions menu (move,
  * remove) and the controls of the item; inline values of items are edited in
  * the canvas. Items are keyed by index, so reordering remounts their controls.
+ * The limits of the list (`min`, `max`) disable adding and removing; items a
+ * stored list has beyond `max` are marked as unused.
  *
  * @param {Object}                                            props
  * @param {Object}                                            props.control
@@ -294,6 +297,7 @@ export function ListControl( {
 } ) {
 	const fields = useContext( BlockDataContext )?.block.fields ?? {};
 	const items = value ?? [];
+	const limits = listLimits( control, items.length );
 	const move = ( from, to ) => {
 		const next = [ ...items ];
 		next.splice( to, 0, next.splice( from, 1 )[ 0 ] );
@@ -309,16 +313,18 @@ export function ListControl( {
 	return (
 		<div className="wp-app-framework-list">
 			<BaseControl.VisualLabel>{ control.label }</BaseControl.VisualLabel>
+			<LimitNotice limits={ limits } />
 			{ items.map( ( item, index ) => (
 				<Card
 					size="small"
-					className="wp-app-framework-list__item"
+					className={ listItemClass( limits, index ) }
 					key={ index }
 				>
 					<CardHeader size="xSmall">
 						<Flex>
 							<FlexBlock className="wp-app-framework-list__title">
 								{ itemTitle( item, index, path, fields ) }
+								{ limits.isUnused( index ) && UNUSED_MARK }
 							</FlexBlock>
 							<FlexItem>
 								<DropdownMenu
@@ -343,6 +349,7 @@ export function ListControl( {
 										{
 											title: 'Remove',
 											icon: 'trash',
+											isDisabled: ! limits.canRemove,
 											onClick: () =>
 												onChange(
 													items.filter(
@@ -393,6 +400,8 @@ export function ListControl( {
 					variant="secondary"
 					icon="plus"
 					aria-label={ `Add item to ${ control.label }` }
+					disabled={ ! limits.canAdd }
+					accessibleWhenDisabled
 					onClick={ () =>
 						onChange( [ ...items, createValue( schema.items ) ] )
 					}

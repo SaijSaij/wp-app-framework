@@ -309,7 +309,7 @@ final class RestRouteCollector
             return null;
         }
 
-        $schema = $field['schema'];
+        $schema = $this->withListLimits($field['schema'], $value, $parameterLocation);
         if ($required) {
             $schema['required'] = true;
         } else {
@@ -347,6 +347,38 @@ final class RestRouteCollector
             'type' => (string) $parameter->getType(),
             'schema' => [...$schema, ...$keywords],
         ];
+    }
+
+    /**
+     * The schema with the limits of lists (`min`, `max` of #[ListOf]) as `minItems` and `maxItems`, also in nested
+     * value classes: unlike stored values, a request outside the limits is rejected.
+     *
+     * @param array<string, mixed> $schema
+     * @param Value                $value
+     * @return array<string, mixed>
+     */
+    private function withListLimits(array $schema, array $value, string $location): array
+    {
+        if ($value['type'] === 'list') {
+            if (isset($value['min'])) {
+                $schema['minItems'] = $value['min'];
+            }
+            if (isset($value['max'])) {
+                $schema['maxItems'] = $value['max'];
+            }
+            /** @var array<string, mixed> $items */
+            $items = $schema['items'];
+            $schema['items'] = $this->withListLimits($items, $value['items'], $location);
+        } elseif ($value['type'] === 'object') {
+            /** @var array<string, array<string, mixed>> $properties */
+            $properties = $schema['properties'];
+            foreach ($this->values->objectFields($value['class'], $location) ?? [] as $name => $field) {
+                $properties[$name] = $this->withListLimits($properties[$name], $field['value'], $location);
+            }
+            $schema['properties'] = $properties;
+        }
+
+        return $schema;
     }
 
     /**

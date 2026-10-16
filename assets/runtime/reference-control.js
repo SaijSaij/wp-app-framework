@@ -11,6 +11,8 @@ import {
 } from '@wordpress/components';
 import { useEffect, useRef, useState } from '@wordpress/element';
 
+import { listLimits } from './list';
+import { LimitNotice, listItemClass, UNUSED_MARK } from './list-notice';
 import { includePath, move, searchPath, titles } from './references';
 
 /** Delay before a typed search is sent. */
@@ -129,20 +131,23 @@ export function ReferencesControl( { control, value, onChange, label } ) {
 	const ids = Array.isArray( value ) ? value : [];
 	const { known, results, search } = useReferences( control, ids );
 	const name = label ?? control.label;
+	const limits = listLimits( control, ids.length );
 
 	return (
 		<div className="wp-app-framework-list">
 			<BaseControl.VisualLabel>{ name }</BaseControl.VisualLabel>
+			<LimitNotice limits={ limits } />
 			{ ids.map( ( id, index ) => (
 				<Card
 					size="small"
-					className="wp-app-framework-list__item"
+					className={ listItemClass( limits, index ) }
 					key={ id }
 				>
 					<CardHeader size="xSmall">
 						<Flex>
 							<FlexBlock className="wp-app-framework-list__title">
 								{ known[ id ] ?? `#${ id }` }
+								{ limits.isUnused( index ) && UNUSED_MARK }
 							</FlexBlock>
 							<FlexItem>
 								<DropdownMenu
@@ -181,6 +186,7 @@ export function ReferencesControl( { control, value, onChange, label } ) {
 										{
 											title: 'Remove',
 											icon: 'trash',
+											isDisabled: ! limits.canRemove,
 											onClick: () =>
 												onChange(
 													ids.filter(
@@ -196,22 +202,24 @@ export function ReferencesControl( { control, value, onChange, label } ) {
 					</CardHeader>
 				</Card>
 			) ) }
-			<ComboboxControl
-				__next40pxDefaultSize
-				__nextHasNoMarginBottom
-				label={ `Add to ${ name }` }
-				value={ null }
-				options={ options(
-					results.filter( ( id ) => ! ids.includes( id ) ),
-					known
-				) }
-				onFilterValueChange={ search }
-				onChange={ ( selected ) => {
-					if ( selected ) {
-						onChange( [ ...ids, Number( selected ) ] );
-					}
-				} }
-			/>
+			{ limits.canAdd && (
+				<ComboboxControl
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+					label={ `Add to ${ name }` }
+					value={ null }
+					options={ options(
+						results.filter( ( id ) => ! ids.includes( id ) ),
+						known
+					) }
+					onFilterValueChange={ search }
+					onChange={ ( selected ) => {
+						if ( selected ) {
+							onChange( [ ...ids, Number( selected ) ] );
+						}
+					} }
+				/>
+			) }
 		</div>
 	);
 }

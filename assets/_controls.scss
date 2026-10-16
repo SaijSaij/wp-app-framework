@@ -31,6 +31,17 @@
 	font-weight: 500;
 }
 
+// Items of a stored list beyond its max: kept, but not used.
+.wp-app-framework-list__item.is-unused {
+	opacity: 0.6;
+	outline: 1px dashed #cc1818;
+	outline-offset: -1px;
+}
+
+.wp-app-framework-list__notice {
+	margin: 0;
+}
+
 // Like the input of a TextControl.
 .wp-app-framework-rich-input {
 	box-sizing: border-box;

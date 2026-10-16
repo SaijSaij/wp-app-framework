@@ -33,7 +33,7 @@ A value can have one of these types, each optionally nullable:
 | `int`, `float`, `string`, `bool` | `integer`, `number`, `string`, `boolean` |
 | backed enum | the type of its values, with `enum` listing the case values |
 | value class | `object` with `properties` |
-| `array` with `#[ListOf(Enum::class)]` or `#[ListOf(ValueClass::class)]` | `array` with `items` |
+| `array` with `#[ListOf(Enum::class)]` or `#[ListOf(ValueClass::class)]` | `array` with `items`; see [Lists](#lists) |
 
 A nullable type adds `null` to the schema type (`type: [..., 'null']`). PHP has no generic types, so a list says what it contains with `#[ListOf]`. Lists of scalars exist only for [references](#references).
 
@@ -50,6 +50,37 @@ A missing value uses the constructor's default. Inside a nested value class, a p
 ## Wrong values
 
 The value factory never coerces silently. A value that does not match its type throws an `InvalidArgumentException` that names the path to the value, for example `buttons[1].url`. Blocks, REST routes and settings each decide what happens next; see their pages.
+
+## Lists
+
+A list holds items of one backed enum or one value class, declared with [`#[ListOf(class, min: 0, max: null)]`](../api/php/Value/ListOf.md). Many lists have a natural size: a hero shows at most three buttons, a comparison needs at least two columns. `min` and `max` set these limits:
+
+```php
+#[ListOf(Button::class, max: 3)] public array $buttons = [],
+#[ListOf(Column::class, min: 2, max: 4)] public array $columns = [new Column(), new Column()],
+```
+
+The limits apply where people edit the list. In the block inspector, on the settings page and in meta boxes, "Add item" is disabled when the list has `max` items, and "Remove" when it has `min` items. A list of post objects (`#[ListOf(Venue::class)]`) hides its search at `max` instead.
+
+A stored list can still be outside the limits, for example after you lowered `max` in an update of your theme. The framework keeps such a list as it is, so changing a limit never loses content:
+
+- Your template receives only the first `max` items. It can rely on the limit.
+- The editor shows all stored items, marks the ones beyond `max` as unused and says how many to remove. Nothing changes until an editor removes them.
+- A list shorter than `min` reaches your template as it is; the editor asks for the missing items.
+
+This is why the limits are not part of the JSON schema of stored values. WordPress would treat a list with too many items as invalid and replace the whole list with its default. REST arguments are different: a request is not stored content, so their schema contains `minItems` and `maxItems`, also for lists inside value classes, and WordPress answers a request outside the limits with 400.
+
+### Rules
+
+| Rule | |
+|---|---|
+| `min` | 0 or more; default 0 |
+| `max` | 1 or more and at least `min`; `null` (default) for no limit |
+| Default value | must have between `min` and `max` items, because a new block or setting starts with it; `null` for a nullable list is allowed |
+| Stored values | not validated against the limits; the value factory creates the first `max` items |
+| REST arguments | validated with `minItems` and `maxItems` |
+
+A `min` below 0, a `max` below 1, a `min` greater than `max` and a default outside the limits are build errors. Lists of [references](#references) without `#[ListOf]` have no limits.
 
 ## URLs
 

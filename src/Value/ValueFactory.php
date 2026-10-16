@@ -36,6 +36,10 @@ use WP_User;
  * also for post types that are not public (data types), and in renders for the
  * block editor in every status.
  *
+ * A list with a `max` (`#[ListOf]`) is created from its first `max` stored
+ * items; the others stay stored, so lowering the limit loses no data. `min`
+ * only limits the editor: a shorter stored list is created as it is.
+ *
  * A `Link` to a post, term or media file gets the current URL of the object
  * under the same conditions as a reference (attachments if they are public),
  * else an empty URL; its kind and ID stay. A link whose kind and ID do not
@@ -49,7 +53,7 @@ use WP_User;
  * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool'|'datetime', nullable: bool}
  *     |ReferenceValue
  *     |ClassValue
- *     |array{type: 'list', items: ClassValue|ReferenceValue, nullable: bool}
+ *     |array{type: 'list', items: ClassValue|ReferenceValue, nullable: bool, min?: int<1, max>, max?: int<1, max>}
  * @phpstan-type ValueField array{value: Value, required: bool}
  */
 #[NoService]
@@ -122,7 +126,7 @@ final readonly class ValueFactory
                 default => $this->createObject($value['class'], $raw, $path),
             },
             'list' => is_array($raw) && array_is_list($raw)
-                ? $this->createList($value['items'], $raw, $path)
+                ? $this->createList($value['items'], isset($value['max']) ? array_slice($raw, 0, $value['max']) : $raw, $path)
                 : throw self::mismatch($path, $value, $raw),
         };
     }

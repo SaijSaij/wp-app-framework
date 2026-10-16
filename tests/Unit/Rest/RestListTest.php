@@ -38,16 +38,19 @@ final class RestListTest extends TestCase
                             'title' => ['type' => 'string', 'required' => true],
                             'link' => ['type' => 'string', 'format' => 'uri', 'default' => ''],
                             'priority' => ['type' => 'integer', 'enum' => [1, 2], 'default' => 1],
+                            // Limits of lists in value classes are validated as well.
+                            'flags' => ['type' => 'array', 'items' => ['type' => 'integer', 'enum' => [1, 2]], 'default' => [], 'maxItems' => 1],
                         ],
                     ],
+                    'minItems' => 1,
                     'required' => true,
                 ],
-                'priorities' => ['type' => 'array', 'items' => ['type' => 'integer', 'enum' => [1, 2]], 'default' => [2], 'description' => 'Filter'],
+                'priorities' => ['type' => 'array', 'items' => ['type' => 'integer', 'enum' => [1, 2]], 'maxItems' => 2, 'default' => [2], 'description' => 'Filter'],
             ],
             $route->getArgs(),
         );
         self::assertSame(
-            ['param' => 'priorities', 'kind' => 'param', 'value' => ['type' => 'list', 'items' => ['type' => 'enum', 'class' => RestList\Priority::class, 'nullable' => false], 'nullable' => false]],
+            ['param' => 'priorities', 'kind' => 'param', 'value' => ['type' => 'list', 'items' => ['type' => 'enum', 'class' => RestList\Priority::class, 'nullable' => false], 'nullable' => false, 'max' => 2]],
             $route->getArguments()[1],
         );
     }

@@ -26,6 +26,10 @@ use Throwable;
  * paths relative to the value, `*` for list items) and the control of the
  * generated inspector (null for inline and hidden values).
  *
+ * The limits of a list (`min`, `max` of `#[ListOf]`) go into its runtime
+ * description and its control, never into the schema: WordPress would drop a
+ * stored list outside them as invalid.
+ *
  * References (`#[PostReference]`, `#[TermReference]`, `#[UserReference]`) are
  * IDs on `?int` (one) or `array` (a list of IDs) with a search control; in
  * blocks they count as content.
@@ -146,28 +150,32 @@ final class ValueSchemaBuilder
 
                 return null;
             }
-            if (is_subclass_of($listOf, AbstractPost::class)) {
-                $item = $this->postClassField($listOf, false, $markers, sprintf('%s: #[ListOf]', $location), true);
+            $limits = $this->listLimits($listOf, $parameter, $location);
+            if ($limits === null) {
+                return null;
+            }
+            if (is_subclass_of($listOf->class, AbstractPost::class)) {
+                $item = $this->postClassField($listOf->class, false, $markers, sprintf('%s: #[ListOf]', $location), true);
                 if ($item === null || !isset($item['value']['reference'])) {
                     return null;
                 }
 
                 return [
                     'schema' => ['type' => self::type('array', $nullable), 'items' => ['type' => 'integer']],
-                    'value' => ['type' => 'list', 'items' => ['type' => 'int', 'nullable' => false, 'reference' => $item['value']['reference']], 'nullable' => $nullable],
+                    'value' => ['type' => 'list', 'items' => ['type' => 'int', 'nullable' => false, 'reference' => $item['value']['reference']], 'nullable' => $nullable, ...$limits],
                     'content' => true,
                     'fields' => [],
-                    'control' => $markers['hidden'] ? null : ['type' => 'references', 'label' => $markers['label'], 'nullable' => $nullable] + array_diff_key((array) $item['control'], ['type' => true, 'label' => true, 'nullable' => true]),
+                    'control' => $markers['hidden'] ? null : ['type' => 'references', 'label' => $markers['label'], 'nullable' => $nullable] + array_diff_key((array) $item['control'], ['type' => true, 'label' => true, 'nullable' => true]) + $limits,
                 ];
             }
-            $item = $this->classField($listOf, false, sprintf('%s: #[ListOf]', $location), $settings);
+            $item = $this->classField($listOf->class, false, sprintf('%s: #[ListOf]', $location), $settings);
             if ($item === null) {
                 return null;
             }
 
             return [
                 'schema' => ['type' => self::type('array', $nullable), 'items' => $item['schema']],
-                'value' => ['type' => 'list', 'items' => $item['value'], 'nullable' => $nullable],
+                'value' => ['type' => 'list', 'items' => $item['value'], 'nullable' => $nullable, ...$limits],
                 'content' => $markers['content'] || $item['content'],
                 'fields' => self::prefixFields('*', $item['fields']),
                 'control' => $markers['hidden'] ? null : [
@@ -175,6 +183,7 @@ final class ValueSchemaBuilder
                     'label' => $markers['label'],
                     'nullable' => $nullable,
                     'item' => $item['control'],
+                    ...$limits,
                 ],
             ];
         }
@@ -676,7 +685,7 @@ final class ValueSchemaBuilder
      * @param Markers $markers
      * @return Field|null
      */
-    private function referenceField(array $markers, string $type, bool $nullable, ?string $listOf, string $location): ?array
+    private function referenceField(array $markers, string $type, bool $nullable, ?ListOf $listOf, string $location): ?array
     {
         /** @var Reference $reference */
         $reference = $markers['reference'];
@@ -738,9 +747,9 @@ final class ValueSchemaBuilder
     }
 
     /**
-     * @return class-string|null|false The item class, null without #[ListOf], false if #[ListOf] is invalid.
+     * @return ListOf|null|false The attribute, null without #[ListOf], false if #[ListOf] is invalid.
      */
-    private function listOf(ReflectionParameter $parameter, string $location): string|false|null
+    private function listOf(ReflectionParameter $parameter, string $location): ListOf|false|null
     {
         $attributes = $parameter->getAttributes(ListOf::class);
         if ($attributes === []) {
@@ -748,12 +757,52 @@ final class ValueSchemaBuilder
         }
 
         try {
-            return $attributes[0]->newInstance()->class;
+            return $attributes[0]->newInstance();
         } catch (Throwable $exception) {
             $this->errors[] = sprintf('Invalid #[ListOf] on %s: %s', $location, $exception->getMessage());
 
             return false;
         }
+    }
+
+    /**
+     * The limits of a list as they appear in its value and control: `min` only above 0, `max` only if set. Checks
+     * them and the default of the parameter against them.
+     *
+     * @return array{min?: int<1, max>, max?: int<1, max>}|null Null if the limits are invalid; the error is recorded.
+     */
+    private function listLimits(ListOf $listOf, ReflectionParameter $parameter, string $location): ?array
+    {
+        $min = $listOf->min;
+        $max = $listOf->max;
+        $default = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null;
+        $error = match (true) {
+            $min < 0 => sprintf('%s: min of #[ListOf] must be 0 or more, %d given.', $location, $min),
+            $max !== null && $max < 1 => sprintf('%s: max of #[ListOf] must be 1 or more, %d given; use null for no limit.', $location, $max),
+            $max !== null && $min > $max => sprintf('%s: min of #[ListOf] (%d) is greater than max (%d).', $location, $min, $max),
+            is_array($default) && (count($default) < $min || ($max !== null && count($default) > $max)) => sprintf(
+                '%s: the default has %d item(s), but #[ListOf] allows %s; a new value would start outside the limits.',
+                $location,
+                count($default),
+                $max === null ? sprintf('at least %d', $min) : ($min === $max ? sprintf('exactly %d', $min) : sprintf('%d to %d', $min, $max)),
+            ),
+            default => null,
+        };
+        if ($error !== null) {
+            $this->errors[] = $error;
+
+            return null;
+        }
+
+        $limits = [];
+        if ($min > 0) {
+            $limits['min'] = $min;
+        }
+        if ($max !== null) {
+            $limits['max'] = $max;
+        }
+
+        return $limits;
     }
 
     /**

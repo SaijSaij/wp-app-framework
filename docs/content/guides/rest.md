@@ -78,7 +78,7 @@ The framework looks at each parameter of the method and decides where its value 
 
 A single value class without `#[ListOf]` is not supported as a request argument, because a parameter with a class type is treated as a service.
 
-From the request arguments the framework builds the route's argument schema (`type`, `enum`, `items`, `required`, `default`). WordPress then does the work it always does with a schema: it validates and sanitizes the arguments, answers with 400 if one is invalid, and shows the schema on an `OPTIONS` request. Missing optional arguments get the parameter's default. Enums, value objects and lists are converted by the value factory, so your method receives typed values.
+From the request arguments the framework builds the route's argument schema (`type`, `enum`, `items`, `required`, `default`, and `minItems` and `maxItems` from the [limits of lists](./values.md#lists)). WordPress then does the work it always does with a schema: it validates and sanitizes the arguments, answers with 400 if one is invalid, and shows the schema on an `OPTIONS` request. Missing optional arguments get the parameter's default. Enums, value objects and lists are converted by the value factory, so your method receives typed values.
 
 `#[Param]` (`Saij\WpAppFramework\Rest\Param`) adds further constraints to the schema:
 

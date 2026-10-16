@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { itemTitle } from '../list';
+import { itemTitle, listLimits } from '../list';
 
 const fields = {
 	'buttons.*.note': { kind: 'rich' },
@@ -47,5 +47,53 @@ describe( 'itemTitle of multiline text', () => {
 				multiline
 			)
 		).toBe( 'Main street 1' );
+	} );
+} );
+
+describe( 'listLimits', () => {
+	it( 'allows everything without limits', () => {
+		const limits = listLimits( {}, 5 );
+		expect( limits.canAdd ).toBe( true );
+		expect( limits.canRemove ).toBe( true );
+		expect( limits.isUnused( 4 ) ).toBe( false );
+		expect( limits.notice ).toBeNull();
+	} );
+
+	it( 'stops adding at max and removing at min', () => {
+		expect( listLimits( { min: 1, max: 3 }, 2 ) ).toMatchObject( {
+			canAdd: true,
+			canRemove: true,
+			notice: null,
+		} );
+		expect( listLimits( { min: 1, max: 3 }, 3 ) ).toMatchObject( {
+			canAdd: false,
+			canRemove: true,
+		} );
+		expect( listLimits( { min: 1, max: 3 }, 1 ) ).toMatchObject( {
+			canAdd: true,
+			canRemove: false,
+		} );
+	} );
+
+	it( 'marks the items beyond max of a longer stored list', () => {
+		const limits = listLimits( { max: 3 }, 5 );
+		expect( limits.canAdd ).toBe( false );
+		expect( limits.canRemove ).toBe( true );
+		expect( [ 0, 1, 2, 3, 4 ].map( limits.isUnused ) ).toEqual( [
+			false,
+			false,
+			false,
+			true,
+			true,
+		] );
+		expect( limits.notice ).toBe(
+			'5 items, but at most 3 allowed: only the first 3 are used. Remove 2.'
+		);
+	} );
+
+	it( 'asks for the missing items of a shorter stored list', () => {
+		const limits = listLimits( { min: 2 }, 0 );
+		expect( limits.canRemove ).toBe( false );
+		expect( limits.notice ).toBe( '0 of at least 2 items. Add 2.' );
 	} );
 } );
