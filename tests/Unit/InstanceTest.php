@@ -222,7 +222,8 @@ final class InstanceTest extends TestCase
         );
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('The plugin my-plugin requires Twig v1.0.0, but Twig ' . \Twig\Environment::VERSION . ' is loaded (from another consumer).');
+        $twig = (string) realpath(dirname((string) new \ReflectionClass(\Twig\Environment::class)->getFileName(), 2));
+        $this->expectExceptionMessage('The plugin my-plugin requires Twig v1.0.0, but Twig ' . \Twig\Environment::VERSION . ' is loaded from ' . $twig . '. In development mode, whoever loads Twig first provides it for all consumers – another consumer, or the root vendor/ of a Bedrock site;');
 
         $this->instance(ProjectKind::Plugin)->boot();
     }

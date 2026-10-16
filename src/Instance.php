@@ -491,12 +491,16 @@ final readonly class Instance
             throw new LogicException(sprintf('%s does not list twig/twig; run composer install in the %s %s.', $installedFile, $this->kind->getLabel(), $this->slug));
         }
         if (ltrim($twig, 'v') !== Environment::VERSION) {
+            // Development mode only, so reflection is fine: the package directory of the loaded Twig, e.g. another
+            // consumer or the root vendor/ of a Bedrock site.
+            $file = (string) new \ReflectionClass(Environment::class)->getFileName();
             throw new LogicException(sprintf(
-                'The %s %s requires Twig %s, but Twig %s is loaded (from another consumer). Several consumers share the unprefixed classes in development mode; install the same Twig version in each of them.',
+                'The %s %s requires Twig %s, but Twig %s is loaded from %s. In development mode, whoever loads Twig first provides it for all consumers – another consumer, or the root vendor/ of a Bedrock site; install the same Twig version in each of them.',
                 $this->kind->getLabel(),
                 $this->slug,
                 $twig,
                 Environment::VERSION,
+                realpath(dirname($file, 2)) ?: dirname($file, 2),
             ));
         }
     }

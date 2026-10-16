@@ -89,4 +89,4 @@ To rule that out, the boot checks two things and fails if either does not hold:
 - the loaded framework is the consumer's own `vendor/saij/wp-app-framework`, compared by real path;
 - the loaded Twig version is the one recorded in the consumer's `vendor/composer/installed.php`.
 
-In practice, link the same framework checkout into every consumer. The option `WP_PACKAGE_LINKS` of [wp-dev-env](https://github.com/saijsaij/wp-dev-env) does exactly that.
+In practice, link the same framework checkout into every consumer. The option `WP_PACKAGE_LINKS` of [wp-dev-env](https://github.com/saijsaij/wp-dev-env) does exactly that. Twig may also come from somewhere else: in a Bedrock site, the root `vendor/` of the site can load it before any consumer. The error names the directory the loaded Twig comes from, so you know which installation to align.
