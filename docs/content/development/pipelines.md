@@ -15,14 +15,14 @@ All of them check out wp-test-env next to the framework and run the commands in 
 
 ### The release gates
 
-`release.yml` tests a tag of the framework with the consumers before anything is published:
+`release.yml` tests a tag of the framework with the consumers before anything is published. The gates run at the same time as the checks of `ci.yml`, so the slowest gate – the starter – sets the duration:
 
 - **gate** – theme-dev-test (`main`) built with the framework of the tag: lint, manifest, release build, its browser tests against the ZIP and its WP-CLI tests;
 - **gate-plugin** – plugin-dev-test next to an old release of theme-dev-test, so two framework versions run side by side;
 - **gate-child-theme** – theme-dev-test-child on an old release of theme-dev-test;
 - **gate-starter** – the CI of [wp-app-starter](https://github.com/saijsaij/wp-app-starter): a theme, a child theme and a plugin created from it with every option, linted, built, released and tested, with the framework of the tag.
 
-Only if all gates pass, `publish` attaches the package ZIP (`git archive`, without the `export-ignore` files) to the GitHub release, and `docs` publishes the documentation of the minor version (`0.16/` …). A pre-release tag gets no documentation of its own.
+Only if the checks and all gates pass, `publish` attaches the package ZIP (`git archive`, without the `export-ignore` files) to the GitHub release, and `docs` publishes the documentation of the minor version (`0.16/` …). A pre-release tag gets no documentation of its own.
 
 ### The release workflow of consumers
 
@@ -38,14 +38,14 @@ A consumer's own `release.yml` calls `consumer-release.yml` for its tags (see [R
 
 A release of the framework is also a release of the test consumers, and it is followed by one of the starter. The order matters, because each step needs the one before.
 
-1. **Release tests.** Run the release pools of the three consumers with your checkout (see [Testing](./testing.md#when-to-run-what)); all must pass.
-2. **Benchmark.** Run `bin/bench` of theme-bench and compare it with the last report: no new database query on the base load, no unexplained cost.
-3. **wp-test-env first.** If the release needs changes of wp-test-env, push them first: the workflows check out its `main`.
-4. **Framework `main`.** Push the framework and wait for Packagist (a few minutes).
-5. **Consumers.** In theme-dev-test, plugin-dev-test, theme-dev-test-child and theme-bench, move the lock file to the new `main` (`composer update saij/wp-app-framework`). Raise the version in `style.css` or the plugin's main file of the three test consumers; plugin and child theme name the previous theme release in `with-theme`, so two framework versions run side by side. Commit, push and tag them (`v<version>`); their release workflows must pass.
-6. **Framework tag.** Tag the framework (`v<version>`) and wait for `release.yml`: checks, all four gates, package ZIP and documentation.
+1. **Release tests.** Run the release pools of the three consumers with your checkout (see [Testing](./testing.md#when-to-run-what)); all must pass. Plugin and child theme install the theme release that `with-theme` in their release workflow names (`tests/download-with-theme`), as their release workflows do, so a test that needs something only the new theme has fails here and not after the tag.
+2. **wp-test-env first.** If the release needs changes of wp-test-env, push them first: the workflows check out its `main`.
+3. **Framework `main`.** Push the framework, wait for its CI and for Packagist (a few minutes).
+4. **Consumers.** In theme-dev-test, plugin-dev-test, theme-dev-test-child and theme-bench, move the lock file to the new `main` (`composer update saij/wp-app-framework`). Raise the version in `style.css` or the plugin's main file of the three test consumers; plugin and child theme name the previous theme release in `with-theme`, so two framework versions run side by side. Commit, push and tag them (`v<version>`).
+5. **Benchmark, while the consumer releases run.** Their workflows run on GitHub and do not disturb the measurement; local tests would, so run none at the same time. Run `bin/bench` of theme-bench and compare it with the last report: no new database query on the base load, no unexplained cost. A problem it shows is fixed on the framework's `main` before the tag; the consumers then get the new lock file in a patch release. Then check that the release workflows of the consumers passed.
+6. **Framework tag.** Tag the framework (`v<version>`) and wait for `release.yml`: checks, all four gates, package ZIP and documentation. GitHub Pages serves the new documentation a minute or two after the job `docs`.
 7. **Release notes** for every release (see below).
-8. **Starter.** After a new minor version, raise the starter's requirement (`"saij/wp-app-framework": "^0.x"`), tag the starter, and check `composer create-project saij/wp-app-starter` against Packagist.
+8. **Starter.** After a new minor version, raise the starter's requirement (`"saij/wp-app-framework": "^0.x"`), tag the starter with release notes, and check `composer create-project saij/wp-app-starter` against Packagist (a Composer home of its own, so neither cache nor path repositories hide the published versions). There is no need to wait for the CI of the starter: `gate-starter` tested the same starter with the framework of the tag.
 9. **Package links.** `composer update` replaced the links to your framework checkout in the local consumers; restore them with `bin/prepare --link` of wp-test-env.
 
 ### Release notes

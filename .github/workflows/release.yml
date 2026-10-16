@@ -1,6 +1,7 @@
-# Release of the framework for a tag v<version>: tests and lint, then the release
-# gates – the test theme theme-dev-test, the test plugin plugin-dev-test and the
-# test child theme theme-dev-test-child are built with the framework of the tag,
+# Release of the framework for a tag v<version>: tests and lint and, at the same
+# time, the release gates – the test theme theme-dev-test, the test plugin
+# plugin-dev-test and the test child theme theme-dev-test-child are built with the
+# framework of the tag,
 # installed into a plain WordPress and tested in the browser; the plugin and the
 # child theme with a theme release, so two framework versions run side by side;
 # and a theme, child theme and plugin created from wp-app-starter with every option –
@@ -20,7 +21,6 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   gate:
-    needs: checks
     uses: ./.github/workflows/consumer-release.yml
     permissions:
       contents: write
@@ -32,7 +32,6 @@ jobs:
       publish: false
 
   gate-plugin:
-    needs: checks
     uses: ./.github/workflows/consumer-release.yml
     permissions:
       contents: write
@@ -45,7 +44,6 @@ jobs:
       publish: false
 
   gate-child-theme:
-    needs: checks
     uses: ./.github/workflows/consumer-release.yml
     permissions:
       contents: write
@@ -57,14 +55,13 @@ jobs:
       publish: false
 
   gate-starter:
-    needs: checks
     uses: SaijSaij/wp-app-starter/.github/workflows/ci.yml@main
     with:
       starter-ref: main
       framework-ref: ${{ github.ref }}
 
   publish:
-    needs: [gate, gate-plugin, gate-child-theme, gate-starter]
+    needs: [checks, gate, gate-plugin, gate-child-theme, gate-starter]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
