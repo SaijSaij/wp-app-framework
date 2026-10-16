@@ -3,6 +3,9 @@ import { htmlToDOM } from 'html-react-parser';
 import { LIST_ITEM } from './ghosts';
 import { matchesPattern } from './paths';
 
+/** Attribute of the element of an item of a repeater, set by repeater_item() in editor renders. */
+export const REPEATER_ITEM = 'data-repeater-item';
+
 /** Attribute of an inline field, set by field() in editor renders. */
 export const FIELD = 'data-field';
 
@@ -26,11 +29,12 @@ export function isElement( node ) {
  * Checks the server markup of a block: exactly one root element, marked
  * fields that exist. The root element may itself be a text field (e.g. the
  * <p> of a paragraph block), but not an image field. Returns the root node and
- * the marked paths, and the items marked with list_item().
+ * the marked paths, the items marked with list_item() and the number of
+ * items of a repeater (repeater_item()).
  *
  * @param {string} html
  * @param {Object} fields Inline fields by pattern.
- * @return {{root: Object|null, error: string|null, paths: string[], listItems: string[]}} Analysis.
+ * @return {{root: Object|null, error: string|null, paths: string[], listItems: string[], repeaterItems: number}} Analysis.
  */
 export function analyzeMarkup( html, fields ) {
 	const nodes = htmlToDOM( html ).filter(
@@ -44,6 +48,7 @@ export function analyzeMarkup( html, fields ) {
 			error: `The template must render exactly one root element, it rendered ${ nodes.length } nodes.`,
 			paths: [],
 			listItems: [],
+			repeaterItems: 0,
 		};
 	}
 
@@ -61,11 +66,13 @@ export function analyzeMarkup( html, fields ) {
 			error: 'The root element cannot be an image field; mark an element inside it.',
 			paths: [],
 			listItems: [],
+			repeaterItems: 0,
 		};
 	}
 
 	const paths = [];
 	const listItems = [];
+	let repeaterItems = 0;
 	const pending = [ root ];
 	while ( pending.length > 0 ) {
 		const node = pending.pop();
@@ -92,10 +99,13 @@ export function analyzeMarkup( html, fields ) {
 		if ( node.attribs[ LIST_ITEM ] !== undefined ) {
 			listItems.push( node.attribs[ LIST_ITEM ] );
 		}
+		if ( node.attribs[ REPEATER_ITEM ] !== undefined ) {
+			repeaterItems++;
+		}
 		pending.push( ...node.children );
 	}
 
-	return { root, error: null, paths, listItems };
+	return { root, error: null, paths, listItems, repeaterItems };
 }
 
 /**

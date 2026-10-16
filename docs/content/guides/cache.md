@@ -202,4 +202,5 @@ At run time:
 - `CacheStore::remember(string $key, Closure $compute, int $ttl, array $tags = [], array $vary = [])` checks its arguments like the build; an empty key, an invalid ttl, tag or variant throws an `InvalidArgumentException`. A value that is not plain data throws a `LogicException`. A cached REST route whose data or headers are not plain data answers with status 500, like any other exception.
 - `CacheStore::invalidate(CacheTag ...$tags)` invalidates the tags of this theme or plugin.
 - The filter `wp_app_framework/cache/backends/{slug}` returns a list of `'object'`, `'file'` and `'transient'`; another value throws a `LogicException`.
+- A block with a `Repeater` has its inner blocks in the key, since they do not render into `$content` (see [Repeating inner blocks](./containers.md#caching)).
 - Blocks are never cached in renders for the block editor, its preview or excerpts. Errors and REST responses with a status of 400 or more are never cached.

@@ -62,6 +62,8 @@ If the template renders the new item without `list_item()`, the block shows an e
 
 Unlike `field()`, `inner_blocks()` checks the block in every render, also on the front end: in a block without `string $content` in its `render()`, or in a template that is not rendered for a block, it throws an exception. The check is a lookup in the manifest, so it costs almost nothing, and a wrong template fails wherever it renders.
 
+A block that repeats its inner blocks per item marks the element of each item with `repeater_item( item )` instead. The runtime puts the inner blocks into the element of the item being edited and a live preview into the others; a click on a preview edits that item. See [Repeating inner blocks](./containers.md#repeating-inner-blocks).
+
 ### The root element
 
 The template renders exactly one root element with `block_wrapper_attributes()`. The runtime adds the editor's block props to it, without an extra wrapper, so the canvas has the same element structure as the front end.
@@ -86,7 +88,7 @@ In the canvas, the fields edited there are outlined while their block is hovered
 
 ## Rendering
 
-All blocks of an instance render through its batch route, `POST /wp-app-framework/v1/{slug}/render`. It requires `edit_posts`, and `edit_post` for a block's `postId`. The route renders like WordPress' own block renderer: with `render_block()`, with empty inner blocks and with the value of a `postContent` field as inner HTML, and the block supports apply. Each block gets its own result, so one failing block shows an error while the others render.
+All blocks of an instance render through its batch route, `POST /wp-app-framework/v1/{slug}/render`. It requires `edit_posts`, and for a block's `postId` either `edit_post` or a post that is public anyway – the previews of a [repeater](./containers.md#in-the-editor) show the published posts of others. The route renders like WordPress' own block renderer: with `render_block()`, with empty inner blocks and with the value of a `postContent` field as inner HTML, and the block supports apply. Each block gets its own result, so one failing block shows an error while the others render.
 
 Unlike WordPress' block renderer, the route also renders with the block context of the editor: the values the block reads from enclosing blocks, such as the active tab of [tabs](./containers.md#passing-values-to-inner-blocks). The runtime sends the values the block uses, except `postId` and `postType`, which the route derives from the post. The route accepts only names the block uses. It validates values of your own blocks against the attribute that provides them; values of other blocks, such as `queryId` of a query loop, are passed as they are.
 

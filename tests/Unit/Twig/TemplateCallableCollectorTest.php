@@ -54,6 +54,7 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Function, 'field', EditorTemplateFunctions::class, 'field', true],
                 [TemplateCallableKind::Function, 'list_item', EditorTemplateFunctions::class, 'listItem', true],
                 [TemplateCallableKind::Function, 'inner_blocks', EditorTemplateFunctions::class, 'innerBlocks', true],
+                [TemplateCallableKind::Function, 'repeater_item', EditorTemplateFunctions::class, 'repeaterItem', true],
                 [TemplateCallableKind::Function, 'is_editor', EditorTemplateFunctions::class, 'isEditor', false],
                 [TemplateCallableKind::Function, 'post', PostTemplateFunctions::class, 'post', false],
                 [TemplateCallableKind::Function, 'wp_attachment_image', WordPressTemplateFunctions::class, 'attachmentImage', true],

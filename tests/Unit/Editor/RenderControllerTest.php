@@ -50,7 +50,7 @@ final class RenderControllerTest extends TestCase
         $this->manifest = Manifest::load($this->file);
         $this->context = new RenderContext();
         $GLOBALS['wp_app_framework_test_caps'] = ['edit_posts', 'edit_post:7'];
-        $GLOBALS['wp_app_framework_test_posts'] = [7 => new \WP_Post((object) ['ID' => 7]), 8 => new \WP_Post((object) ['ID' => 8])];
+        $GLOBALS['wp_app_framework_test_posts'] = [7 => new \WP_Post((object) ['ID' => 7]), 8 => new \WP_Post((object) ['ID' => 8, 'post_status' => 'draft']), 9 => new \WP_Post((object) ['ID' => 9])];
     }
 
     protected function tearDown(): void
@@ -134,15 +134,19 @@ final class RenderControllerTest extends TestCase
             ['name' => 'fixture/teaser', 'postId' => 99],
             ['name' => 'fixture/teaser', 'postId' => 8],
             ['name' => 'fixture/teaser', 'postId' => 7, 'attributes' => ['kicker' => 'Post']],
+            ['name' => 'fixture/teaser', 'postId' => 9, 'attributes' => ['kicker' => 'Public']],
         ]);
 
         self::assertSame('wp_app_framework_unknown_block', $results[0]['error']['code'] ?? null);
         self::assertSame('Block core/paragraph is not a block of fixture.', $results[1]['error']['message'] ?? null);
         self::assertSame(['code' => 'wp_app_framework_invalid_attributes', 'message' => 'nope is not a valid property of Object.'], $results[2]['error'] ?? null);
         self::assertSame(['code' => 'wp_app_framework_post_not_found', 'message' => 'Post 99 does not exist.'], $results[3]['error'] ?? null);
-        self::assertSame(['code' => 'wp_app_framework_forbidden', 'message' => 'You may not edit post 8.'], $results[4]['error'] ?? null);
+        self::assertSame(['code' => 'wp_app_framework_forbidden', 'message' => 'You may not edit post 8, and it is not public.'], $results[4]['error'] ?? null);
+        // A published post of others renders too: the previews of a repeater show them.
+        self::assertStringContainsString('>Public</p>', $results[6]['html'] ?? '');
         self::assertStringContainsString('>Post</p>', $results[5]['html'] ?? '');
-        self::assertSame(7, $GLOBALS['wp_app_framework_test_postdata']);
+        // The post of the last entry was set up for its render.
+        self::assertSame(9, $GLOBALS['wp_app_framework_test_postdata']);
         self::assertArrayNotHasKey('post', $GLOBALS, 'The previous global post is restored.');
     }
 

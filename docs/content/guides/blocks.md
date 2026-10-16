@@ -150,8 +150,10 @@ Settings of your own that several blocks share, such as a color scheme, are [blo
 
 - the attribute class,
 - `string` – the rendered inner blocks,
+- `Repeater` – instead of `string`, renders the inner blocks once per item (see [Repeating inner blocks](./containers.md#repeating-inner-blocks)),
 - `WP_Block` – WordPress' block instance,
-- parameters marked with [`#[Context]`](./containers.md#passing-values-to-inner-blocks) – values an enclosing block passes on.
+- parameters marked with [`#[Context]`](./containers.md#passing-values-to-inner-blocks) – values an enclosing block passes on,
+- parameters marked with [`#[Item]`](./containers.md#the-current-item) – the post, term, comment, user or row a repeater shows the block for.
 
 Services come through the constructor. The block service is created when the block renders for the first time, not when WordPress registers it.
 

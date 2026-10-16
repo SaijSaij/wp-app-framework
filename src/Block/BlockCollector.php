@@ -19,6 +19,9 @@ use Saij\WpAppFramework\Cache\CacheCollector;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Manifest\EntryPointInspector;
+use Saij\WpAppFramework\Post\AbstractPost;
+use Saij\WpAppFramework\Table\AbstractRow;
+use Saij\WpAppFramework\Table\TableNames;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
 
@@ -110,6 +113,8 @@ final class BlockCollector
      * @param string      $frameworkDirectory Source directory of the framework, which must not declare blocks.
      * @param string|null $scriptDirectory    Directory the consumer's build compiles scripts from (its `src/`);
      *                                        editor and view scripts must be below it. Null if the consumer has none.
+     * @param array<class-string<AbstractRow>, non-empty-string> $tables Row classes of the project and the names of
+     *                                        their tables, for `#[Item]` parameters of a row class.
      */
     public function __construct(
         private readonly ServiceResolver $resolver,
@@ -119,6 +124,7 @@ final class BlockCollector
         private readonly string $frameworkDirectory,
         private readonly ?string $scriptDirectory = null,
         private readonly ?CacheCollector $cache = null,
+        private readonly array $tables = [],
     ) {
         $this->inspector = new EntryPointInspector($resolver);
     }
@@ -255,9 +261,19 @@ final class BlockCollector
                 'viewScript' => $definition->getViewScript(),
             ];
         }
-        $innerBlocks = in_array('content', array_column($arguments, 'kind'), true);
+        $kinds = array_column($arguments, 'kind');
+        $repeater = in_array('repeater', $kinds, true);
+        $innerBlocks = $repeater || in_array('content', $kinds, true);
         $excerptFields = self::excerptFields($fields);
         $error = match (true) {
+            $repeater && in_array('content', $kinds, true) => sprintf('%s::render() accepts string $content and Repeater; a block either renders its inner blocks once (string $content) or once per item (Repeater).', $name),
+            $repeater && $block->excerptWrapper => sprintf('#[Block] on %s has excerptWrapper, but %s::render() accepts Repeater; WordPress includes the inner blocks of an excerpt wrapper once, not per item.', $name, $name),
+            $repeater && $postContentField !== null => sprintf(
+                'Attribute "%s" of block %s has #[RichText(postContent: true)], but %s::render() accepts Repeater, so the block has inner blocks; inner blocks and a value stored in the post content cannot share the block content.',
+                $postContentField,
+                $name,
+                $name,
+            ),
             $inner !== null && !$innerBlocks => sprintf('%s has #[InnerBlocks], but %s::render() accepts no string $content, so the block has no inner blocks.', $name, $name),
             $block->excerptWrapper && !$innerBlocks => sprintf('#[Block] on %s has excerptWrapper, but %s::render() accepts no string $content, so the block has no inner blocks to include in excerpts.', $name, $name),
             $postContentField !== null && $innerBlocks => sprintf(
@@ -307,8 +323,18 @@ final class BlockCollector
         if ($block->keywords !== []) {
             $args['keywords'] = $block->keywords;
         }
-        if ($block->usesContext !== []) {
-            $args['uses_context'] = $block->usesContext;
+        $usesContext = $block->usesContext;
+        foreach ($arguments as $argument) {
+            if ($argument['kind'] === 'item') {
+                array_push($usesContext, ...array_diff($argument['context'], $usesContext));
+            }
+        }
+        if ($usesContext !== []) {
+            $args['uses_context'] = $usesContext;
+        }
+        if ($repeater) {
+            // Like core/post-template: WordPress does not render the inner blocks once; the repeater renders them per item.
+            $args['skip_inner_blocks'] = true;
         }
         if ($render['provided'] !== []) {
             $args['provides_context'] = [];
@@ -323,6 +349,7 @@ final class BlockCollector
             'fields' => $fields,
             'controls' => $controls,
             'innerBlocks' => $innerBlocks,
+            'repeater' => $repeater,
             'innerBlockOptions' => [],
             'postContentField' => $postContentField,
             'appenders' => $render['appenders'],
@@ -1077,6 +1104,57 @@ final class BlockCollector
         return null;
     }
 
+    /**
+     * A render() parameter marked with #[Item]: where its value comes from and which context it reads.
+     *
+     * @return array{param: string, kind: 'item', source: 'post'|'postClass'|'term'|'comment'|'user'|'row', class: class-string|null, context: list<string>}|null
+     */
+    private function itemArgument(ReflectionParameter $parameter, string $location): ?array
+    {
+        $type = $parameter->getType();
+        $name = $type instanceof ReflectionNamedType ? $type->getName() : null;
+        $source = match (true) {
+            $name === null => null,
+            $name === 'WP_Post' => 'post',
+            $name === 'WP_Term' => 'term',
+            $name === 'WP_Comment' => 'comment',
+            $name === 'WP_User' => 'user',
+            is_subclass_of($name, AbstractPost::class) && $this->values->isPostClass($name) => 'postClass',
+            isset($this->tables[$name]) => 'row',
+            default => null,
+        };
+        $error = match (true) {
+            $parameter->getAttributes(Context::class) !== [] => 'has #[Item] and #[Context]; a parameter receives either the current item of a repeater or a value of an ancestor',
+            $parameter->isVariadic() || $parameter->isPassedByReference() => 'with #[Item] must be neither variadic nor passed by reference',
+            $source === null => sprintf(
+                'has #[Item], but its type %s is no item of a repeater; use a post class of the theme or plugin, WP_Post, WP_Term, WP_Comment, WP_User or a row class (#[Table]) of the theme or plugin',
+                $type === null ? '(none)' : (string) $type,
+            ),
+            !$type instanceof ReflectionNamedType || !$type->allowsNull() => sprintf('has #[Item], so it must be nullable (?%s): outside an item of its kind it is null', $name),
+            default => null,
+        };
+        if ($error !== null || $name === null || $source === null) {
+            $this->errors[] = sprintf('%s %s.', $location, $error);
+
+            return null;
+        }
+
+        /** @var class-string $name */
+        return [
+            'param' => $parameter->getName(),
+            'kind' => 'item',
+            'source' => $source,
+            'class' => in_array($source, ['postClass', 'row'], true) ? $name : null,
+            'context' => match ($source) {
+                'post', 'postClass' => ['postId', 'postType'],
+                'term' => ['termId', 'taxonomy'],
+                'comment' => ['commentId'],
+                'user' => ['userId'],
+                'row' => [TableNames::context($this->namespace, $this->tables[$name])],
+            },
+        ];
+    }
+
     private function usesContextError(Block $block, string $class): ?string
     {
         foreach ($block->usesContext as $name) {
@@ -1254,6 +1332,16 @@ final class BlockCollector
         foreach ($method->getParameters() as $parameter) {
             $parameterLocation = sprintf('parameter $%s of %s', $parameter->getName(), $location);
 
+            if ($parameter->getAttributes(Item::class) !== []) {
+                $item = $this->itemArgument($parameter, $parameterLocation);
+                if ($item === null) {
+                    $valid = false;
+                    continue;
+                }
+                $render['arguments'][] = $item;
+                continue;
+            }
+
             $contexts = $parameter->getAttributes(Context::class);
             if ($contexts !== []) {
                 try {
@@ -1279,12 +1367,13 @@ final class BlockCollector
                 $typeName === null => null,
                 $typeName === 'string' => 'content',
                 $typeName === self::BLOCK_CLASS => 'block',
+                $typeName === Repeater::class => 'repeater',
                 !$type->isBuiltin() => 'attributes',
                 default => null,
             };
             if ($kind === null || $parameter->isVariadic() || $parameter->isPassedByReference()) {
                 $this->errors[] = sprintf(
-                    '%s is not supported: render() accepts the block attribute class, string $content, WP_Block $block, each at most once and not nullable, and values of ancestors marked with #[Context]; inject services through the constructor.',
+                    '%s is not supported: render() accepts the block attribute class, string $content or Repeater $repeater, WP_Block $block, each at most once and not nullable, values of ancestors marked with #[Context] and the current item of a repeater marked with #[Item]; inject services through the constructor.',
                     $parameterLocation,
                 );
                 $valid = false;
@@ -1294,6 +1383,7 @@ final class BlockCollector
                 $this->errors[] = sprintf('%s: render() accepts only one %s parameter.', $parameterLocation, match ($kind) {
                     'content' => 'string $content',
                     'block' => 'WP_Block',
+                    'repeater' => 'Repeater',
                     default => 'block attribute class',
                 });
                 $valid = false;

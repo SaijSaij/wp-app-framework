@@ -187,6 +187,14 @@ final class WP_Block
     /** @var array<string, mixed> Simplified: all available context (WordPress keeps only the block type's uses_context). */
     public array $context = [];
 
+    /** @var array<string, mixed> */
+    public array $parsed_block;
+
+    public ?WP_Block_Type $block_type = null;
+
+    /** @var array<string, mixed> Like WordPress: protected. */
+    protected array $available_context = [];
+
     /**
      * @param array{blockName: string, attrs?: array<string, mixed>, innerHTML?: string} $block
      * @param array<string, mixed>                                                      $available_context
@@ -197,6 +205,9 @@ final class WP_Block
         $this->attributes = $block['attrs'] ?? [];
         $this->inner_html = $block['innerHTML'] ?? '';
         $this->context = $available_context;
+        $this->available_context = $available_context;
+        $this->parsed_block = $block;
+        $this->block_type = WP_Block_Type_Registry::get_instance()->get_registered($this->name);
     }
 
     /**
@@ -784,6 +795,31 @@ final class WP_User
             $this->ID = $id;
         }
     }
+}
+
+/**
+ * Like WordPress: the properties come from the given object; the ID is a numeric string.
+ */
+final class WP_Comment
+{
+    public string $comment_ID = '0';
+    public string $comment_post_ID = '0';
+    public string $comment_content = '';
+
+    public function __construct(object $comment)
+    {
+        foreach (get_object_vars($comment) as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+}
+
+/**
+ * Comments from $GLOBALS['wp_app_framework_test_comments'] by ID.
+ */
+function get_comment(int|WP_Comment|string|null $comment = null, string $output = 'OBJECT'): WP_Comment|array|null
+{
+    return $comment instanceof WP_Comment ? $comment : $GLOBALS['wp_app_framework_test_comments'][(int) $comment] ?? null;
 }
 
 /**

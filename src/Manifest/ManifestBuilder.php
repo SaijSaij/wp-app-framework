@@ -251,7 +251,16 @@ final class ManifestBuilder
         $cliCommands = $cliCommandCollector->collect($classes);
         $supportCollector = new SupportCollector($resolver, $values, self::frameworkSource()->getDirectory(), $this->scriptDirectory);
         $supportCollector->collect($classes);
-        $blockCollector = new BlockCollector($resolver, $values, $supportCollector, $this->namespace, self::frameworkSource()->getDirectory(), $this->scriptDirectory, $cacheCollector);
+        $blockCollector = new BlockCollector(
+            $resolver,
+            $values,
+            $supportCollector,
+            $this->namespace,
+            self::frameworkSource()->getDirectory(),
+            $this->scriptDirectory,
+            $cacheCollector,
+            array_map(static fn(array $table): string => $table['name'], $tables['classes']),
+        );
         $blocks = $blockCollector->collect($classes);
         $markup = $this->markupDirectory !== null ? MarkupFiles::scan($this->markupDirectory) : null;
         $markupValidator = new BlockMarkupValidator($this->namespace, $blocks);

@@ -507,6 +507,14 @@ final class ValueSchemaBuilder
     }
 
     /**
+     * Whether a class is a post class of the project (#[PostType], Post or Page).
+     */
+    public function isPostClass(string $class): bool
+    {
+        return isset($this->posts[$class]);
+    }
+
+    /**
      * Whether a class is among the scanned classes.
      */
     public function hasClass(string $class): bool

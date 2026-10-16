@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Editor;
 
 use InvalidArgumentException;
+use Saij\WpAppFramework\Block\RepeaterItem;
 use Saij\WpAppFramework\Twig\TemplateFunction;
 
 /**
@@ -134,11 +135,39 @@ final readonly class EditorTemplateFunctions
     public function innerBlocks(): string
     {
         $block = $this->context->getBlock('inner_blocks()');
+        if ($block['repeater']) {
+            throw new InvalidArgumentException(sprintf('inner_blocks() in block %s: the block repeats its inner blocks per item (Repeater); mark the element of each item with repeater_item(item) instead.', $block['name']));
+        }
         if (!$block['innerBlocks']) {
             throw new InvalidArgumentException(sprintf('inner_blocks() in block %s: the block has no inner blocks; its render() must accept string $content.', $block['name']));
         }
 
         return $this->context->isEditor() ? ' data-inner-blocks' : '';
+    }
+
+    /**
+     * Marks the element of an item of a repeater (`Repeater`), which contains the item's inner blocks. In the block
+     * editor it becomes the inner blocks of the item being edited, or the preview of another item; on the front end
+     * it prints nothing. Only in blocks whose `render()` accepts a `Repeater`; elsewhere it throws an exception, in
+     * every render. The output is HTML: an attribute in renders for the block editor, otherwise `''`.
+     *
+     * ```twig
+     * {% for item in items %}<li{{ repeater_item(item) }}>{{ item.content|raw }}</li>{% endfor %}
+     * ```
+     *
+     * @param RepeaterItem $item An item the block's repeater created.
+     */
+    #[TemplateFunction('repeater_item', html: true)]
+    public function repeaterItem(RepeaterItem $item): string
+    {
+        $block = $this->context->getBlock('repeater_item()');
+        if (!$block['repeater']) {
+            throw new InvalidArgumentException(sprintf('repeater_item() in block %s: the block repeats no inner blocks; its render() must accept a Repeater.', $block['name']));
+        }
+
+        return $this->context->isEditor()
+            ? sprintf(' data-repeater-item="%s"', esc_attr((string) wp_json_encode((object) $item->getContext())))
+            : '';
     }
 
     /**

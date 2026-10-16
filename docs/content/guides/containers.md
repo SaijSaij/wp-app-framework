@@ -115,6 +115,74 @@ The attribute name is the only string here, and the build checks it: the contain
 
 WordPress itself names context values; the framework derives the names, `{namespace}/{block}/{attribute}` – here `sections/tabs/active`. Values of other blocks, such as `postId` in a query loop, are read as before with `usesContext` and `WP_Block` (see [Blocks](./blocks.md#block)).
 
+## Repeating inner blocks
+
+A list of events, the terms of a taxonomy, the comments of a post: some containers show their inner blocks once for every item, like `core/post-template` in a query loop. Editors design one item from blocks, and the container repeats it. Such a container asks for a [`Repeater`](../api/php/Block/Repeater.md) in `render()` instead of `string $content`, decides which items there are, and renders the inner blocks for each:
+
+```php
+use Saij\WpAppFramework\Block\Repeater;
+
+#[Block('event-list', title: 'Event list', category: BlockCategory::Design)]
+#[InnerBlocks(allowed: [EventCard::class, CoreBlock::PostTitle])]
+final readonly class EventList
+{
+    public function __construct(private TemplateRenderer $renderer) {}
+
+    public function render(EventListAttributes $attrs, Repeater $repeater): string
+    {
+        $items = array_map($repeater->post(...), Event::query()->limit($attrs->count)->get());
+
+        return $this->renderer->render('Block/EventList/EventList.twig', ['items' => $items]);
+    }
+}
+```
+
+The template marks the element of each item with `repeater_item()` and prints the item's inner blocks in it:
+
+```twig
+<ul {{ block_wrapper_attributes() }}>
+    {% for item in items %}
+        <li{{ repeater_item(item) }}>{{ item.content|raw }}</li>
+    {% endfor %}
+</ul>
+```
+
+### Kinds of items
+
+Each method of the repeater renders the inner blocks once and returns a [`RepeaterItem`](../api/php/Block/RepeaterItem.md). The inner blocks get the item as block context:
+
+| Method | Item | Block context |
+|---|---|---|
+| `post($post)` | an ID, a `WP_Post` or a post object | `postId`, `postType`; the post is the global post while the item renders |
+| `term($term)` | an ID or a `WP_Term` | `termId`, `taxonomy` |
+| `comment($comment)` | an ID or a `WP_Comment` | `commentId` |
+| `user($user)` | an ID or a `WP_User` | `userId` |
+| `row($row)` | a saved row object of a [table](./tables.md) | `{namespace}/{table}`, e.g. `sections/log` |
+
+Posts, terms and comments use the context of WordPress' own loop blocks, so core blocks such as `core/post-title`, `core/term-name` or `core/comment-content` show the item. One repeater may mix kinds: a list can show a post, then a term. The context of the ancestors stays available to the inner blocks, and the container's own `#[ProvidesContext]` values reach them as well. An item that does not exist – a deleted post, a row without primary key – throws an `InvalidArgumentException`.
+
+### The current item
+
+A block of your theme or plugin reads the item it is shown for with [`#[Item]`](../api/php/Block/Item.md) on a parameter of `render()`:
+
+```php
+public function render(EventCardAttributes $attrs, #[Item] ?Event $event): string
+```
+
+The type says which item: a post class of the theme or plugin or `WP_Post`, `WP_Term`, `WP_Comment`, `WP_User` or a row class. The parameter is nullable; it is null outside an item of its kind. A block can take several of them and show whichever is there. The framework adds the context names to the block's `usesContext` itself. A post comes from the `postId` context, which WordPress also sets for the post being shown, so outside a repeater a `#[Item] ?WP_Post` is that post, as for `core/post-title`; a post class gets only posts of its own type.
+
+### In the editor
+
+The editor shows the inner blocks of the first item to edit and the other items as live previews of the same blocks in their own context, like `core/post-template`. A click on a preview edits that item instead. Everything typed shows up in all items at once; the blocks are stored once, as inner blocks of the container. In renders for the editor, `item.content` is empty: the runtime fills the element of each item.
+
+The previews render each framework block for its item with the item's context. For a post that the editor may not edit, such as the published post of another author, the render route allows the render if the post is public; drafts of others stay closed. Core blocks in a preview load their data themselves; `core/post-title` asks for the post with `context=edit`, which WordPress refuses an author for posts of others, as in a query loop of WordPress.
+
+A container without items shows no inner blocks in the editor. Render something else in that case, for example `{% else %}<li>No events yet</li>`.
+
+### Caching
+
+[`#[Cache]`](./cache.md) works on a repeating container: its key contains the inner blocks, so a changed item design renders anew. The items themselves are data like any other – invalidate them with tags, such as `new PostTypeTag(Event::class)`. Inner blocks with a cache of their own are cached per item, because their key contains their context.
+
 ## Rules
 
 [`#[InnerBlocks(allowed: null, template: null, templateLock: null, orientation: null, defaultBlock: null, directInsert: false, prioritized: [], appender: Appender::Default)]`](../api/php/Block/InnerBlocks.md):
@@ -145,3 +213,9 @@ Context:
 - `#[ProvidesContext]` marks parameters of a block attribute class only, not of value classes or settings groups. The value is passed as context `{namespace}/{block}/{attribute}`.
 - `#[Context(Block::class, 'attribute')]` marks parameters of `render()` only. The block must be a block of the same theme or plugin, the attribute marked with `#[ProvidesContext]`, the parameter type that of the attribute (it may be nullable where the attribute is not), and the parameter needs a default or a nullable type.
 - `usesContext` must not name context of your own blocks; use `#[Context]` instead.
+
+Repeaters:
+
+- `render()` takes either `string $content` or a `Repeater`, not both; `#[InnerBlocks]` works the same for both.
+- A repeating block cannot be an `excerptWrapper`, nor have a `#[RichText(postContent: true)]` field, and its template marks items with `repeater_item()`, not `inner_blocks()` – in every render, `inner_blocks()` throws there, and `repeater_item()` throws in other blocks.
+- `#[Item]` goes on a nullable parameter of `render()` whose type is a post class of the theme or plugin, `WP_Post`, `WP_Term`, `WP_Comment`, `WP_User` or a row class of the theme or plugin, and not together with `#[Context]`.

@@ -276,7 +276,8 @@ export function PortalEdit( {
 			return undefined;
 		}
 		const { promise, cancel } = runtime.renderer.render( key, entry );
-		if ( block.innerBlocks ) {
+		// The inner blocks of a repeater render in the context of each item, not of the block.
+		if ( block.innerBlocks && ! block.repeater ) {
 			prefetchInnerBlocks( registry, clientId, runtime, postId );
 		}
 		let active = true;
@@ -357,6 +358,19 @@ export function PortalEdit( {
 		// The new items change also when the markup stays: the last item before max renders like the new item did.
 	}, [ state.html, loading, ghosts ] );
 
+	// The item of a repeater whose inner blocks are edited; the others are previews.
+	const [ activeItem, setActiveItem ] = useState( 0 );
+	// With fewer items than before, the first one is edited.
+	const active =
+		activeItem < ( analysis?.repeaterItems ?? 0 ) ? activeItem : 0;
+	const repeater = useMemo(
+		() =>
+			block.repeater
+				? { active, activate: setActiveItem, clientId }
+				: undefined,
+		[ block.repeater, active, clientId ]
+	);
+
 	const [ isPreview, setPreview ] = useState( false );
 	const preview = usePreview( {
 		clientId,
@@ -426,6 +440,7 @@ export function PortalEdit( {
 				}
 				ghosts={ ghosts }
 				onAdd={ addGhost }
+				repeater={ repeater }
 			/>
 		);
 	}

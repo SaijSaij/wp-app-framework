@@ -169,7 +169,7 @@ final class BlockCollectorTest extends TestCase
             $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\BlockBroken\\';
             $a = "parameter \$%s of {$ns}BrokenAttributes::__construct()";
             $supported = 'use int, float, string, bool, a backed enum, a value class or array with #[ListOf]';
-            $render = 'is not supported: render() accepts the block attribute class, string $content, WP_Block $block, each at most once and not nullable, and values of ancestors marked with #[Context]; inject services through the constructor.';
+            $render = 'is not supported: render() accepts the block attribute class, string $content or Repeater $repeater, WP_Block $block, each at most once and not nullable, values of ancestors marked with #[Context] and the current item of a repeater marked with #[Item]; inject services through the constructor.';
             $expected = [
                 "parameter \$number of {$ns}BadParameter::render() {$render}",
                 "parameter \$block of {$ns}BadParameter::render() {$render}",

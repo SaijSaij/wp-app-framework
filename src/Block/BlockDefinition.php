@@ -10,7 +10,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  * A validated `#[Block]` class.
  *
  * @phpstan-type BlockArgument array{param: string, kind: 'attributes', class: class-string}
- *     |array{param: string, kind: 'content'|'block'}
+ *     |array{param: string, kind: 'content'|'block'|'repeater'}
+ *     |array{param: string, kind: 'item', source: 'post'|'postClass'|'term'|'comment'|'user'|'row', class: class-string|null, context: list<string>}
  *     |array{param: string, kind: 'context', name: string, schema: array<string, mixed>, value: Value, hasDefault: bool}
  * @phpstan-type BlockArgs array{attributes: array<string, array<string, mixed>>, ...<string, mixed>}
  * @phpstan-type BlockField array{kind: 'plain'|'rich'|'image', label: string, allowedFormats?: list<string>, inspector?: true, postContent?: true, excerpt?: true}
@@ -18,6 +19,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  *     fields: array<string, BlockField>,
  *     controls: array<string, array<string, mixed>>,
  *     innerBlocks: bool,
+ *     repeater: bool,
  *     innerBlockOptions: array<string, mixed>,
  *     postContentField: string|null,
  *     appenders: list<string>,

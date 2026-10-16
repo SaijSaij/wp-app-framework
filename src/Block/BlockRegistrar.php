@@ -10,12 +10,18 @@ use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Manifest\Manifest;
+use Saij\WpAppFramework\Post\AbstractPost;
+use Saij\WpAppFramework\Table\AbstractRow;
 use Saij\WpAppFramework\Value\ValueFactory;
 use Saij\WpAppFramework\View\ViewAssets;
 use Saij\WpAppFramework\View\ViewData;
 use Throwable;
 use WP_Block;
 use WP_Block_Type_Registry;
+use WP_Comment;
+use WP_Post;
+use WP_Term;
+use WP_User;
 
 /**
  * Registers the blocks of the manifest with WordPress (on init).
@@ -60,6 +66,13 @@ use WP_Block_Type_Registry;
  * Values of ancestors (#[Context] parameters) come from the block context:
  * sanitized against the schema of the providing attribute and created like
  * attributes; without a providing ancestor the parameter keeps its default.
+ *
+ * A block whose render() asks for a Repeater is registered with
+ * `skip_inner_blocks`; the repeater renders the inner blocks per item. Its
+ * cache key contains a hash of the inner blocks, so a changed template of the
+ * items renders anew. The current item of a repeater (#[Item] parameters)
+ * comes from the block context of the item: the post, term, comment, user or
+ * row with that ID, null without one.
  *
  * Custom block categories are added before those of WordPress
  * (`block_categories_all`).
@@ -170,10 +183,15 @@ final readonly class BlockRegistrar
             $cache = $block['cache'];
             if ($cache !== null && $this->cache !== null && !$this->context->isEditor() && !$this->context->isPreview()) {
                 $vary = array_column($cache['vary'], 'type');
+                $key = [$attributes, $content, self::contextValues($block, $instance)];
+                if ($block['editor']['repeater']) {
+                    // The inner blocks do not render into $content (skip_inner_blocks): their template is part of the key.
+                    $key[] = hash('xxh128', serialize($instance?->parsed_block['innerBlocks'] ?? []));
+                }
                 [$entry, $hit] = $this->cache->fetch(
                     'block',
                     $block['name'],
-                    [$attributes, $content, self::contextValues($block, $instance)],
+                    $key,
                     $cache,
                     fn(): array => [$this->renderRecorded($block, $attributes, $content, $instance, $vary), true],
                 );
@@ -233,14 +251,15 @@ final readonly class BlockRegistrar
                 }
                 continue;
             }
+            if ($argument['kind'] === 'item') {
+                $named[$argument['param']] = self::item($argument, $instance);
+                continue;
+            }
             $named[$argument['param']] = match ($argument['kind']) {
                 'attributes' => $this->values->createAttributes($argument['class'], $attributes, $block['args']['attributes']),
                 'content' => $content,
-                'block' => $instance ?? throw new LogicException(sprintf(
-                    'Block %s was rendered without a WP_Block instance, but %s::render() needs one.',
-                    $block['name'],
-                    $block['class'],
-                )),
+                'block' => self::instance($block, $instance),
+                'repeater' => new Repeater(self::instance($block, $instance), $this->context),
             };
         }
 
@@ -249,7 +268,8 @@ final readonly class BlockRegistrar
         $html = $this->context->renderBlock(
             $block['name'],
             $block['editor']['fields'],
-            $block['editor']['innerBlocks'],
+            // inner_blocks() marks the inner blocks of string $content; a repeater marks its items with repeater_item().
+            $block['editor']['innerBlocks'] && !$block['editor']['repeater'],
             // The build checked that the block class has a public render(): string.
             // @phpstan-ignore method.notFound, return.type
             fn(): string => $this->container->get($block['class'])->render(...$named),
@@ -258,6 +278,7 @@ final readonly class BlockRegistrar
             $views ? $this->views->marker($block, $supportValues) : [],
             $cached,
             $block['editor']['appenders'],
+            $block['editor']['repeater'],
         );
         if ($views) {
             $this->views->enqueue($block);
@@ -290,6 +311,47 @@ final readonly class BlockRegistrar
             'assets' => RenderedAssets::added($before, RenderedAssets::snapshot(), $this->views->handles($block)),
             'viewData' => $viewData,
         ];
+    }
+
+    /**
+     * @param BlockEntry $block
+     */
+    private static function instance(array $block, ?WP_Block $instance): WP_Block
+    {
+        return $instance ?? throw new LogicException(sprintf(
+            'Block %s was rendered without a WP_Block instance, but %s::render() needs one.',
+            $block['name'],
+            $block['class'],
+        ));
+    }
+
+    /**
+     * The current item of a repeater for an #[Item] parameter: the object with the ID in the block context, null
+     * without one or if it does not exist (or, for a post class, has another post type).
+     *
+     * @param array{param: string, kind: 'item', source: 'post'|'postClass'|'term'|'comment'|'user'|'row', class: class-string|null, context: list<string>} $argument
+     */
+    private static function item(array $argument, ?WP_Block $instance): WP_Post|AbstractPost|WP_Term|WP_Comment|WP_User|AbstractRow|null
+    {
+        $raw = $instance?->context[$argument['context'][0]] ?? null;
+        $id = is_int($raw) || (is_string($raw) && ctype_digit($raw)) ? (int) $raw : 0;
+        if ($id <= 0) {
+            return null;
+        }
+        $class = (string) $argument['class'];
+        $taxonomy = $instance?->context['taxonomy'] ?? '';
+        $object = match ($argument['source']) {
+            'post' => get_post($id),
+            'postClass' => is_subclass_of($class, AbstractPost::class) ? $class::find($id) : null,
+            'term' => get_term($id, is_string($taxonomy) ? $taxonomy : ''),
+            'comment' => get_comment($id),
+            'user' => get_userdata($id),
+            'row' => is_subclass_of($class, AbstractRow::class) ? $class::find($id) : null,
+        };
+
+        return $object instanceof WP_Post || $object instanceof AbstractPost || $object instanceof WP_Term || $object instanceof WP_Comment || $object instanceof WP_User || $object instanceof AbstractRow
+            ? $object
+            : null;
     }
 
     /**

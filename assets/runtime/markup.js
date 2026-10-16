@@ -6,15 +6,17 @@ import {
 import { useMemo } from '@wordpress/element';
 import { attributesToProps, domToReact } from 'html-react-parser';
 
-import { FIELD, INNER_BLOCKS, isElement } from './analyze';
+import { FIELD, INNER_BLOCKS, isElement, REPEATER_ITEM } from './analyze';
 import { FieldBoundary, ImageField, TextField } from './fields';
 import { LIST_ITEM } from './ghosts';
 import { matchesPattern } from './paths';
+import { itemContext, RepeaterItem } from './repeater';
 
 function elementProps( node ) {
 	const {
 		[ FIELD ]: field,
 		[ INNER_BLOCKS ]: innerBlocks,
+		[ REPEATER_ITEM ]: repeaterItem,
 		...attribs
 	} = node.attribs;
 	return attributesToProps( attribs, node.name );
@@ -161,11 +163,29 @@ function ghostOf( node, ghosts ) {
 		: null;
 }
 
-function createOptions( fields, innerBlocksOptions, ghosts, onAdd ) {
+function createOptions( fields, innerBlocksOptions, ghosts, onAdd, repeater ) {
+	// Items of a repeater in the order of the markup: the active one shows the inner blocks.
+	let item = 0;
 	const options = {
 		replace( node ) {
 			if ( ! isElement( node ) ) {
 				return undefined;
+			}
+			if ( REPEATER_ITEM in node.attribs && repeater ) {
+				const index = item++;
+				return (
+					<FieldBoundary label={ `Item ${ index + 1 }` }>
+						<RepeaterItem
+							tagName={ node.name }
+							props={ elementProps( node ) }
+							context={ itemContext( node ) }
+							isActive={ index === repeater.active }
+							onActivate={ () => repeater.activate( index ) }
+							clientId={ repeater.clientId }
+							options={ innerBlocksOptions }
+						/>
+					</FieldBoundary>
+				);
 			}
 			const ghost = ghostOf( node, ghosts );
 			if ( ghost !== null ) {
@@ -238,15 +258,22 @@ function RootElement( {
 	innerBlocksOptions,
 	ghosts,
 	onAdd,
+	repeater,
 } ) {
 	const Tag = node.name;
 	const children = useMemo(
 		() =>
 			domToReact(
 				node.children,
-				createOptions( fields, innerBlocksOptions, ghosts, onAdd )
+				createOptions(
+					fields,
+					innerBlocksOptions,
+					ghosts,
+					onAdd,
+					repeater
+				)
 			),
-		[ node, fields, innerBlocksOptions, ghosts, onAdd ]
+		[ node, fields, innerBlocksOptions, ghosts, onAdd, repeater ]
 	);
 	return (
 		<Tag { ...useBlockProps( rootProps( node, extraProps ) ) }>
@@ -307,6 +334,8 @@ function RootInnerBlocksElement( { node, extraProps, innerBlocksOptions } ) {
  * @param {Object}                 props.innerBlocksOptions Options of useInnerBlocksProps() (#[InnerBlocks]).
  * @param {Object}                 props.ghosts             New items of lists with appender by list path (ghostItems()).
  * @param {(path: string) => void} props.onAdd              Adds the new item of a list.
+ * @param {Object}                 [props.repeater]         Of a block that repeats its inner blocks: the index of the
+ *                                                          active item, `activate( index )` and the block's client ID.
  */
 export function BlockMarkup( {
 	node,
@@ -315,6 +344,7 @@ export function BlockMarkup( {
 	innerBlocksOptions,
 	ghosts,
 	onAdd,
+	repeater,
 } ) {
 	if ( FIELD in node.attribs ) {
 		return (
@@ -339,6 +369,7 @@ export function BlockMarkup( {
 			innerBlocksOptions={ innerBlocksOptions }
 			ghosts={ ghosts }
 			onAdd={ onAdd }
+			repeater={ repeater }
 		/>
 	);
 }

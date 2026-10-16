@@ -8,6 +8,7 @@ import { PortalEdit } from './portal-edit';
 import { registerMetaPanels } from './meta-panels';
 import { createRegistry } from './registry';
 import { createRenderer } from './renderer';
+import { checkBlockPreview } from './repeater';
 
 /**
  * Starts the runtime of one framework instance: registers its blocks and the
@@ -26,6 +27,7 @@ export function startRuntime( slug ) {
 	}
 
 	const { config } = instance;
+	checkBlockPreview( config.blocks, slug );
 	const runtime = {
 		config,
 		// The view runtime of the instance (view.js), loaded with the editor runtime; mounts views in the preview.

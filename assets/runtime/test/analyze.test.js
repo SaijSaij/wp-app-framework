@@ -25,6 +25,16 @@ describe( 'analyzeMarkup', () => {
 		expect( missingFields( fields, paths ) ).toEqual( [] );
 	} );
 
+	it( 'counts the items of a repeater', () => {
+		const { error, repeaterItems } = analyzeMarkup(
+			'<ul><li data-repeater-item="{&quot;postId&quot;:1}"></li><li data-repeater-item="{&quot;termId&quot;:2}"></li></ul>',
+			fields
+		);
+		expect( error ).toBeNull();
+		expect( repeaterItems ).toBe( 2 );
+		expect( analyzeMarkup( '<p></p>', fields ).repeaterItems ).toBe( 0 );
+	} );
+
 	it( 'reports templates the runtime cannot handle', () => {
 		expect( analyzeMarkup( '<p></p><p></p>', fields ).error ).toBe(
 			'The template must render exactly one root element, it rendered 2 nodes.'

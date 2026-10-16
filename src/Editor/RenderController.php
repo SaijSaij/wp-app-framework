@@ -162,7 +162,8 @@ final readonly class RenderController
     }
 
     /**
-     * The post to render a block for, checked against the permissions of the current user.
+     * The post to render a block for, checked against the permissions of the current user: a post they may edit, or
+     * one that is public anyway (the previews of a repeater show posts of others).
      *
      * @return array{post: WP_Post|null}|array{error: array{code: string, message: string}}
      */
@@ -175,8 +176,8 @@ final readonly class RenderController
         if ($post === null) {
             return self::error('wp_app_framework_post_not_found', sprintf('Post %d does not exist.', $postId));
         }
-        if (!current_user_can('edit_post', $postId)) {
-            return self::error('wp_app_framework_forbidden', sprintf('You may not edit post %d.', $postId));
+        if (!current_user_can('edit_post', $postId) && !is_post_publicly_viewable($post)) {
+            return self::error('wp_app_framework_forbidden', sprintf('You may not edit post %d, and it is not public.', $postId));
         }
 
         return ['post' => $post];

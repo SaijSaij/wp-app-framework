@@ -15,7 +15,7 @@ use LogicException;
  *
  * @internal Theme code uses the template functions field(), inner_blocks() and is_editor().
  *
- * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, appenders: list<string>, innerBlocks: bool, classes: list<string>, attributes: array<string, string>, wrapper: bool, cached: list<string>|null}
+ * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, appenders: list<string>, innerBlocks: bool, repeater: bool, classes: list<string>, attributes: array<string, string>, wrapper: bool, cached: list<string>|null}
  */
 final class RenderContext
 {
@@ -40,11 +40,12 @@ final class RenderContext
      * @param list<string>|null                   $cached         Types of the variants of a block whose output is
      *                                                            cached (#[Cache]); null if it is not cached.
      * @param list<string>                        $appenders      Paths of the lists with appender (#[ListOf]).
+     * @param bool                                $repeater       Whether the block repeats its inner blocks (Repeater).
      */
-    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render, array $classes = [], ?string $missingWrapper = null, array $attributes = [], ?array $cached = null, array $appenders = []): string
+    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render, array $classes = [], ?string $missingWrapper = null, array $attributes = [], ?array $cached = null, array $appenders = [], bool $repeater = false): string
     {
         $index = count($this->blocks);
-        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'appenders' => $appenders, 'innerBlocks' => $innerBlocks, 'classes' => $classes, 'attributes' => $attributes, 'wrapper' => false, 'cached' => $cached];
+        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'appenders' => $appenders, 'innerBlocks' => $innerBlocks, 'repeater' => $repeater, 'classes' => $classes, 'attributes' => $attributes, 'wrapper' => false, 'cached' => $cached];
         try {
             $html = $render();
             if ($missingWrapper !== null && !$this->blocks[$index]['wrapper']) {

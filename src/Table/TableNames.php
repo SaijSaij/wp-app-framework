@@ -31,6 +31,19 @@ final class TableNames
     }
 
     /**
+     * The name of the block context that holds the primary key of a row in a repeater (`Block\Repeater::row()`),
+     * e.g. `dev-test/log`; `#[Item]` reads it.
+     *
+     * @param non-empty-string $namespace
+     * @param non-empty-string $name      The local name (#[Table]).
+     * @return non-empty-string
+     */
+    public static function context(string $namespace, string $name): string
+    {
+        return $namespace . '/' . $name;
+    }
+
+    /**
      * The option (one per site, autoloaded) with the hash, version and namespace of the last sync and the tables it
      * manages.
      *

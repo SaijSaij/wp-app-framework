@@ -30,6 +30,7 @@ The rules for working on the framework follow from these:
 - **The server renders the editor.** The editor shows the markup of the same Twig templates as the front end, through a batch render route of the instance.
 - **Settings are stored in options of the instance**, not in theme mods or global styles: those belong to the stylesheet, and a child theme without code would lose all values.
 - **The API is resolvable by IDEs**: enums and classes instead of strings, first-class callables instead of method names, required information as required arguments.
+- **Stable WordPress APIs in the runtime, with one exception.** The editor runtime uses only stable components and hooks of the block editor, except `__experimentalUseBlockPreview` for the previews of repeating blocks (`Repeater`). It is the hook `core/post-template`, `core/comment-template` and `core/term-template` use for the same purpose, it previews the items live while an editor types and needs no server render per change; rendering the previews on the server instead would send all inner blocks on every change. The runtime checks at start that the hook exists and fails with a message naming the repeating blocks otherwise, and the framework's CI runs against the newest WordPress, so a change shows up there first.
 
 ## Rejected alternatives
 

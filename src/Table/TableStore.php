@@ -258,6 +258,28 @@ final class TableStore
     }
 
     /**
+     * The name of the block context of the rows of a row class in a repeater, e.g. `dev-test/log`.
+     *
+     * @param class-string<AbstractRow> $class
+     * @return non-empty-string
+     */
+    public function contextName(string $class): string
+    {
+        return TableNames::context($this->namespace, $this->table($class)['name']);
+    }
+
+    /**
+     * The primary key of a row object, null before it is saved.
+     */
+    public function primaryKey(AbstractRow $row): ?int
+    {
+        $class = $row::class;
+        $value = $this->reader($class)($row)[$this->table($class)['primaryKey']] ?? null;
+
+        return is_int($value) ? $value : null;
+    }
+
+    /**
      * The full name of the table of a row class on the current site, without checking the tables.
      *
      * @param class-string<AbstractRow> $class
