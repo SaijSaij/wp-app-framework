@@ -231,7 +231,7 @@ final class ManifestBuilder
         $tables = $tableCollector->collect($classes, $this->version);
         $tableFieldsCollector = new TableFieldsCollector($tables['classes']);
         $tableFieldsCollector->collect($classes);
-        $settingsCollector = new SettingsCollector($values, self::frameworkSource()->getDirectory(), $this->namespace, $this->name);
+        $settingsCollector = new SettingsCollector($values, self::frameworkSource()->getDirectory(), $this->namespace, $this->name, $this->scriptDirectory);
         $settings = $settingsCollector->collect($classes);
         $hookCollector = new HookCollector($resolver);
         $hooks = $hookCollector->collect($classes);

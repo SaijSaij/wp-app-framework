@@ -42,6 +42,32 @@ export function itemTitle( item, index, path, fields, itemLabel = 'Item' ) {
 }
 
 /**
+ * The text fields of list items outside the block editor, where they have
+ * controls instead of fields in the canvas: the plain and rich text values of
+ * the item class by pattern, for itemTitle().
+ *
+ * @param {string|undefined} path Pattern of the list, e.g. "links".
+ * @param {Object}           item Control of an item.
+ * @return {Object} Fields by pattern.
+ */
+export function formFields( path, item ) {
+	if ( path === undefined || item?.type !== 'object' ) {
+		return {};
+	}
+	return Object.fromEntries(
+		Object.entries( item.fields )
+			.filter(
+				( [ , field ] ) =>
+					field.type === 'plain' || field.type === 'rich'
+			)
+			.map( ( [ name, field ] ) => [
+				`${ path }.*.${ name }`,
+				{ kind: field.type, multiline: field.multiline ?? false },
+			] )
+	);
+}
+
+/**
  * State of a list against the limits of its control (`min` and `max` of
  * #[ListOf]). A stored list may be outside them, for example after a limit
  * changed: the value factory creates only its first `max` items, so the

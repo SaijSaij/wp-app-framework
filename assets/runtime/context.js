@@ -7,6 +7,13 @@ import { createContext, useContext } from '@wordpress/element';
 export const BlockDataContext = createContext( null );
 
 /**
+ * Controls registered for values on the settings page (registerSettingsControl()):
+ * `get( pattern )` returns the control of a value pattern of the group, `groupValue`
+ * is the value of the whole group. Null elsewhere.
+ */
+export const ControlOverridesContext = createContext( null );
+
+/**
  * @return {{name: string, block: Object, attributes: Object, setAttributes: (attributes: Object) => void}} Block data.
  */
 export function useBlockData() {

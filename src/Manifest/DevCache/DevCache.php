@@ -341,7 +341,7 @@ final class DevCache
     }
 
     /**
-     * One walk of a directory per request: the hash of its PHP files, editor scripts, view scripts and stylesheet
+     * One walk of a directory per request: the hash of its PHP files, editor, view and settings scripts and stylesheet
      * (adding or removing one changes the manifest) and the entries of the code generation of all its files.
      *
      * @return array{listing: string, entries: list<string>}
@@ -351,7 +351,7 @@ final class DevCache
         if (isset($this->scans[$directory])) {
             return $this->scans[$directory];
         }
-        $suffixes = ['.php' => [], ScriptKind::Editor->value => [], ScriptKind::View->value => []];
+        $suffixes = ['.php' => [], ScriptKind::Editor->value => [], ScriptKind::View->value => [], ScriptKind::Settings->value => []];
         $entries = [];
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
         /** @var SplFileInfo $file */

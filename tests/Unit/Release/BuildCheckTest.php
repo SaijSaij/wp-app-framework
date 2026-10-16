@@ -144,7 +144,18 @@ final class BuildCheckTest extends ReleaseTestCase
                 'build/vendor/wp-app-framework/settings.asset.php (settings page (settings groups))',
                 'build/styles.css (stylesheet (assets/styles.css))',
             ],
-            $this->missing(self::manifest(groups: [['name' => 'general']], styles: true)),
+            $this->missing(self::manifest(groups: [['name' => 'general', 'script' => null]], styles: true)),
+        );
+    }
+
+    public function testSettingsScriptsAreNeeded(): void
+    {
+        self::assertSame(
+            [
+                'build/vendor/wp-app-framework/settings.asset.php (settings page (settings groups))',
+                'build/Setting/Design.settings.asset.php (settings script of settings group design)',
+            ],
+            $this->missing(self::manifest(groups: [['name' => 'design', 'script' => 'Setting/Design.settings'], ['name' => 'plain', 'script' => null]])),
         );
     }
 
@@ -153,7 +164,7 @@ final class BuildCheckTest extends ReleaseTestCase
         $this->expectException(ReleaseException::class);
         $this->expectExceptionMessage("The release lacks built files the framework loads at run time:\n- build/vendor/wp-app-framework/settings.asset.php (settings page (settings groups))\nThe project has no package.json, so nothing was built");
         // @phpstan-ignore argument.type (only the parts of the manifest the check reads)
-        BuildCheck::check(self::manifest(groups: [['name' => 'general']]), $this->root);
+        BuildCheck::check(self::manifest(groups: [['name' => 'general', 'script' => null]]), $this->root);
     }
 
     public function testTheErrorPointsToTheBuildWithAPackageJson(): void
@@ -163,6 +174,6 @@ final class BuildCheckTest extends ReleaseTestCase
         $this->expectException(ReleaseException::class);
         $this->expectExceptionMessage('Check that "npm run build" builds them');
         // @phpstan-ignore argument.type (only the parts of the manifest the check reads)
-        BuildCheck::check(self::manifest(groups: [['name' => 'general']]), $this->root);
+        BuildCheck::check(self::manifest(groups: [['name' => 'general', 'script' => null]]), $this->root);
     }
 }

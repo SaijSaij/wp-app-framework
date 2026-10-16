@@ -5,6 +5,8 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { createApi } from '../runtime/api';
+import { createSettingsApi } from '../runtime/settings-api';
+import { createSettingsRegistry } from '../runtime/settings-registry';
 
 /**
  * The names a declaration file exports: functions and classes.
@@ -37,6 +39,15 @@ describe( 'public API', () => {
 		const api = createApi( 'my-theme', registry );
 
 		expect( Object.keys( api ).sort() ).toEqual( declared( 'index.d.ts' ) );
+		expect( Object.isFrozen( api ) ).toBe( true );
+	} );
+
+	it( 'of the settings page holds exactly what types/settings.d.ts declares', () => {
+		const api = createSettingsApi( createSettingsRegistry( [] ) );
+
+		expect( Object.keys( api ).sort() ).toEqual(
+			declared( 'settings.d.ts' )
+		);
 		expect( Object.isFrozen( api ) ).toBe( true );
 	} );
 

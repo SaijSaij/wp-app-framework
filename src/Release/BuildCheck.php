@@ -85,6 +85,11 @@ final class BuildCheck
         if ($manifest['settings']['groups'] !== []) {
             $required[SettingsPage::SCRIPT . '.asset.php'] = 'settings page (settings groups)';
         }
+        foreach ($manifest['settings']['groups'] as $group) {
+            if ($group['script'] !== null) {
+                $required[$group['script'] . '.asset.php'] = sprintf('settings script of settings group %s', $group['name']);
+            }
+        }
         if ($meta !== []) {
             $required[MetaBoxes::SCRIPT . '.asset.php'] = 'meta boxes (post meta)';
         }

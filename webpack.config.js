@@ -43,6 +43,7 @@ const SCRIPTS_MAJOR = 36;
 
 const EDITOR_SCRIPT_SUFFIX = '.editor.js';
 const VIEW_SCRIPT_SUFFIX = '.view.js';
+const SETTINGS_SCRIPT_SUFFIX = '.settings.js';
 const RUNTIME_ENTRY = 'vendor/wp-app-framework/editor';
 const VIEW_ENTRY = 'vendor/wp-app-framework/view';
 const CANVAS_ENTRY = 'vendor/wp-app-framework/canvas';
@@ -50,6 +51,7 @@ const SETTINGS_ENTRY = 'vendor/wp-app-framework/settings';
 const META_BOX_ENTRY = 'vendor/wp-app-framework/meta-box';
 const IMPORT_NAME = '@saij/wp-app-framework';
 const VIEW_IMPORT_NAME = '@saij/wp-app-framework/view';
+const SETTINGS_IMPORT_NAME = '@saij/wp-app-framework/settings';
 const STYLES_ENTRY = 'styles';
 const STYLES_SOURCE = 'styles.css';
 /** Directory of the consumer for everything without a PHP class: stylesheet, scripts without a block, static files. */
@@ -180,8 +182,43 @@ function externalRequests( compilation, entrypoint ) {
 }
 
 /**
- * Fails the build when a view script (an entry ending in ".view") imports the editor runtime,
- * also through shared modules, and when shared modules import each other in a cycle.
+ * What each kind of script must not import: the APIs of the other places, which are not loaded where the script runs.
+ * Entries of a kind end in its suffix without ".js".
+ */
+const SCRIPT_RULES = [
+	{
+		suffix: VIEW_SCRIPT_SUFFIX,
+		label: 'view script',
+		place: 'on the front end',
+		own: VIEW_IMPORT_NAME,
+		foreign: [
+			[ IMPORT_NAME, 'the editor runtime' ],
+			[ SETTINGS_IMPORT_NAME, 'the API of the settings page' ],
+		],
+	},
+	{
+		suffix: SETTINGS_SCRIPT_SUFFIX,
+		label: 'settings script',
+		place: 'on the settings page',
+		own: SETTINGS_IMPORT_NAME,
+		foreign: [
+			[ IMPORT_NAME, 'the editor runtime' ],
+			[ VIEW_IMPORT_NAME, 'the view runtime' ],
+		],
+	},
+	{
+		suffix: EDITOR_SCRIPT_SUFFIX,
+		label: 'editor script',
+		place: 'in the block editor',
+		own: IMPORT_NAME,
+		foreign: [ [ SETTINGS_IMPORT_NAME, 'the API of the settings page' ] ],
+	},
+];
+
+/**
+ * Fails the build when a script imports the API of another place (SCRIPT_RULES), also through shared modules –
+ * a view script the editor runtime, a settings script the editor runtime – and when shared modules import each
+ * other in a cycle.
  */
 class ScriptImportCheck {
 	apply( compiler ) {
@@ -218,12 +255,13 @@ class ScriptImportCheck {
 					);
 
 				for ( const name of requests.keys() ) {
-					if (
-						! name.endsWith( VIEW_SCRIPT_SUFFIX.slice( 0, -3 ) )
-					) {
+					const rule = SCRIPT_RULES.find( ( { suffix } ) =>
+						name.endsWith( suffix.slice( 0, -3 ) )
+					);
+					if ( ! rule ) {
 						continue;
 					}
-					// The view script and the shared modules it reaches, with the path to each.
+					// The script and the shared modules it reaches, with the path to each.
 					const paths = new Map( [ [ name, [ name ] ] ] );
 					const queue = [ name ];
 					while ( queue.length > 0 ) {
@@ -239,19 +277,26 @@ class ScriptImportCheck {
 						}
 					}
 					for ( const [ reached, through ] of paths ) {
-						if ( requests.get( reached )?.has( IMPORT_NAME ) ) {
+						for ( const [ request, what ] of rule.foreign ) {
+							if ( ! requests.get( reached )?.has( request ) ) {
+								continue;
+							}
 							error(
 								reached === name
-									? `the view script ${ file(
+									? `the ${ rule.label } ${ file(
 											name
-										) } imports ${ IMPORT_NAME }, the editor runtime, which is not loaded on the front end; view scripts import ${ VIEW_IMPORT_NAME }.`
-									: `the view script ${ file(
+										) } imports ${ request }, ${ what }, which is not loaded ${
+											rule.place
+										}; ${ rule.label }s import ${ rule.own }.`
+									: `the ${ rule.label } ${ file(
 											name
 										) } uses ${ file( reached ) } (${ through
 											.map( file )
 											.join(
 												' → '
-											) }), which imports ${ IMPORT_NAME }, the editor runtime, which is not loaded on the front end; modules used by view scripts import ${ VIEW_IMPORT_NAME }.`
+											) }), which imports ${ request }, ${ what }, which is not loaded ${
+											rule.place
+										}; modules used by ${ rule.label }s import ${ rule.own }.`
 							);
 						}
 					}
@@ -475,7 +520,8 @@ function checkSharedImports( root ) {
 }
 
 /**
- * Entries of the scripts in src/: editor and view scripts next to the classes of blocks and block supports.
+ * Entries of the scripts in src/: editor and view scripts next to the classes of blocks and block supports,
+ * settings scripts next to the classes of settings groups.
  *
  * @param {string} root
  * @param {string} slug
@@ -485,6 +531,7 @@ function sourceEntries( root, slug ) {
 	const entries = {
 		...scripts( path.join( root, 'src' ), EDITOR_SCRIPT_SUFFIX ),
 		...viewScripts( path.join( root, 'src' ), slug ),
+		...scripts( path.join( root, 'src' ), SETTINGS_SCRIPT_SUFFIX ),
 	};
 	for ( const name of Object.keys( entries ) ) {
 		if ( name.startsWith( ASSET_DIRECTORY + '/' ) ) {
@@ -655,6 +702,9 @@ module.exports = function createConfig( { slug, root } = {} ) {
 							sharedModule( assetDirectory, request ),
 						];
 					}
+					if ( request === SETTINGS_IMPORT_NAME ) {
+						return [ 'wpAppFramework', slug, 'settingsApi' ];
+					}
 					return request === VIEW_IMPORT_NAME
 						? [ 'wpAppFramework', slug, 'view' ]
 						: undefined;
@@ -667,6 +717,9 @@ module.exports = function createConfig( { slug, root } = {} ) {
 						return `${ slug }-shared-${ kebab(
 							sharedModule( assetDirectory, request )
 						) }`;
+					}
+					if ( request === SETTINGS_IMPORT_NAME ) {
+						return `${ slug }-wp-app-framework-settings`;
 					}
 					return request === VIEW_IMPORT_NAME
 						? `${ slug }-wp-app-framework-view`

@@ -117,6 +117,33 @@ A theme or plugin with settings groups gets one settings page. Its title is the 
 - Themes and child themes find the page under "Appearance", plugins under "Settings".
 - Only users with `manage_options` can open it.
 - Each group is a form built from the same controls as the block inspector: text, number, toggle, select, rich text, image from the media library, reference search, nested values and the list editor. Several groups appear as tabs; a tab with unsaved changes is marked with "•".
+- A list item is titled with its first text, a `#[PlainText]` or `#[RichText]` value, else with the item label and its number (see [Lists](./values.md#lists)).
 - One "Save" button saves all groups in a single request through `/wp/v2/settings`. If a value is invalid, WordPress rejects the whole request, the page names the group and the setting, and nothing is saved.
 
 The page script is built by the theme's or plugin's build, like the editor runtime (see [Editor](./editor.md#build)), to `build/vendor/wp-app-framework/settings.js`. Without it, the settings page fails with an exception naming the missing file.
+
+## Controls of your own
+
+The generated form fits most settings. Some need more: a list of color schemes is easier to set up when each scheme shows a preview and the contrast of its colors. A *settings script* next to the group class replaces the control of a value with a component of your own – for `src/Setting/Design.php` that is `src/Setting/Design.settings.js`:
+
+```jsx
+import { registerSettingsControl } from '@saij/wp-app-framework/settings';
+
+registerSettingsControl( 'design', [ 'schemes', '*' ], ( { value, path, DefaultControl } ) => (
+	<>
+		<DefaultControl />
+		<SchemePreview scheme={ value } isPageScheme={ path[ 1 ] === 0 } />
+	</>
+) );
+```
+
+[`registerSettingsControl( group, path, component )`](../api/js/settings/registerSettingsControl.md) takes the name of the group and the path of the value: a setting (`'schemes'`), a field of a value class in it (`[ 'contact', 'email' ]`) or, with `*`, every item of a list (`[ 'schemes', '*' ]`). The component receives [`SettingsControlProps`](../api/js/settings/SettingsControlProps.md):
+
+- `value` and `onChange`, the value and how to change it;
+- `path`, where the value is, with the index of each list item, e.g. `[ 'schemes', 0 ]`;
+- `groupValue`, the value of the whole group with the changes not saved yet;
+- `DefaultControl`, the control the page would show without yours. Render it to add to the generated control instead of rebuilding it; the example keeps the color pickers of a scheme and adds the preview below them.
+
+The settings page loads the script after its own and before it renders, so its controls are registered in time. It warns in the console about an unknown group and about a path that names no value with a control: a `#[Hidden]` setting, a field the value class does not have, `*` after a value that is no list.
+
+The import `@saij/wp-app-framework/settings` is mapped to the settings page of your theme or plugin (`window.wpAppFramework[slug].settingsApi`), like the editor API (see [Editor](./editor.md#editor-scripts)). The API of the editor and of the front end is not loaded there: a settings script that imports `@saij/wp-app-framework` or `@saij/wp-app-framework/view`, also through a shared module, fails the build, and so does an editor or view script that imports `@saij/wp-app-framework/settings`. A settings script next to a class without `#[SettingsGroup]` is a build error, because it would never be loaded.

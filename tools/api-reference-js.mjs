@@ -1,6 +1,6 @@
 /**
  * Generates the JavaScript part of the API reference from the type declarations in types/: one page per export
- * of `@saij/wp-app-framework` and `@saij/wp-app-framework/view` in docs/content/api/js/, and their sidebar in
+ * of `@saij/wp-app-framework`, `@saij/wp-app-framework/view` and `@saij/wp-app-framework/settings` in docs/content/api/js/, and their sidebar in
  * docs/.generated/api-js.json. Run by the documentation build (npm run build in docs/).
  *
  * Every page comes from the declarations and their JSDoc. An export, member or parameter without description fails
@@ -11,7 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
-/** The two imports and their declaration files, in the order of the sidebar. */
+/** The imports and their declaration files, in the order of the sidebar. */
 export const MODULES = [
 	{
 		name: '@saij/wp-app-framework',
@@ -25,6 +25,12 @@ export const MODULES = [
 		directory: 'view',
 		title: 'View',
 	},
+	{
+		name: '@saij/wp-app-framework/settings',
+		file: 'settings.d.ts',
+		directory: 'settings',
+		title: 'Settings',
+	},
 ];
 
 /** Directory of the generated pages below docs/content/. */
@@ -33,7 +39,7 @@ export const PAGES = 'api/js';
 /**
  * Reads the declarations and returns the pages and the sidebar, or throws with every error found.
  *
- * @param {string} typesDirectory Directory with index.d.ts and view.d.ts.
+ * @param {string} typesDirectory Directory with the declaration files of MODULES.
  * @param {string} content        The docs/content/ directory, for the targets of `@see`.
  * @return {{pages: Object<string, string>, sidebar: Object[]}} Markdown by page path below docs/content/ (without
  *                                                              `.md`), and the sidebar group for Rspress.

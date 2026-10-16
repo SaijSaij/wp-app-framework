@@ -6,8 +6,9 @@ namespace Saij\WpAppFramework\Asset;
 
 /**
  * Scripts a consumer places next to a class: the editor script of a block or
- * block support (Hero.editor.js) and its front-end script (Hero.view.js).
- * The value is the file suffix.
+ * block support (Hero.editor.js), its front-end script (Hero.view.js) and the
+ * settings script of a settings group (Design.settings.js), which runs on the
+ * settings page. The value is the file suffix.
  *
  * @internal
  */
@@ -15,12 +16,14 @@ enum ScriptKind: string
 {
     case Editor = '.editor.js';
     case View = '.view.js';
+    case Settings = '.settings.js';
 
     public function getLabel(): string
     {
         return match ($this) {
             self::Editor => 'editor script',
             self::View => 'view script',
+            self::Settings => 'settings script',
         };
     }
 
@@ -42,6 +45,16 @@ enum ScriptKind: string
     public function supportHandle(string $slug, string $attribute): string
     {
         return $slug . '-support-' . strtolower((string) preg_replace('/(?<=[a-z0-9])([A-Z])/', '-$1', $attribute)) . '-' . $this->handleSuffix();
+    }
+
+    /**
+     * Script handle of a settings group's script, e.g. my-theme-settings-color-schemes for the group color_schemes.
+     *
+     * @return non-empty-string
+     */
+    public static function settingsHandle(string $slug, string $group): string
+    {
+        return $slug . '-settings-' . self::kebab($group);
     }
 
     /**
@@ -84,6 +97,7 @@ enum ScriptKind: string
         return match ($this) {
             self::Editor => 'editor',
             self::View => 'view',
+            self::Settings => 'settings',
         };
     }
 

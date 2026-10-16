@@ -6,12 +6,18 @@ import {
 	TextControl,
 	ToggleControl,
 } from '@wordpress/components';
-import { useContext, useEffect, useRef, useState } from '@wordpress/element';
+import {
+	useContext,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from '@wordpress/element';
 
-import { BlockDataContext } from './context';
+import { BlockDataContext, ControlOverridesContext } from './context';
 import { createValue } from './defaults';
 import { createItem } from './identifiers';
-import { listItemTitle, listLimits, moveItem } from './list';
+import { formFields, listItemTitle, listLimits, moveItem } from './list';
 import { ListCards, useListCards } from './list-cards';
 import { LimitNotice } from './list-notice';
 import { ReferenceControl, ReferencesControl } from './reference-control';
@@ -181,6 +187,57 @@ function EnumControl( { control, value, onChange, label } ) {
 }
 
 /**
+ * A control that a settings script registered (registerSettingsControl())
+ * instead of the generated one, which it can still render as DefaultControl.
+ *
+ * @param {Object}                                            props
+ * @param {import('react').ComponentType<Object>}             props.component     The registered control.
+ * @param {import('./paths').AttributeValue}                  props.value
+ * @param {(value: import('./paths').AttributeValue) => void} props.onChange
+ * @param {Array<string|number>}                              props.at            Path of the value, with list indices.
+ * @param {() => import('@wordpress/element').Element}        props.renderDefault Renders the generated control.
+ */
+function OverriddenControl( {
+	component: Component,
+	value,
+	onChange,
+	at,
+	renderDefault,
+} ) {
+	const overrides = useContext( ControlOverridesContext );
+	const latest = useRef( renderDefault );
+	latest.current = renderDefault;
+	// One component for the life of the control, so the generated control keeps its state.
+	const DefaultControl = useMemo(
+		() =>
+			function Generated() {
+				return latest.current();
+			},
+		[]
+	);
+	return (
+		<Component
+			value={ value }
+			onChange={ onChange }
+			path={ at }
+			groupValue={ overrides.groupValue }
+			DefaultControl={ DefaultControl }
+		/>
+	);
+}
+
+/**
+ * The control registered for a value pattern, if the page has overrides.
+ *
+ * @param {string|undefined} pattern e.g. "schemes.*".
+ * @return {(import('react').ComponentType<Object>)|undefined} Registered control.
+ */
+function useOverride( pattern ) {
+	const overrides = useContext( ControlOverridesContext );
+	return pattern === undefined ? undefined : overrides?.get( pattern );
+}
+
+/**
  * The values of a value class, each with its control.
  *
  * @param {Object}                                            props
@@ -188,15 +245,27 @@ function EnumControl( { control, value, onChange, label } ) {
  * @param {Object}                                            props.value
  * @param {(value: import('./paths').AttributeValue) => void} props.onChange
  * @param {Object}                                            props.schema
+ * @param {string}                                            [props.path]          Pattern of the value.
+ * @param {Array<string|number>}                              [props.at]            Path of the value, with list indices.
  * @param {Object}                                            [props.fieldControls] Controls of block fields by type.
  */
-function ObjectFields( { control, value, onChange, schema, fieldControls } ) {
+function ObjectFields( {
+	control,
+	value,
+	onChange,
+	schema,
+	path,
+	at,
+	fieldControls,
+} ) {
 	return Object.entries( control.fields ).map( ( [ name, field ] ) => (
 		<ValueControl
 			key={ name }
 			control={ field }
 			schema={ schema.properties[ name ] }
 			value={ value[ name ] }
+			path={ path === undefined ? undefined : `${ path }.${ name }` }
+			at={ [ ...( at ?? [] ), name ] }
 			onChange={ ( next ) => onChange( { ...value, [ name ]: next } ) }
 			fieldControls={ fieldControls }
 		/>
@@ -209,6 +278,8 @@ function ObjectControl( {
 	onChange,
 	schema,
 	label,
+	path,
+	at,
 	fieldControls,
 } ) {
 	const name = label ?? control.label;
@@ -244,6 +315,8 @@ function ObjectControl( {
 						value={ value }
 						onChange={ onChange }
 						schema={ schema }
+						path={ path }
+						at={ at }
 						fieldControls={ fieldControls }
 					/>
 					{ control.nullable && (
@@ -280,6 +353,7 @@ function hasItemControls( control ) {
  * @param {(value: import('./paths').AttributeValue) => void} props.onChange
  * @param {Object}                                            props.schema          JSON schema of the list.
  * @param {string}                                            props.path            Pattern of the list, e.g. "buttons".
+ * @param {Array<string|number>}                              [props.at]            Path of the list, with list indices.
  * @param {Object}                                            [props.fieldControls] Controls of block fields by type.
  */
 export function ListControl( {
@@ -288,10 +362,15 @@ export function ListControl( {
 	onChange,
 	schema,
 	path,
+	at,
 	fieldControls,
 } ) {
 	const blockData = useContext( BlockDataContext );
-	const fields = blockData?.block.fields ?? {};
+	// Outside the block editor, the text fields of the items have controls of their own.
+	const fields = blockData?.block.fields ?? formFields( path, control.item );
+	const ItemOverride = useOverride(
+		path === undefined ? undefined : `${ path }.*`
+	);
 	const items = value ?? [];
 	const limits = listLimits( control, items.length );
 	const cards = useListCards(
@@ -304,30 +383,46 @@ export function ListControl( {
 				otherIndex === index ? next : other
 			)
 		);
-	const body = ( index ) => {
+	const generatedBody = ( index ) => {
 		if ( ! hasItemControls( control.item ) ) {
 			return null;
 		}
+		const itemPath = path === undefined ? undefined : `${ path }.*`;
 		return control.item.type === 'object' ? (
 			<ObjectFields
 				control={ control.item }
 				value={ items[ index ] }
 				onChange={ ( next ) => replace( index, next ) }
 				schema={ schema.items }
+				path={ itemPath }
+				at={ [ ...( at ?? [] ), index ] }
 				fieldControls={ fieldControls }
 			/>
 		) : (
-			<ValueControl
+			<GeneratedControl
 				control={ control.item }
 				schema={ schema.items }
 				value={ items[ index ] }
-				path={ `${ path }.*` }
+				path={ itemPath }
+				at={ [ ...( at ?? [] ), index ] }
 				label={ `${ control.itemLabel } ${ index + 1 }` }
 				onChange={ ( next ) => replace( index, next ) }
 				fieldControls={ fieldControls }
 			/>
 		);
 	};
+	const body = ( index ) =>
+		ItemOverride ? (
+			<OverriddenControl
+				component={ ItemOverride }
+				value={ items[ index ] }
+				onChange={ ( next ) => replace( index, next ) }
+				at={ [ ...( at ?? [] ), index ] }
+				renderDefault={ () => generatedBody( index ) }
+			/>
+		) : (
+			generatedBody( index )
+		);
 
 	return (
 		<div className="wp-app-framework-list">
@@ -381,7 +476,30 @@ export function ListControl( {
 }
 
 /**
- * The control of a value, chosen by its manifest description.
+ * The control of a value: the one a settings script registered for its
+ * pattern on the settings page (registerSettingsControl()), else the
+ * generated one.
+ *
+ * @param {Object} props See GeneratedControl.
+ */
+export function ValueControl( props ) {
+	const Override = useOverride( props.path );
+	if ( ! Override ) {
+		return <GeneratedControl { ...props } />;
+	}
+	return (
+		<OverriddenControl
+			component={ Override }
+			value={ props.value }
+			onChange={ props.onChange }
+			at={ props.at ?? [] }
+			renderDefault={ () => <GeneratedControl { ...props } /> }
+		/>
+	);
+}
+
+/**
+ * The generated control of a value, chosen by its manifest description.
  *
  * @param {Object}                                            props
  * @param {Object}                                            props.control         Control description from the manifest.
@@ -389,12 +507,14 @@ export function ListControl( {
  * @param {import('./paths').AttributeValue}                  props.value
  * @param {(value: import('./paths').AttributeValue) => void} props.onChange
  * @param {string}                                            [props.label]         Overrides the label (list items).
- * @param {string}                                            [props.path]          Pattern of the value, for list item titles.
+ * @param {string}                                            [props.path]          Pattern of the value, for list item titles and
+ *                                                                                  the controls of settings scripts.
+ * @param {Array<string|number>}                              [props.at]            Path of the value with list indices (settings page).
  * @param {Object}                                            [props.fieldControls] Controls of block fields, links and colors by
  *                                                                                  type ("rich", "image", "link", "color"), passed in by the
  *                                                                                  inspector, the settings page and the meta forms.
  */
-export function ValueControl( props ) {
+function GeneratedControl( props ) {
 	const { control, value, onChange, label, fieldControls } = props;
 	switch ( control.type ) {
 		case 'enum':

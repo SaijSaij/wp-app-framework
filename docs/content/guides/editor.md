@@ -234,6 +234,7 @@ The build writes to `build/`, each file with its `.asset.php`:
 | `build/vendor/wp-app-framework/view.js` | the view runtime: base classes of [front-end scripts](./frontend.md), starts their views; loaded with them on the front end and with the runtime in the editor |
 | `build/Block/Hero/Hero.editor.js` | editor scripts, mirrored from `src/` |
 | `build/Block/Faq/Faq.view.js` | front-end scripts (view scripts), mirrored from `src/` |
+| `build/Setting/Design.settings.js` | [settings scripts](./settings.md#controls-of-your-own), mirrored from `src/` |
 | `build/assets/menu.view.js`, `build/assets/highlight.editor.js` | [document views](./frontend.md#scripts-for-the-whole-page) and [editor scripts without a block](#editor-scripts-without-a-block), mirrored from `assets/` |
 | `build/assets/shared/dialogs.js` | [shared modules](./frontend.md#shared-modules), mirrored from `assets/shared/` |
 | `build/styles.css` | the consumer's `assets/styles.css`, if it has one, compiled with Tailwind (see [Styles](./styles.md)) |
@@ -253,7 +254,8 @@ Everything global is derived from the slug of the instance: the render and previ
 | `{slug}-document-{path}-editor`, `{slug}-document-{path}-view` | editor scripts and document views in `assets/` (`my-theme-document-nav-menu-view`) |
 | `{slug}-shared-{name}` | a shared module (`my-theme-shared-ui-dialog`) |
 | `{slug}-wp-app-framework-settings` | the settings page |
+| `{slug}-settings-{group}` | the settings script of a settings group, the name in kebab case (`my-theme-settings-color-schemes`) |
 | `{slug}-wp-app-framework-meta-box` | the forms of meta classes on the classic edit screen |
 | `{slug}-styles` | the compiled `assets/styles.css` |
 
-Use a handle as a dependency of a script of your own, for example. The other parts of `window.wpAppFramework[slug]` besides `api` and `view` are internal.
+Use a handle as a dependency of a script of your own, for example. The other parts of `window.wpAppFramework[slug]` besides `api`, `view` and `settingsApi` are internal.

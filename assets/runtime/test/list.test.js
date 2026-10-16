@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	dropIndex,
+	formFields,
 	itemTitle,
 	listItemTitle,
 	listLimits,
@@ -161,5 +162,37 @@ describe( 'moveItem and dropIndex', () => {
 		expect( dropIndex( 1, 1, true ) ).toBe( 1 );
 		expect( dropIndex( 1, 0, true ) ).toBe( 1 );
 		expect( dropIndex( 1, 2, false ) ).toBe( 1 );
+	} );
+} );
+
+describe( 'formFields', () => {
+	it( 'lists the plain and rich text values of items as fields for their titles', () => {
+		const item = {
+			type: 'object',
+			fields: {
+				id: { type: 'string' },
+				name: { type: 'plain' },
+				address: { type: 'plain', multiline: true },
+				note: { type: 'rich' },
+				color: { type: 'color' },
+			},
+		};
+
+		expect( formFields( 'regions', item ) ).toEqual( {
+			'regions.*.name': { kind: 'plain', multiline: false },
+			'regions.*.address': { kind: 'plain', multiline: true },
+			'regions.*.note': { kind: 'rich', multiline: false },
+		} );
+		expect(
+			itemTitle(
+				{ name: '', address: 'Main street\n1', note: '' },
+				0,
+				'regions',
+				formFields( 'regions', item ),
+				'Region'
+			)
+		).toBe( 'Main street' );
+		expect( formFields( 'tags', { type: 'enum' } ) ).toEqual( {} );
+		expect( formFields( undefined, item ) ).toEqual( {} );
 	} );
 } );

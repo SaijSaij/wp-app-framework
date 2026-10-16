@@ -295,6 +295,7 @@ describe( 'webpack helper', () => {
 								( [ name ] ) =>
 									name.endsWith( '.view' ) ||
 									name.endsWith( '.editor' ) ||
+									name.endsWith( '.settings' ) ||
 									name.startsWith( 'assets/shared/' )
 							)
 						),
@@ -358,6 +359,75 @@ describe( 'webpack helper', () => {
 		expect( script ).toContain(
 			'module.exports = window["wpAppFramework"]["my-theme"]["api"];'
 		);
+	}, 30000 );
+
+	it( 'maps the settings import to the settings page of the instance', async () => {
+		const root = consumer( {
+			styles: false,
+			packages: TOOLCHAIN,
+			files: {
+				'Setting/Design.php': '<?php',
+				'Setting/Design.settings.js': [
+					"import { registerSettingsControl } from '@saij/wp-app-framework/settings';",
+					"registerSettingsControl( 'design', 'title', () => null );",
+				].join( '\n' ),
+			},
+		} );
+
+		expect(
+			createConfig( { slug: 'my-theme', root } ).entry()[
+				'Setting/Design.settings'
+			]
+		).toBe( path.join( root, 'src', 'Setting/Design.settings.js' ) );
+		const stats = await buildViews( root );
+
+		expect( stats.hasErrors() ).toBe( false );
+		const script = fs.readFileSync(
+			path.join( root, 'build', 'Setting/Design.settings.js' ),
+			'utf8'
+		);
+		expect( script ).toContain(
+			'module.exports = window["wpAppFramework"]["my-theme"]["settingsApi"];'
+		);
+		const asset = fs.readFileSync(
+			path.join( root, 'build', 'Setting/Design.settings.asset.php' ),
+			'utf8'
+		);
+		expect( asset ).toContain( "'my-theme-wp-app-framework-settings'" );
+	}, 30000 );
+
+	it( 'fails when a script imports the API of another place', async () => {
+		const root = consumer( {
+			styles: false,
+			packages: TOOLCHAIN,
+			files: {
+				'Setting/Design.settings.js': [
+					"import { registerPanel } from '@saij/wp-app-framework';",
+					"import { BlockView } from '@saij/wp-app-framework/view';",
+					'export default [ registerPanel, BlockView ];',
+				].join( '\n' ),
+				'Block/Faq/Faq.view.js': [
+					"import { registerSettingsControl } from '@saij/wp-app-framework/settings';",
+					'export default registerSettingsControl;',
+				].join( '\n' ),
+				'Block/Faq/Faq.editor.js':
+					"import '@saij/wp-app-framework/settings';",
+			},
+		} );
+
+		const stats = await buildViews( root );
+
+		expect(
+			stats
+				.toJson()
+				.errors.map( ( error ) => error.message )
+				.sort()
+		).toEqual( [
+			'wp-app-framework: the editor script src/Block/Faq/Faq.editor.js imports @saij/wp-app-framework/settings, the API of the settings page, which is not loaded in the block editor; editor scripts import @saij/wp-app-framework.',
+			'wp-app-framework: the settings script src/Setting/Design.settings.js imports @saij/wp-app-framework, the editor runtime, which is not loaded on the settings page; settings scripts import @saij/wp-app-framework/settings.',
+			'wp-app-framework: the settings script src/Setting/Design.settings.js imports @saij/wp-app-framework/view, the view runtime, which is not loaded on the settings page; settings scripts import @saij/wp-app-framework/settings.',
+			'wp-app-framework: the view script src/Block/Faq/Faq.view.js imports @saij/wp-app-framework/settings, the API of the settings page, which is not loaded on the front end; view scripts import @saij/wp-app-framework/view.',
+		] );
 	}, 30000 );
 
 	it( 'fails when a view script imports the editor runtime', async () => {

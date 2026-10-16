@@ -11,8 +11,11 @@ import { useDispatch, useSelect } from '@wordpress/data';
 import { MediaUpload } from '@wordpress/media-utils';
 import { store as noticesStore } from '@wordpress/notices';
 
+import { useMemo } from '@wordpress/element';
+
 import { ClassicRichTextControl } from './classic-rich-text';
 import { createColorControl } from './color-control';
+import { ControlOverridesContext } from './context';
 import { ValueControl } from './controls';
 import { createImageControl } from './image-control';
 import { LinkFormControl } from './link-form-control';
@@ -37,14 +40,42 @@ const FIELD_CONTROLS = {
 const EDITED_MARK = ' •';
 
 /**
- * The form of one settings group.
+ * The form of one settings group, with the controls its settings script
+ * registered.
  *
  * @param {Object}                  props
  * @param {Object}                  props.group    Group configuration.
  * @param {Object}                  props.value    Value of the group.
  * @param {(value: Object) => void} props.onChange
+ * @param {Object}                  props.registry Controls of the settings scripts (createSettingsRegistry()).
  */
-function GroupForm( { group, value, onChange } ) {
+function GroupForm( { group, value, onChange, registry } ) {
+	const overrides = useMemo(
+		() => ( {
+			get: ( pattern ) =>
+				registry.getSettingsControl( group.name, pattern ),
+			groupValue: value,
+		} ),
+		[ registry, group.name, value ]
+	);
+	return (
+		<ControlOverridesContext.Provider value={ overrides }>
+			<GroupFields
+				group={ group }
+				value={ value }
+				onChange={ onChange }
+			/>
+		</ControlOverridesContext.Provider>
+	);
+}
+
+/**
+ * @param {Object}                  props
+ * @param {Object}                  props.group
+ * @param {Object}                  props.value
+ * @param {(value: Object) => void} props.onChange
+ */
+function GroupFields( { group, value, onChange } ) {
 	return (
 		<div className="wp-app-framework-settings__group">
 			{ group.description !== '' && <p>{ group.description }</p> }
@@ -57,6 +88,7 @@ function GroupForm( { group, value, onChange } ) {
 							schema={ group.schema.properties[ name ] }
 							value={ value[ name ] }
 							path={ name }
+							at={ [ name ] }
 							onChange={ ( next ) =>
 								onChange( { ...value, [ name ]: next } )
 							}
@@ -107,9 +139,10 @@ function Notices() {
  * (/wp/v2/settings, one request with the changed groups).
  *
  * @param {Object} props
- * @param {Object} props.config Page configuration from `wpAppFramework[slug].settings`.
+ * @param {Object} props.config   Page configuration from `wpAppFramework[slug].settings`.
+ * @param {Object} props.registry Controls of the settings scripts (createSettingsRegistry()).
  */
-export function SettingsPage( { config } ) {
+export function SettingsPage( { config, registry } ) {
 	const { groups } = config;
 	const { site, edits, saving } = useSelect(
 		( select ) => ( {
@@ -143,6 +176,7 @@ export function SettingsPage( { config } ) {
 	const form = ( group ) => (
 		<GroupForm
 			group={ group }
+			registry={ registry }
 			value={ groupValue( group, site[ group.option ] ?? null ) }
 			onChange={ ( value ) =>
 				editEntityRecord( 'root', 'site', undefined, {

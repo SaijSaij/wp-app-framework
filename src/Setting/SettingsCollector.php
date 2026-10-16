@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Setting;
 
 use ReflectionClass;
+use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
@@ -25,7 +26,8 @@ use Throwable;
  *     default: array<string, mixed>,
  *     controls: array<string, Control>,
  *     richText: list<string>,
- *     identifiers: list<string>
+ *     identifiers: list<string>,
+ *     script: string|null
  * }
  */
 #[NoService]
@@ -43,12 +45,15 @@ final class SettingsCollector
      * @param string                $frameworkDirectory Source directory of the framework, which must not declare settings.
      * @param non-empty-string      $namespace          Namespace of the project, for the option names.
      * @param string|null           $title              Name of the theme or plugin, the title of its settings page.
+     * @param string|null           $scriptDirectory    Directory the consumer's build compiles scripts from (its `src/`),
+     *                                                  for the settings scripts next to the groups; null without one.
      */
     public function __construct(
         private readonly ValueSchemaBuilder $values,
         private readonly string $frameworkDirectory,
         private readonly string $namespace,
         private readonly ?string $title = null,
+        private readonly ?string $scriptDirectory = null,
     ) {}
 
     /**
@@ -113,7 +118,12 @@ final class SettingsCollector
             }
             $names[$group->name] = $name;
 
-            $entry = $this->entry($name, $group, $option);
+            [$script, $scriptError] = ScriptKind::Settings->locate($file, $name, $this->scriptDirectory);
+            if ($scriptError !== null) {
+                $this->errors[] = $scriptError;
+                continue;
+            }
+            $entry = $this->entry($name, $group, $option, $script);
             if ($entry !== null) {
                 $entries[] = $entry;
             }
@@ -139,9 +149,10 @@ final class SettingsCollector
     /**
      * @param class-string     $class
      * @param non-empty-string $option
+     * @param string|null      $script The settings script below the script directory, without extension.
      * @return SettingsGroupEntry|null
      */
-    private function entry(string $class, SettingsGroup $group, string $option): ?array
+    private function entry(string $class, SettingsGroup $group, string $option, ?string $script): ?array
     {
         $location = sprintf('#[SettingsGroup] on %s', $class);
         $fields = $this->values->objectFields($class, $location, true);
@@ -199,6 +210,7 @@ final class SettingsCollector
             'controls' => $controls,
             'richText' => $richText,
             'identifiers' => $this->values->identifierPaths($fields ?? []),
+            'script' => $script,
         ];
     }
 }

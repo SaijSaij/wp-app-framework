@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Setting;
 
 use Saij\WpAppFramework\Asset\BuildAssets;
+use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Value\FormAssets;
@@ -40,6 +41,8 @@ final class SettingsPage
      * @param non-empty-string         $slug
      * @param string                   $title  Name of the theme or plugin.
      * @param list<SettingsGroupEntry> $groups
+     * @param array<string, string>    $shared Shared modules (assets/shared/) by name, registered when a settings
+     *                                         script imports them.
      */
     public function __construct(
         private readonly string $slug,
@@ -48,8 +51,9 @@ final class SettingsPage
         private readonly array $groups,
         string $buildDirectory,
         string $buildUri,
+        array $shared = [],
     ) {
-        $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri);
+        $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri, $shared);
     }
 
     /**
@@ -101,6 +105,16 @@ final class SettingsPage
         $version = $this->assets->registerScript($handle, self::SCRIPT);
         wp_add_inline_script($handle, $this->configScript(), 'before');
         wp_enqueue_script($handle);
+        // The settings scripts of the groups depend on the page script (their import of
+        // @saij/wp-app-framework/settings), so they run after it, in the head like it: the page renders on
+        // DOMContentLoaded, after their controls are registered.
+        foreach ($this->groups as $group) {
+            if ($group['script'] !== null) {
+                $groupHandle = ScriptKind::settingsHandle($this->slug, $group['name']);
+                $this->assets->registerScript($groupHandle, $group['script']);
+                wp_enqueue_script($groupHandle);
+            }
+        }
 
         $this->assets->registerStyle($handle, self::SCRIPT, ['wp-components'], $version);
         wp_enqueue_style($handle);

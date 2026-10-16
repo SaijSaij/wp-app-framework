@@ -411,6 +411,7 @@ final readonly class Instance
                 $settingsGroups,
                 $this->directory . '/' . self::BUILD_DIRECTORY,
                 $this->directoryUri . '/' . self::BUILD_DIRECTORY,
+                $scripts['shared'],
             );
             add_action('admin_menu', $settingsPage->addPage(...));
             add_action('admin_enqueue_scripts', $settingsPage->enqueue(...));

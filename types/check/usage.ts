@@ -9,6 +9,7 @@ import {
 	type ControlProps,
 	type PanelProps,
 } from '@saij/wp-app-framework';
+import { registerSettingsControl, type SettingsControlProps } from '@saij/wp-app-framework/settings';
 import { BlockView, DocumentView, SupportView } from '@saij/wp-app-framework/view';
 
 registerControl<string>('hero', 'title', ({ value, onChange, clientId }: ControlProps<string>) => {
@@ -23,6 +24,12 @@ registerPanel('hero', ({ attributes, setAttributes, isPreview }: PanelProps) => 
 registerToolbarButton('hero', ({ clientId }) => clientId);
 void loadScript('https://cdn.example.test/lib.js', { async: true, integrity: 'sha384-…' });
 const key: unknown = getData('key');
+
+registerSettingsControl<{ id: string; name: string }>('design', ['schemes', '*'], ({ value, onChange, path, groupValue, DefaultControl }: SettingsControlProps<{ id: string; name: string }>) => {
+	onChange({ ...value, name: value.name + String(path[1]) + String(Object.keys(groupValue).length) });
+	return DefaultControl;
+});
+registerSettingsControl('design', 'title', ({ value }) => value);
 
 export class Faq extends BlockView {
 	mount(): void {

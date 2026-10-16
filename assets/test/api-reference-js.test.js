@@ -9,23 +9,25 @@ const framework = path.join( __dirname, '..', '..' );
 const content = path.join( framework, 'docs', 'content' );
 
 /**
- * A directory with declaration files for the two modules.
+ * A directory with declaration files for the modules.
  *
- * @param {string} index Content of index.d.ts.
- * @param {string} view  Content of view.d.ts.
+ * @param {string} index         Content of index.d.ts.
+ * @param {string} view          Content of view.d.ts.
+ * @param {string} [settings=''] Content of settings.d.ts.
  * @return {string} Directory.
  */
-function declarations( index, view ) {
+function declarations( index, view, settings = 'export {};' ) {
 	const directory = fs.mkdtempSync(
 		path.join( os.tmpdir(), 'api-reference-' )
 	);
 	fs.writeFileSync( path.join( directory, 'index.d.ts' ), index );
 	fs.writeFileSync( path.join( directory, 'view.d.ts' ), view );
+	fs.writeFileSync( path.join( directory, 'settings.d.ts' ), settings );
 	return directory;
 }
 
 describe( 'JavaScript API reference', () => {
-	it( 'has a page for every export of both modules', () => {
+	it( 'has a page for every export of the modules', () => {
 		const { pages, sidebar } = generate(
 			path.join( framework, 'types' ),
 			content
@@ -37,6 +39,8 @@ describe( 'JavaScript API reference', () => {
 				'api/js/editor/ControlProps',
 				'api/js/view/BlockView',
 				'api/js/view/getData',
+				'api/js/settings/registerSettingsControl',
+				'api/js/settings/SettingsControlProps',
 			] )
 		);
 		// A type re-exported by the view module links to the editor page instead of a page of its own.
@@ -52,6 +56,7 @@ describe( 'JavaScript API reference', () => {
 		expect( sidebar[ 0 ].items.map( ( group ) => group.text ) ).toEqual( [
 			'Editor (@saij/wp-app-framework)',
 			'View (@saij/wp-app-framework/view)',
+			'Settings (@saij/wp-app-framework/settings)',
 		] );
 	} );
 
