@@ -52,7 +52,7 @@ The checks are staged, so that development stays fast:
    bin/run ../theme-dev-test/tests/dev.pools ../plugin-dev-test/tests/dev.pools ../theme-dev-test-child/tests/dev.pools
    ```
 
-4. **At a release:** the release tests – release builds of the consumers, their suites against the ZIPs, the WP-CLI and lifecycle scripts – and the benchmark (see [Pipelines and releases](./pipelines.md#the-release-procedure)):
+4. **At a release:** nothing locally. The release workflows build the consumers' ZIPs, run their suites against them and gate the framework (see [Pipelines and releases](./pipelines.md#the-release-procedure)). To reproduce a failed release workflow, run the release pools of the consumer:
 
    ```sh
    bin/run ../theme-dev-test/tests/release.pools ../plugin-dev-test/tests/release.pools ../theme-dev-test-child/tests/release.pools
@@ -88,4 +88,4 @@ A **pool file** (`tests/dev.pools`, `tests/release.pools` of each consumer) desc
 
 ## The benchmark
 
-[theme-bench](https://github.com/saijsaij/theme-bench) measures the cost of the framework per request: a theme built with the framework against the same theme without it, in release mode, in an instance of wp-test-env of its own. Run it before every release and compare it with the last report; never run other tests at the same time. Every area of the framework that runs on requests has a scenario there; a new feature gets one (`bin/bench --coverage` checks it), and existing scenarios stay so reports remain comparable.
+[theme-bench](https://github.com/saijsaij/theme-bench) measures the cost of the framework per request: a theme built with the framework against the same theme without it, in release mode, in an instance of wp-test-env of its own. It is no part of a release: run it now and then, on request, to make sure the framework does not cost too much, and compare it with the last report – a new database query on the base load or a cost nobody can explain is fixed in the next release. Never run other tests at the same time. Every area of the framework that runs on requests has a scenario there; a new feature gets one (`bin/bench --coverage` checks it), and existing scenarios stay so reports remain comparable.

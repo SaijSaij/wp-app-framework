@@ -21,7 +21,7 @@ The framework is developed together with a few repositories that test it, measur
 | [theme-dev-test](https://github.com/saijsaij/theme-dev-test) | Test theme with a block, hook, route, setting, post type … for every feature | Browser, render, WP-CLI and lifecycle tests against real WordPress; release gate |
 | [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test) | Test plugin | Plugin support, the public interface between instances, two framework versions side by side; release gate |
 | [theme-dev-test-child](https://github.com/saijsaij/theme-dev-test-child) | Test child theme with code of its own | Child theme support and overrides; release gate |
-| [theme-bench](https://github.com/saijsaij/theme-bench) | Benchmark: a theme with the framework against the same theme without it | The cost of the framework per request, before every release |
+| [theme-bench](https://github.com/saijsaij/theme-bench) | Benchmark: a theme with the framework against the same theme without it | The cost of the framework per request, now and then on request |
 | [wp-test-env](https://github.com/saijsaij/wp-test-env) | Docker test environment: fresh WordPress instances, run in parallel, and a tools image with PHP, Composer and Node | Runs every check and test, locally and in CI |
 | [wp-dev-env](https://github.com/saijsaij/wp-dev-env) | Docker development environment: one local WordPress site per project | Trying things out; never used for tests |
 | [wp-app-starter](https://github.com/saijsaij/wp-app-starter) | `composer create-project saij/wp-app-starter` for new themes and plugins | Release gate: projects created from it must pass their own checks |
