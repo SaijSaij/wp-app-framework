@@ -5,12 +5,12 @@
 <title>REST routes - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-8df6811fde43.e3cd7257a9.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-8df6811fde43.bb0f9c4b5d.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.3581f1a523.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.4ccd3a162f.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -73,7 +73,7 @@
 <li><strong>Everything else is a request argument</strong> with the parameter&#x27;s name: <code>int</code>, <code>float</code>, <code>string</code>, <code>bool</code>, a backed enum, or an <code>array</code> with <code>#[ListOf(Enum::class)]</code> or <code>#[ListOf(ValueClass::class)]</code> (see <a href="/wp-app-framework/next/guides/values.html" class="rp-link">Values</a>). Each may be nullable and have a default value.</li>
 </ul>
 <p>A single value class without <code>#[ListOf]</code> is not supported as a request argument, because a parameter with a class type is treated as a service.</p>
-<p>From the request arguments the framework builds the route&#x27;s argument schema (<code>type</code>, <code>enum</code>, <code>items</code>, <code>required</code>, <code>default</code>). WordPress then does the work it always does with a schema: it validates and sanitizes the arguments, answers with 400 if one is invalid, and shows the schema on an <code>OPTIONS</code> request. Missing optional arguments get the parameter&#x27;s default. Enums, value objects and lists are converted by the value factory, so your method receives typed values.</p>
+<p>From the request arguments the framework builds the route&#x27;s argument schema (<code>type</code>, <code>enum</code>, <code>items</code>, <code>required</code>, <code>default</code>, and <code>minItems</code> and <code>maxItems</code> from the <a href="/wp-app-framework/next/guides/values.html#lists" class="rp-link">limits of lists</a>). WordPress then does the work it always does with a schema: it validates and sanitizes the arguments, answers with 400 if one is invalid, and shows the schema on an <code>OPTIONS</code> request. Missing optional arguments get the parameter&#x27;s default. Enums, value objects and lists are converted by the value factory, so your method receives typed values.</p>
 <p><code>#[Param]</code> (<code>Saij\WpAppFramework\Rest\Param</code>) adds further constraints to the schema:</p>
 <div class="rp-codeblock language-php"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="php"><code><span class="line"><span style="color:var(--shiki-token-keyword)">public</span><span style="color:var(--shiki-token-keyword)"> function</span><span style="color:var(--shiki-token-function)"> update</span><span style="color:var(--shiki-foreground)">(</span></span>
 <span class="line"><span style="color:var(--shiki-token-keyword)">    int</span><span style="color:var(--shiki-foreground)"> $id</span><span style="color:var(--shiki-token-punctuation)">,</span></span>
