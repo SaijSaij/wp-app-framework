@@ -50,8 +50,17 @@ export default defineConfig( {
 				'https://github.com/saijsaij/wp-app-framework/tree/main/docs/content',
 		},
 		nav: [
-			{ text: 'Guide', link: '/', activeMatch: '^/(?!api/)' },
+			{
+				text: 'Guide',
+				link: '/',
+				activeMatch: '^/(?!api/|development/)',
+			},
 			{ text: 'API reference', link: '/api/', activeMatch: '^/api/' },
+			{
+				text: 'Development',
+				link: '/development/',
+				activeMatch: '^/development/',
+			},
 		],
 		socialLinks: [
 			{
@@ -123,6 +132,35 @@ export default defineConfig( {
 					items: [
 						{ text: 'API reference', link: '/api/' },
 						{ text: 'Upgrading', link: '/reference/upgrading' },
+					],
+				},
+			],
+			'/development/': [
+				{
+					text: 'Developing the framework',
+					items: [
+						{ text: 'Overview', link: '/development/' },
+						{
+							text: 'Architecture',
+							link: '/development/architecture',
+						},
+						{
+							text: 'Design decisions',
+							link: '/development/design',
+						},
+						{
+							text: 'Conventions',
+							link: '/development/conventions',
+						},
+						{ text: 'Testing', link: '/development/testing' },
+						{
+							text: 'Pipelines and releases',
+							link: '/development/pipelines',
+						},
+						{
+							text: 'Adding a feature',
+							link: '/development/adding-a-feature',
+						},
 					],
 				},
 			],
