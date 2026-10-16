@@ -53,7 +53,7 @@ The value factory never coerces silently. A value that does not match its type t
 
 ## Lists
 
-A list holds items of one backed enum or one value class, declared with [`#[ListOf(class, min: 0, max: null, itemLabel: null)]`](../api/php/Value/ListOf.md). Many lists have a natural size: a hero shows at most three buttons, a comparison needs at least two columns. `min` and `max` set these limits:
+A list holds items of one backed enum or one value class, declared with [`#[ListOf(class, min: 0, max: null, itemLabel: null, appender: false)]`](../api/php/Value/ListOf.md). Many lists have a natural size: a hero shows at most three buttons, a comparison needs at least two columns. `min` and `max` set these limits:
 
 ```php
 #[ListOf(Button::class, max: 3)] public array $buttons = [],
@@ -78,18 +78,21 @@ The title is the first text of the item, such as the text of a badge, or the lab
 #[ListOf(Badge::class, max: 3, itemLabel: 'Auszeichnung')] public array $badges = [],
 ```
 
+With `appender: true`, editors also add items in the canvas of the block editor, through a faded new item at the end of the list; see [New list items in the canvas](./editor.md#new-list-items-in-the-canvas).
+
 ### Rules
 
 | Rule | |
 |---|---|
 | `itemLabel` | not empty; `null` (default) for the short name of the class in words |
+| `appender` | block attributes only, also in value classes, but not in list items; not on `#[Hidden]` lists and lists of posts |
 | `min` | 0 or more; default 0 |
 | `max` | 1 or more and at least `min`; `null` (default) for no limit |
 | Default value | must have between `min` and `max` items, because a new block or setting starts with it; `null` for a nullable list is allowed |
 | Stored values | not validated against the limits; the value factory creates the first `max` items |
 | REST arguments | validated with `minItems` and `maxItems` |
 
-A `min` below 0, a `max` below 1, a `min` greater than `max`, a default outside the limits and an empty `itemLabel` are build errors. Lists of [references](#references) without `#[ListOf]` have no limits.
+A `min` below 0, a `max` below 1, a `min` greater than `max`, a default outside the limits, an empty `itemLabel` and `appender` where it is not allowed (settings groups, meta classes, REST arguments, list items, hidden lists, lists of posts) are build errors. Lists of [references](#references) without `#[ListOf]` have no limits.
 
 ## URLs
 

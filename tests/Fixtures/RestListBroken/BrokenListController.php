@@ -39,6 +39,15 @@ final class BrokenListController
         return true;
     }
 
+    /**
+     * @param list<Kind> $kinds
+     */
+    #[RestRoute('/appender', HttpMethod::Get, new PublicAccess())]
+    public function appender(#[ListOf(Kind::class, appender: true)] array $kinds = []): bool
+    {
+        return true;
+    }
+
     #[RestRoute('/pattern', HttpMethod::Get, new PublicAccess())]
     public function pattern(#[Color] #[Param(pattern: '^#')] string $color = ''): bool
     {

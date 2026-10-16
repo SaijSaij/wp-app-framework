@@ -246,6 +246,29 @@ final class RenderControllerTest extends TestCase
         /** @param Closure(): string $render */
         $editor = fn(Closure $render): string => $this->context->renderForEditor(fn(): string => $this->context->renderBlock('fixture/teaser', $teaserFields, false, $render));
 
+        // list_item() marks items of lists with appender, in renders for the editor only.
+        $appenders = $this->block('fixture/teaser')['editor']['appenders'];
+        self::assertSame(['ctas'], $appenders);
+        self::assertSame(' data-list-item="ctas.2"', $this->context->renderForEditor(
+            fn(): string => $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->listItem(['ctas', 2]), appenders: $appenders),
+        ));
+        self::assertSame('', $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->listItem(['missing', 0]), appenders: $appenders));
+        $shape = 'list_item() in block fixture/teaser needs the names to a list and the index of the item, such as ["buttons", loop.index0].';
+        foreach ([
+            ['list_item() in block fixture/teaser: "caption" is no list with appender of the block (lists with appender: ctas).', ['caption', 0]],
+            [$shape, ['ctas', 'first']],
+            [$shape, [2]],
+        ] as [$message, $path]) {
+            try {
+                $this->context->renderForEditor(
+                    fn(): string => $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->listItem($path), appenders: $appenders),
+                );
+                self::fail('Expected an exception: ' . $message);
+            } catch (InvalidArgumentException $exception) {
+                self::assertSame($message, $exception->getMessage());
+            }
+        }
+
         try {
             $this->context->renderBlock('fixture/teaser', $teaserFields, false, static fn(): string => $functions->innerBlocks());
             self::fail('Expected an exception.');

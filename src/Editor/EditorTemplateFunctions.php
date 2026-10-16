@@ -80,6 +80,47 @@ final readonly class EditorTemplateFunctions
     }
 
     /**
+     * Marks the root element of an item of a list with appender (`#[ListOf(appender: true)]`). In renders for the
+     * block editor the list has one more item, empty, as long as it is below its `max`; the editor shows that item
+     * faded and adds it on a click. Write it directly after the tag name, without a space, like `field()`. The output
+     * is HTML: an attribute in renders for the block editor, otherwise `''`, at once and without looking at the path.
+     * In the editor the path must name an item of a list with appender of the rendered block; otherwise an exception
+     * is thrown.
+     *
+     * ```twig
+     * {% for button in attrs.buttons %}
+     *     <a{{ list_item(['buttons', loop.index0]) }} href="{{ button.url }}"{{ field(['buttons', loop.index0, 'label']) }}>{{ button.label }}</a>
+     * {% endfor %}
+     * ```
+     *
+     * @param list<string|int> $path The names to the list and the index of the item, e.g. `['buttons', 2]`.
+     */
+    #[TemplateFunction('list_item', html: true)]
+    public function listItem(array $path): string
+    {
+        if (!$this->context->isEditor()) {
+            return '';
+        }
+        $block = $this->context->getBlock('list_item()');
+        $index = array_is_list($path) ? array_pop($path) : null;
+        $names = array_filter($path, static fn(mixed $segment): bool => is_string($segment) && preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $segment) === 1);
+        if (!is_int($index) || $index < 0 || $path === [] || count($names) !== count($path)) {
+            throw new InvalidArgumentException(sprintf('list_item() in block %s needs the names to a list and the index of the item, such as ["buttons", loop.index0].', $block['name']));
+        }
+        $list = implode('.', $path);
+        if (!in_array($list, $block['appenders'], true)) {
+            throw new InvalidArgumentException(sprintf(
+                'list_item() in block %s: "%s" is no list with appender of the block (%s).',
+                $block['name'],
+                $list,
+                $block['appenders'] === [] ? 'it has none; set appender: true in #[ListOf]' : 'lists with appender: ' . implode(', ', $block['appenders']),
+            ));
+        }
+
+        return sprintf(' data-list-item="%s"', esc_attr($list . '.' . $index));
+    }
+
+    /**
      * Marks the element that contains the inner blocks; it may be the root element. Only for blocks whose
      * `render()` accepts `string $content`; in other blocks, and outside of a block rendered by the framework, it
      * throws an exception, in every render (unlike `field()`, which checks only in renders for the block editor).

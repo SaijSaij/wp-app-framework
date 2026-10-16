@@ -86,6 +86,7 @@ final class EditorBuildTest extends TestCase
                         ],
                     ],
                     'itemLabel' => 'Call to action',
+                    'appender' => true,
                     'content' => true,
                 ],
                 'featured' => ['type' => 'bool', 'label' => 'Featured', 'nullable' => false, 'content' => false],
@@ -114,7 +115,7 @@ final class EditorBuildTest extends TestCase
 
         self::assertSame(['fixture/teaser'], $container->getArgs()['allowed_blocks'] ?? null);
         self::assertSame(
-            ['fields' => [], 'controls' => [], 'innerBlocks' => true, 'innerBlockOptions' => [], 'postContentField' => null, 'editorScript' => 'Container.editor', 'supports' => []],
+            ['fields' => [], 'controls' => [], 'innerBlocks' => true, 'innerBlockOptions' => [], 'postContentField' => null, 'appenders' => [], 'editorScript' => 'Container.editor', 'supports' => []],
             $container->getEditor(),
         );
         self::assertFalse($blocks['fixture/teaser']->getEditor()['innerBlocks']);

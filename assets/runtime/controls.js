@@ -289,10 +289,14 @@ export function ListControl( {
 	path,
 	fieldControls,
 } ) {
-	const fields = useContext( BlockDataContext )?.block.fields ?? {};
+	const blockData = useContext( BlockDataContext );
+	const fields = blockData?.block.fields ?? {};
 	const items = value ?? [];
 	const limits = listLimits( control, items.length );
-	const cards = useListCards( items.length );
+	const cards = useListCards(
+		items.length,
+		() => blockData?.takeAddedItem?.( path ) ?? false
+	);
 	const replace = ( index, next ) =>
 		onChange(
 			items.map( ( other, otherIndex ) =>

@@ -1,9 +1,14 @@
-import { useBlockProps, useInnerBlocksProps } from '@wordpress/block-editor';
+import {
+	useBlockEditingMode,
+	useBlockProps,
+	useInnerBlocksProps,
+} from '@wordpress/block-editor';
 import { useMemo } from '@wordpress/element';
 import { attributesToProps, domToReact } from 'html-react-parser';
 
 import { FIELD, INNER_BLOCKS, isElement } from './analyze';
 import { FieldBoundary, ImageField, TextField } from './fields';
+import { LIST_ITEM } from './ghosts';
 import { matchesPattern } from './paths';
 
 function elementProps( node ) {
@@ -36,15 +41,142 @@ function fieldProps( node ) {
 	return { ...props, className: classNames( props.className, FIELD_CLASS ) };
 }
 
+/** Class of the new item of a list with appender (canvas.scss). */
+const GHOST_CLASS = 'wp-app-framework-ghost';
+
+/**
+ * Options that render the markup of a new item without inline editors: text
+ * fields show their label as placeholder, images their markup.
+ *
+ * @param {Object} fields Inline fields by pattern.
+ * @return {Object} Options of domToReact().
+ */
+function ghostOptions( fields ) {
+	const options = {
+		replace( node ) {
+			if ( ! isElement( node ) || node.attribs[ FIELD ] === undefined ) {
+				return undefined;
+			}
+			const Tag = node.name;
+			return (
+				<Tag { ...elementProps( node ) }>
+					{ ghostContent( node, fields, options ) }
+				</Tag>
+			);
+		},
+	};
+	return options;
+}
+
+/**
+ * The content of a marked element of a new item: the label of a text field
+ * as placeholder, else the markup.
+ *
+ * @param {Object} node
+ * @param {Object} fields  Inline fields by pattern.
+ * @param {Object} options Options of domToReact().
+ * @return {Object} Content.
+ */
+function ghostContent( node, fields, options ) {
+	const path = node.attribs[ FIELD ];
+	const pattern =
+		path === undefined
+			? undefined
+			: Object.keys( fields ).find( ( candidate ) =>
+					matchesPattern( path, candidate )
+				);
+	const field = fields[ pattern ];
+	if ( field && field.kind !== 'image' ) {
+		return (
+			<span className="wp-app-framework-ghost__placeholder">
+				{ field.label }
+			</span>
+		);
+	}
+	return domToReact( node.children, options );
+}
+
+/**
+ * The new item of a list with appender: the markup of an empty item, faded;
+ * a click or Enter adds the item.
+ *
+ * @param {Object}     props
+ * @param {Object}     props.node   Root element of the item (list_item()).
+ * @param {Object}     props.fields Inline fields by pattern.
+ * @param {string}     props.label  Label of the list.
+ * @param {() => void} props.onAdd  Adds the item.
+ */
+function GhostItem( { node, fields, label, onAdd } ) {
+	const mode = useBlockEditingMode();
+	if ( mode === 'disabled' ) {
+		return null;
+	}
+	const Tag = node.name;
+	const { href, ...props } = elementProps( node );
+	const add = ( event ) => {
+		event.preventDefault();
+		event.stopPropagation();
+		onAdd();
+	};
+	return (
+		<Tag
+			{ ...props }
+			className={ classNames( props.className, GHOST_CLASS ) }
+			role="button"
+			tabIndex={ 0 }
+			aria-label={ `Add item to ${ label }` }
+			onClick={ add }
+			onKeyDown={ ( event ) => {
+				if ( event.key === 'Enter' || event.key === ' ' ) {
+					add( event );
+				}
+			} }
+		>
+			{ ghostContent( node, fields, ghostOptions( fields ) ) }
+		</Tag>
+	);
+}
+
 function InnerBlocksElement( { tagName: Tag, props, options } ) {
 	return <Tag { ...useInnerBlocksProps( props, options ) } />;
 }
 
-function createOptions( fields, innerBlocksOptions ) {
+/**
+ * The new item a marked list item is, if it is one.
+ *
+ * @param {Object} node
+ * @param {Object} ghosts New items by list path (ghostItems()).
+ * @return {{path: string, label: string}|null} The list of the new item.
+ */
+function ghostOf( node, ghosts ) {
+	const item = node.attribs[ LIST_ITEM ];
+	if ( item === undefined ) {
+		return null;
+	}
+	const separator = item.lastIndexOf( '.' );
+	const path = item.slice( 0, separator );
+	const ghost = ghosts[ path ];
+	return ghost && String( ghost.index ) === item.slice( separator + 1 )
+		? { path, label: ghost.label }
+		: null;
+}
+
+function createOptions( fields, innerBlocksOptions, ghosts, onAdd ) {
 	const options = {
 		replace( node ) {
 			if ( ! isElement( node ) ) {
 				return undefined;
+			}
+			const ghost = ghostOf( node, ghosts );
+			if ( ghost !== null ) {
+				return (
+					<GhostItem
+						node={ node }
+						fields={ fields }
+						label={ ghost.label }
+						onAdd={ () => onAdd( ghost.path ) }
+					/>
+				);
 			}
 			if ( INNER_BLOCKS in node.attribs ) {
 				return (
@@ -99,15 +231,22 @@ function rootProps( node, extraProps ) {
 	};
 }
 
-function RootElement( { node, fields, extraProps, innerBlocksOptions } ) {
+function RootElement( {
+	node,
+	fields,
+	extraProps,
+	innerBlocksOptions,
+	ghosts,
+	onAdd,
+} ) {
 	const Tag = node.name;
 	const children = useMemo(
 		() =>
 			domToReact(
 				node.children,
-				createOptions( fields, innerBlocksOptions )
+				createOptions( fields, innerBlocksOptions, ghosts, onAdd )
 			),
-		[ node, fields, innerBlocksOptions ]
+		[ node, fields, innerBlocksOptions, ghosts, onAdd ]
 	);
 	return (
 		<Tag { ...useBlockProps( rootProps( node, extraProps ) ) }>
@@ -161,17 +300,21 @@ function RootInnerBlocksElement( { node, extraProps, innerBlocksOptions } ) {
  * The block's root element (from analyzeMarkup()) with the block props of the editor; marked
  * descendants are replaced by inline editors, a marked root element by a text field.
  *
- * @param {Object} props
- * @param {Object} props.node               Root node from analyzeMarkup().
- * @param {Object} props.fields             Inline fields by pattern.
- * @param {Object} props.extraProps         Additional props of the root element (loading state).
- * @param {Object} props.innerBlocksOptions Options of useInnerBlocksProps() (#[InnerBlocks]).
+ * @param {Object}                 props
+ * @param {Object}                 props.node               Root node from analyzeMarkup().
+ * @param {Object}                 props.fields             Inline fields by pattern.
+ * @param {Object}                 props.extraProps         Additional props of the root element (loading state).
+ * @param {Object}                 props.innerBlocksOptions Options of useInnerBlocksProps() (#[InnerBlocks]).
+ * @param {Object}                 props.ghosts             New items of lists with appender by list path (ghostItems()).
+ * @param {(path: string) => void} props.onAdd              Adds the new item of a list.
  */
 export function BlockMarkup( {
 	node,
 	fields,
 	extraProps,
 	innerBlocksOptions,
+	ghosts,
+	onAdd,
 } ) {
 	if ( FIELD in node.attribs ) {
 		return (
@@ -194,6 +337,8 @@ export function BlockMarkup( {
 			fields={ fields }
 			extraProps={ extraProps }
 			innerBlocksOptions={ innerBlocksOptions }
+			ghosts={ ghosts }
+			onAdd={ onAdd }
 		/>
 	);
 }

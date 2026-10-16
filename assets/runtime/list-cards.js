@@ -26,22 +26,30 @@ const nextKey = () => ++lastKey;
 /**
  * Stable keys of the items and the expanded ones. Items keep their key while
  * they are moved, so their state and controls move with them; a change from
- * outside (undo) that changes the length adds or removes keys at the end.
- * The control changes the keys first, then the value.
+ * outside (undo, an item added in the canvas) that changes the length adds
+ * or removes keys at the end. The control changes the keys first, then the
+ * value.
  *
- * @param {number} length Number of items.
+ * @param {number}        length         Number of items.
+ * @param {() => boolean} [takeAddition] Whether items appended from outside were added in the canvas, to expand them.
  * @return {Object} Keys and their changes: keys, isOpen(), toggle(), add(), remove(), move().
  */
-export function useListCards( length ) {
+export function useListCards( length, takeAddition = () => false ) {
 	const keys = useRef( null );
+	const [ open, setOpen ] = useState( () => new Set() );
 	keys.current ??= Array.from( { length }, nextKey );
 	if ( keys.current.length > length ) {
 		keys.current = keys.current.slice( 0, length );
 	}
+	const appended = [];
 	while ( keys.current.length < length ) {
-		keys.current = [ ...keys.current, nextKey() ];
+		const key = nextKey();
+		appended.push( key );
+		keys.current = [ ...keys.current, key ];
 	}
-	const [ open, setOpen ] = useState( () => new Set() );
+	if ( appended.length > 0 && takeAddition() ) {
+		setOpen( ( previous ) => new Set( [ ...previous, ...appended ] ) );
+	}
 
 	return {
 		keys: keys.current,

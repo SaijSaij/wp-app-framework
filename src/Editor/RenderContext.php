@@ -15,7 +15,7 @@ use LogicException;
  *
  * @internal Theme code uses the template functions field(), inner_blocks() and is_editor().
  *
- * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, innerBlocks: bool, classes: list<string>, attributes: array<string, string>, wrapper: bool, cached: list<string>|null}
+ * @phpstan-type RenderingBlock array{name: string, fields: array<string, array<string, mixed>>, appenders: list<string>, innerBlocks: bool, classes: list<string>, attributes: array<string, string>, wrapper: bool, cached: list<string>|null}
  */
 final class RenderContext
 {
@@ -39,11 +39,12 @@ final class RenderContext
      *                                                            the view scripts).
      * @param list<string>|null                   $cached         Types of the variants of a block whose output is
      *                                                            cached (#[Cache]); null if it is not cached.
+     * @param list<string>                        $appenders      Paths of the lists with appender (#[ListOf]).
      */
-    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render, array $classes = [], ?string $missingWrapper = null, array $attributes = [], ?array $cached = null): string
+    public function renderBlock(string $name, array $fields, bool $innerBlocks, Closure $render, array $classes = [], ?string $missingWrapper = null, array $attributes = [], ?array $cached = null, array $appenders = []): string
     {
         $index = count($this->blocks);
-        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'innerBlocks' => $innerBlocks, 'classes' => $classes, 'attributes' => $attributes, 'wrapper' => false, 'cached' => $cached];
+        $this->blocks[] = ['name' => $name, 'fields' => $fields, 'appenders' => $appenders, 'innerBlocks' => $innerBlocks, 'classes' => $classes, 'attributes' => $attributes, 'wrapper' => false, 'cached' => $cached];
         try {
             $html = $render();
             if ($missingWrapper !== null && !$this->blocks[$index]['wrapper']) {

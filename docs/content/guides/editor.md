@@ -36,6 +36,22 @@ Text fields become WordPress' `RichText` with the element's tag. An image field 
 
 Fields with `inspector: true` are edited in the inspector, not in the canvas. Print them without `field()`; marking them throws an exception. The template shows their value like any other attribute.
 
+### New list items in the canvas
+
+A list of buttons or badges is usually extended in the inspector, with "Add item". With `appender: true` in [`#[ListOf]`](./values.md#lists), editors can add items right where they see them: the canvas shows one more item at the end of the list, empty and faded, with the labels of its text fields as placeholders. It looks like the item it would become. A click on it – or Enter – adds the item and puts the cursor into its first text field; the inspector shows the new item expanded. As long as nobody clicks, nothing is stored. When the list has reached its `max`, the new item disappears.
+
+To know which element is an item, the template marks the root element of each item with `list_item(path)`, written like `field()`, with the names to the list and the index of the item:
+
+```twig
+{% for button in attrs.buttons %}
+    <a{{ list_item(['buttons', loop.index0]) }} href="{{ button.url }}"{{ field(['buttons', loop.index0, 'label']) }}>{{ button.label }}</a>
+{% endfor %}
+```
+
+The new item is an item of the list for your template: in renders for the editor, `attrs.buttons` has one more entry, created like an item added in the inspector (the defaults of the item class, empty values otherwise). So a template that hides an empty list shows it in the editor, and a template that computes something from the number of items sees one more there. On the front end, the list holds only the stored items, and `list_item()` returns an empty string.
+
+If the template renders the new item without `list_item()`, the block shows an error in the editor instead of an item that looks real but is not stored. A path that names no list with appender throws an exception, like a wrong path of `field()`.
+
 ### Inner blocks
 
 `inner_blocks()` goes on the element that contains the inner blocks, in blocks whose `render()` accepts `string $content`. It may be the root element.
@@ -97,7 +113,7 @@ The runtime generates the block inspector from the attribute class. Each type ge
 | `#[PlainText(inspector: true, multiline: true)]` | text area |
 | [`Link`](./values.md#links) | the label and the shortened URL; a click opens the link control of the block editor (search of posts, terms and media files, "Open in new tab") |
 | [reference](./values.md#references) | search; a list shows cards with move and remove |
-| list | one collapsed card per item: a drag handle, the title (its first text value, the label of an enum case, else the [item label](./values.md#lists) with its number, e.g. "Badge 2"), which expands and collapses the item's controls, and an actions menu (move up, move down, remove); "Add item" adds an expanded item; the [limits](./values.md#lists) of the list disable adding and removing, and items beyond `max` are marked as unused |
+| list | one collapsed card per item (and, with `appender: true`, a [new item in the canvas](#new-list-items-in-the-canvas)): a drag handle, the title (its first text value, the label of an enum case, else the [item label](./values.md#lists) with its number, e.g. "Badge 2"), which expands and collapses the item's controls, and an actions menu (move up, move down, remove); "Add item" adds an expanded item; the [limits](./values.md#lists) of the list disable adding and removing, and items beyond `max` are marked as unused |
 
 Fields of list items that are edited in the canvas stay in the canvas. Typed text is applied after a short pause.
 

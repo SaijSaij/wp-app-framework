@@ -156,6 +156,17 @@ final class ValueSchemaBuilder
             if ($limits === null) {
                 return null;
             }
+            $appenderError = !$listOf->appender ? null : match (true) {
+                $settings => 'settings groups and post meta have no canvas',
+                $markers['hidden'] => 'the list is #[Hidden]',
+                is_subclass_of($listOf->class, AbstractPost::class) => 'a list of posts is chosen with a search, not in the canvas',
+                default => null,
+            };
+            if ($appenderError !== null) {
+                $this->errors[] = sprintf('%s: appender of #[ListOf] adds items in the canvas of the block editor, but %s.', $location, $appenderError);
+
+                return null;
+            }
             if (is_subclass_of($listOf->class, AbstractPost::class)) {
                 $item = $this->postClassField($listOf->class, false, $markers, sprintf('%s: #[ListOf]', $location), true);
                 if ($item === null || !isset($item['value']['reference'])) {
@@ -187,6 +198,7 @@ final class ValueSchemaBuilder
                     'item' => $item['control'],
                     ...$limits,
                     'itemLabel' => self::itemLabel($listOf),
+                    ...($listOf->appender ? ['appender' => true] : []),
                 ],
             ];
         }
@@ -746,6 +758,25 @@ final class ValueSchemaBuilder
             'fields' => [],
             'control' => $markers['hidden'] ? null : ['type' => 'references', ...$control],
         ];
+    }
+
+    /**
+     * Whether a control or one of the controls nested in it is a list with `appender` (#[ListOf]).
+     *
+     * @param array<mixed>|null $control
+     */
+    public static function hasAppender(?array $control): bool
+    {
+        foreach ($control ?? [] as $key => $value) {
+            if ($key === 'appender' && $value === true) {
+                return true;
+            }
+            if (is_array($value) && self::hasAppender($value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

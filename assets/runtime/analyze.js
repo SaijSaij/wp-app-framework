@@ -1,5 +1,6 @@
 import { htmlToDOM } from 'html-react-parser';
 
+import { LIST_ITEM } from './ghosts';
 import { matchesPattern } from './paths';
 
 /** Attribute of an inline field, set by field() in editor renders. */
@@ -25,11 +26,11 @@ export function isElement( node ) {
  * Checks the server markup of a block: exactly one root element, marked
  * fields that exist. The root element may itself be a text field (e.g. the
  * <p> of a paragraph block), but not an image field. Returns the root node and
- * the marked paths.
+ * the marked paths, and the items marked with list_item().
  *
  * @param {string} html
  * @param {Object} fields Inline fields by pattern.
- * @return {{root: Object|null, error: string|null, paths: string[]}} Analysis.
+ * @return {{root: Object|null, error: string|null, paths: string[], listItems: string[]}} Analysis.
  */
 export function analyzeMarkup( html, fields ) {
 	const nodes = htmlToDOM( html ).filter(
@@ -42,6 +43,7 @@ export function analyzeMarkup( html, fields ) {
 			root: null,
 			error: `The template must render exactly one root element, it rendered ${ nodes.length } nodes.`,
 			paths: [],
+			listItems: [],
 		};
 	}
 
@@ -58,10 +60,12 @@ export function analyzeMarkup( html, fields ) {
 			root: null,
 			error: 'The root element cannot be an image field; mark an element inside it.',
 			paths: [],
+			listItems: [],
 		};
 	}
 
 	const paths = [];
+	const listItems = [];
 	const pending = [ root ];
 	while ( pending.length > 0 ) {
 		const node = pending.pop();
@@ -80,14 +84,18 @@ export function analyzeMarkup( html, fields ) {
 					root: null,
 					error: `field( "${ path }" ) is not an inline field of the block.`,
 					paths: [],
+					listItems: [],
 				};
 			}
 			paths.push( path );
 		}
+		if ( node.attribs[ LIST_ITEM ] !== undefined ) {
+			listItems.push( node.attribs[ LIST_ITEM ] );
+		}
 		pending.push( ...node.children );
 	}
 
-	return { root, error: null, paths };
+	return { root, error: null, paths, listItems };
 }
 
 /**

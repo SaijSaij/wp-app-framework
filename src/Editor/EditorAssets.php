@@ -203,6 +203,7 @@ final readonly class EditorAssets
                 'innerBlocks' => $block['editor']['innerBlocks'],
                 'innerBlockOptions' => (object) $block['editor']['innerBlockOptions'],
                 'postContentField' => $block['editor']['postContentField'],
+                'appenders' => $block['editor']['appenders'],
                 'supports' => $block['editor']['supports'],
                 'view' => ViewAssets::hasViews($block),
             ];

@@ -10,6 +10,8 @@ use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
 use Saij\WpAppFramework\Tests\Fixtures\ListLimitBroken\BrokenAttributes;
+use Saij\WpAppFramework\Tests\Fixtures\ListLimitBroken\BrokenSettings;
+use Saij\WpAppFramework\Tests\Fixtures\ListLimitBroken\NestedAttributes;
 use Saij\WpAppFramework\Tests\Fixtures\ListLimitValid;
 use Saij\WpAppFramework\Tests\Fixtures\ListLimitValid\Slide;
 use Saij\WpAppFramework\Tests\Fixtures\ListLimitValid\Tone;
@@ -114,6 +116,8 @@ final class ListLimitTest extends TestCase
     {
         $at = static fn(string $name): string => sprintf('parameter $%s of %s::__construct()', $name, BrokenAttributes::class);
         $expected = [
+            sprintf('parameter $rows of block attribute class %s::__construct(): the list "rows.*.tones" has appender in #[ListOf], but is in a list item; only lists outside of list items get a new item in the canvas.', NestedAttributes::class),
+            sprintf('parameter $tones of %s::__construct(): appender of #[ListOf] adds items in the canvas of the block editor, but settings groups and post meta have no canvas.', BrokenSettings::class),
             $at('negative') . ': min of #[ListOf] must be 0 or more, -1 given.',
             $at('zero') . ': max of #[ListOf] must be 1 or more, 0 given; use null for no limit.',
             $at('crossed') . ': min of #[ListOf] (3) is greater than max (2).',
@@ -121,10 +125,12 @@ final class ListLimitTest extends TestCase
             $at('tooFew') . ': the default has 0 item(s), but #[ListOf] allows at least 1; a new value would start outside the limits.',
             $at('notExactly') . ': the default has 1 item(s), but #[ListOf] allows exactly 2; a new value would start outside the limits.',
             $at('emptyLabel') . ': itemLabel of #[ListOf] is empty; use null for the name of the class.',
+            $at('hiddenAppender') . ': appender of #[ListOf] adds items in the canvas of the block editor, but the list is #[Hidden].',
+            $at('postAppender') . ': appender of #[ListOf] adds items in the canvas of the block editor, but a list of posts is chosen with a search, not in the canvas.',
         ];
 
         try {
-            new ManifestBuilder([ManifestBuilderTest::fixture('ListLimitBroken')])->build();
+            new ManifestBuilder([ManifestBuilderTest::fixture('ListLimitBroken'), ManifestBuilder::frameworkSource()])->build();
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
             self::assertSame($expected, $exception->getErrors());

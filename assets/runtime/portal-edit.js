@@ -6,7 +6,13 @@ import {
 import { getBlockType } from '@wordpress/blocks';
 import { Notice, ToolbarButton } from '@wordpress/components';
 import { useRegistry, useSelect } from '@wordpress/data';
-import { useEffect, useMemo, useState } from '@wordpress/element';
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from '@wordpress/element';
 
 import { analyzeMarkup, missingFields } from './analyze';
 import {
@@ -16,6 +22,13 @@ import {
 	usedContext,
 } from './block-context';
 import { BlockDataContext } from './context';
+import {
+	addItem,
+	ghostItems,
+	LIST_ITEM,
+	unmarkedGhosts,
+	withGhostItems,
+} from './ghosts';
 import { Inspector } from './inspector';
 import { innerBlocksOptions } from './inner-blocks';
 import { BlockMarkup } from './markup';
@@ -49,17 +62,25 @@ function usePostId( context ) {
 /**
  * Cache key and request entry of a block. Inline text values are blanked:
  * typing never re-renders, every other change does, including a change of
- * the context values the block uses.
+ * the context values the block uses. Lists with appender get their new item.
  *
  * @param {string}           name
  * @param {Object}           attributes
- * @param {Object}           fields     Inline fields of the block.
+ * @param {Object}           block      Configuration of the block: fields, controls, appenders.
  * @param {number|undefined} postId
  * @param {Object}           context    Context values from renderContext().
  * @return {{key: string, entry: Object}} Render job.
  */
-function renderJob( name, attributes, fields, postId, context ) {
-	const renderAttributes = blankInlineText( attributes, fields );
+function renderJob( name, attributes, block, postId, context ) {
+	const ghosts = ghostItems( attributes, block.appenders, block.controls );
+	const renderAttributes = blankInlineText(
+		withGhostItems(
+			attributes,
+			ghosts,
+			getBlockType( name )?.attributes ?? {}
+		),
+		block.fields
+	);
 	const hasContext = Object.keys( context ).length > 0;
 	return {
 		key: stableStringify( {
@@ -101,7 +122,7 @@ function prefetchInnerBlocks( registry, clientId, runtime, postId ) {
 			const { key, entry } = renderJob(
 				inner.name,
 				inner.attributes,
-				config.fields,
+				config,
 				postId,
 				renderContext( usedContext( context, blockType ) )
 			);
@@ -207,8 +228,32 @@ export function PortalEdit( {
 	const contextKey = stableStringify( renderContext( context ) );
 	const values = useMemo( () => JSON.parse( contextKey ), [ contextKey ] );
 	const { key, entry } = useMemo(
-		() => renderJob( name, attributes, block.fields, postId, values ),
-		[ name, attributes, block.fields, postId, values ]
+		() => renderJob( name, attributes, block, postId, values ),
+		[ name, attributes, block, postId, values ]
+	);
+	const ghosts = useMemo(
+		() => ghostItems( attributes, block.appenders, block.controls ),
+		[ attributes, block.appenders, block.controls ]
+	);
+	// The root element, to focus the first field of an item added in the canvas once its markup arrived.
+	const rootRef = useRef( null );
+	const focusItem = useRef( null );
+	// Lists whose next item was added in the canvas: the inspector expands it.
+	const addedItems = useRef( new Set() );
+	const addGhost = useCallback(
+		( path ) => {
+			const index = ghosts[ path ]?.index;
+			focusItem.current = `${ path }.${ index }`;
+			addedItems.current.add( path );
+			setAttributes(
+				addItem(
+					attributes,
+					path,
+					getBlockType( name )?.attributes ?? {}
+				)
+			);
+		},
+		[ ghosts, attributes, setAttributes, name ]
 	);
 	const innerOptions = useMemo(
 		() =>
@@ -274,10 +319,42 @@ export function PortalEdit( {
 	}, [ analysis, block.fields, name, runtime.config.development ] );
 
 	const data = useMemo(
-		() => ( { name, block, attributes, setAttributes } ),
+		() => ( {
+			name,
+			block,
+			attributes,
+			setAttributes,
+			takeAddedItem: ( path ) => addedItems.current.delete( path ),
+		} ),
 		[ name, block, attributes, setAttributes ]
 	);
 	const loading = state.key !== key;
+	const unmarked = useMemo(
+		() =>
+			analysis?.root && ! loading
+				? unmarkedGhosts( ghosts, analysis.listItems )
+				: [],
+		[ analysis, ghosts, loading ]
+	);
+
+	useEffect( () => {
+		const item = focusItem.current;
+		if ( item === null || loading || ! rootRef.current ) {
+			return;
+		}
+		const element = rootRef.current.querySelector(
+			`[${ LIST_ITEM }="${ item }"]`
+		);
+		if ( ! element ) {
+			return;
+		}
+		focusItem.current = null;
+		const editable = element.isContentEditable
+			? element
+			: element.querySelector( '[contenteditable="true"]' );
+		editable?.focus();
+		// The new items change also when the markup stays: the last item before max renders like the new item did.
+	}, [ state.html, loading, ghosts ] );
 
 	const [ isPreview, setPreview ] = useState( false );
 	const preview = usePreview( {
@@ -327,6 +404,14 @@ export function PortalEdit( {
 		content = (
 			<Message status="error">{ `${ name }: ${ analysis.error }` }</Message>
 		);
+	} else if ( unmarked.length > 0 ) {
+		content = (
+			<Message status="error">{ `${ name }: the template marks no item of ${ unmarked.join(
+				', '
+			) } with list_item(), so the new item of the list (#[ListOf(appender: true)]) cannot be shown; mark the root element of each item: list_item( [ "${
+				unmarked[ 0 ]
+			}", loop.index0 ] ).` }</Message>
+		);
 	} else {
 		content = (
 			<BlockMarkup
@@ -335,9 +420,11 @@ export function PortalEdit( {
 				innerBlocksOptions={ innerOptions }
 				extraProps={
 					loading || ( isPreview && preview.loading )
-						? LOADING_PROPS
-						: IDLE_PROPS
+						? { ...LOADING_PROPS, ref: rootRef }
+						: { ...IDLE_PROPS, ref: rootRef }
 				}
+				ghosts={ ghosts }
+				onAdd={ addGhost }
 			/>
 		);
 	}

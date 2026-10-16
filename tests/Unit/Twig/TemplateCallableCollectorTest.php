@@ -52,6 +52,7 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Function, 'asset_svg', AssetTemplateFunctions::class, 'svg', true],
                 [TemplateCallableKind::Function, 'block_wrapper_attributes', BlockTemplateFunctions::class, 'blockWrapperAttributes', true],
                 [TemplateCallableKind::Function, 'field', EditorTemplateFunctions::class, 'field', true],
+                [TemplateCallableKind::Function, 'list_item', EditorTemplateFunctions::class, 'listItem', true],
                 [TemplateCallableKind::Function, 'inner_blocks', EditorTemplateFunctions::class, 'innerBlocks', true],
                 [TemplateCallableKind::Function, 'is_editor', EditorTemplateFunctions::class, 'isEditor', false],
                 [TemplateCallableKind::Function, 'post', PostTemplateFunctions::class, 'post', false],

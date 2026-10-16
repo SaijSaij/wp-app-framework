@@ -58,6 +58,7 @@ use Throwable;
  *     fields: array<string, BlockField>,
  *     controls: array<string, Control>,
  *     postContentField: string|null,
+ *     appenders: list<string>,
  *     contexts: list<array{ReflectionParameter, Context}>,
  *     attributeFields: array<string, Field>,
  *     types: array<string, string>,
@@ -324,6 +325,7 @@ final class BlockCollector
             'innerBlocks' => $innerBlocks,
             'innerBlockOptions' => [],
             'postContentField' => $postContentField,
+            'appenders' => $render['appenders'],
             'editorScript' => $editorScript,
             'supports' => array_column($supportEntries, 'attribute'),
         ], [
@@ -1240,6 +1242,7 @@ final class BlockCollector
             'fields' => [],
             'controls' => [],
             'postContentField' => null,
+            'appenders' => [],
             'contexts' => [],
             'attributeFields' => [],
             'types' => [],
@@ -1324,7 +1327,7 @@ final class BlockCollector
      * and the attributes marked with #[ProvidesContext].
      *
      * @param class-string $class
-     * @return array{schemas: array<string, array<string, mixed>>, fields: array<string, BlockField>, controls: array<string, Control>, postContentField: string|null, attributeFields: array<string, Field>, types: array<string, string>, provided: list<string>}|null
+     * @return array{schemas: array<string, array<string, mixed>>, fields: array<string, BlockField>, controls: array<string, Control>, postContentField: string|null, appenders: list<string>, attributeFields: array<string, Field>, types: array<string, string>, provided: list<string>}|null
      */
     private function attributeSchemas(string $class, string $location): ?array
     {
@@ -1336,6 +1339,7 @@ final class BlockCollector
         $editorFields = [];
         $controls = [];
         $postContentField = null;
+        $appenders = [];
         $types = [];
         $provided = [];
         $valid = $fields !== null;
@@ -1398,6 +1402,14 @@ final class BlockCollector
                 unset($editorField['path']);
                 $editorFields[$path] = $editorField;
             }
+            foreach (self::appenderPaths($field['control'], $name) as $path) {
+                if (str_contains($path, '*')) {
+                    $this->errors[] = sprintf('%s: the list "%s" has appender in #[ListOf], but is in a list item; only lists outside of list items get a new item in the canvas.', $attributeLocation, $path);
+                    $valid = false;
+                    continue;
+                }
+                $appenders[] = $path;
+            }
             if ($field['control'] !== null) {
                 // The inspector shows content controls in the "content" group, which stays visible in contentOnly mode.
                 $controls[$name] = [...$field['control'], 'content' => $field['content']];
@@ -1409,10 +1421,38 @@ final class BlockCollector
             'fields' => $editorFields,
             'controls' => $controls,
             'postContentField' => $postContentField,
+            'appenders' => $appenders,
             'attributeFields' => $fields,
             'types' => $types,
             'provided' => $provided,
         ] : null;
+    }
+
+    /**
+     * Paths of the lists with appender (#[ListOf]) in a control, list items as `*`.
+     *
+     * @param array<string, mixed>|null $control
+     * @return list<string>
+     */
+    private static function appenderPaths(?array $control, string $path): array
+    {
+        $paths = [];
+        if (($control['type'] ?? null) === 'list') {
+            if (($control['appender'] ?? false) === true) {
+                $paths[] = $path;
+            }
+            /** @var array<string, mixed>|null $item */
+            $item = $control['item'] ?? null;
+            array_push($paths, ...self::appenderPaths($item, $path . '.*'));
+        } elseif (($control['type'] ?? null) === 'object') {
+            /** @var array<string, array<string, mixed>> $fields */
+            $fields = $control['fields'] ?? [];
+            foreach ($fields as $name => $field) {
+                array_push($paths, ...self::appenderPaths($field, $path . '.' . $name));
+            }
+        }
+
+        return $paths;
     }
 
     private static function shortName(string $class): string

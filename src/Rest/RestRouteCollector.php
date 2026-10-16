@@ -283,6 +283,11 @@ final class RestRouteCollector
         }
 
         $value = $field['value'];
+        if (ValueSchemaBuilder::hasAppender($field['control'])) {
+            $this->errors[] = sprintf('%s: appender of #[ListOf] adds items in the canvas of the block editor; REST arguments have none.', $parameterLocation);
+
+            return null;
+        }
         if (isset($value['reference']) || ($value['type'] === 'list' && $value['items']['type'] === 'int')) {
             $this->errors[] = sprintf(
                 '%s: #[PostReference], #[TermReference] and #[UserReference] mark fields of blocks and settings groups, not REST arguments; declare the ID as int.',

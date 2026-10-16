@@ -20,6 +20,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  *     innerBlocks: bool,
  *     innerBlockOptions: array<string, mixed>,
  *     postContentField: string|null,
+ *     appenders: list<string>,
  *     editorScript: string|null,
  *     supports: list<string>
  * }

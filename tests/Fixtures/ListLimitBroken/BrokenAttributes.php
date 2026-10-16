@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Saij\WpAppFramework\Tests\Fixtures\ListLimitBroken;
 
+use Saij\WpAppFramework\Post\Post;
+use Saij\WpAppFramework\Value\Hidden;
 use Saij\WpAppFramework\Value\ListOf;
 
 final readonly class BrokenAttributes
@@ -16,6 +18,8 @@ final readonly class BrokenAttributes
      * @param list<Tone> $tooFew
      * @param list<Tone> $notExactly
      * @param list<Tone> $emptyLabel
+     * @param list<Tone> $hiddenAppender
+     * @param list<Post> $postAppender
      */
     public function __construct(
         #[ListOf(Tone::class, min: -1)]
@@ -32,5 +36,10 @@ final readonly class BrokenAttributes
         public array $notExactly = [Tone::Light],
         #[ListOf(Tone::class, itemLabel: ' ')]
         public array $emptyLabel = [],
+        #[Hidden]
+        #[ListOf(Tone::class, appender: true)]
+        public array $hiddenAppender = [],
+        #[ListOf(Post::class, appender: true)]
+        public array $postAppender = [],
     ) {}
 }

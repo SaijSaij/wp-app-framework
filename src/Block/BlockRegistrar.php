@@ -257,6 +257,7 @@ final readonly class BlockRegistrar
             self::missingWrapper($block),
             $views ? $this->views->marker($block, $supportValues) : [],
             $cached,
+            $block['editor']['appenders'],
         );
         if ($views) {
             $this->views->enqueue($block);

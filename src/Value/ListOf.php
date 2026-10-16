@@ -20,6 +20,10 @@ use Attribute;
  * sort. Its heading is the first text of the item (the label of an enum
  * case), else `itemLabel` with the number of the item.
  *
+ * With `appender`, the block editor shows one more item in the canvas, empty
+ * and faded, as long as the list is below `max`: a click adds it. The template
+ * marks the root element of each item with `list_item()`.
+ *
  * @api Attributes/Values
  */
 #[Attribute(Attribute::TARGET_PARAMETER | Attribute::TARGET_PROPERTY)]
@@ -32,11 +36,14 @@ final readonly class ListOf
      *                                are created. 1 or more and at least `min`; null for no limit.
      * @param string|null  $itemLabel What one item is, for the heading of an item without text, e.g. "Badge 2"; null
      *                                for the short name of the class in words (`SocialLink` becomes "Social link").
+     * @param bool         $appender  Add items in the canvas of the block editor through a faded new item. Only for
+     *                                lists of values in block attributes, not in list items.
      */
     public function __construct(
         public string $class,
         public int $min = 0,
         public ?int $max = null,
         public ?string $itemLabel = null,
+        public bool $appender = false,
     ) {}
 }

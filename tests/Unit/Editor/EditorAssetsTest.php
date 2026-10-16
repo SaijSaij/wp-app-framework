@@ -149,7 +149,7 @@ final class EditorAssetsTest extends TestCase
         self::assertSame(100, $config['maxBlocks']);
         self::assertTrue($config['development']);
         self::assertSame(['fixture/container', 'fixture/teaser', 'fixture/wrong-field'], array_keys($config['blocks']));
-        self::assertSame(['fields' => [], 'controls' => [], 'innerBlocks' => true, 'innerBlockOptions' => [], 'postContentField' => null, 'supports' => [], 'view' => false], $config['blocks']['fixture/container']);
+        self::assertSame(['fields' => [], 'controls' => [], 'innerBlocks' => true, 'innerBlockOptions' => [], 'postContentField' => null, 'appenders' => [], 'supports' => [], 'view' => false], $config['blocks']['fixture/container']);
         self::assertSame(['kind' => 'rich', 'label' => 'Title', 'allowedFormats' => ['core/bold']], $config['blocks']['fixture/teaser']['fields']['title']);
     }
 
