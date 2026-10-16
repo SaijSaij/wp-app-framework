@@ -7,6 +7,8 @@
 # and a theme, child theme and plugin created from wp-app-starter with every option –
 # and only then the GitHub release with the package ZIP (distribution files, see
 # .gitattributes) and the documentation of the tag's minor version on gh-pages.
+# If a check or a gate fails, the tag is deleted, so the same version can be tagged
+# again once the cause is fixed.
 name: Release
 
 on:
@@ -165,3 +167,21 @@ jobs:
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
           VERSION: ${{ steps.docs.outputs.version }}
         run: node scripts/publish.mjs build "${VERSION}"
+
+  # A failed check or gate leaves no tag behind: the same version is tagged again after the fix.
+  # After publish, the release stays; a failed job docs is rerun.
+  withdraw:
+    needs: [checks, gate, gate-plugin, gate-child-theme, gate-starter, publish]
+    if: failure() && needs.publish.result != 'success'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Delete the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          gh api --method DELETE "repos/${REPOSITORY}/git/refs/tags/${TAG}"
+          echo "::error::The release failed, so the tag ${TAG} was deleted. Fix the cause and push the tag again."

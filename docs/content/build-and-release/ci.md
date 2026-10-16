@@ -17,7 +17,10 @@ The workflow:
 3. builds the release; when it publishes, with `--expect-version` set to the version of the tag, so a tag that doesn't match `Version:` fails;
 4. installs the ZIP into fresh, plain WordPress instances of wp-test-env, with the plugin and theme directories read-only;
 5. with the input `cli: true`, runs the project's WP-CLI tests against the installed release (see below);
-6. runs the project's browser tests (`npm run test:e2e`) with `E2E_TARGET=release`, one Playwright worker per instance (input `e2e-instances`, default 2); the input `e2e: false` skips them.
+6. runs the project's browser tests (`npm run test:e2e`) with `E2E_TARGET=release`, one Playwright worker per instance (input `e2e-instances`, default 2); the input `e2e: false` skips them;
+7. attaches the ZIP to the GitHub release of the tag, which it creates if needed.
+
+If any step fails while it publishes, the workflow deletes the tag, and the GitHub release if it already created one. A failed release thus leaves nothing behind: fix the cause and push the same tag again. A failure that has nothing to do with your release, such as a network error, needs no fix; push the tag again right away. A rerun of the failed workflow does not work, because its tag is gone.
 
 ### Plugins and child themes need a theme
 
@@ -55,7 +58,7 @@ The workflow runs the browser tests with `bin/e2e` of wp-test-env: `npm run test
 The framework repository tests itself in two workflows:
 
 - **`ci.yml`** runs PHPUnit, Vitest and all linters on pushes and pull requests, and builds this documentation.
-- **`release.yml`** runs on a tag. It runs the same checks and then the release gates: theme-dev-test, plugin-dev-test and theme-dev-test-child are built with the framework of the tag (`framework-ref`) and tested in the browser, the plugin and the child theme with an older release of the theme, without publishing anything. Only then does it attach `wp-app-framework-<version>.zip` to the GitHub release – made with `git archive`, without the development files marked `export-ignore` – and publish the documentation of the tag's minor version.
+- **`release.yml`** runs on a tag. It runs the same checks and then the release gates: theme-dev-test, plugin-dev-test and theme-dev-test-child are built with the framework of the tag (`framework-ref`) and tested in the browser, the plugin and the child theme with an older release of the theme, without publishing anything. Only then does it attach `wp-app-framework-<version>.zip` to the GitHub release – made with `git archive`, without the development files marked `export-ignore` – and publish the documentation of the tag's minor version. If a check or a gate fails, the workflow deletes the tag, so the version can be tagged again after the fix; Packagist, which reads tags as they are pushed, drops it again with the next update.
 
 The gates make sure that a framework release works for a theme, a plugin and a child theme before anyone can depend on it.
 

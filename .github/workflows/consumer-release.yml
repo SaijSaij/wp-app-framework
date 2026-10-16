@@ -14,7 +14,9 @@
 # Builds the release ZIP in the tools image of wp-test-env, installs it into fresh,
 # plain WordPress instances of wp-test-env (release mode) and runs the consumer's
 # browser tests (one Playwright worker per instance) and, with cli, its WP-CLI
-# tests against them. Only if everything passes, the GitHub release of the tag gets the ZIP.
+# tests against them. Only if everything passes, the GitHub release of the tag gets the ZIP;
+# if anything fails, the workflow deletes the tag (and a release created for it), so the
+# same version can be tagged again once the cause is fixed.
 # The repository name is the slug of the theme or plugin; the type in its
 # composer.json (wordpress-theme, wordpress-plugin) and the Template: header of
 # style.css (child themes) decide how it is installed. A child theme is tested on
@@ -311,3 +313,18 @@ jobs:
           else
             gh release create "${TAG}" "${ZIP}" --repo "${REPOSITORY}" --verify-tag --title "${TAG}" --generate-notes
           fi
+
+      # A failed release leaves no tag behind: the same version is tagged again after the fix.
+      - name: Withdraw the tag
+        if: failure() && inputs.publish && steps.project.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.project.outputs.tag }}
+        run: |
+          if gh release view "${TAG}" --repo "${REPOSITORY}" > /dev/null 2>&1; then
+            gh release delete "${TAG}" --repo "${REPOSITORY}" --cleanup-tag --yes
+          else
+            gh api --method DELETE "repos/${REPOSITORY}/git/refs/tags/${TAG}"
+          fi
+          echo "::error::The release failed, so the tag ${TAG} was deleted. Fix the cause and push the tag again."
+
