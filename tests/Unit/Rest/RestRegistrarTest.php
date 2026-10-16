@@ -191,4 +191,12 @@ final class RestRegistrarTest extends TestCase
 
         new RestException('fixture_redirect', 'Moved', 302);
     }
+
+    public function testRestExceptionDataHasNoStatus(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('RestException "fixture_gone": the data must not contain "status"; pass the HTTP status as $status.');
+
+        new RestException('fixture_gone', 'Gone', 410, ['status' => 404]);
+    }
 }

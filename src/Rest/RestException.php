@@ -22,9 +22,10 @@ final class RestException extends RuntimeException
      * @param string               $errorCode Machine-readable error code, e.g. `sections_item_not_found`.
      * @param string               $message   The error message for the client, readable by humans.
      * @param int                  $status    HTTP status, 400–599.
-     * @param array<string, mixed> $data      Additional error data; `status` is always the given status.
+     * @param array<string, mixed> $data      Additional error data, without the key `status`: the response sets it to
+     *                                        the given status.
      * @param Throwable|null       $previous  The exception that caused this one, if any.
-     * @throws InvalidArgumentException If the status is not between 400 and 599.
+     * @throws InvalidArgumentException If the status is not between 400 and 599, or the data has the key `status`.
      */
     public function __construct(
         private readonly string $errorCode,
@@ -35,6 +36,9 @@ final class RestException extends RuntimeException
     ) {
         if ($status < 400 || $status > 599) {
             throw new InvalidArgumentException(sprintf('RestException "%s" needs an HTTP error status between 400 and 599, %d given.', $errorCode, $status));
+        }
+        if (array_key_exists('status', $data)) {
+            throw new InvalidArgumentException(sprintf('RestException "%s": the data must not contain "status"; pass the HTTP status as $status.', $errorCode));
         }
 
         parent::__construct($message, 0, $previous);
@@ -57,7 +61,7 @@ final class RestException extends RuntimeException
     }
 
     /**
-     * The additional error data as given to the constructor; in the response, `status` is always the status of the
+     * The additional error data as given to the constructor; the response adds `status` with the status of the
      * exception.
      *
      * @return array<string, mixed>

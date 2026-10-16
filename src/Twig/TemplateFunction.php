@@ -16,11 +16,13 @@ use Attribute;
  * result.
  *
  * With `public: true`, a plugin offers the function to the templates of other
- * consumers (the theme, other plugins). Its name must start with the template
- * prefix of the plugin (the slug with underscores, e.g. `my_plugin_`) and its
- * signature must not use classes of the framework or of other dependencies.
- * Consumers declare the plugin in `extra.wp-app-framework.template-plugins`
- * of their composer.json and call the function by its name.
+ * consumers (the theme, other plugins), and a theme to the templates of its
+ * child theme. Its name must start with the template prefix of the plugin or
+ * theme (the slug with underscores, e.g. `my_plugin_`) and its signature must
+ * not use classes of the framework or of other dependencies. Consumers declare
+ * the plugin in `extra.wp-app-framework.template-plugins` of their
+ * composer.json and call the function by its name; for a child theme, its parent
+ * theme is declared automatically. Child themes cannot offer functions.
  *
  * @api Attributes/Twig
  */

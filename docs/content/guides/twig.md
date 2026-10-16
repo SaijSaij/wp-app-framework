@@ -144,7 +144,7 @@ The names follow one rule: `wp_` + object + property, without `get_` or `the_`. 
 The functions handle missing data for you:
 
 - IDs may be `null`, for example an empty `#[Image]` or [reference](./values.md#references). `null` and objects that do not exist give `''`, so a template does not need to check first.
-- Posts that are not publicly viewable count as missing, except when the block editor renders the block. Attachments are not checked for visibility.
+- Posts that are not publicly viewable count as missing, except when the block editor renders the block: a draft, or a post of a type that is not public. Attachments are not checked for visibility. `post()` checks only the status, so it also returns posts of your data types (see [Posts](./posts.md#templates)).
 
 Text is escaped by Twig. Some values come from WordPress already escaped: term and user names, the site name and description, and the logout URL. The framework decodes them first, so they are not escaped twice. Functions marked HTML below print their result unescaped.
 

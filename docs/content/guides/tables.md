@@ -298,6 +298,8 @@ All of them work once the theme or plugin has booted; before, they throw a `Logi
 | `count()` | The number of all matching rows, regardless of `limit()` and `offset()`. |
 | `delete()` | Deletes the matching rows (with `limit()` the first ones) and returns their number; not with `offset()`. |
 
+As in [post queries](./queries.md), a value outside the allowed range, such as `limit(0)`, throws an `InvalidArgumentException` when you call the method. A combination that does not fit, `offset()` without `limit()` in `get()` or `offset()` in `delete()`, throws a `LogicException` when the query runs.
+
 Columns and their field classes:
 
 | Column | Field class | Conditions |

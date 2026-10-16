@@ -127,8 +127,8 @@ Rows of [tables](./tables.md) have no tag of the framework. To cache a value com
 Three tags are invalidated by the framework itself:
 
 - `PostTypeTag('product')` when a post of that type is created, changed, trashed, deleted, changes its status or its post meta. The edit lock the block editor sets while somebody edits a post does not count. Name your own post types by their [post class](./posts.md): `new PostTypeTag(Event::class)`.
-- `TaxonomyTag('category')` or `TaxonomyTag(Category::class)` when a term of that taxonomy is created, changed or deleted, changes its term meta, or is assigned to or removed from a post.
-- `SettingsTag(SiteSettings::class)` when the [settings group](./settings.md) is saved.
+- `TaxonomyTag('category')` or `TaxonomyTag(Category::class)` when a term of that taxonomy is created, changed or deleted, changes its term meta, or is assigned to or removed from a post or another object, such as a user in a taxonomy for users.
+- `SettingsTag(SiteSettings::class)` when the [settings group](./settings.md) is saved, or when its option is deleted, which resets the group to its defaults.
 
 For everything else, define tags of your own. A tag is a case of a string-backed enum that implements `CacheTag`:
 

@@ -105,7 +105,9 @@ final readonly class RowQuery
     /**
      * At most this many rows.
      *
-     * @param int $limit The maximum number of rows, at least 1; a smaller number throws an InvalidArgumentException.
+     * @param int $limit The maximum number of rows, at least 1.
+     *
+     * @throws InvalidArgumentException With a number below 1.
      */
     #[\NoDiscard]
     public function limit(int $limit): static
@@ -118,10 +120,11 @@ final readonly class RowQuery
     }
 
     /**
-     * Skips this many rows (with limit()).
+     * Skips this many rows (needs limit(); get() throws a LogicException without it, delete() with it).
      *
-     * @param int $offset The number of rows to skip, at least 0; a negative number throws an InvalidArgumentException.
-     *                    Takes effect only together with limit(); delete() does not allow it.
+     * @param int $offset The number of rows to skip, at least 0.
+     *
+     * @throws InvalidArgumentException With a negative number.
      */
     #[\NoDiscard]
     public function offset(int $offset): static
@@ -137,6 +140,8 @@ final readonly class RowQuery
      * The matching rows.
      *
      * @return list<T>
+     *
+     * @throws LogicException With offset() but without limit().
      */
     public function get(): array
     {
@@ -170,6 +175,8 @@ final readonly class RowQuery
     /**
      * Deletes the matching rows (with limit(), the first ones in the order) and returns how many. Row objects loaded
      * before keep their primary key.
+     *
+     * @throws LogicException With offset(): delete() cannot skip rows.
      */
     public function delete(): int
     {

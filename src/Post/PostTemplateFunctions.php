@@ -24,7 +24,9 @@ final readonly class PostTemplateFunctions
      * The post object of a post, for a post type of this theme or plugin, `post` or `page`: an instance of its post
      * class (e.g. an `Event`), with getters as attributes and meta classes by their `#[PostMeta]` name. Returns null
      * if the ID is null, the post does not exist, its type has no post class of this theme or plugin, or its status
-     * is not public, e.g. a draft (renders for the block editor return posts in every status). The values are
+     * is not public, e.g. a draft (renders for the block editor return posts in every status). Whether the post type
+     * is public does not matter, so posts of data types are returned too; the `wp_post_*` functions also check the
+     * post type. The values are
      * escaped like any value; print rich text with `|raw`.
      *
      * ```twig

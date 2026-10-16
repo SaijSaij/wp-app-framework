@@ -108,7 +108,7 @@ public function delete(int $id): void
 }
 ```
 
-For an error response, throw `RestException(code, message, status, data)` with a status between 400 and 599. Any other exception is an unexpected error. It is logged with `error_log()` and answered with status 500 and the code `wp_app_framework_internal_error`. Class, message, file, line and stack trace of the exception are included in the response only if `WP_DEBUG` is enabled, so a live site never shows its internals.
+For an error response, throw `RestException(code, message, status, data)` with a status between 400 and 599. The response adds the status to the data, so `data` must not have a key `status` of its own; that is an `InvalidArgumentException`. Any other exception is an unexpected error. It is logged with `error_log()` and answered with status 500 and the code `wp_app_framework_internal_error`. Class, message, file, line and stack trace of the exception are included in the response only if `WP_DEBUG` is enabled, so a live site never shows its internals.
 
 Like hooks, the controller and its services are created only when the route is called.
 

@@ -465,6 +465,8 @@ final readonly class PostQuery
      * At most this many posts; without limit() a query returns all matching posts.
      *
      * @param int $limit The maximum number of posts, at least 1.
+     *
+     * @throws InvalidArgumentException With a number below 1.
      */
     #[\NoDiscard]
     public function limit(int $limit): static
@@ -480,6 +482,8 @@ final readonly class PostQuery
      * Skips this many posts (needs limit(); get() throws a LogicException without it).
      *
      * @param int $offset The number of posts to skip, at least 0.
+     *
+     * @throws InvalidArgumentException With a negative number.
      */
     #[\NoDiscard]
     public function offset(int $offset): static
@@ -510,6 +514,8 @@ final readonly class PostQuery
      * The matching posts.
      *
      * @return list<T>
+     *
+     * @throws LogicException With offset() but without limit().
      */
     public function get(): array
     {
@@ -550,7 +556,8 @@ final readonly class PostQuery
      *
      * @return PostPage<T>
      *
-     * @throws LogicException With limit() or offset(): paginate() sets them itself.
+     * @throws InvalidArgumentException With fewer than 1 post per page or a page below 1.
+     * @throws LogicException           With limit() or offset(): paginate() sets them itself.
      */
     public function paginate(int $perPage, int $page): PostPage
     {

@@ -4,6 +4,12 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.16
+
+**`delete()` moves posts of every type to the trash.** `AbstractPost::delete()` used to call `wp_delete_post()`, which moves only posts and pages to the trash and deletes posts of other types permanently. Now `delete()` moves every post to the trash, so an editor can restore it (see [Posts](../guides/posts.md#working-with-posts)). Code that relied on permanent deletion of its own post types calls `delete(true)`. A post already in the trash, and every post while the trash is disabled, is still deleted permanently.
+
+**`RestException` rejects a `status` in its data.** The response always sets `status` to the status of the exception, so a key `status` in `data` was lost while `getData()` still returned it. It is now an `InvalidArgumentException`; pass the status as the third argument and remove the key from the data.
+
 ## 0.15
 
 0.15 is the last review of the API before 1.0. It renames and tightens what would otherwise stay inconsistent for the whole 1.x series.

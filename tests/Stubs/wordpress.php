@@ -1576,19 +1576,45 @@ function wp_update_post(array|object $postarr = [], bool $wp_error = false, bool
     return $id;
 }
 
+/**
+ * Like WordPress with the trash enabled: without $force_delete, only posts and pages not yet in the trash go there.
+ */
 function wp_delete_post(int $post_id = 0, bool $force_delete = false): WP_Post|false|null
 {
     $post = $GLOBALS['wp_app_framework_test_posts'][$post_id] ?? null;
     if (!$post instanceof WP_Post) {
         return null;
     }
-    if ($force_delete) {
-        unset($GLOBALS['wp_app_framework_test_posts'][$post_id]);
-    } else {
-        $post->post_status = 'trash';
+    if (!$force_delete && in_array($post->post_type, ['post', 'page'], true) && $post->post_status !== 'trash') {
+        return wp_trash_post($post_id);
     }
+    unset($GLOBALS['wp_app_framework_test_posts'][$post_id]);
 
     return $post;
+}
+
+/**
+ * Like WordPress with the trash enabled: false for a post already in the trash.
+ */
+function wp_trash_post(int $post_id = 0): WP_Post|false|null
+{
+    $post = $GLOBALS['wp_app_framework_test_posts'][$post_id] ?? null;
+    if (!$post instanceof WP_Post) {
+        return null;
+    }
+    if ($post->post_status === 'trash') {
+        return false;
+    }
+    $post->post_status = 'trash';
+
+    return $post;
+}
+
+function get_post_status(int|WP_Post|null $post = null): string|false
+{
+    $post = get_post($post);
+
+    return $post instanceof WP_Post ? $post->post_status : false;
 }
 
 /**

@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Tests\Unit\Post;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Post\Page;
 use Saij\WpAppFramework\Post\Post;
@@ -200,6 +201,41 @@ final class AbstractPostTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(sprintf('%s is no post class of a booted theme or plugin', Event::class));
         Event::find(1);
+    }
+
+    public function testDeleteMovesPostsOfEveryTypeToTheTrash(): void
+    {
+        Posts::add(10, 'fixture_event', ['post_status' => 'publish']);
+        Posts::add(11, 'post', ['post_status' => 'publish']);
+
+        // wp_delete_post() would delete the event permanently: it moves only posts and pages to the trash.
+        Event::get(10)->delete();
+        Post::get(11)->delete();
+        self::assertSame([PostStatus::Trash, PostStatus::Trash], [Event::get(10)->getStatus(), Post::get(11)->getStatus()]);
+
+        // A post already in the trash is deleted permanently, like in WordPress.
+        Event::get(10)->delete();
+        self::assertNull(Event::find(10));
+    }
+
+    public function testDeleteWithForceDeletesPermanently(): void
+    {
+        Posts::add(10, 'fixture_event', ['post_status' => 'publish']);
+
+        Event::get(10)->delete(true);
+        self::assertNull(Event::find(10));
+    }
+
+    public function testDeleteOfAMissingPostIsAnError(): void
+    {
+        Posts::add(10, 'fixture_event', ['post_status' => 'publish']);
+        $event = Event::get(10);
+        // Deleted by another request since loading.
+        wp_delete_post(10, true);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Post 10 could not be trashed or deleted.');
+        $event->delete();
     }
 
     public function testParentsOfHierarchicalTypesOnly(): void

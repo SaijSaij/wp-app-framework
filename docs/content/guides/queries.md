@@ -217,6 +217,8 @@ public function render(EventListAttributes $attrs): string
 | `count()` | The number of all matching posts, regardless of `limit()` and `offset()`. |
 | `paginate(int $perPage, int $page)` | A `PostPage` with `getPosts()`, `getTotal()`, `getPage()`, `getPerPage()` and `getPageCount()`; not with `limit()` or `offset()`. |
 
+A value outside the allowed range, such as `limit(0)`, throws an `InvalidArgumentException` when you call the method. A combination that does not fit, such as `offset()` without `limit()` or `paginate()` after `limit()`, throws a `LogicException` when the query runs.
+
 Fields and their conditions:
 
 | Field of the meta class | Field class | Conditions |

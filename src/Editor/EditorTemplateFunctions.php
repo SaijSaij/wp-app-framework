@@ -82,7 +82,8 @@ final readonly class EditorTemplateFunctions
     /**
      * Marks the element that contains the inner blocks; it may be the root element. Only for blocks whose
      * `render()` accepts `string $content`; in other blocks, and outside of a block rendered by the framework, it
-     * throws an exception. The output is HTML: an attribute in renders for the block editor, otherwise `''`.
+     * throws an exception, in every render (unlike `field()`, which checks only in renders for the block editor).
+     * The output is HTML: an attribute in renders for the block editor, otherwise `''`.
      *
      * ```twig
      * <div{{ inner_blocks() }}>{{ content|raw }}</div>

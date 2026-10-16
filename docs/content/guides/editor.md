@@ -44,6 +44,8 @@ Fields with `inspector: true` are edited in the inspector, not in the canvas. Pr
 <div{{ inner_blocks() }}>{{ content|raw }}</div>
 ```
 
+Unlike `field()`, `inner_blocks()` checks the block in every render, also on the front end: in a block without `string $content` in its `render()`, or in a template that is not rendered for a block, it throws an exception. The check is a lookup in the manifest, so it costs almost nothing, and a wrong template fails wherever it renders.
+
 ### The root element
 
 The template renders exactly one root element with `block_wrapper_attributes()`. The runtime adds the editor's block props to it, without an extra wrapper, so the canvas has the same element structure as the front end.

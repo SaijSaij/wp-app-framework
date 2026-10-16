@@ -145,6 +145,14 @@ $event->setTerms(Genre::class, [$jazzId]);
 $event->save();
 ```
 
+`delete()` moves the post to the trash, whatever its post type, so an editor can restore it. `delete(true)` deletes it permanently, together with its meta values and term assignments:
+
+```php
+Event::get($id)->delete();
+```
+
+WordPress' own `wp_delete_post()` moves only posts and pages to the trash and deletes posts of other types permanently; the framework uses `wp_trash_post()` instead. A post already in the trash is deleted permanently, as in WordPress. While the trash is disabled (the constant `EMPTY_TRASH_DAYS` is 0), every call deletes permanently. If WordPress cannot trash or delete the post, for example because it no longer exists, `delete()` throws a `RuntimeException`.
+
 The base class provides the data of the post: `getId()`, title, content, excerpt, status (`PostStatus`), slug, dates, author, parent (hierarchical types), `getUrl()`, terms and `toWpPost()`. Your post class may add methods of its own, for example `getCapacity()` that reads the meta. It keeps no data of its own: a property in a post class is a build error, because it would not be stored.
 
 Post, meta and taxonomy classes are data, not [services](./services.md): they cannot be injected. `get()` and `find()` work once the theme or plugin has booted.
@@ -175,7 +183,7 @@ The framework removes WordPress' "Custom Fields" box from post types with meta: 
 {% endif %}
 ```
 
-Outside renders for the block editor, `post()` returns null for posts that are not published. Like everything in Twig, the values are escaped; print rich text with `|raw`.
+Outside renders for the block editor, `post()` returns null for posts that are not published. It does not ask whether the post type is public: a post class stands for a type of your own theme or plugin, and data types such as venues have no pages of their own but are still shown in other templates. References to post classes follow the same rule (see [Values](./values.md)). The WordPress functions `wp_post_url()`, `wp_post_title()` and the others are stricter: they return values only for posts that are publicly viewable, by their status and their type (see [Twig](./twig.md#wordpress-functions)). Like everything in Twig, the values are escaped; print rich text with `|raw`.
 
 Scalar meta fields also work with the post meta source of block bindings in templates, because their keys are shown in the REST API and not protected. A paragraph bound to `sections_start` shows the start of the event.
 

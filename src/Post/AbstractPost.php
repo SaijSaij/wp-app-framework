@@ -396,22 +396,25 @@ abstract class AbstractPost
     }
 
     /**
-     * Moves the post to the trash, or deletes it permanently with $force. WordPress moves only posts and pages to the
-     * trash (and only while the trash is enabled, `EMPTY_TRASH_DAYS`); posts of other types and posts already in the
-     * trash are deleted permanently either way.
+     * Moves the post to the trash, whatever its post type, or deletes it permanently with $force. A post already in
+     * the trash, and every post while the trash is disabled (`EMPTY_TRASH_DAYS` is 0), is deleted permanently.
      *
      * @param bool $force Delete permanently instead of moving to the trash.
      *
      * @throws LogicException   If the post has not been saved.
-     * @throws RuntimeException If WordPress cannot delete the post.
+     * @throws RuntimeException If WordPress cannot trash or delete the post, e.g. because it no longer exists or a
+     *                          filter (`pre_trash_post`, `pre_delete_post`) prevented it.
      */
     public function delete(bool $force = false): void
     {
         if ($this->id === null) {
             throw new LogicException(sprintf('The %s has not been saved, so it cannot be deleted.', static::class));
         }
-        if (!wp_delete_post($this->id, $force) instanceof WP_Post) {
-            throw new RuntimeException(sprintf('Post %d could not be deleted.', $this->id));
+        // wp_delete_post() moves only posts and pages to the trash; wp_trash_post() takes every type and deletes
+        // permanently itself while the trash is disabled, but refuses posts already in the trash.
+        $result = $force || get_post_status($this->id) === 'trash' ? wp_delete_post($this->id, true) : wp_trash_post($this->id);
+        if (!$result instanceof WP_Post) {
+            throw new RuntimeException(sprintf('Post %d could not be %s.', $this->id, $force ? 'deleted' : 'trashed or deleted'));
         }
     }
 
