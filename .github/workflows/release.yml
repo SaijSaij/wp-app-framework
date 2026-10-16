@@ -2,7 +2,8 @@
 # gates – the test theme theme-dev-test, the test plugin plugin-dev-test and the
 # test child theme theme-dev-test-child are built with the framework of the tag,
 # installed into a plain WordPress and tested in the browser; the plugin and the
-# child theme with a theme release, so two framework versions run side by side –
+# child theme with a theme release, so two framework versions run side by side;
+# and a theme, child theme and plugin created from wp-app-starter with every option –
 # and only then the GitHub release with the package ZIP (distribution files, see
 # .gitattributes) and the documentation of the tag's minor version on gh-pages.
 name: Release
@@ -55,8 +56,15 @@ jobs:
       with-theme: SaijSaij/theme-dev-test@v0.3.0
       publish: false
 
+  gate-starter:
+    needs: checks
+    uses: SaijSaij/wp-app-starter/.github/workflows/ci.yml@main
+    with:
+      starter-ref: main
+      framework-ref: ${{ github.ref }}
+
   publish:
-    needs: [gate, gate-plugin, gate-child-theme]
+    needs: [gate, gate-plugin, gate-child-theme, gate-starter]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
