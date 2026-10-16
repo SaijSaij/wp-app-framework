@@ -5,12 +5,12 @@
 <title>Releases and CI - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-f1989dcdc5e5.4a7e6bdb96.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-f1989dcdc5e5.a1b95545f7.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.276ea5b231.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.8f19c80f19.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -37,10 +37,10 @@
 <h3 class="rp-toc-include" id="plugins-and-child-themes-need-a-theme"><a href="#plugins-and-child-themes-need-a-theme" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Plugins and child themes need a theme</h3>
 <p>A theme can be tested on its own, but a plugin or a child theme needs a theme to run in. The workflow decides from the <code>type</code> in <code>composer.json</code> and the <code>Template:</code> header of <code>style.css</code>:</p>
 <ul>
-<li>a <strong>plugin</strong> is installed next to the release ZIP of a theme;</li>
-<li>a <strong>child theme</strong> is installed on top of the release ZIP of its parent theme.</li>
+<li>a <strong>child theme</strong> is installed on top of the release ZIP of its parent theme;</li>
+<li>a <strong>plugin</strong> is installed next to the release ZIP of a theme, if you name one. Without, it runs on the theme WordPress activates when it is installed, the default theme <code>WP_DEFAULT_THEME</code> (Twenty Twenty-Five in WordPress 7.1).</li>
 </ul>
-<p>The input <code>with-theme: &lt;owner&gt;/&lt;repository&gt;@&lt;tag&gt;</code> names that theme release. It is required for plugins and child themes.</p>
+<p>The input <code>with-theme: &lt;owner&gt;/&lt;repository&gt;@&lt;tag&gt;</code> names that theme release. It is required for child themes and optional for plugins. Name a theme for a plugin when its tests depend on the theme, for example on public template functions it calls.</p>
 <h3 class="rp-toc-include" id="wp-cli-tests"><a href="#wp-cli-tests" class="rp-header-anchor rp-link" aria-hidden="true">#</a>WP-CLI tests</h3>
 <p>Browser tests can&#x27;t run <a href="/wp-app-framework/next/guides/cli.html" class="rp-link">WP-CLI commands</a>. With <code>cli: true</code>, the workflow runs the executable <code>tests/cli/run</code> of your project after the release is installed. Its only argument is the name of the wp-test-env instance with the release; wp-test-env is checked out next to your project. The script runs your commands with <code>../wp-test-env/bin/wp &quot;$1&quot; …</code> (relative to your project) and fails with a non-zero exit code if an output or exit code is not what you expect. During development, run the same script against an instance of wp-test-env in development mode.</p>
 <h3 class="rp-toc-include" id="browser-tests"><a href="#browser-tests" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Browser tests</h3>
@@ -101,7 +101,7 @@
 
 
 
-<div class="rp-table-scroll-container rp-scrollbar"><table><thead><tr><th>Input</th><th>Default</th><th>Purpose</th></tr></thead><tbody><tr><td><code>repository</code></td><td>the calling repository</td><td>the project to release</td></tr><tr><td><code>ref</code></td><td>the calling ref, i.e. the tag</td><td>the revision to build</td></tr><tr><td><code>e2e</code></td><td><code>true</code></td><td>run the browser tests (<code>npm run test:e2e</code>) against the release</td></tr><tr><td><code>cli</code></td><td><code>false</code></td><td>run the WP-CLI tests <code>tests/cli/run</code> against the release</td></tr><tr><td><code>publish</code></td><td><code>true</code></td><td>attach the ZIP to the GitHub release of the tag</td></tr><tr><td><code>framework-ref</code></td><td>the locked version</td><td>build with another revision of the framework (the framework&#x27;s release gate uses it)</td></tr><tr><td><code>e2e-instances</code></td><td><code>2</code></td><td>number of WordPress instances and Playwright workers for the browser tests</td></tr><tr><td><code>wp-test-env-ref</code></td><td><code>main</code></td><td>the revision of wp-test-env that provides the tools and the WordPress instances</td></tr><tr><td><code>with-theme</code></td><td>–</td><td>the theme release for plugins and child themes, <code>&lt;owner&gt;/&lt;repository&gt;@&lt;tag&gt;</code></td></tr></tbody></table></div>
+<div class="rp-table-scroll-container rp-scrollbar"><table><thead><tr><th>Input</th><th>Default</th><th>Purpose</th></tr></thead><tbody><tr><td><code>repository</code></td><td>the calling repository</td><td>the project to release</td></tr><tr><td><code>ref</code></td><td>the calling ref, i.e. the tag</td><td>the revision to build</td></tr><tr><td><code>e2e</code></td><td><code>true</code></td><td>run the browser tests (<code>npm run test:e2e</code>) against the release</td></tr><tr><td><code>cli</code></td><td><code>false</code></td><td>run the WP-CLI tests <code>tests/cli/run</code> against the release</td></tr><tr><td><code>publish</code></td><td><code>true</code></td><td>attach the ZIP to the GitHub release of the tag</td></tr><tr><td><code>framework-ref</code></td><td>the locked version</td><td>build with another revision of the framework (the framework&#x27;s release gate uses it)</td></tr><tr><td><code>e2e-instances</code></td><td><code>2</code></td><td>number of WordPress instances and Playwright workers for the browser tests</td></tr><tr><td><code>wp-test-env-ref</code></td><td><code>main</code></td><td>the revision of wp-test-env that provides the tools and the WordPress instances</td></tr><tr><td><code>with-theme</code></td><td>–</td><td>the theme release, <code>&lt;owner&gt;/&lt;repository&gt;@&lt;tag&gt;</code>: required for child themes, optional for plugins (without, the default theme of WordPress)</td></tr></tbody></table></div>
 <h2 class="rp-toc-include" id="the-framework"><a href="#the-framework" class="rp-header-anchor rp-link" aria-hidden="true">#</a>The framework</h2>
 <p>The framework repository tests itself in two workflows:</p>
 <ul>
