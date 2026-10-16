@@ -174,9 +174,18 @@ jobs:
           fi
           echo "zip=$(realpath "${zips[0]}")" >> "$GITHUB_OUTPUT"
 
+      # With the browser tests also the Playwright image, so bin/e2e need not pull it later.
       - name: Build the images
         working-directory: workspace/wp-test-env
-        run: bin/build
+        env:
+          SLUG: ${{ steps.project.outputs.slug }}
+          E2E: ${{ inputs.e2e }}
+        run: |
+          if [[ "${E2E}" == "true" ]]; then
+            bin/build wordpress tools --playwright "${SLUG}"
+          else
+            bin/build wordpress tools
+          fi
 
       - name: Install, lint and check the manifest
         working-directory: workspace/wp-test-env
