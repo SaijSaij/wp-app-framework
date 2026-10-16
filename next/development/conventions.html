@@ -5,12 +5,12 @@
 <title>Conventions - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-1ebc7643b4e5.c2ce7bdaca.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-1ebc7643b4e5.fa25615950.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.b77230665a.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.1642c56395.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -44,7 +44,7 @@
 <li>Arguments are checked where they enter: a value out of range is an <code>InvalidArgumentException</code> when the method is called; a combination or state that does not fit (a call order, a missing prerequisite) is a <code>LogicException</code>; a failure of WordPress or the file system is a <code>RuntimeException</code>.</li>
 </ul>
 <h2 class="rp-toc-include" id="the-public-api"><a href="#the-public-api" class="rp-header-anchor rp-link" aria-hidden="true">#</a>The public API</h2>
-<p>What consumers may rely on is the <strong>consumer API</strong>: attributes and their parameters, the boot methods, Twig functions, the JavaScript exports of both imports, the webpack helper and its conventions, the documented script handles, the <code>release</code> command and the generator commands, the filter <code>wp_app_framework/cache/backends/{slug}</code> and the inputs of <code>consumer-release.yml</code>. The <a href="/wp-app-framework/next/api/index.html" class="rp-link">API reference</a> lists it: classes marked <code>@api &lt;group&gt;</code> (without their <code>@internal</code> members), <code>types/*.d.ts</code>, the <code>exports</code> of <code>package.json</code> and the pages on hooks, commands and the workflow. Everything else is internal.</p>
+<p>What consumers may rely on is the <strong>consumer API</strong>: attributes and their parameters, the boot methods, Twig functions, the JavaScript exports of its imports (<code>@saij/wp-app-framework</code>, <code>/view</code>, <code>/settings</code>), the webpack helper and its conventions, the documented script handles, the <code>release</code> command and the generator commands, the filter <code>wp_app_framework/cache/backends/{slug}</code> and the inputs of <code>consumer-release.yml</code>. The <a href="/wp-app-framework/next/api/index.html" class="rp-link">API reference</a> lists it: classes marked <code>@api &lt;group&gt;</code> (without their <code>@internal</code> members), <code>types/*.d.ts</code>, the <code>exports</code> of <code>package.json</code> and the pages on hooks, commands and the workflow. Everything else is internal.</p>
 <ul>
 <li>Every class, public member and parameter of the API has a doc comment, written for the readers of the reference. Members only the framework uses are <code>@internal</code>. The documentation build fails on a missing description, on references to internal classes and on <code>@see</code> without target.</li>
 <li><strong>Within a major version, the consumer API only grows</strong>: nothing is renamed, removed or changed in its behavior. Before 1.0, a minor version may still break it; every such change gets a section in <a href="/wp-app-framework/next/reference/upgrading.html" class="rp-link">Upgrading</a> with the reason and the steps for consumers.</li>

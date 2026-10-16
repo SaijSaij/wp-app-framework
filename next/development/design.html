@@ -5,12 +5,12 @@
 <title>Design decisions - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-6bb9ac1392d6.e226992c61.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-6bb9ac1392d6.85fd4eb061.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.b77230665a.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.1642c56395.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -49,6 +49,7 @@
 <li><strong>The server renders the editor.</strong> The editor shows the markup of the same Twig templates as the front end, through a batch render route of the instance.</li>
 <li><strong>Settings are stored in options of the instance</strong>, not in theme mods or global styles: those belong to the stylesheet, and a child theme without code would lose all values.</li>
 <li><strong>The API is resolvable by IDEs</strong>: enums and classes instead of strings, first-class callables instead of method names, required information as required arguments.</li>
+<li><strong>Stable WordPress APIs in the runtime, with one exception.</strong> The editor runtime uses only stable components and hooks of the block editor, except <code>__experimentalUseBlockPreview</code> for the previews of repeating blocks (<code>Repeater</code>). It is the hook <code>core/post-template</code>, <code>core/comment-template</code> and <code>core/term-template</code> use for the same purpose, it previews the items live while an editor types and needs no server render per change; rendering the previews on the server instead would send all inner blocks on every change. The runtime checks at start that the hook exists and fails with a message naming the repeating blocks otherwise, and the framework&#x27;s CI runs against the newest WordPress, so a change shows up there first.</li>
 </ul>
 <h2 class="rp-toc-include" id="rejected-alternatives"><a href="#rejected-alternatives" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Rejected alternatives</h2>
 <p>Do not propose these again without new arguments:</p>

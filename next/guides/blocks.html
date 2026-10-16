@@ -5,12 +5,12 @@
 <title>Blocks - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-2409267e7d13.1eea76c8ec.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-2409267e7d13.8096467b50.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.b77230665a.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.1642c56395.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -127,8 +127,10 @@
 <ul>
 <li>the attribute class,</li>
 <li><code>string</code> – the rendered inner blocks,</li>
+<li><code>Repeater</code> – instead of <code>string</code>, renders the inner blocks once per item (see <a href="/wp-app-framework/next/guides/containers.html#repeating-inner-blocks" class="rp-link">Repeating inner blocks</a>),</li>
 <li><code>WP_Block</code> – WordPress&#x27; block instance,</li>
-<li>parameters marked with <a href="/wp-app-framework/next/guides/containers.html#passing-values-to-inner-blocks" class="rp-link"><code>#[Context]</code></a> – values an enclosing block passes on.</li>
+<li>parameters marked with <a href="/wp-app-framework/next/guides/containers.html#passing-values-to-inner-blocks" class="rp-link"><code>#[Context]</code></a> – values an enclosing block passes on,</li>
+<li>parameters marked with <a href="/wp-app-framework/next/guides/containers.html#the-current-item" class="rp-link"><code>#[Item]</code></a> – the post, term, comment, user or row a repeater shows the block for.</li>
 </ul>
 <p>Services come through the constructor. The block service is created when the block renders for the first time, not when WordPress registers it.</p>
 <h2 class="rp-toc-include" id="attribute-class"><a href="#attribute-class" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Attribute class</h2>
