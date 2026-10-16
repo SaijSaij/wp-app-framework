@@ -68,7 +68,7 @@ A block that repeats its inner blocks per item marks the element of each item wi
 
 The template renders exactly one root element with `block_wrapper_attributes()`. The runtime adds the editor's block props to it, without an extra wrapper, so the canvas has the same element structure as the front end.
 
-The root element may itself be a text field, as in a paragraph block: `<p {{ block_wrapper_attributes() }}{{ field('text') }}>`. An image field cannot be the root.
+The root element may itself be a text field, as in a paragraph block: `<p {{ block_wrapper_attributes() }}{{ field('text') }}>`. An image field cannot be the root. A void element such as `<hr {{ block_wrapper_attributes() }}>` can be the root of a block without content.
 
 ### Empty fields and is_editor()
 

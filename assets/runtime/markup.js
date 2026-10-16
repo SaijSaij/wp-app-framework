@@ -6,7 +6,13 @@ import {
 import { useMemo } from '@wordpress/element';
 import { attributesToProps, domToReact } from 'html-react-parser';
 
-import { FIELD, INNER_BLOCKS, isElement, REPEATER_ITEM } from './analyze';
+import {
+	FIELD,
+	INNER_BLOCKS,
+	isElement,
+	isVoidElement,
+	REPEATER_ITEM,
+} from './analyze';
 import { FieldBoundary, ImageField, TextField } from './fields';
 import { LIST_ITEM } from './ghosts';
 import { matchesPattern } from './paths';
@@ -275,10 +281,12 @@ function RootElement( {
 			),
 		[ node, fields, innerBlocksOptions, ghosts, onAdd, repeater ]
 	);
-	return (
-		<Tag { ...useBlockProps( rootProps( node, extraProps ) ) }>
-			{ children }
-		</Tag>
+	const props = useBlockProps( rootProps( node, extraProps ) );
+	// A root element such as <hr> takes no children, not even an empty list.
+	return isVoidElement( Tag ) ? (
+		<Tag { ...props } />
+	) : (
+		<Tag { ...props }>{ children }</Tag>
 	);
 }
 

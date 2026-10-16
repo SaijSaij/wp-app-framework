@@ -5,6 +5,8 @@ import { useSelect } from '@wordpress/data';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { attributesToProps } from 'html-react-parser';
 
+import { isVoidElement } from './analyze';
+
 /** Class of the root element of a framework block in the canvas (canvas.scss). */
 const BLOCK_CLASS = 'wp-app-framework-block';
 
@@ -103,7 +105,10 @@ export function PreviewMarkup( { markup, extraProps, viewRuntime } ) {
 	);
 
 	const Tag = markup.tagName;
-	return (
+	// A root element such as <hr> takes no inner HTML, not even an empty one.
+	return isVoidElement( Tag ) ? (
+		<Tag { ...blockProps } />
+	) : (
 		<Tag
 			{ ...blockProps }
 			dangerouslySetInnerHTML={ { __html: markup.innerHTML } }

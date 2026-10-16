@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { analyzeMarkup, missingFields } from '../analyze';
+import { analyzeMarkup, isVoidElement, missingFields } from '../analyze';
 
 const fields = {
 	topline: { kind: 'plain' },
@@ -77,5 +77,13 @@ describe( 'analyzeMarkup', () => {
 			'topline',
 			'imageId',
 		] );
+	} );
+} );
+
+describe( 'isVoidElement', () => {
+	it( 'knows the elements without content', () => {
+		expect( isVoidElement( 'hr' ) ).toBe( true );
+		expect( isVoidElement( 'IMG' ) ).toBe( true );
+		expect( isVoidElement( 'div' ) ).toBe( false );
 	} );
 } );

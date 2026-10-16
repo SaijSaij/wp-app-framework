@@ -13,6 +13,33 @@ export const FIELD = 'data-field';
 export const INNER_BLOCKS = 'data-inner-blocks';
 
 /**
+ * Elements without content (HTML void elements): React refuses children and inner HTML for them, also empty ones.
+ */
+const VOID_ELEMENTS = new Set( [
+	'area',
+	'base',
+	'br',
+	'col',
+	'embed',
+	'hr',
+	'img',
+	'input',
+	'link',
+	'meta',
+	'source',
+	'track',
+	'wbr',
+] );
+
+/**
+ * @param {string} tagName
+ * @return {boolean} Whether the element is a void element, such as <hr>.
+ */
+export function isVoidElement( tagName ) {
+	return VOID_ELEMENTS.has( tagName.toLowerCase() );
+}
+
+/**
  * Whether a parsed node is an element. Checked by type, not with instanceof:
  * html-react-parser and its DOM parser may bundle different domhandler copies.
  *
