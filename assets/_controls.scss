@@ -19,7 +19,8 @@
 		min-width: 0;
 	}
 
-	> .wp-app-framework-color {
+	> .wp-app-framework-color,
+	> .wp-app-framework-date {
 		flex: 1 1 9rem;
 	}
 }
@@ -140,9 +141,10 @@
 	font-weight: 500;
 }
 
-// A color: a compact button with swatch and value; the palette opens in a
-// popover.
-.components-button.wp-app-framework-color__toggle {
+// A color or a date: a compact button with swatch and value; the palette or
+// the date picker opens in a popover.
+.components-button.wp-app-framework-color__toggle,
+.components-button.wp-app-framework-date__toggle {
 	gap: 8px;
 	justify-content: flex-start;
 	width: 100%;
@@ -170,3 +172,10 @@
 	padding: 16px;
 }
 
+.wp-app-framework-date__picker {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+	padding: 16px;
+}

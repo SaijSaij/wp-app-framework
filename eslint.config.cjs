@@ -14,6 +14,7 @@ const PROVIDED_BY_WORDPRESS = [
 	'@wordpress/compose',
 	'@wordpress/core-data',
 	'@wordpress/data',
+	'@wordpress/date',
 	'@wordpress/dom-ready',
 	'@wordpress/editor',
 	'@wordpress/element',

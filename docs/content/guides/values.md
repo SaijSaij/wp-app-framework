@@ -39,7 +39,7 @@ A nullable type adds `null` to the schema type (`type: [..., 'null']`). PHP has 
 
 Enums and value classes must be in the scanned PSR-4 directories. A value class that contains itself, directly or indirectly, is a build error.
 
-The columns of [tables](./tables.md) use the same value factory with one more type: `DateTimeImmutable`, read from the database as a UTC time `Y-m-d H:i:s`. Anything else in such a column, including the zero date `0000-00-00 00:00:00`, is an error. Blocks, REST routes and settings have no time type.
+The columns of [tables](./tables.md) use the same value factory with one more type: `DateTimeImmutable`, read from the database as a UTC time `Y-m-d H:i:s`. Anything else in such a column, including the zero date `0000-00-00 00:00:00`, is an error. Blocks, REST routes and settings have no time type; a date there is a string marked with [`#[DateTime]`](#dates).
 
 ## Defaults and missing values
 
@@ -139,6 +139,62 @@ The following are build errors:
 - `#[Color]` together with `#[Param(pattern:)]` on a REST argument.
 
 A stored value that is no color is a [wrong value](#wrong-values). The build checks colors in templates and patterns against the pattern.
+
+## Dates
+
+The start of an event, the day a sale ends, the date of a notice: some values are dates that editors choose. Mark such a string with [`#[DateTime]`](../api/php/Value/DateTime.md) (namespace `Saij\WpAppFramework\Value\`), or with `#[DateTime(time: false)]` for a date without time of day:
+
+```php
+use Saij\WpAppFramework\Value\DateTime;
+
+final class EventDetails
+{
+    public function __construct(
+        #[DateTime] private string $start = '',
+        #[DateTime(time: false)] private string $saleEnds = '',
+    ) {}
+}
+```
+
+The value is the local time of the site, as the editor chose it, without time zone: `2026-11-14T20:00`, or `2026-11-14` without time of day. An empty string means no date. A concert at eight in the evening stays at eight when the time zone of the site changes or the clocks change for summer time; that is what an event, an opening hour or a deadline usually means. Editors see a compact button with the date in the date and time formats of the site's settings; it opens the date picker of WordPress, with the time of day unless `time: false`, and "Clear" for no date.
+
+The schema of a date has a `pattern`, so WordPress rejects any other format. The pattern cannot tell whether a date exists, so the value factory checks every value again and rejects `2026-02-30` or `2026-11-14T24:00` as well – also values that were stored without the schema, such as meta changed with `update_post_meta()`.
+
+Dates in this format sort and compare as text. A [query](./queries.md#meta-fields-in-queries) therefore compares and sorts them with the methods of a string field, which `wp-app-framework meta-fields` generates for a date:
+
+```php
+$upcoming = Event::query()
+    ->where(EventDetailsFields::start()->greaterOrEqual(wp_date('Y-m-d\TH:i')))
+    ->orderBy(EventDetailsFields::start())
+    ->get();
+```
+
+`wp_date()` gives the current time in the time zone of the site, the time the values are stored in. To show a date, turn it into a time with that time zone:
+
+```php
+$start = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $details->getStart(), wp_timezone());
+```
+
+In a file that uses the marker, PHP's own `DateTime` class needs its leading backslash, `\DateTime`, or an alias; `DateTimeImmutable` is not affected.
+
+### Rules
+
+| Rule | |
+|---|---|
+| Type | `string`, never nullable; `''` means no date |
+| Allowed in | block attributes, value classes, lists, settings groups, meta classes, REST arguments |
+| Format | `Y-m-d\TH:i` (`2026-11-14T20:00`); with `time: false` `Y-m-d` (`2026-11-14`); the local time of the site |
+| Schema | `string` with a `pattern` that allows the format and the empty string |
+| Control | a button with the date in the site's formats that opens the date picker of WordPress |
+
+The following are build errors:
+
+- `#[DateTime]` on another type than `string`, or on `?string`;
+- `#[DateTime]` together with `#[PlainText]`, `#[RichText]`, `#[Image]`, `#[Url]` or `#[Color]`;
+- a default that is no date in the format, or a date that does not exist, such as `'2026-02-30'`;
+- `#[DateTime]` together with `#[Param(pattern:)]` on a REST argument.
+
+A stored value that is no date in the format, or a date that does not exist, is a [wrong value](#wrong-values). The build checks dates in templates and patterns against the pattern.
 
 ## Identifiers
 

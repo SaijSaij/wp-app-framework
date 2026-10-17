@@ -12,6 +12,7 @@ use Saij\WpAppFramework\Rest\Permission\PublicAccess;
 use Saij\WpAppFramework\Rest\RestController;
 use Saij\WpAppFramework\Rest\RestRoute;
 use Saij\WpAppFramework\Value\Color;
+use Saij\WpAppFramework\Value\DateTime;
 use Saij\WpAppFramework\Value\ListOf;
 use Saij\WpAppFramework\Value\Url;
 
@@ -50,6 +51,12 @@ final class BrokenListController
 
     #[RestRoute('/pattern', HttpMethod::Get, new PublicAccess())]
     public function pattern(#[Color] #[Param(pattern: '^#')] string $color = ''): bool
+    {
+        return true;
+    }
+
+    #[RestRoute('/date-pattern', HttpMethod::Get, new PublicAccess())]
+    public function datePattern(#[DateTime] #[Param(pattern: '^2')] string $date = ''): bool
     {
         return true;
     }

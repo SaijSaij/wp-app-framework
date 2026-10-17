@@ -14,6 +14,7 @@ import {
 	useState,
 } from '@wordpress/element';
 
+import { DateValueControl } from './date-control';
 import { BlockDataContext, ControlOverridesContext } from './context';
 import { createValue } from './defaults';
 import { createItem } from './identifiers';
@@ -534,6 +535,8 @@ function GeneratedControl( props ) {
 		case 'string':
 		case 'plain':
 			return <TextValueControl { ...props } />;
+		case 'date':
+			return <DateValueControl { ...props } />;
 		case 'rich':
 		case 'image':
 		case 'link':

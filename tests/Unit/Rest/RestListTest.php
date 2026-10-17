@@ -95,6 +95,7 @@ final class RestListTest extends TestCase
                 "parameter \$link of {$c}::format() has #[Url] and #[Param(format:)]; use one of them.",
                 "parameter \$kinds of {$c}::appender(): appender of #[ListOf] adds items in the canvas of the block editor; REST arguments have none.",
                 "parameter \$color of {$c}::pattern() has #[Color] and #[Param(pattern:)]; use one of them.",
+                "parameter \$date of {$c}::datePattern() has #[DateTime] and #[Param(pattern:)]; use one of them.",
                 "parameter \$kinds of permission callback {$c}::allowed() must be a service, WP_REST_Request or a request argument of {$c}::callback() with the same name and type (the route declares array<{$ns}Kind>).",
             ];
 

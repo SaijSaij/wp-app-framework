@@ -50,7 +50,7 @@ use WP_User;
  * @phpstan-type ReferenceValue array{type: 'int', nullable: bool, reference: Reference}
  * Times (`datetime`, columns of tables only) are UTC strings `Y-m-d H:i:s` and become DateTimeImmutable in UTC.
  *
- * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool'|'datetime', nullable: bool, color?: true, identifier?: true}
+ * @phpstan-type Value array{type: 'int'|'float'|'string'|'bool'|'datetime', nullable: bool, color?: true, date?: bool, identifier?: true}
  *     |ReferenceValue
  *     |ClassValue
  *     |array{type: 'list', items: ClassValue|ReferenceValue, nullable: bool, min?: int<1, max>, max?: int<1, max>, identifier?: non-empty-string}
@@ -118,6 +118,7 @@ final readonly class ValueFactory
             'float' => is_float($raw) || is_int($raw) ? (float) $raw : throw self::mismatch($path, $value, $raw),
             'string' => is_string($raw) ? match (true) {
                 isset($value['color']) => self::createColor($raw, $path),
+                isset($value['date']) => self::createDate($raw, $value['date'], $path),
                 isset($value['identifier']) => self::createIdentifier($raw, $path),
                 default => $raw,
             } : throw self::mismatch($path, $value, $raw),
@@ -252,6 +253,24 @@ final readonly class ValueFactory
     {
         if (!Color::isColor($raw)) {
             throw new InvalidArgumentException(sprintf('Value "%s" must be a hex color or an empty string, %s given.', $path, var_export($raw, true)));
+        }
+
+        return $raw;
+    }
+
+    /**
+     * A date (`#[DateTime]`): checked again, because the schema's pattern accepts dates that do not exist, such as
+     * 2026-02-30, and not every way a value is stored validates it against its schema.
+     */
+    private static function createDate(string $raw, bool $time, string $path): string
+    {
+        if (!DateTime::isDate($raw, $time)) {
+            throw new InvalidArgumentException(sprintf(
+                'Value "%s" must be a date in the format %s or an empty string, %s given.',
+                $path,
+                $time ? 'YYYY-MM-DDTHH:MM' : 'YYYY-MM-DD',
+                var_export($raw, true),
+            ));
         }
 
         return $raw;

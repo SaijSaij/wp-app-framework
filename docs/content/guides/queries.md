@@ -92,6 +92,8 @@ A post that was never saved with a field has no meta value for it. When you load
 
 Sorting follows it too: a post without a value sorts like the default. WordPress' own sorting by meta values cannot do this reliably, so the framework adds the sort order to the SQL of the query itself. It uses a filter of WordPress that it adds only while the query runs.
 
+A [date](./values.md#dates) without value is `''`, its default: it sorts before every date, and `greaterOrEqual()` with a date does not find it.
+
 ## Conditions
 
 `where()` takes conditions; all of them must be met. Conditions come from field objects, from `Terms` for taxonomies, and from the groups `Any` and `All`:

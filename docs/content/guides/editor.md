@@ -110,6 +110,7 @@ The runtime generates the block inspector from the attribute class. Each type ge
 | `int`, `float` | number |
 | `string` | text; with `#[Url]` a URL field |
 | [`#[Color]`](./values.md#colors) | a button with a swatch and the hex value; it opens the colors of the theme's palette and a color picker with transparency |
+| [`#[DateTime]`](./values.md#dates) | a button with the date in the site's formats; it opens the date picker of WordPress, with time of day unless `time: false` |
 | value class | the controls of its values |
 | field with `inspector: true` | text, rich text or image selection |
 | `#[PlainText(inspector: true, multiline: true)]` | text area |

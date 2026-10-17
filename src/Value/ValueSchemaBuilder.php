@@ -30,7 +30,8 @@ use Throwable;
  * description and its control, never into the schema: WordPress would drop a
  * stored list outside them as invalid.
  *
- * A color (`#[Color]`) is a string with a `pattern` and a control of its own.
+ * A color (`#[Color]`) is a string with a `pattern` and a control of its own,
+ * and so is a date (`#[DateTime]`).
  *
  * An identifier (`#[Identifier]`) is a string of a list item with a `pattern` and no control; the list it belongs to
  * names it in its value description and its control (`identifier`), so the list editors can generate it.
@@ -63,7 +64,7 @@ use Throwable;
  * @phpstan-type ClassField array{schema: array<string, mixed>, value: ClassValue, content: bool, fields: list<EditorField>, control: Control|null, identifier?: non-empty-string}
  * @phpstan-import-type Reference from ValueFactory
  * @phpstan-type PostClass array{name: non-empty-string, restBase: non-empty-string}
- * @phpstan-type Markers array{content: bool, url: bool, color: bool, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, multiline: bool, label: string, hidden: bool, reference: Reference|null, identifier: bool}
+ * @phpstan-type Markers array{content: bool, url: bool, color: bool, date: bool|null, kind: 'plain'|'rich'|'image'|null, allowedFormats: list<string>|null, inspector: bool, postContent: bool, excerpt: bool, multiline: bool, label: string, hidden: bool, reference: Reference|null, identifier: bool}
  */
 #[NoService]
 final class ValueSchemaBuilder
@@ -238,6 +239,20 @@ final class ValueSchemaBuilder
                 }
                 $schema['pattern'] = Color::PATTERN;
             }
+            if ($markers['date'] !== null) {
+                $default = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : '';
+                if (is_string($default) && !DateTime::isDate($default, $markers['date'])) {
+                    $this->errors[] = sprintf(
+                        '%s: the default "%s" is no date; use a date such as "%s", or an empty string for no date.',
+                        $location,
+                        $default,
+                        $markers['date'] ? '2026-11-14T20:00' : '2026-11-14',
+                    );
+
+                    return null;
+                }
+                $schema['pattern'] = $markers['date'] ? DateTime::PATTERN : DateTime::DATE_PATTERN;
+            }
             if ($markers['identifier']) {
                 $default = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null;
                 $error = match (true) {
@@ -288,6 +303,11 @@ final class ValueSchemaBuilder
             if ($markers['color']) {
                 $control['type'] = 'color';
                 $value['color'] = true;
+            }
+            if ($markers['date'] !== null) {
+                $control['type'] = 'date';
+                $control['time'] = $markers['date'];
+                $value['date'] = $markers['date'];
             }
             if ($markers['identifier']) {
                 $value['identifier'] = true;
@@ -675,6 +695,8 @@ final class ValueSchemaBuilder
         $content = $parameter->getAttributes(Content::class) !== [];
         $url = $parameter->getAttributes(Url::class) !== [];
         $color = $parameter->getAttributes(Color::class) !== [];
+        $dateAttributes = $parameter->getAttributes(DateTime::class);
+        $date = $dateAttributes !== [];
         $hidden = $parameter->getAttributes(Hidden::class) !== [];
         $identifier = $parameter->getAttributes(Identifier::class) !== [];
         $labelAttributes = $parameter->getAttributes(Label::class);
@@ -708,11 +730,14 @@ final class ValueSchemaBuilder
             $color && !$isString => 'has #[Color], which is only allowed on strings (a hex color, an empty string for no color)',
             $color && $type->allowsNull() => 'has #[Color] on ?string; use string, an empty string means no color',
             $color && ($kind !== null || $url) => sprintf('has #[Color] and #[%s]; a color has a control of its own', $kind ?? 'Url'),
+            $date && !$isString => 'has #[DateTime], which is only allowed on strings (a date, an empty string for no date)',
+            $date && $type->allowsNull() => 'has #[DateTime] on ?string; use string, an empty string means no date',
+            $date && ($kind !== null || $url || $color) => sprintf('has #[DateTime] and #[%s]; a date has a control of its own', $kind ?? ($url ? 'Url' : 'Color')),
             $hidden && $kind !== null => sprintf('has #[Hidden] and #[%s]; the field is edited in the canvas or, with inspector: true, in the inspector, so it cannot be hidden', $kind),
             $identifier && (!$isString || $type->allowsNull()) => 'has #[Identifier], which is only allowed on string (eight hex digits, an empty string until the identifier is generated)',
-            $identifier && ($referenceAttributes !== [] || $kind !== null || $content || $url || $color || $hidden) => sprintf(
+            $identifier && ($referenceAttributes !== [] || $kind !== null || $content || $url || $color || $date || $hidden) => sprintf(
                 'has #[Identifier] and #[%s]; an identifier is generated and has no control',
-                $referenceAttributes !== [] ? self::shortName($referenceAttributes[0]->getName()) : ($kind ?? ($content ? 'Content' : ($url ? 'Url' : ($color ? 'Color' : 'Hidden')))),
+                $referenceAttributes !== [] ? self::shortName($referenceAttributes[0]->getName()) : ($kind ?? ($content ? 'Content' : ($url ? 'Url' : ($color ? 'Color' : ($date ? 'DateTime' : 'Hidden'))))),
             ),
             default => null,
         };
@@ -779,6 +804,7 @@ final class ValueSchemaBuilder
             'content' => $kind !== null || $content,
             'url' => $url,
             'color' => $color,
+            'date' => $date ? $dateAttributes[0]->newInstance()->time : null,
             'kind' => match ($kind) {
                 'PlainText' => 'plain',
                 'RichText' => 'rich',

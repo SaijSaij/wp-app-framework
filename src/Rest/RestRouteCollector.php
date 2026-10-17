@@ -343,7 +343,7 @@ final class RestRouteCollector
             return null;
         }
         if (isset($keywords['pattern'], $schema['pattern'])) {
-            $this->errors[] = sprintf('%s has #[Color] and #[Param(pattern:)]; use one of them.', $parameterLocation);
+            $this->errors[] = sprintf('%s has #[%s] and #[Param(pattern:)]; use one of them.', $parameterLocation, isset($value['date']) ? 'DateTime' : 'Color');
 
             return null;
         }
