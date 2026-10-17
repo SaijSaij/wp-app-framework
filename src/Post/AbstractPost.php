@@ -342,7 +342,8 @@ abstract class AbstractPost
 
     /**
      * Stores the post: checks the loaded meta objects against their schemas (nothing is written if a value is
-     * invalid), inserts or updates the post and writes the changed meta values and terms.
+     * invalid), inserts or updates the post and writes the changed meta values and terms. Then WordPress' action
+     * `wp_after_insert_post` fires, as after saving in the editor: its callbacks see the post with its meta and terms.
      *
      * @throws PostValidationException If a meta value is invalid.
      * @throws RuntimeException        If WordPress cannot save the post.
@@ -361,14 +362,17 @@ abstract class AbstractPost
         }
 
         $new = $this->id === null;
+        $before = $new ? null : get_post($this->id);
+        // Like the REST API of WordPress, the hook after saving (wp_after_insert_post) fires below, once the meta
+        // and terms are written as well.
         if ($new) {
             $id = wp_insert_post(wp_slash([
                 'post_type' => $this->store()->post(static::class)['name'],
                 'post_status' => PostStatus::Draft->value,
                 ...$this->changes,
-            ]), true);
+            ]), true, false);
         } elseif ($this->changes !== []) {
-            $id = wp_update_post(wp_slash(['ID' => $this->id, ...$this->changes]), true);
+            $id = wp_update_post(wp_slash(['ID' => $this->id, ...$this->changes]), true, false);
         } else {
             $id = $this->id;
         }
@@ -393,6 +397,9 @@ abstract class AbstractPost
         $this->data = $post instanceof WP_Post ? self::data($post) : [...$this->data, ...$this->changes];
         $this->changes = [];
         $this->terms = [];
+        if ($post instanceof WP_Post) {
+            wp_after_insert_post($post, !$new, $before instanceof WP_Post ? $before : null);
+        }
     }
 
     /**

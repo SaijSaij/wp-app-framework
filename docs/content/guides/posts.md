@@ -135,7 +135,7 @@ $event->save();
 
 `get()` throws an exception if there is no event with the ID; `find()` returns null instead. `meta()` loads a meta object on first use and returns the same object afterwards, so changes stay until `save()`.
 
-`save()` checks every loaded meta object against its schema first. If a value is invalid, it throws a `PostValidationException` and writes nothing. Otherwise it saves the post and writes the meta values that changed since they were loaded; values that another request changed in the meantime stay as they are. A post created with `new` is inserted as a draft:
+`save()` checks every loaded meta object against its schema first. If a value is invalid, it throws a `PostValidationException` and writes nothing. Otherwise it saves the post and writes the meta values that changed since they were loaded; values that another request changed in the meantime stay as they are. Then WordPress' action `wp_after_insert_post` fires, as after saving in the editor or through the REST API: its callbacks see the post together with its meta and terms – also when only meta values changed. A post created with `new` is inserted as a draft:
 
 ```php
 $event = new Event();

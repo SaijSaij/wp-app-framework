@@ -2530,3 +2530,14 @@ function is_textdomain_loaded(string $domain): bool
 {
     return isset($GLOBALS['wp_app_framework_test_textdomains'][$domain]);
 }
+
+/**
+ * Fires wp_after_insert_post like WordPress (post.php: once a post, its terms and meta data have been saved).
+ */
+function wp_after_insert_post(int|WP_Post $post, bool $update, ?WP_Post $post_before): void
+{
+    $post = get_post($post);
+    if ($post instanceof WP_Post) {
+        do_action('wp_after_insert_post', $post->ID, $post, $update, $post_before);
+    }
+}

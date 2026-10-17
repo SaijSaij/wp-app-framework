@@ -166,6 +166,29 @@ final class AbstractPostTest extends TestCase
         self::assertSame(['Jazz'], array_map(static fn(\WP_Term $term): string => $term->name, $event->getTerms(PostTypeValid\Genre::class)));
     }
 
+    public function testSaveFiresTheActionAfterSavingOnceMetaAndTermsAreWritten(): void
+    {
+        $seen = [];
+        add_action('wp_after_insert_post', static function (int $id, \WP_Post $post, bool $update, ?\WP_Post $before) use (&$seen): void {
+            $seen[] = [$post->post_title, $update, $before?->post_title, Posts::meta($id)['fixture_capacity'] ?? null];
+        }, 10, 4);
+        try {
+            $event = new Event();
+            $event->setTitle('New');
+            $event->meta(EventDetails::class)->setCapacity(30);
+            $event->save();
+            $event->setTitle('Renamed');
+            $event->save();
+            // Meta alone is saved as well.
+            $event->meta(EventDetails::class)->setCapacity(40);
+            $event->save();
+        } finally {
+            unset($GLOBALS['wp_app_framework_test_filters'], $GLOBALS['wp_app_framework_test_filter_args']);
+        }
+
+        self::assertSame([['New', false, null, 30], ['Renamed', true, 'New', 30], ['Renamed', true, 'Renamed', 40]], $seen);
+    }
+
     public function testInvalidValuesWriteNothing(): void
     {
         Posts::add(10, 'fixture_event', ['post_title' => 'Old']);
