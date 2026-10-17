@@ -38,10 +38,10 @@ The documentation is published for each minor version. The version switcher in t
 
 ## 0.14
 
-**The release workflow tests in wp-test-env.** `consumer-release.yml` used to install the release into the release site of wp-dev-env. Since 0.14 it uses [wp-test-env](https://github.com/saijsaij/wp-test-env), which starts a fresh WordPress for every test run and runs the browser tests with one Playwright worker per instance (see [Releases and CI](../build-and-release/ci.md)). Three things change in your project:
+**The release workflow tests in wp-test-env.** `consumer-release.yml` used to install the release into the release site of wp-dev-env. Since 0.14 it uses [wp-test-env](https://github.com/webcodingcat/wp-test-env), which starts a fresh WordPress for every test run and runs the browser tests with one Playwright worker per instance (see [Releases and CI](../build-and-release/ci.md)). Three things change in your project:
 
 - The input `wp-dev-env-ref` is now `wp-test-env-ref`. Rename it if your workflow sets it.
-- Your Playwright configuration receives the instance URLs in `WP_BASE_URLS` instead of one URL in `WP_BASE_URL`, and no `E2E_BROWSER_HOST_RULES` any more. Set `workers` to the number of URLs, pick the URL of each worker by `TEST_PARALLEL_INDEX`, and log in per worker instead of in a global setup. The configuration and `fixtures.js` of [theme-dev-test](https://github.com/saijsaij/theme-dev-test) show how.
+- Your Playwright configuration receives the instance URLs in `WP_BASE_URLS` instead of one URL in `WP_BASE_URL`, and no `E2E_BROWSER_HOST_RULES` any more. Set `workers` to the number of URLs, pick the URL of each worker by `TEST_PARALLEL_INDEX`, and log in per worker instead of in a global setup. The configuration and `fixtures.js` of [theme-dev-test](https://github.com/webcodingcat/theme-dev-test) show how.
 - `tests/cli/run` gets the name of a wp-test-env instance instead of a Compose service of wp-dev-env, and runs WP-CLI with `../wp-test-env/bin/wp <instance> …` instead of `docker compose exec`.
 
 ## 0.13

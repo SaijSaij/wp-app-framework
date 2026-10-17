@@ -7,9 +7,9 @@
 #     contents: write
 #   jobs:
 #     release:
-#       uses: SaijSaij/wp-app-framework/.github/workflows/consumer-release.yml@<framework tag>
+#       uses: webcodingcat/wp-app-framework/.github/workflows/consumer-release.yml@<framework tag>
 #       with:
-#         with-theme: SaijSaij/theme-dev-test@v1.0.0   # child themes (required) and plugins (optional) only
+#         with-theme: webcodingcat/theme-dev-test@v1.0.0   # child themes (required) and plugins (optional) only
 #
 # Builds the release ZIP in the tools image of wp-test-env, installs it into fresh,
 # plain WordPress instances of wp-test-env (release mode) and runs the consumer's
@@ -53,7 +53,7 @@ on:
         type: string
         default: ''
       wp-test-env-ref:
-        description: Ref of SaijSaij/wp-test-env that provides the tools and the WordPress instances.
+        description: Ref of webcodingcat/wp-test-env that provides the tools and the WordPress instances.
         type: string
         default: main
       e2e-instances:
@@ -106,7 +106,7 @@ jobs:
       - name: Check out wp-test-env
         uses: actions/checkout@v5
         with:
-          repository: SaijSaij/wp-test-env
+          repository: webcodingcat/wp-test-env
           ref: ${{ inputs.wp-test-env-ref }}
           path: workspace/wp-test-env
 
@@ -114,7 +114,7 @@ jobs:
         if: inputs.framework-ref != ''
         uses: actions/checkout@v5
         with:
-          repository: SaijSaij/wp-app-framework
+          repository: webcodingcat/wp-app-framework
           ref: ${{ inputs.framework-ref }}
           path: workspace/wp-app-framework
 

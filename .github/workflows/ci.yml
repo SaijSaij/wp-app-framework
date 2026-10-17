@@ -24,7 +24,7 @@ jobs:
       - name: Check out wp-test-env
         uses: actions/checkout@v5
         with:
-          repository: SaijSaij/wp-test-env
+          repository: webcodingcat/wp-test-env
           path: workspace/wp-test-env
 
       - name: Build the tools image
@@ -57,7 +57,7 @@ jobs:
       - name: Check out wp-test-env
         uses: actions/checkout@v5
         with:
-          repository: SaijSaij/wp-test-env
+          repository: webcodingcat/wp-test-env
           path: workspace/wp-test-env
 
       - name: Build the tools image

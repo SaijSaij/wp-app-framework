@@ -4,11 +4,11 @@
     "type": "library",
     "license": "GPL-2.0-or-later",
     "keywords": ["wordpress", "full-site-editing", "block-theme", "gutenberg", "twig", "tailwindcss"],
-    "homepage": "https://saijsaij.github.io/wp-app-framework/",
+    "homepage": "https://webcodingcat.github.io/wp-app-framework/",
     "support": {
-        "issues": "https://github.com/saijsaij/wp-app-framework/issues",
-        "source": "https://github.com/saijsaij/wp-app-framework",
-        "docs": "https://saijsaij.github.io/wp-app-framework/"
+        "issues": "https://github.com/webcodingcat/wp-app-framework/issues",
+        "source": "https://github.com/webcodingcat/wp-app-framework",
+        "docs": "https://webcodingcat.github.io/wp-app-framework/"
     },
     "require": {
         "php": ">=8.5",

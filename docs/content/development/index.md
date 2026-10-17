@@ -13,18 +13,18 @@ The pages explain how the framework is built and why, the rules its code follows
 
 ## The repositories
 
-The framework is developed together with a few repositories that test it, measure it or make it easier to use. All of them live on GitHub under [saijsaij](https://github.com/saijsaij):
+The framework is developed together with a few repositories that test it, measure it or make it easier to use. All of them live on GitHub under [webcodingcat](https://github.com/webcodingcat):
 
 | Repository | What it is | Its part in the development |
 |---|---|---|
-| [wp-app-framework](https://github.com/saijsaij/wp-app-framework) | The framework: a Composer library with the JavaScript sources of its runtimes and the documentation website | Unit tests of everything, including every build error |
-| [theme-dev-test](https://github.com/saijsaij/theme-dev-test) | Test theme with a block, hook, route, setting, post type … for every feature | Browser, render, WP-CLI and lifecycle tests against real WordPress; release gate |
-| [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test) | Test plugin | Plugin support, the public interface between instances, two framework versions side by side; release gate |
-| [theme-dev-test-child](https://github.com/saijsaij/theme-dev-test-child) | Test child theme with code of its own | Child theme support and overrides; release gate |
-| [theme-bench](https://github.com/saijsaij/theme-bench) | Benchmark: a theme with the framework against the same theme without it | The cost of the framework per request, now and then on request |
-| [wp-test-env](https://github.com/saijsaij/wp-test-env) | Docker test environment: fresh WordPress instances, run in parallel, and a tools image with PHP, Composer and Node | Runs every check and test, locally and in CI |
-| [wp-dev-env](https://github.com/saijsaij/wp-dev-env) | Docker development environment: one local WordPress site per project | Trying things out; never used for tests |
-| [wp-app-starter](https://github.com/saijsaij/wp-app-starter) | `composer create-project saij/wp-app-starter` for new themes and plugins | Release gate: projects created from it must pass their own checks |
+| [wp-app-framework](https://github.com/webcodingcat/wp-app-framework) | The framework: a Composer library with the JavaScript sources of its runtimes and the documentation website | Unit tests of everything, including every build error |
+| [theme-dev-test](https://github.com/webcodingcat/theme-dev-test) | Test theme with a block, hook, route, setting, post type … for every feature | Browser, render, WP-CLI and lifecycle tests against real WordPress; release gate |
+| [plugin-dev-test](https://github.com/webcodingcat/plugin-dev-test) | Test plugin | Plugin support, the public interface between instances, two framework versions side by side; release gate |
+| [theme-dev-test-child](https://github.com/webcodingcat/theme-dev-test-child) | Test child theme with code of its own | Child theme support and overrides; release gate |
+| [theme-bench](https://github.com/webcodingcat/theme-bench) | Benchmark: a theme with the framework against the same theme without it | The cost of the framework per request, now and then on request |
+| [wp-test-env](https://github.com/webcodingcat/wp-test-env) | Docker test environment: fresh WordPress instances, run in parallel, and a tools image with PHP, Composer and Node | Runs every check and test, locally and in CI |
+| [wp-dev-env](https://github.com/webcodingcat/wp-dev-env) | Docker development environment: one local WordPress site per project | Trying things out; never used for tests |
+| [wp-app-starter](https://github.com/webcodingcat/wp-app-starter) | `composer create-project saij/wp-app-starter` for new themes and plugins | Release gate: projects created from it must pass their own checks |
 
 wp-test-env and wp-dev-env know nothing about the framework; they are general environments for any WordPress project. Each repository has a README with its details and a `CLAUDE.md` with the instructions for Claude Code; these pages describe what concerns the framework and the interplay of the repositories.
 
@@ -35,7 +35,7 @@ You need Git and Docker; everything else – PHP 8.5, Composer, Node 24, a brows
 ```sh
 mkdir wp-app && cd wp-app
 for repo in wp-app-framework theme-dev-test plugin-dev-test theme-dev-test-child theme-bench wp-test-env wp-app-starter; do
-    git clone "https://github.com/saijsaij/${repo}.git"
+    git clone "https://github.com/webcodingcat/${repo}.git"
 done
 ```
 
@@ -53,4 +53,4 @@ bin/run ../theme-dev-test/tests/dev.pools                   # browser tests of t
 
 [Testing](./testing.md) explains these commands and when to run which.
 
-To try something out in a browser, use [wp-dev-env](https://github.com/saijsaij/wp-dev-env): it runs a local WordPress per project, with the framework linked into the consumers the same way (`WP_PACKAGE_LINKS`). Its data persists, which is why tests never run there.
+To try something out in a browser, use [wp-dev-env](https://github.com/webcodingcat/wp-dev-env): it runs a local WordPress per project, with the framework linked into the consumers the same way (`WP_PACKAGE_LINKS`). Its data persists, which is why tests never run there.

@@ -1,6 +1,6 @@
 # CLAUDE.md – wp-app-framework
 
-PHP/JS library (Composer `saij/wp-app-framework`, namespace `Saij\WpAppFramework`, JS `@saij/wp-app-framework`) for building standalone full site editing themes, child themes and plugins for WordPress 7 (latest stable, never beta) on PHP 8.5. It is neither a theme nor a plugin and registers no blocks itself. The user documentation is the website built from `docs/` (https://saijsaij.github.io/wp-app-framework/); the README covers development of the framework; this file lists what matters when changing the framework.
+PHP/JS library (Composer `saij/wp-app-framework`, namespace `Saij\WpAppFramework`, JS `@saij/wp-app-framework`) for building standalone full site editing themes, child themes and plugins for WordPress 7 (latest stable, never beta) on PHP 8.5. It is neither a theme nor a plugin and registers no blocks itself. The user documentation is the website built from `docs/` (https://webcodingcat.github.io/wp-app-framework/); the README covers development of the framework; this file lists what matters when changing the framework.
 
 <!-- Maintainers: keep this file under 200 lines; describe behavior in the documentation (docs/content/) and link to it from here. -->
 
@@ -42,7 +42,7 @@ Fixed design decisions:
 - Class properties are never `public`; access through getters (`get…`, booleans `is…`/`has…`). Exceptions: PHP attribute classes, block attribute classes and their value classes (`readonly`, public promoted properties), meta classes (`#[PostMeta]`, not readonly, promoted properties of any visibility), test doubles of WordPress classes (mirror WordPress' public properties).
 - The consumer-facing API must be fully resolvable by IDEs: enums and classes instead of magic strings, first-class callables instead of method names, required information as required attribute arguments.
 - Everything in this repository is English: code, identifiers, comments, README, commit messages.
-- READMEs link to the other repositories by GitHub URL (`https://github.com/saijsaij/<repo>`), never by relative path. Pages in `docs/content/` link to each other by relative `.md` paths.
+- READMEs link to the other repositories by GitHub URL (`https://github.com/webcodingcat/<repo>`), never by relative path. Pages in `docs/content/` link to each other by relative `.md` paths.
 
 ## Writing documentation
 
@@ -50,7 +50,7 @@ Guide pages are explanatory prose for people learning the framework (what for, h
 
 ## Commands
 
-All checks run in the tools image of [wp-test-env](https://github.com/saijsaij/wp-test-env), checked out next to this repository; run the commands from this directory. Every check must pass without errors or warnings.
+All checks run in the tools image of [wp-test-env](https://github.com/webcodingcat/wp-test-env), checked out next to this repository; run the commands from this directory. Every check must pass without errors or warnings.
 
 ```sh
 ../wp-test-env/bin/tools -w wp-app-framework composer install

@@ -20,7 +20,7 @@ All of them check out wp-test-env next to the framework and run the commands in 
 - **gate** – theme-dev-test (`main`) built with the framework of the tag: lint, manifest, release build, its browser tests against the ZIP and its WP-CLI tests;
 - **gate-plugin** – plugin-dev-test next to an old release of theme-dev-test, so two framework versions run side by side;
 - **gate-child-theme** – theme-dev-test-child on an old release of theme-dev-test;
-- **gate-starter** – the CI of [wp-app-starter](https://github.com/saijsaij/wp-app-starter): a theme, a child theme and a plugin created from it with every option, linted, built, released and tested, with the framework of the tag.
+- **gate-starter** – the CI of [wp-app-starter](https://github.com/webcodingcat/wp-app-starter): a theme, a child theme and a plugin created from it with every option, linted, built, released and tested, with the framework of the tag.
 
 Only if the checks and all gates pass, `publish` attaches the package ZIP (`git archive`, without the `export-ignore` files) to the GitHub release, and `docs` publishes the documentation of the minor version (`0.16/` …). A pre-release tag gets no documentation of its own.
 
@@ -30,7 +30,7 @@ A consumer's own `release.yml` calls `consumer-release.yml` for its tags (see [R
 
 ### Images, packages and documentation
 
-- **wp-test-env** publishes its images to the GitHub Container Registry (`ghcr.io/saijsaij/wp-test-env-wordpress`, `-tools`), tagged with a hash of their Dockerfiles, on every change and daily, so they carry the latest stable WordPress and PHP within a day. `bin/build` pulls the image of its checkout and builds it only if it is missing.
+- **wp-test-env** publishes its images to the GitHub Container Registry (`ghcr.io/webcodingcat/wp-test-env-wordpress`, `-tools`), tagged with a hash of their Dockerfiles, on every change and daily, so they carry the latest stable WordPress and PHP within a day. `bin/build` pulls the image of its checkout and builds it only if it is missing.
 - **Packagist** updates `saij/wp-app-framework` and `saij/wp-app-starter` through the GitHub integration on every push and tag.
 - **The documentation** lives in directories of the `gh-pages` branch: one per minor version and `next` for `main`, with a version switcher (`docs/scripts/publish.mjs`). Never push to `gh-pages` by hand.
 

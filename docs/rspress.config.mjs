@@ -47,7 +47,7 @@ export default defineConfig( {
 	themeConfig: {
 		editLink: {
 			docRepoBaseUrl:
-				'https://github.com/saijsaij/wp-app-framework/tree/main/docs/content',
+				'https://github.com/webcodingcat/wp-app-framework/tree/main/docs/content',
 		},
 		nav: [
 			{
@@ -66,7 +66,7 @@ export default defineConfig( {
 			{
 				icon: 'github',
 				mode: 'link',
-				content: 'https://github.com/saijsaij/wp-app-framework',
+				content: 'https://github.com/webcodingcat/wp-app-framework',
 			},
 		],
 		sidebar: {

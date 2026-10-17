@@ -1,6 +1,6 @@
 /**
  * Publishes one built version of the documentation to the gh-pages branch,
- * which GitHub Pages serves as https://saijsaij.github.io/wp-app-framework/.
+ * which GitHub Pages serves as https://webcodingcat.github.io/wp-app-framework/.
  *
  * The branch holds one directory per version – "next" (main) and "X.Y" (the
  * newest tag of a minor version) – plus versions.json for the version switcher,

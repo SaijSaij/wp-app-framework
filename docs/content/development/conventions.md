@@ -17,7 +17,7 @@ These rules apply to the framework and to all repositories around it: the test c
 
 **The consumer API is resolvable by IDEs.** Use enums and classes instead of magic strings (`BlockCategory::Text`, `CoreBlock::Paragraph`, `Event::class`), first-class callables instead of method names (`self::check(...)`), and required attribute arguments for required information.
 
-**Language.** Everything in the repositories is English: code, identifiers, comments, commit messages, documentation. Repositories link to each other by GitHub URL (`https://github.com/saijsaij/<repo>`), never by relative path; pages of this website link to each other by relative `.md` paths.
+**Language.** Everything in the repositories is English: code, identifiers, comments, commit messages, documentation. Repositories link to each other by GitHub URL (`https://github.com/webcodingcat/<repo>`), never by relative path; pages of this website link to each other by relative `.md` paths.
 
 ## Errors and messages
 

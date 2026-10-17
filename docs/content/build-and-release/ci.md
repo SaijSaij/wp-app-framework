@@ -6,13 +6,13 @@ Tags follow semantic versioning with a `v` prefix: `v1.2.0`.
 
 ## Themes, child themes and plugins
 
-Your repository calls the reusable workflow `.github/workflows/consumer-release.yml` of the framework repository from a workflow of its own. That workflow runs on `push: tags: ['v*']` and needs `permissions: contents: write` to attach the ZIP. The test projects [theme-dev-test](https://github.com/saijsaij/theme-dev-test), [theme-dev-test-child](https://github.com/saijsaij/theme-dev-test-child) and [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test) contain working examples to copy.
+Your repository calls the reusable workflow `.github/workflows/consumer-release.yml` of the framework repository from a workflow of its own. That workflow runs on `push: tags: ['v*']` and needs `permissions: contents: write` to attach the ZIP. The test projects [theme-dev-test](https://github.com/webcodingcat/theme-dev-test), [theme-dev-test-child](https://github.com/webcodingcat/theme-dev-test-child) and [plugin-dev-test](https://github.com/webcodingcat/plugin-dev-test) contain working examples to copy.
 
 Pin the workflow to a framework tag, so a new framework version never changes your release process unannounced.
 
 The workflow:
 
-1. checks out the project and [wp-test-env](https://github.com/saijsaij/wp-test-env), the test environment it runs in;
+1. checks out the project and [wp-test-env](https://github.com/webcodingcat/wp-test-env), the test environment it runs in;
 2. runs `composer lint` and `npm run lint`, if they are defined, and `wp-app-framework build`;
 3. builds the release; when it publishes, with `--expect-version` set to the version of the tag, so a tag that doesn't match `Version:` fails;
 4. installs the ZIP into fresh, plain WordPress instances of wp-test-env, with the plugin and theme directories read-only;
@@ -37,7 +37,7 @@ Browser tests can't run [WP-CLI commands](../guides/cli.md). With `cli: true`, t
 
 ### Browser tests
 
-The workflow runs the browser tests with `bin/e2e` of wp-test-env: `npm run test:e2e` of your project in the Playwright image of its `@playwright/test` version. Every instance gets its own Playwright worker, so tests of different workers never share a site. Your Playwright configuration receives the instance URLs in `WP_BASE_URLS` (comma-separated), the administrator in `WP_USERNAME` and `WP_PASSWORD`, `E2E_TARGET` and a writable results directory in `E2E_OUTPUT_DIR`; it sets `workers` to the number of URLs and lets each worker pick its URL by `TEST_PARALLEL_INDEX`. The [README of wp-test-env](https://github.com/saijsaij/wp-test-env) explains the contract; the configurations of the test projects are working examples.
+The workflow runs the browser tests with `bin/e2e` of wp-test-env: `npm run test:e2e` of your project in the Playwright image of its `@playwright/test` version. Every instance gets its own Playwright worker, so tests of different workers never share a site. Your Playwright configuration receives the instance URLs in `WP_BASE_URLS` (comma-separated), the administrator in `WP_USERNAME` and `WP_PASSWORD`, `E2E_TARGET` and a writable results directory in `E2E_OUTPUT_DIR`; it sets `workers` to the number of URLs and lets each worker pick its URL by `TEST_PARALLEL_INDEX`. The [README of wp-test-env](https://github.com/webcodingcat/wp-test-env) explains the contract; the configurations of the test projects are working examples.
 
 ### Inputs
 

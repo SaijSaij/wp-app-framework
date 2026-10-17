@@ -10,15 +10,15 @@ The framework is a library that themes, child themes and plugins (its *consumers
 
 ## Documentation
 
-**[saijsaij.github.io/wp-app-framework](https://saijsaij.github.io/wp-app-framework/)** – the guide (getting started, every part of the API, build and release), the API reference generated from the code, and the developer documentation for working on the framework. It is published per minor version; `next` documents the unreleased state of `main`.
+**[webcodingcat.github.io/wp-app-framework](https://webcodingcat.github.io/wp-app-framework/)** – the guide (getting started, every part of the API, build and release), the API reference generated from the code, and the developer documentation for working on the framework. It is published per minor version; `next` documents the unreleased state of `main`.
 
 ## Status
 
-In development (0.x): framework core, REST routes, WP-CLI commands, Twig, server-side blocks, block supports, settings, editor runtime, front-end scripts, release build, activation and uninstallation, plugins and child themes. Breaking changes are listed in [Upgrading](https://saijsaij.github.io/wp-app-framework/next/reference/upgrading.html).
+In development (0.x): framework core, REST routes, WP-CLI commands, Twig, server-side blocks, block supports, settings, editor runtime, front-end scripts, release build, activation and uninstallation, plugins and child themes. Breaking changes are listed in [Upgrading](https://webcodingcat.github.io/wp-app-framework/next/reference/upgrading.html).
 
 ## Development
 
-**[Developing the framework](https://saijsaij.github.io/wp-app-framework/next/development/)** on the website explains the architecture and source layout, the design decisions, the conventions, testing and the release pipelines; [CONTRIBUTING.md](CONTRIBUTING.md) sums it up. Every check runs in the tools image of [wp-test-env](https://github.com/saijsaij/wp-test-env), checked out next to this repository:
+**[Developing the framework](https://webcodingcat.github.io/wp-app-framework/next/development/)** on the website explains the architecture and source layout, the design decisions, the conventions, testing and the release pipelines; [CONTRIBUTING.md](CONTRIBUTING.md) sums it up. Every check runs in the tools image of [wp-test-env](https://github.com/webcodingcat/wp-test-env), checked out next to this repository:
 
 ```sh
 ../wp-test-env/bin/tools -w wp-app-framework composer install

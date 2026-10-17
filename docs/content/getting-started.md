@@ -6,17 +6,17 @@ Plugins and child themes with code of their own are set up the same way. [Boot a
 
 ## What you need
 
-You need PHP 8.5, Composer and Node 24. The simplest way to get them is [wp-dev-env](https://github.com/saijsaij/wp-dev-env): it runs them in a container together with a local WordPress, so you only need Docker on your machine.
+You need PHP 8.5, Composer and Node 24. The simplest way to get them is [wp-dev-env](https://github.com/webcodingcat/wp-dev-env): it runs them in a container together with a local WordPress, so you only need Docker on your machine.
 
 ## The quick way: the starter
 
-The [starter](https://github.com/saijsaij/wp-app-starter) creates a theme, a child theme or a plugin with everything this page explains:
+The [starter](https://github.com/webcodingcat/wp-app-starter) creates a theme, a child theme or a plugin with everything this page explains:
 
 ```sh
 composer create-project saij/wp-app-starter my-theme
 ```
 
-The directory name becomes the slug. The installer asks for the kind of project, its name, the Composer package, the PHP namespace and the namespace of your blocks, and whether to add an example block, the code checks (PHPStan, PHP-CS-Fixer, ESLint), the [release workflow](./build-and-release/ci.md) and browser tests for [wp-test-env](https://github.com/saijsaij/wp-test-env). Then it installs the dependencies and, if Node 24 is available, builds the scripts and styles. The project's README lists its commands.
+The directory name becomes the slug. The installer asks for the kind of project, its name, the Composer package, the PHP namespace and the namespace of your blocks, and whether to add an example block, the code checks (PHPStan, PHP-CS-Fixer, ESLint), the [release workflow](./build-and-release/ci.md) and browser tests for [wp-test-env](https://github.com/webcodingcat/wp-test-env). Then it installs the dependencies and, if Node 24 is available, builds the scripts and styles. The project's README lists its commands.
 
 The rest of this page builds the same theme by hand, so you see every file and why it is there.
 

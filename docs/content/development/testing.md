@@ -1,6 +1,6 @@
 # Testing
 
-The framework is tested in two places. Its own repository tests every unit and every build error without WordPress. The test consumers test everything that needs WordPress, a browser or a complete build of a theme or plugin. All tests run in [wp-test-env](https://github.com/saijsaij/wp-test-env), locally and in CI, never against a development site of wp-dev-env.
+The framework is tested in two places. Its own repository tests every unit and every build error without WordPress. The test consumers test everything that needs WordPress, a browser or a complete build of a theme or plugin. All tests run in [wp-test-env](https://github.com/webcodingcat/wp-test-env), locally and in CI, never against a development site of wp-dev-env.
 
 ## Which test goes where
 
@@ -9,14 +9,14 @@ The framework is tested in two places. Its own repository tests every unit and e
 | A unit of PHP code, a collector, a **build error** | wp-app-framework, `tests/Unit/` (mirrors `src/`), fixtures in `tests/Fixtures/` | PHPUnit |
 | A module of the editor runtime, the view runtime or the webpack helper | wp-app-framework, `assets/runtime/test/`, `assets/view/test/`, `assets/test/` | Vitest |
 | The JavaScript API against its declarations | `assets/test/public-api.test.js`, `types/check/` | Vitest, `tsc` |
-| A successful build of a consumer, blocks on the front end and in the editor, REST, Twig in WordPress, settings, post types, tables, cron … | [theme-dev-test](https://github.com/saijsaij/theme-dev-test), `tests/e2e/specs/` | Playwright |
+| A successful build of a consumer, blocks on the front end and in the editor, REST, Twig in WordPress, settings, post types, tables, cron … | [theme-dev-test](https://github.com/webcodingcat/theme-dev-test), `tests/e2e/specs/` | Playwright |
 | Rendering and escaping with fixed attribute sets, without a browser | theme-dev-test, `tests/render/cases.php` | `tests/render/run` |
 | WP-CLI commands | theme-dev-test and plugin-dev-test, `tests/cli/run` | shell script against an instance |
 | Activation, deactivation, uninstallation | theme-dev-test and plugin-dev-test, `tests/lifecycle/run` | shell script against an instance |
-| Plugin support, the public interface between instances, two framework versions side by side | [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test) and the theme's `plugin.spec.js` | Playwright |
-| Child theme support and overrides | [theme-dev-test-child](https://github.com/saijsaij/theme-dev-test-child) | Playwright |
-| The cost per request | [theme-bench](https://github.com/saijsaij/theme-bench) | `bin/bench`, `--coverage` |
-| Projects created by the starter | [wp-app-starter](https://github.com/saijsaij/wp-app-starter), `tests/projects` | all of the above for a theme, a child theme and a plugin |
+| Plugin support, the public interface between instances, two framework versions side by side | [plugin-dev-test](https://github.com/webcodingcat/plugin-dev-test) and the theme's `plugin.spec.js` | Playwright |
+| Child theme support and overrides | [theme-dev-test-child](https://github.com/webcodingcat/theme-dev-test-child) | Playwright |
+| The cost per request | [theme-bench](https://github.com/webcodingcat/theme-bench) | `bin/bench`, `--coverage` |
+| Projects created by the starter | [wp-app-starter](https://github.com/webcodingcat/wp-app-starter), `tests/projects` | all of the above for a theme, a child theme and a plugin |
 
 Build errors are always tested in the framework: a class that is wrong on purpose cannot live in a consumer, because it would break the consumer's build. Such fixtures carry `@phpstan-ignore` with the reason. A successful build, and everything a consumer does at run time, is tested in theme-dev-test. Code written to check a feature stays there as a permanent test.
 
@@ -84,8 +84,8 @@ bin/e2e --instances tdt --project theme-dev-test --results tdt -- specs/blocks.s
 bin/down tdt
 ```
 
-A **pool file** (`tests/dev.pools`, `tests/release.pools` of each consumer) describes the instances of a run: which projects are prepared and linked, which themes and plugins (or ZIPs) each pool installs, and whether it runs the browser tests or a script. The package links (`link saij/wp-app-framework=wp-app-framework`) replace the framework the consumer installed with your checkout, so the consumers test it without a release. Plugins can run without a theme; then the default theme of WordPress is active. The [README of wp-test-env](https://github.com/saijsaij/wp-test-env) describes the format.
+A **pool file** (`tests/dev.pools`, `tests/release.pools` of each consumer) describes the instances of a run: which projects are prepared and linked, which themes and plugins (or ZIPs) each pool installs, and whether it runs the browser tests or a script. The package links (`link saij/wp-app-framework=wp-app-framework`) replace the framework the consumer installed with your checkout, so the consumers test it without a release. Plugins can run without a theme; then the default theme of WordPress is active. The [README of wp-test-env](https://github.com/webcodingcat/wp-test-env) describes the format.
 
 ## The benchmark
 
-[theme-bench](https://github.com/saijsaij/theme-bench) measures the cost of the framework per request: a theme built with the framework against the same theme without it, in release mode, in an instance of wp-test-env of its own. It is no part of a release: run it now and then, on request, to make sure the framework does not cost too much, and compare it with the last report – a new database query on the base load or a cost nobody can explain is fixed in the next release. Never run other tests at the same time. Every area of the framework that runs on requests has a scenario there; a new feature gets one (`bin/bench --coverage` checks it), and existing scenarios stay so reports remain comparable.
+[theme-bench](https://github.com/webcodingcat/theme-bench) measures the cost of the framework per request: a theme built with the framework against the same theme without it, in release mode, in an instance of wp-test-env of its own. It is no part of a release: run it now and then, on request, to make sure the framework does not cost too much, and compare it with the last report – a new database query on the base load or a cost nobody can explain is fixed in the next release. Never run other tests at the same time. Every area of the framework that runs on requests has a scenario there; a new feature gets one (`bin/bench --coverage` checks it), and existing scenarios stay so reports remain comparable.

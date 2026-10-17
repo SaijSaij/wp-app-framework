@@ -27,7 +27,7 @@ jobs:
     permissions:
       contents: write
     with:
-      repository: SaijSaij/theme-dev-test
+      repository: webcodingcat/theme-dev-test
       ref: main
       framework-ref: ${{ github.ref }}
       cli: true
@@ -38,11 +38,11 @@ jobs:
     permissions:
       contents: write
     with:
-      repository: SaijSaij/plugin-dev-test
+      repository: webcodingcat/plugin-dev-test
       ref: main
       framework-ref: ${{ github.ref }}
       cli: true
-      with-theme: SaijSaij/theme-dev-test@v0.1.0
+      with-theme: webcodingcat/theme-dev-test@v0.1.0
       publish: false
 
   gate-child-theme:
@@ -50,14 +50,14 @@ jobs:
     permissions:
       contents: write
     with:
-      repository: SaijSaij/theme-dev-test-child
+      repository: webcodingcat/theme-dev-test-child
       ref: main
       framework-ref: ${{ github.ref }}
-      with-theme: SaijSaij/theme-dev-test@v0.3.0
+      with-theme: webcodingcat/theme-dev-test@v0.3.0
       publish: false
 
   gate-starter:
-    uses: SaijSaij/wp-app-starter/.github/workflows/ci.yml@main
+    uses: webcodingcat/wp-app-starter/.github/workflows/ci.yml@main
     with:
       starter-ref: main
       framework-ref: ${{ github.ref }}
@@ -127,7 +127,7 @@ jobs:
         if: steps.docs.outputs.version != ''
         uses: actions/checkout@v5
         with:
-          repository: SaijSaij/wp-test-env
+          repository: webcodingcat/wp-test-env
           path: workspace/wp-test-env
 
       - name: Build the tools image

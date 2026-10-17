@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   release:
-    uses: SaijSaij/wp-app-framework/.github/workflows/consumer-release.yml@v0.15.0
+    uses: webcodingcat/wp-app-framework/.github/workflows/consumer-release.yml@v0.15.0
     with:
       cli: true
 ```

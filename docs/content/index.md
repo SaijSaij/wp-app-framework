@@ -45,7 +45,7 @@ These parts are ready to use:
 
 If you are new to the framework, read [Concepts](./concepts.md) first. Then follow [Getting started](./getting-started.md), which sets up a theme with a first block. The guides then explain each part of the API in turn. [Values](./guides/values.md) describes the typed values that blocks, REST routes and settings share.
 
-The test theme [theme-dev-test](https://github.com/saijsaij/theme-dev-test) contains a working example of every feature. It comes with the test plugin [plugin-dev-test](https://github.com/saijsaij/plugin-dev-test) and the test child theme [theme-dev-test-child](https://github.com/saijsaij/theme-dev-test-child). [wp-dev-env](https://github.com/saijsaij/wp-dev-env) provides a local WordPress for development.
+The test theme [theme-dev-test](https://github.com/webcodingcat/theme-dev-test) contains a working example of every feature. It comes with the test plugin [plugin-dev-test](https://github.com/webcodingcat/plugin-dev-test) and the test child theme [theme-dev-test-child](https://github.com/webcodingcat/theme-dev-test-child). [wp-dev-env](https://github.com/webcodingcat/wp-dev-env) provides a local WordPress for development.
 
 ## Names
 
@@ -55,4 +55,4 @@ The test theme [theme-dev-test](https://github.com/saijsaij/theme-dev-test) cont
 | PHP namespace | `Saij\WpAppFramework` |
 | JavaScript import | `@saij/wp-app-framework` (editor scripts), `@saij/wp-app-framework/view` (front-end scripts) |
 | JavaScript global at run time | `window.wpAppFramework[slug]`, one per framework instance |
-| Source code | [github.com/saijsaij/wp-app-framework](https://github.com/saijsaij/wp-app-framework) |
+| Source code | [github.com/webcodingcat/wp-app-framework](https://github.com/webcodingcat/wp-app-framework) |

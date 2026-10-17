@@ -1,5 +1,5 @@
 # Publishes the documentation of main as "next" to the gh-pages branch, which GitHub
-# Pages serves as https://saijsaij.github.io/wp-app-framework/ (see docs/scripts/publish.mjs).
+# Pages serves as https://webcodingcat.github.io/wp-app-framework/ (see docs/scripts/publish.mjs).
 # Release tags publish their minor version (release.yml).
 name: Documentation
 
@@ -28,7 +28,7 @@ jobs:
       - name: Check out wp-test-env
         uses: actions/checkout@v5
         with:
-          repository: SaijSaij/wp-test-env
+          repository: webcodingcat/wp-test-env
           path: workspace/wp-test-env
 
       - name: Build the tools image
