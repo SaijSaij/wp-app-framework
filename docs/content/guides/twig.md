@@ -61,7 +61,7 @@ A **plugin's** templates are searched in this order: `overrides/{plugin-slug}/` 
 
 The plugin's Twig environment renders the override. The override therefore sees the plugin's template functions and filters and the context the plugin passes, not those of the theme.
 
-Compiled templates are named after the slug of their instance, so a theme and a plugin never share compiled code of templates with the same path.
+Compiled templates are named after the slug of their instance, so a theme and a plugin never share compiled code of templates with the same path. Their names also include a hash of the template functions and filters of the instance – name, class and method: when a function moves to another class or method, the templates are compiled anew.
 
 ## Environment
 

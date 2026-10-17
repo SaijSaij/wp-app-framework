@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WebCodingCat\WpAppFramework\Tests\Unit\Twig;
 
+use Closure;
 use PHPUnit\Framework\TestCase;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -17,6 +18,9 @@ use WebCodingCat\WpAppFramework\Theme;
 use WebCodingCat\WpAppFramework\Twig\TemplateOverrides;
 use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
+/**
+ * @phpstan-import-type TemplateCallableEntry from TemplateRenderer
+ */
 final class TemplateRendererTest extends TestCase
 {
     private const string TEMPLATES = __DIR__ . '/../../Fixtures/Templates';
@@ -36,7 +40,10 @@ final class TemplateRendererTest extends TestCase
         Files::remove($this->cache);
     }
 
-    private function renderer(string $stylesheet = 'child', bool $development = true): TemplateRenderer
+    /**
+     * @param (Closure(list<TemplateCallableEntry>): list<TemplateCallableEntry>)|null $callables Changes the template callables of the manifest.
+     */
+    private function renderer(string $stylesheet = 'child', bool $development = true, ?Closure $callables = null): TemplateRenderer
     {
         $file = (string) tempnam(sys_get_temp_dir(), 'manifest');
         file_put_contents($file, new ManifestGenerator()->generate(TemplateCallableCollectorTest::buildValid()));
@@ -54,7 +61,7 @@ final class TemplateRendererTest extends TestCase
             $templates . '/framework/src',
             $this->cache,
             $development,
-            $manifest['templateCallables'],
+            $callables === null ? $manifest['templateCallables'] : $callables($manifest['templateCallables']),
             [],
             new Container($manifest['services']),
         );
@@ -164,6 +171,19 @@ final class TemplateRendererTest extends TestCase
             $compiled += $file->getExtension() === 'php' ? 1 : 0;
         }
         self::assertGreaterThan(0, $compiled);
+    }
+
+    public function testTemplatesAreCompiledAnewWhenACallableMovesToAnotherMethod(): void
+    {
+        // Twig keeps the class of a compiled template loaded for the whole process, so the test uses its own template.
+        self::assertSame('Hello &lt;Ann&gt;', $this->renderer()->render('Callables.twig', ['name' => 'Ann']));
+
+        $moved = $this->renderer(callables: static fn(array $entries): array => array_map(
+            static fn(array $entry): array => $entry['name'] === 'greet' ? ['method' => 'wrap'] + $entry : $entry,
+            $entries,
+        ));
+
+        self::assertSame('&lt;i&gt;Ann&lt;/i&gt;', $moved->render('Callables.twig', ['name' => 'Ann']));
     }
 
     public function testReleaseModeRendersIntoTheGivenCacheDirectory(): void

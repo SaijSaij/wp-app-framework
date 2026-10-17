@@ -140,7 +140,7 @@ final class TemplateRenderer
             return $this->environment;
         }
 
-        $loader = new InstanceLoader($this->slug, $this->rootPath);
+        $loader = new InstanceLoader($this->slug, $this->rootPath, self::callablesSignature($this->callables));
         foreach ($this->overridePaths as $path) {
             $loader->addPath($path);
         }
@@ -177,6 +177,23 @@ final class TemplateRenderer
         }
 
         return $this->environment = $environment;
+    }
+
+    /**
+     * Hash over everything of the template callables that Twig compiles into a
+     * template: kind, name, class, method and the HTML flag (escaping).
+     *
+     * @param list<TemplateCallableEntry> $callables
+     * @return non-empty-string 16 hexadecimal characters.
+     */
+    private static function callablesSignature(array $callables): string
+    {
+        $entries = array_map(
+            static fn(array $callable): string => implode("\0", [$callable['kind'], $callable['name'], $callable['class'], $callable['method'], $callable['html'] ? '1' : '0']),
+            $callables,
+        );
+
+        return substr(hash('sha256', implode("\n", $entries)), 0, 16);
     }
 
     private function providerFunction(string $name): TwigFunction|false
