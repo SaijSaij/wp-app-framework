@@ -5,12 +5,12 @@
 <title>Queries - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-c6d4afdf78cf.e451725fc0.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-c6d4afdf78cf.632f6d7787.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.4681531cf6.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.45e0dad115.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -77,6 +77,7 @@
 <h3 class="rp-toc-include" id="missing-values"><a href="#missing-values" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Missing values</h3>
 <p>A post that was never saved with a field has no meta value for it. When you load the meta object, such a field has the default of its constructor parameter. Queries follow the same rule. If the default meets a condition, the condition also finds posts without a stored value: <code>capacity()-&gt;lessThan(5)</code> finds events without a stored capacity, because the default is 0.</p>
 <p>Sorting follows it too: a post without a value sorts like the default. WordPress&#x27; own sorting by meta values cannot do this reliably, so the framework adds the sort order to the SQL of the query itself. It uses a filter of WordPress that it adds only while the query runs.</p>
+<p>A <a href="/wp-app-framework/next/guides/values.html#dates" class="rp-link">date</a> without value is <code>&#x27;&#x27;</code>, its default: it sorts before every date, and <code>greaterOrEqual()</code> with a date does not find it.</p>
 <h2 class="rp-toc-include" id="conditions"><a href="#conditions" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Conditions</h2>
 <p><code>where()</code> takes conditions; all of them must be met. Conditions come from field objects, from <code>Terms</code> for taxonomies, and from the groups <code>Any</code> and <code>All</code>:</p>
 <div class="rp-codeblock language-php"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="php"><code><span class="line"><span style="color:var(--shiki-foreground)">$events </span><span style="color:var(--shiki-token-keyword)">=</span><span style="color:var(--shiki-token-constant)"> Event</span><span style="color:var(--shiki-token-keyword)">::</span><span style="color:var(--shiki-token-function)">query</span><span style="color:var(--shiki-token-punctuation)">()</span></span>
