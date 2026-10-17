@@ -5,12 +5,12 @@
 <title>Editor - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-168589d25a2a.1ef64d7473.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-168589d25a2a.7bcc9267d9.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.1642c56395.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.72379dd4d9.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -57,7 +57,7 @@
 <p>A block that repeats its inner blocks per item marks the element of each item with <code>repeater_item( item )</code> instead. The runtime puts the inner blocks into the element of the item being edited and a live preview into the others; a click on a preview edits that item. See <a href="/wp-app-framework/next/guides/containers.html#repeating-inner-blocks" class="rp-link">Repeating inner blocks</a>.</p>
 <h3 class="rp-toc-include" id="the-root-element"><a href="#the-root-element" class="rp-header-anchor rp-link" aria-hidden="true">#</a>The root element</h3>
 <p>The template renders exactly one root element with <code>block_wrapper_attributes()</code>. The runtime adds the editor&#x27;s block props to it, without an extra wrapper, so the canvas has the same element structure as the front end.</p>
-<p>The root element may itself be a text field, as in a paragraph block: <code>&lt;p {{ block_wrapper_attributes() }}{{ field(&#x27;text&#x27;) }}&gt;</code>. An image field cannot be the root.</p>
+<p>The root element may itself be a text field, as in a paragraph block: <code>&lt;p {{ block_wrapper_attributes() }}{{ field(&#x27;text&#x27;) }}&gt;</code>. An image field cannot be the root. A void element such as <code>&lt;hr {{ block_wrapper_attributes() }}&gt;</code> can be the root of a block without content.</p>
 <h3 class="rp-toc-include" id="empty-fields-and-is_editor"><a href="#empty-fields-and-is_editor" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Empty fields and is_editor()</h3>
 <p>On the front end, a template usually leaves out an empty field. In the editor it must render it, or content editors could never fill it in. <code>is_editor()</code> covers both:</p>
 <div class="rp-codeblock language-twig"><div class="rp-codeblock__content"><div class="rp-codeblock__content__scroll-container rp-scrollbar rp-scrollbar--always"><pre class="shiki css-variables" style="background-color:var(--shiki-background);color:var(--shiki-foreground)" tabindex="0" data-lang="twig"><code><span class="line"><span style="color:var(--shiki-foreground)">{% </span><span style="color:var(--shiki-token-keyword)">if</span><span style="color:var(--shiki-foreground)"> attrs</span><span style="color:var(--shiki-token-punctuation)">.</span><span style="color:var(--shiki-foreground)">topline </span><span style="color:var(--shiki-token-keyword)">or</span><span style="color:var(--shiki-token-function)"> is_editor</span><span style="color:var(--shiki-foreground)">() %}</span></span>
