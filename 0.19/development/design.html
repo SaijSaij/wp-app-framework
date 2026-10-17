@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design decisions - wp-app-framework</title>
+<script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
+<link href="/wp-app-framework/0.19/static/css/styles.c6bb480910.css" rel="stylesheet">
+<link rel="preload" href="/wp-app-framework/0.19/static/js/async/route-6bb9ac1392d6.85fd4eb061.js" as="script">
+<script defer src="/wp-app-framework/0.19/static/js/styles.7d2f8ed2ca.js"></script>
+<script defer src="/wp-app-framework/0.19/static/js/lib-react.0d58ccae02.js"></script>
+<script defer src="/wp-app-framework/0.19/static/js/lib-router.7ac08af67b.js"></script>
+<script defer src="/wp-app-framework/0.19/static/js/f.4544487104.js"></script>
+<script defer src="/wp-app-framework/0.19/static/js/index.1718fe0091.js"></script>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Rspress v2.0.23">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Design decisions - wp-app-framework">
+<meta name="description" content="The framework grew out of several earlier frameworks and themes. This page records the principles it follows, the decisions that are fixed and why, the alternatives that were considered and rejected, and the mistakes of the earlier projects that it must not repeat. Read it before you propose a larger change: many obvious ideas have been tried.">
+<meta property="og:description" content="The framework grew out of several earlier frameworks and themes. This page records the principles it follows, the decisions that are fixed and why, the alternatives that were considered and rejected, and the mistakes of the earlier projects that it must not repeat. Read it before you propose a larger change: many obvious ideas have been tried."></head>
+
+  <body>
+    <div id="__rspress_root"><header class="rp-nav"><div class="rp-nav__left"><div class="rp-nav__title"><a href="/wp-app-framework/0.19/" class="rp-nav__title__link rp-link"><span>wp-app-framework</span></a></div><select class="version-switcher" aria-label="Documentation version"><option value="0.19" selected="">0.19</option></select></div><div class="rp-nav__right"><button class="rp-search-button"><div class="rp-search-button__content"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 20 21" class="rp-search-button__icon"><path fill="currentColor" d="M8.333 1.913A6.667 6.667 0 0 1 15 8.58c0 1.54-.525 2.957-1.402 4.085l4.49 4.492a.834.834 0 0 1-1.177 1.178l-4.491-4.49a6.64 6.64 0 0 1-4.087 1.402 6.667 6.667 0 0 1 0-13.334m0 1.667a5 5 0 1 0 0 10 5 5 0 0 0 0-10"></path></svg><span class="rp-search-button__word">Search</span></div><div class="rp-search-button__hotkey" style="opacity:0"><span></span><span>K</span></div></button><div class="rp-search-button--mobile"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 20 21"><path fill="currentColor" d="M8.333 1.913A6.667 6.667 0 0 1 15 8.58c0 1.54-.525 2.957-1.402 4.085l4.49 4.492a.834.834 0 0 1-1.177 1.178l-4.491-4.49a6.64 6.64 0 0 1-4.087 1.402 6.667 6.667 0 0 1 0-13.334m0 1.667a5 5 0 1 0 0 10 5 5 0 0 0 0-10"></path></svg></div><ul class="rp-nav-menu rp-nav-menu--right"><li class="rp-nav-menu__item"><a href="/wp-app-framework/0.19/index.html" class="rp-nav-menu__item__container rp-link">Guide</a></li><li class="rp-nav-menu__item"><a href="/wp-app-framework/0.19/api/index.html" class="rp-nav-menu__item__container rp-link">API reference</a></li><li class="rp-nav-menu__item rp-nav-menu__item--active"><a href="/wp-app-framework/0.19/development/index.html" class="rp-nav-menu__item__container rp-link">Development</a></li></ul><div class="rp-nav__others"><div class="rp-nav-menu__divider"></div><div class="rp-switch-appearance"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="rp-switch-appearance__icon rp-switch-appearance__icon--sun"><path fill="currentColor" d="m7.001 15.848-1.226 1.226a.58.58 0 0 0 0 .818.58.58 0 0 0 .818 0l1.226-1.226a.58.58 0 0 0 0-.818.58.58 0 0 0-.818 0m-.352-8.735a.584.584 0 0 0 .825-.825L6.237 5.051a.584.584 0 0 0-.825.825zM5.011 11.07h-1.75a.584.584 0 0 0 0 1.167h1.75c.324 0 .584-.26.584-.583a.585.585 0 0 0-.584-.584m7.003-5.835c.324 0 .584-.26.584-.584V2.9a.58.58 0 0 0-.584-.584.58.58 0 0 0-.583.583V4.65c0 .323.262.584.583.584m5.616 1.621 1.226-1.225a.58.58 0 0 0 0-.818.58.58 0 0 0-.818 0l-1.226 1.225a.58.58 0 0 0 0 .818.576.576 0 0 0 .818 0m3.138 4.214h-1.75a.58.58 0 0 0-.584.584c0 .324.26.584.583.584h1.751a.584.584 0 1 0 0-1.167m-3.389 5.124a.584.584 0 0 0-.825.825l1.238 1.238a.584.584 0 0 0 .825-.826zm-5.365-9.795a5.256 5.256 0 0 0-5.257 5.258 5.256 5.256 0 0 0 5.257 5.257 5.256 5.256 0 0 0 5.257-5.257 5.256 5.256 0 0 0-5.257-5.258m0 11.675a.58.58 0 0 0-.583.583v1.751a.582.582 0 1 0 1.167 0v-1.75a.584.584 0 0 0-.584-.584"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="currentColor" viewBox="0 0 19 19" class="rp-switch-appearance__icon rp-switch-appearance__icon--moon"><path fill="currentColor" d="M9.166 0a9.2 9.2 0 0 1 1.857.188.834.834 0 0 1 .042 1.623 4.47 4.47 0 1 0 5.457 5.457l.048-.135a.834.834 0 0 1 1.575.177q.186.902.188 1.856A9.168 9.168 0 1 1 9.166 0"></path></svg></div><div class="rp-social-links"><a href="https://github.com/saijsaij/wp-app-framework" target="_blank" rel="noopener noreferrer" class="rp-social-links__item"><div class="rp-social-links__icon"><div class="rp-social-links__icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12c0 5.303 3.438 9.8 8.205 11.385c.6.113.82-.258.82-.577c0-.285-.01-1.04-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729c1.205.084 1.838 1.236 1.838 1.236c1.07 1.835 2.809 1.305 3.495.998c.108-.776.417-1.305.76-1.605c-2.665-.3-5.466-1.332-5.466-5.93c0-1.31.465-2.38 1.235-3.22c-.135-.303-.54-1.523.105-3.176c0 0 1.005-.322 3.3 1.23c.96-.267 1.98-.399 3-.405c1.02.006 2.04.138 3 .405c2.28-1.552 3.285-1.23 3.285-1.23c.645 1.653.24 2.873.12 3.176c.765.84 1.23 1.91 1.23 3.22c0 4.61-2.805 5.625-5.475 5.92c.42.36.81 1.096.81 2.22c0 1.606-.015 2.896-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div></div></a><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--right"></ul></div></div><button aria-label="mobile hamburger" class="rp-nav-hamburger rp-nav-hamburger__sm"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 21 21"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M3.645 5.225h13.333M3.645 10.225h13.333M3.645 15.225h13.333"></path></svg></button><button aria-label="mobile hamburger" class="rp-nav-hamburger rp-nav-hamburger__md"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 21 21"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.667" d="M3.645 5.225h13.333M3.645 10.225h13.333M3.645 15.225h13.333"></path></svg><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--right"><div class="rp-nav-menu__others-mobile__container"><div class="rp-nav-hamburger__md__hover-group"><div class="rp-nav-screen-appearance"><div class="rp-nav-screen-appearance__left">Theme</div><div class="rp-nav-screen-appearance__right"></div></div><div class="rp-nav-screen-divider"></div><div class="rp-social-links"><a href="https://github.com/saijsaij/wp-app-framework" target="_blank" rel="noopener noreferrer" class="rp-social-links__item"><div class="rp-social-links__icon"><div class="rp-social-links__icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12c0 5.303 3.438 9.8 8.205 11.385c.6.113.82-.258.82-.577c0-.285-.01-1.04-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729c1.205.084 1.838 1.236 1.838 1.236c1.07 1.835 2.809 1.305 3.495.998c.108-.776.417-1.305.76-1.605c-2.665-.3-5.466-1.332-5.466-5.93c0-1.31.465-2.38 1.235-3.22c-.135-.303-.54-1.523.105-3.176c0 0 1.005-.322 3.3 1.23c.96-.267 1.98-.399 3-.405c1.02.006 2.04.138 3 .405c2.28-1.552 3.285-1.23 3.285-1.23c.645 1.653.24 2.873.12 3.176c.765.84 1.23 1.91 1.23 3.22c0 4.61-2.805 5.625-5.475 5.92c.42.36.81 1.096.81 2.22c0 1.606-.015 2.896-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div></div></a><ul class="rp-hover-group rp-hover-group--hidden rp-hover-group--right"></ul></div></div></div></ul></button></div></header><div class="rp-doc-layout__menu"><div class="rp-sidebar-menu"><button type="button" class="rp-sidebar-menu__left"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"></path></svg><span>Menu</span></button><button type="button" class="rp-sidebar-menu__right"><span class="rp-sidebar-menu__right__text">ON THIS PAGE</span><svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-sidebar-menu__right__icon" style="transform:rotate(0deg);transition:transform 0.2s ease-out"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></button></div></div><div class="rp-doc-layout__container"><aside class="rp-doc-layout__sidebar rp-scrollbar"><div class="rp-sidebar-item rp-sidebar-group" style="padding-left:12px" data-depth="0"><div class="rp-sidebar-item__left"><span class="rp-doc">Developing the framework</span></div><div class="rp-sidebar-item__right"><div style="cursor:pointer;transition:transform 0.2s ease-out;transform:rotate(90deg)"><svg width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></div></div></div><div style="display:grid;grid-template-rows:1fr;transition:grid-template-rows 0.2s ease-out"><div style="overflow:hidden"><a href="/wp-app-framework/0.19/development/index.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Overview</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/0.19/development/architecture.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Architecture</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/0.19/development/design.html" class="rp-sidebar-item rp-sidebar-item--active rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Design decisions</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/0.19/development/conventions.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Conventions</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/0.19/development/testing.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Testing</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/0.19/development/pipelines.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Pipelines and releases</span></div><div class="rp-sidebar-item__right"></div></a><a href="/wp-app-framework/0.19/development/adding-a-feature.html" class="rp-sidebar-item rp-sidebar-item--group-item rp-link" style="padding-left:calc(12px * 1 + 12px)" data-depth="1"><div class="rp-sidebar-item__left"><span class="rp-doc">Adding a feature</span></div><div class="rp-sidebar-item__right"></div></a></div></div></aside><div class="rp-doc-layout__doc"><main class="rp-doc-layout__doc-container"><div class="rp-doc rspress-doc"><!--$--><h1 class="rp-toc-include" id="design-decisions"><a href="#design-decisions" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Design decisions<!-- --> </h1>
+<p>The framework grew out of several earlier frameworks and themes. This page records the principles it follows, the decisions that are fixed and why, the alternatives that were considered and rejected, and the mistakes of the earlier projects that it must not repeat. Read it before you propose a larger change: many obvious ideas have been tried.</p>
+<h2 class="rp-toc-include" id="principles"><a href="#principles" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Principles</h2>
+<ol>
+<li><strong>No markup in post content.</strong> Every block renders on the server. <code>post_content</code> holds only block comments with their attributes as JSON; block supports are attributes too. The single exception is one <code>#[RichText(postContent: true)]</code> field per block, stored as inline HTML between the comments, so that the text stays readable in the database and for search. Markup lives in Twig and nowhere else, so a change of a template changes every page at once and no content has to be migrated.</li>
+<li><strong>Inline editing in the editor canvas.</strong> Content editors type into the blocks themselves, not into forms in the sidebar.</li>
+<li><strong>Full site editing.</strong> Pages consist of block templates and template parts. Twig renders block markup and fragments (mails, HTML responses), never page layouts.</li>
+<li><strong>Twig for markup, Tailwind CSS for styles.</strong> The framework provides the build and loads the result; design tokens belong to the theme.</li>
+<li><strong>Plain WordPress on the server.</strong> Consumers need neither Composer nor Bedrock on the server; a release is a ZIP with everything prefixed.</li>
+<li><strong>Everything that is a value is configurable</strong> in the backend (colors, spacing, variants, order); new block types, roles and layout structures stay code.</li>
+</ol>
+<p>The rules for working on the framework follow from these:</p>
+<ul>
+<li><strong>Verify before you rely.</strong> Behavior of WordPress, Twig, Strauss, Composer or a browser is checked in their source or official documentation, with file and line, before code depends on it. What is not verified is said to be unverified.</li>
+<li><strong>Fix the cause.</strong> No workaround on top of a workaround.</li>
+<li><strong>Explicit over implicit.</strong> No silent fallbacks, no silently failing <code>file_exists()</code>, no unmarked placeholders, no undocumented behavior sold as reliable. A missing prerequisite is an exception or a build error that names class, file and parameter.</li>
+<li><strong>Minimal.</strong> No dependency and no abstraction without a demonstrated need.</li>
+</ul>
+<h2 class="rp-toc-include" id="fixed-decisions"><a href="#fixed-decisions" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Fixed decisions</h2>
+<ul>
+<li><strong>A library, not a plugin or parent theme.</strong> Consumers include the framework with Composer and ship it inside their release. A plugin could be deactivated and break the theme; a parent theme would take away the child theme that client projects need for their customizations.</li>
+<li><strong>No <code>block.json</code>.</strong> A block is a PHP class; its attribute schema is derived from the constructor of its attribute class. Schema and the object the template receives can never diverge, and IDEs resolve every name.</li>
+<li><strong>Compile only in the build.</strong> Attributes are read in the build; the manifest is plain data; run time uses no reflection and never writes into the consumer. A container compiled at run time into the theme directory, or file checks of all sources on every request, are what made earlier frameworks slow and fragile.</li>
+<li><strong>An own, minimal container.</strong> Earlier projects used Symfony&#x27;s DI container or Laravel&#x27;s, but only ever for constructor autowiring of concrete classes. Their run time, the prefixing patches they needed and their reflection at run time are not worth it.</li>
+<li><strong>Every consumer is an isolated instance</strong>, named by its namespace (content and data) and its slug (technical names); instances talk only through filters with plain types. A theme and plugins built with different framework versions run side by side.</li>
+<li><strong>The namespace is required.</strong> It has no default and is not derived from the directory name: the directory name is decided when a theme or plugin is installed, and content must not silently depend on it.</li>
+<li><strong>Prefixing is mandatory</strong> in every release, for the framework and all dependencies, Twig included (with Strauss, chosen over PHP-Scoper because it prefixes only the symbols of the dependencies and brings its own autoloader).</li>
+<li><strong>The server renders the editor.</strong> The editor shows the markup of the same Twig templates as the front end, through a batch render route of the instance.</li>
+<li><strong>Settings are stored in options of the instance</strong>, not in theme mods or global styles: those belong to the stylesheet, and a child theme without code would lose all values.</li>
+<li><strong>The API is resolvable by IDEs</strong>: enums and classes instead of strings, first-class callables instead of method names, required information as required arguments.</li>
+<li><strong>Stable WordPress APIs in the runtime, with one exception.</strong> The editor runtime uses only stable components and hooks of the block editor, except <code>__experimentalUseBlockPreview</code> for the previews of repeating blocks (<code>Repeater</code>). It is the hook <code>core/post-template</code>, <code>core/comment-template</code> and <code>core/term-template</code> use for the same purpose, it previews the items live while an editor types and needs no server render per change; rendering the previews on the server instead would send all inner blocks on every change. The runtime checks at start that the hook exists and fails with a message naming the repeating blocks otherwise, and the framework&#x27;s CI runs against the newest WordPress, so a change shows up there first.</li>
+</ul>
+<h2 class="rp-toc-include" id="rejected-alternatives"><a href="#rejected-alternatives" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Rejected alternatives</h2>
+<p>Do not propose these again without new arguments:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="rp-table-scroll-container rp-scrollbar"><table><thead><tr><th>Alternative</th><th>Why not</th></tr></thead><tbody><tr><td>The framework as a plugin</td><td>Plugins can be deactivated; the theme would break.</td></tr><tr><td>The framework as a parent theme</td><td>It would block child themes for client customizations.</td></tr><tr><td>Rendering Twig in the editor with twig.js</td><td>twig.js is not compatible with Twig for PHP in all details and has no WordPress data; the server render guarantees identical markup.</td></tr><tr><td>PHP-only blocks with <code>autoRegister</code> (WordPress 7.0)</td><td>No inline editing, no inner blocks.</td></tr><tr><td><code>block.json</code></td><td>Only tooling comfort; PHP classes with a derived schema keep schema and object in sync.</td></tr><tr><td>Symfony DI or the Laravel container</td><td>Only constructor autowiring was ever used; run-time dependencies, prefixing patches and reflection at run time are not needed.</td></tr><tr><td>Compiling the container at run time into the theme directory</td><td>Writes into the consumer and costs every request.</td></tr><tr><td>Twig components looked up as services</td><td>Not needed; templates receive what they need.</td></tr><tr><td>Theme mods or global styles as storage of settings</td><td>They belong to the stylesheet; a child theme without code would lose everything.</td></tr><tr><td>A bundled copy of WordPress&#x27; DataForm for the settings page</td><td>A frozen bundle can break on private APIs after WordPress updates; the page uses stable components.</td></tr><tr><td><code>role: content</code> as the signal for re-rendering in the editor</td><td>It describes editing modes, not rendering; the runtime decides by inline fields instead.</td></tr><tr><td>WordPress&#x27; <code>/wp/v2/block-renderer</code> route for the editor</td><td>It cannot render a batch and has no editor flag; a shared route would also be a contract between framework versions.</td></tr><tr><td>The Interactivity API and script modules for front-end scripts</td><td>Hardly used outside of core; modules can import almost no WordPress package, and the editor canvas does not load them.</td></tr><tr><td>Declarative targets and actions in the style of Stimulus</td><td>Not resolvable by IDEs.</td></tr><tr><td>The slug as default namespace</td><td>The directory name is decided at installation; data must not depend on it silently.</td></tr><tr><td>Template parts from bundles through WordPress&#x27; template filters</td><td>There is no registration API for them; bundles would deliver patterns instead.</td></tr></tbody></table></div>
+<h2 class="rp-toc-include" id="lessons-from-earlier-projects"><a href="#lessons-from-earlier-projects" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Lessons from earlier projects</h2>
+<p>The earlier frameworks and themes made these mistakes; the framework is built so that they cannot happen again:</p>
+<ul>
+<li>The editor preview depended on calling a manual re-render, so previews went stale. The runtime now re-renders automatically on every attribute change that is not an inline text field.</li>
+<li>Each block sent its own render request after a 500 ms debounce, and a spinner replaced the content, so layouts jumped. Renders are batched, cached in the client, and the old HTML stays until the new one arrives.</li>
+<li>Blocks had no <code>apiVersion</code> and a wrapper <code>div</code> without <code>useBlockProps</code>. Every block now uses API version 3, and the block props go onto the root element of the rendered markup.</li>
+<li><code>React.memo</code> had no effect because every render created new callbacks, props and contexts.</li>
+<li><code>{{ title | upper | raw }}</code> changed tags, URLs and entities. String filters do not belong on HTML.</li>
+<li><code>href</code> attributes were printed without <code>esc_url()</code>; Twig&#x27;s escaping does not stop <code>javascript:</code> URLs.</li>
+<li>The template lookup order was parent before child, so overrides of the child theme had no effect.</li>
+<li>Twig ran without cache and with debug mode always on.</li>
+<li>Twig was left out of prefixing, and the DI container needed patches of the prefixer.</li>
+<li>REST routes were public by default, parameters were read by hand instead of through the <code>args</code> schema, output buffers stayed open on missing parameters, errors went out as HTTP 200 or with a stack trace, and services were resolved eagerly.</li>
+<li>The error path of a hook failed itself, and exceptions were swallowed.</li>
+<li>The container was built at run time into the theme directory, every request checked the modification time of every source file, <code>composer.json</code> was needed at run time, and parent and child theme registered hooks twice.</li>
+<li>All block services were instantiated when the blocks were registered, and the <code>WP_Block</code> context was thrown away.</li>
+</ul><!--/$--></div><footer class="rp-doc-footer"><div class="rp-doc-footer__edit"><a href="https://github.com/saijsaij/wp-app-framework/tree/main/docs/content/development/design.md" target="_blank" rel="noopener noreferrer" class="rp-edit-link rp-link">Edit this page</a></div><div class="rp-doc-footer__divider"></div><div class="rp-prev-next-page"><a href="/wp-app-framework/0.19/development/architecture.html" class="rp-prev-next-page__item rp-prev-next-page__prev rp-link"><span class="rp-prev-next-page__item__desc">Previous page</span><span class="rp-prev-next-page__item__title"><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon rp-prev-next-page__rotate_180"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg><span>Architecture</span></span></a><a href="/wp-app-framework/0.19/development/conventions.html" class="rp-prev-next-page__item rp-prev-next-page__next rp-link"><span class="rp-prev-next-page__item__desc">Next page</span><span class="rp-prev-next-page__item__title"><span>Conventions</span><svg width="1em" height="1em" viewBox="0 0 32 32" class="rp-prev-next-page__icon"><path fill="currentColor" d="M22 16 12 26l-1.4-1.4 8.6-8.6-8.6-8.6L12 6z"></path></svg></span></a></div></footer></main></div><aside class="rp-doc-layout__outline rp-scrollbar"><div class="rp-outline"><div class="rp-outline__title">ON THIS PAGE<svg width="14" height="14" class="rp-progress-circle"><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-divider-light)" stroke-width="2"></circle><circle cx="7" cy="7" r="6" stroke-linecap="round" fill="none" stroke="var(--rp-c-brand)" stroke-width="2" stroke-dasharray="37.69911184307752" stroke-dashoffset="37.69911184307752" transform="rotate(-90 7 7)" style="transition:stroke-dashoffset 0.3s"></circle></svg></div><nav class="rp-outline__toc rp-scrollbar"><a href="#principles" class="rp-toc-item rp-link" title="Principles" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Principles</span></a><a href="#fixed-decisions" class="rp-toc-item rp-link" title="Fixed decisions" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Fixed decisions</span></a><a href="#rejected-alternatives" class="rp-toc-item rp-link" title="Rejected alternatives" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Rejected alternatives</span></a><a href="#lessons-from-earlier-projects" class="rp-toc-item rp-link" title="Lessons from earlier projects" style="padding-left:0" data-depth="0"><span class="rp-toc-item__text rp-doc">Lessons from earlier projects</span></a></nav><div class="rp-outline__divider"></div><div class="rp-outline__bottom"><a href="https://github.com/saijsaij/wp-app-framework/tree/main/docs/content/development/design.md" target="_blank" rel="noopener noreferrer" class="rp-outline__action-row rp-edit-link rp-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg><span>Edit this page</span></a></div></div></aside></div></div>
+    <div id="__rspress_modal_container"></div>
+  </body>
+</html>
