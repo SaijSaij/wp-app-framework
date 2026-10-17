@@ -1,0 +1,64 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// The translations of the framework's own texts (text domain wp-app-framework): writes the template
+// languages/wp-app-framework.pot from the PHP files in src/ and the scripts in assets/, and compiles every
+// languages/wp-app-framework-{locale}.po into the .l10n.php file next to it, which ships with the framework.
+// Run it after changing texts or translations: php tools/translations
+
+use Saij\WpAppFramework\I18n\FrameworkTranslations;
+use Saij\WpAppFramework\I18n\PhpTexts;
+use Saij\WpAppFramework\I18n\PoFile;
+use Saij\WpAppFramework\I18n\PotFile;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$root = dirname(__DIR__);
+$domain = FrameworkTranslations::DOMAIN;
+$pot = new PotFile();
+
+$files = static function (string $directory, string $extension): array {
+    $found = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)) as $file) {
+        $path = str_replace('\\', '/', $file->getPathname());
+        if ($file->isFile() && $file->getExtension() === $extension && !str_contains($path, '/test/')) {
+            $found[] = $path;
+        }
+    }
+    sort($found, SORT_STRING);
+
+    return $found;
+};
+
+foreach ($files($root . '/src', 'php') as $file) {
+    PhpTexts::collect($file, substr($file, strlen($root) + 1), $domain, $pot);
+}
+
+// The scripts call @wordpress/i18n with literal strings: __( 'Text', 'wp-app-framework' ), with an optional
+// comment for translators right before it.
+$call = '~(?:/\*\s*(?<comment>translators:.*?)\s*\*/\s*)?\b__\(\s*\'(?<text>(?:[^\'\\\\]|\\\\.)*)\'\s*,\s*\'' . preg_quote($domain, '~') . '\'\s*\)~s';
+foreach ($files($root . '/assets', 'js') as $file) {
+    $content = (string) file_get_contents($file);
+    preg_match_all($call, $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+    foreach ($matches as $match) {
+        $line = substr_count(substr($content, 0, $match['text'][1]), "\n") + 1;
+        $comment = isset($match['comment']) && $match['comment'][1] >= 0 ? $match['comment'][0] : null;
+        $pot->add(stripcslashes($match['text'][0]), reference: substr($file, strlen($root) + 1) . ':' . $line, comment: $comment);
+    }
+}
+
+$languages = $root . '/languages';
+if (!is_dir($languages) && !mkdir($languages, 0o775, true)) {
+    fwrite(STDERR, "Cannot create {$languages}.\n");
+    exit(1);
+}
+file_put_contents($languages . '/' . $domain . '.pot', $pot->toString(['Project-Id-Version' => 'wp-app-framework', 'X-Domain' => $domain]));
+fwrite(STDOUT, sprintf("languages/%s.pot: %d texts.\n", $domain, $pot->count()));
+
+foreach (glob($languages . '/' . $domain . '-*.po') ?: [] as $po) {
+    $compiled = substr($po, 0, -3) . '.l10n.php';
+    file_put_contents($compiled, PoFile::parse((string) file_get_contents($po), basename($po))->toPhp());
+    fwrite(STDOUT, sprintf("languages/%s compiled.\n", basename($compiled)));
+}

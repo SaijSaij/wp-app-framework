@@ -8,6 +8,7 @@ import {
 import { dateI18n, getSettings } from '@wordpress/date';
 
 import { dateFromPicker, is12HourFormat } from './dates';
+import { __ } from '@wordpress/i18n';
 
 /**
  * The control of a #[DateTime] value: a compact button with the date in the
@@ -29,7 +30,9 @@ export function DateValueControl( { control, value, onChange, label } ) {
 	const format = control.time
 		? `${ formats.date } ${ formats.time }`
 		: formats.date;
-	const shown = value ? dateI18n( format, value ) : 'No date';
+	const shown = value
+		? dateI18n( format, value )
+		: __( 'No date', 'wp-app-framework' );
 	const pickerProps = {
 		currentDate: value || null,
 		startOfWeek: l10n.startOfWeek,
@@ -70,7 +73,7 @@ export function DateValueControl( { control, value, onChange, label } ) {
 							disabled={ ! value }
 							onClick={ () => onChange( '' ) }
 						>
-							Clear
+							{ __( 'Clear', 'wp-app-framework' ) }
 						</Button>
 					</div>
 				) }

@@ -6,6 +6,7 @@ import { listLimits, moveItem } from './list';
 import { ListCards, useListCards } from './list-cards';
 import { LimitNotice } from './list-notice';
 import { includePath, searchPath, titles } from './references';
+import { __, sprintf } from '@wordpress/i18n';
 
 /** Delay before a typed search is sent. */
 const SEARCH_DELAY = 300;
@@ -137,7 +138,11 @@ export function ReferencesControl( { control, value, onChange, label } ) {
 					known[ ids[ index ] ] ?? `#${ ids[ index ] }`
 				}
 				actionsLabel={ ( index ) =>
-					`Actions for ${ known[ ids[ index ] ] ?? `#${ ids[ index ] }` }`
+					sprintf(
+						/* translators: %s: title of the referenced object */
+						__( 'Actions for %s', 'wp-app-framework' ),
+						known[ ids[ index ] ] ?? `#${ ids[ index ] }`
+					)
 				}
 				body={ () => null }
 				onMove={ ( from, to ) => onChange( moveItem( ids, from, to ) ) }
@@ -149,7 +154,11 @@ export function ReferencesControl( { control, value, onChange, label } ) {
 				<ComboboxControl
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
-					label={ `Add to ${ name }` }
+					label={ sprintf(
+						/* translators: %s: label of a list of references */
+						__( 'Add to %s', 'wp-app-framework' ),
+						name
+					) }
 					value={ null }
 					options={ options(
 						results.filter( ( id ) => ! ids.includes( id ) ),

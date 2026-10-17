@@ -1,0 +1,193 @@
+# German translation of the texts of wp-app-framework.
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: wp-app-framework\n"
+"X-Domain: wp-app-framework\n"
+"Language: de_DE\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. translators: 1: number of seconds, 2: slug of the theme or plugin
+#: src/Cron/CronRegistrar.php:176
+msgid "Every %1$d seconds (%2$s)"
+msgstr "Alle %1$d Sekunden (%2$s)"
+
+#. translators: %d: ID of the post
+#: src/Editor/RenderController.php:177
+msgid "Post %d does not exist."
+msgstr "Der Beitrag %d existiert nicht."
+
+#. translators: %d: ID of the post
+#: src/Editor/RenderController.php:180
+msgid "You may not edit post %d, and it is not public."
+msgstr "Du darfst den Beitrag %d nicht bearbeiten, und er ist nicht öffentlich."
+
+#. translators: %s: name of the block
+#: src/Editor/RenderController.php:238
+msgid "Block %s could not be rendered."
+msgstr "Der Block %s konnte nicht dargestellt werden."
+
+#: src/Post/MetaBoxes.php:179
+msgid "These values were not saved:"
+msgstr "Diese Werte wurden nicht gespeichert:"
+
+#: assets/runtime/color-control.js:39
+msgid "no color"
+msgstr "keine Farbe"
+
+#: assets/runtime/color-control.js:48
+msgid "No color"
+msgstr "Keine Farbe"
+
+#. translators: %s: label of a value
+#: assets/runtime/controls.js:313
+msgid "Add %s"
+msgstr "%s hinzufügen"
+
+#. translators: %s: label of a value
+#. translators: %s: label of an image
+#: assets/runtime/controls.js:336
+#: assets/runtime/image-control.js:102
+msgid "Remove %s"
+msgstr "%s entfernen"
+
+#. translators: %d: number of the item
+#: assets/runtime/controls.js:456
+msgid "Actions for item %d"
+msgstr "Aktionen für Eintrag %d"
+
+#. translators: %s: label of a list
+#: assets/runtime/controls.js:474
+#: assets/runtime/markup.js:138
+msgid "Add item to %s"
+msgstr "Eintrag zu %s hinzufügen"
+
+#: assets/runtime/controls.js:491
+msgid "Add item"
+msgstr "Eintrag hinzufügen"
+
+#: assets/runtime/date-control.js:35
+msgid "No date"
+msgstr "Kein Datum"
+
+#: assets/runtime/date-control.js:76
+msgid "Clear"
+msgstr "Zurücksetzen"
+
+#. translators: %s: label of an image
+#: assets/runtime/image-control.js:65
+msgid "Select %s"
+msgstr "%s auswählen"
+
+#. translators: %s: label of an image
+#: assets/runtime/image-control.js:84
+msgid "Replace %s"
+msgstr "%s ersetzen"
+
+#: assets/runtime/image-control.js:92
+msgid "Replace"
+msgstr "Ersetzen"
+
+#: assets/runtime/image-control.js:110
+#: assets/runtime/list-cards.js:241
+msgid "Remove"
+msgstr "Entfernen"
+
+#: assets/runtime/inspector.js:132
+msgid "Content"
+msgstr "Inhalt"
+
+#: assets/runtime/inspector.js:141
+msgid "Appearance"
+msgstr "Erscheinungsbild"
+
+#: assets/runtime/inspector.js:152
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: assets/runtime/link-control.js:50
+#: assets/runtime/link-control.js:57
+msgid "Add link"
+msgstr "Link hinzufügen"
+
+#: assets/runtime/link-form-control.js:143
+msgid "Unlink"
+msgstr "Link entfernen"
+
+#: assets/runtime/link-form-control.js:152
+msgid "Search content"
+msgstr "Inhalte durchsuchen"
+
+#: assets/runtime/link-form-control.js:176
+msgid "URL"
+msgstr "URL"
+
+#: assets/runtime/link-form-control.js:186
+msgid "Open in new tab"
+msgstr "In neuem Tab öffnen"
+
+#. translators: %s: title of a list item
+#: assets/runtime/list-cards.js:163
+msgid "Drag %s"
+msgstr "%s ziehen"
+
+#: assets/runtime/list-cards.js:223
+msgid "Move up"
+msgstr "Nach oben verschieben"
+
+#: assets/runtime/list-cards.js:232
+msgid "Move down"
+msgstr "Nach unten verschieben"
+
+#: assets/runtime/list.js:20
+msgid "Item"
+msgstr "Eintrag"
+
+#. translators: 1: number of items, 2: largest number allowed, 3: items too many
+#: assets/runtime/list.js:98
+msgid "%1$d items, but at most %2$d allowed: only the first %2$d are used. Remove %3$d."
+msgstr "%1$d Einträge, aber höchstens %2$d erlaubt: Nur die ersten %2$d werden verwendet. Entferne %3$d."
+
+#. translators: 1: number of items, 2: smallest number allowed, 3: items missing
+#: assets/runtime/list.js:108
+msgid "%1$d of at least %2$d items. Add %3$d."
+msgstr "%1$d von mindestens %2$d Einträgen. Füge %3$d hinzu."
+
+#: assets/runtime/portal-edit.js:184
+msgid "Preview"
+msgstr "Vorschau"
+
+#. translators: %s: title of the referenced object
+#: assets/runtime/reference-control.js:143
+msgid "Actions for %s"
+msgstr "Aktionen für %s"
+
+#. translators: %s: label of a list of references
+#: assets/runtime/reference-control.js:159
+msgid "Add to %s"
+msgstr "Zu %s hinzufügen"
+
+#: assets/runtime/repeater.js:93
+msgid "Edit this item"
+msgstr "Diesen Eintrag bearbeiten"
+
+#. translators: %s: the errors
+#. translators: %s: the error
+#: assets/runtime/settings-data.js:55
+#: assets/runtime/settings-data.js:62
+msgid "The settings were not saved. %s"
+msgstr "Die Einstellungen wurden nicht gespeichert. %s"
+
+#: assets/runtime/settings-data.js:63
+msgid "Unknown error."
+msgstr "Unbekannter Fehler."
+
+#: assets/runtime/settings-page.js:172
+msgid "Settings saved."
+msgstr "Einstellungen gespeichert."
+
+#: assets/runtime/settings-page.js:224
+msgid "Save"
+msgstr "Speichern"

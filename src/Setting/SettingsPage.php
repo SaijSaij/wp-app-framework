@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Setting;
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\I18n\FrameworkTranslations;
 use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Value\FormAssets;
@@ -115,6 +116,7 @@ final class SettingsPage
         $handle = self::handle($this->slug);
         $version = $this->assets->registerScript($handle, self::SCRIPT);
         wp_add_inline_script($handle, $this->configScript(), 'before');
+        FrameworkTranslations::addTo($handle);
         wp_enqueue_script($handle);
         // The settings scripts of the groups depend on the page script (their import of
         // @saij/wp-app-framework/settings), so they run after it, in the head like it: the page renders on

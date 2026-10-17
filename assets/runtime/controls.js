@@ -22,6 +22,7 @@ import { formFields, listItemTitle, listLimits, moveItem } from './list';
 import { ListCards, useListCards } from './list-cards';
 import { LimitNotice } from './list-notice';
 import { ReferenceControl, ReferencesControl } from './reference-control';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Controls of values described by the manifest, used by the block inspector
@@ -307,7 +308,11 @@ function ObjectControl( {
 						)
 					}
 				>
-					{ `Add ${ name }` }
+					{ sprintf(
+						/* translators: %s: label of a value */
+						__( 'Add %s', 'wp-app-framework' ),
+						name
+					) }
 				</Button>
 			) : (
 				<>
@@ -326,7 +331,11 @@ function ObjectControl( {
 							isDestructive
 							onClick={ () => onChange( null ) }
 						>
-							{ `Remove ${ name }` }
+							{ sprintf(
+								/* translators: %s: label of a value */
+								__( 'Remove %s', 'wp-app-framework' ),
+								name
+							) }
 						</Button>
 					) }
 				</>
@@ -441,7 +450,13 @@ export function ListControl( {
 						fields
 					)
 				}
-				actionsLabel={ ( index ) => `Actions for item ${ index + 1 }` }
+				actionsLabel={ ( index ) =>
+					sprintf(
+						/* translators: %d: number of the item */
+						__( 'Actions for item %d', 'wp-app-framework' ),
+						index + 1
+					)
+				}
 				body={ body }
 				onMove={ ( from, to ) =>
 					onChange( moveItem( items, from, to ) )
@@ -454,7 +469,11 @@ export function ListControl( {
 				<Button
 					variant="secondary"
 					icon="plus"
-					aria-label={ `Add item to ${ control.label }` }
+					aria-label={ sprintf(
+						/* translators: %s: label of a list */
+						__( 'Add item to %s', 'wp-app-framework' ),
+						control.label
+					) }
 					disabled={ ! limits.canAdd }
 					accessibleWhenDisabled
 					onClick={ () => {
@@ -469,7 +488,7 @@ export function ListControl( {
 						] );
 					} }
 				>
-					Add item
+					{ __( 'Add item', 'wp-app-framework' ) }
 				</Button>
 			</div>
 		</div>

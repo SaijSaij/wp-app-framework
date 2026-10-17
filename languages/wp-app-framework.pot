@@ -1,0 +1,190 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: wp-app-framework\n"
+"X-Domain: wp-app-framework\n"
+
+#. translators: 1: number of seconds, 2: slug of the theme or plugin
+#: src/Cron/CronRegistrar.php:176
+msgid "Every %1$d seconds (%2$s)"
+msgstr ""
+
+#. translators: %d: ID of the post
+#: src/Editor/RenderController.php:177
+msgid "Post %d does not exist."
+msgstr ""
+
+#. translators: %d: ID of the post
+#: src/Editor/RenderController.php:180
+msgid "You may not edit post %d, and it is not public."
+msgstr ""
+
+#. translators: %s: name of the block
+#: src/Editor/RenderController.php:238
+msgid "Block %s could not be rendered."
+msgstr ""
+
+#: src/Post/MetaBoxes.php:179
+msgid "These values were not saved:"
+msgstr ""
+
+#: assets/runtime/color-control.js:39
+msgid "no color"
+msgstr ""
+
+#: assets/runtime/color-control.js:48
+msgid "No color"
+msgstr ""
+
+#. translators: %s: label of a value
+#: assets/runtime/controls.js:313
+msgid "Add %s"
+msgstr ""
+
+#. translators: %s: label of a value
+#. translators: %s: label of an image
+#: assets/runtime/controls.js:336
+#: assets/runtime/image-control.js:102
+msgid "Remove %s"
+msgstr ""
+
+#. translators: %d: number of the item
+#: assets/runtime/controls.js:456
+msgid "Actions for item %d"
+msgstr ""
+
+#. translators: %s: label of a list
+#: assets/runtime/controls.js:474
+#: assets/runtime/markup.js:138
+msgid "Add item to %s"
+msgstr ""
+
+#: assets/runtime/controls.js:491
+msgid "Add item"
+msgstr ""
+
+#: assets/runtime/date-control.js:35
+msgid "No date"
+msgstr ""
+
+#: assets/runtime/date-control.js:76
+msgid "Clear"
+msgstr ""
+
+#. translators: %s: label of an image
+#: assets/runtime/image-control.js:65
+msgid "Select %s"
+msgstr ""
+
+#. translators: %s: label of an image
+#: assets/runtime/image-control.js:84
+msgid "Replace %s"
+msgstr ""
+
+#: assets/runtime/image-control.js:92
+msgid "Replace"
+msgstr ""
+
+#: assets/runtime/image-control.js:110
+#: assets/runtime/list-cards.js:241
+msgid "Remove"
+msgstr ""
+
+#: assets/runtime/inspector.js:132
+msgid "Content"
+msgstr ""
+
+#: assets/runtime/inspector.js:141
+msgid "Appearance"
+msgstr ""
+
+#: assets/runtime/inspector.js:152
+msgid "Settings"
+msgstr ""
+
+#: assets/runtime/link-control.js:50
+#: assets/runtime/link-control.js:57
+msgid "Add link"
+msgstr ""
+
+#: assets/runtime/link-form-control.js:143
+msgid "Unlink"
+msgstr ""
+
+#: assets/runtime/link-form-control.js:152
+msgid "Search content"
+msgstr ""
+
+#: assets/runtime/link-form-control.js:176
+msgid "URL"
+msgstr ""
+
+#: assets/runtime/link-form-control.js:186
+msgid "Open in new tab"
+msgstr ""
+
+#. translators: %s: title of a list item
+#: assets/runtime/list-cards.js:163
+msgid "Drag %s"
+msgstr ""
+
+#: assets/runtime/list-cards.js:223
+msgid "Move up"
+msgstr ""
+
+#: assets/runtime/list-cards.js:232
+msgid "Move down"
+msgstr ""
+
+#: assets/runtime/list.js:20
+msgid "Item"
+msgstr ""
+
+#. translators: 1: number of items, 2: largest number allowed, 3: items too many
+#: assets/runtime/list.js:98
+msgid "%1$d items, but at most %2$d allowed: only the first %2$d are used. Remove %3$d."
+msgstr ""
+
+#. translators: 1: number of items, 2: smallest number allowed, 3: items missing
+#: assets/runtime/list.js:108
+msgid "%1$d of at least %2$d items. Add %3$d."
+msgstr ""
+
+#: assets/runtime/portal-edit.js:184
+msgid "Preview"
+msgstr ""
+
+#. translators: %s: title of the referenced object
+#: assets/runtime/reference-control.js:143
+msgid "Actions for %s"
+msgstr ""
+
+#. translators: %s: label of a list of references
+#: assets/runtime/reference-control.js:159
+msgid "Add to %s"
+msgstr ""
+
+#: assets/runtime/repeater.js:93
+msgid "Edit this item"
+msgstr ""
+
+#. translators: %s: the errors
+#. translators: %s: the error
+#: assets/runtime/settings-data.js:55
+#: assets/runtime/settings-data.js:62
+msgid "The settings were not saved. %s"
+msgstr ""
+
+#: assets/runtime/settings-data.js:63
+msgid "Unknown error."
+msgstr ""
+
+#: assets/runtime/settings-page.js:172
+msgid "Settings saved."
+msgstr ""
+
+#: assets/runtime/settings-page.js:224
+msgid "Save"
+msgstr ""

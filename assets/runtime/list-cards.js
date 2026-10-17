@@ -12,6 +12,7 @@ import { useRef, useState } from '@wordpress/element';
 
 import { dropIndex, moveItem } from './list';
 import { listItemClass, UNUSED_MARK } from './list-notice';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * The items of a list as cards: a header with a drag handle, the title (a
@@ -157,7 +158,11 @@ export function ListCards( {
 							<Button
 								size="small"
 								icon="menu"
-								label={ `Drag ${ heading }` }
+								label={ sprintf(
+									/* translators: %s: title of a list item */
+									__( 'Drag %s', 'wp-app-framework' ),
+									heading
+								) }
 								className="wp-app-framework-list__handle"
 								draggable
 								onDragStart={ ( event ) => {
@@ -214,19 +219,28 @@ export function ListCards( {
 								label={ actionsLabel( index ) }
 								controls={ [
 									{
-										title: 'Move up',
+										title: __(
+											'Move up',
+											'wp-app-framework'
+										),
 										icon: 'arrow-up-alt2',
 										isDisabled: index === 0,
 										onClick: () => move( index, index - 1 ),
 									},
 									{
-										title: 'Move down',
+										title: __(
+											'Move down',
+											'wp-app-framework'
+										),
 										icon: 'arrow-down-alt2',
 										isDisabled: index === count - 1,
 										onClick: () => move( index, index + 1 ),
 									},
 									{
-										title: 'Remove',
+										title: __(
+											'Remove',
+											'wp-app-framework'
+										),
 										icon: 'trash',
 										isDisabled: ! limits.canRemove,
 										onClick: () => {

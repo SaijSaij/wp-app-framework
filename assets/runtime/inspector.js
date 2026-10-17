@@ -15,6 +15,7 @@ import { useBufferedText, ValueControl } from './controls';
 import { groupControls } from './groups';
 import { createImageControl } from './image-control';
 import { LinkValueControl } from './link-control';
+import { __ } from '@wordpress/i18n';
 
 const formatText = ( value ) => value ?? '';
 
@@ -128,7 +129,7 @@ export function Inspector( { registry, componentProps } ) {
 		<>
 			{ content.length > 0 && (
 				<InspectorControls group="content">
-					<PanelBody title="Content">
+					<PanelBody title={ __( 'Content', 'wp-app-framework' ) }>
 						<div className="wp-app-framework-controls">
 							{ content.map( ( entry ) => entry.element ) }
 						</div>
@@ -137,7 +138,7 @@ export function Inspector( { registry, componentProps } ) {
 			) }
 			{ styles.length > 0 && (
 				<InspectorControls group="styles">
-					<PanelBody title="Appearance">
+					<PanelBody title={ __( 'Appearance', 'wp-app-framework' ) }>
 						<div className="wp-app-framework-controls">
 							{ styles.map( ( entry ) => entry.element ) }
 						</div>
@@ -147,7 +148,9 @@ export function Inspector( { registry, componentProps } ) {
 			{ ( settings.length > 0 || panels.length > 0 ) && (
 				<InspectorControls>
 					{ settings.length > 0 && (
-						<PanelBody title="Settings">
+						<PanelBody
+							title={ __( 'Settings', 'wp-app-framework' ) }
+						>
 							<div className="wp-app-framework-controls">
 								{ settings.map( ( entry ) => entry.element ) }
 							</div>

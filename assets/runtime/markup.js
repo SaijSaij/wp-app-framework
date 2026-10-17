@@ -17,6 +17,7 @@ import { FieldBoundary, ImageField, TextField } from './fields';
 import { LIST_ITEM } from './ghosts';
 import { matchesPattern } from './paths';
 import { itemContext, RepeaterItem } from './repeater';
+import { __, sprintf } from '@wordpress/i18n';
 
 function elementProps( node ) {
 	const {
@@ -132,7 +133,11 @@ function GhostItem( { node, fields, label, onAdd } ) {
 			className={ classNames( props.className, GHOST_CLASS ) }
 			role="button"
 			tabIndex={ 0 }
-			aria-label={ `Add item to ${ label }` }
+			aria-label={ sprintf(
+				/* translators: %s: label of a list */
+				__( 'Add item to %s', 'wp-app-framework' ),
+				label
+			) }
 			onClick={ add }
 			onKeyDown={ ( event ) => {
 				if ( event.key === 'Enter' || event.key === ' ' ) {

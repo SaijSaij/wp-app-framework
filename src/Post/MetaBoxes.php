@@ -6,6 +6,7 @@ namespace Saij\WpAppFramework\Post;
 
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\I18n\FrameworkTranslations;
 use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Value\FormAssets;
 use WP_Post;
@@ -175,7 +176,7 @@ final class MetaBoxes
         delete_transient($this->errorKey($post->ID));
         printf(
             '<div class="notice notice-error wp-app-framework-meta-errors"><p>%s</p><ul>%s</ul></div>',
-            esc_html('These values were not saved:'),
+            esc_html__('These values were not saved:', 'wp-app-framework'),
             implode('', array_map(static fn(mixed $error): string => '<li>' . esc_html(is_string($error) ? $error : '') . '</li>', $errors)),
         );
     }
@@ -197,6 +198,7 @@ final class MetaBoxes
         $handle = self::handle($this->slug);
         $version = $this->assets->registerScript($handle, self::SCRIPT, ['in_footer' => true]);
         wp_add_inline_script($handle, $this->configScript($classes), 'before');
+        FrameworkTranslations::addTo($handle);
         wp_enqueue_script($handle);
         $this->assets->registerStyle($handle, self::SCRIPT, ['wp-components'], $version);
         wp_enqueue_style($handle);

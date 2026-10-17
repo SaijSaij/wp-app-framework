@@ -34,6 +34,15 @@ Rules for error handling at run time:
 - With `WP_DEBUG`, exceptions are thrown on; without it, they are logged with `error_log()` and the request continues (a filter returns its original value, a block renders `''`, a route answers 500 without details). The error path itself must not fail.
 - Arguments are checked where they enter: a value out of range is an `InvalidArgumentException` when the method is called; a combination or state that does not fit (a call order, a missing prerequisite) is a `LogicException`; a failure of WordPress or the file system is a `RuntimeException`.
 
+## Texts for editors
+
+Texts the framework shows to editors and administrators – the controls of the editor, the settings page and the meta boxes, notices, errors of the editor's renders – are translated with the text domain `wp-app-framework`; messages for developers (build errors, exceptions, console warnings) stay English and untranslated.
+
+- PHP uses WordPress' functions with the domain written out: `__('Add item', 'wp-app-framework')`, `sprintf(/* translators: %d: ID of the post */ __('Post %d does not exist.', 'wp-app-framework'), $id)`.
+- The scripts import `__` and `sprintf` from `@wordpress/i18n`: `__( 'Add item', 'wp-app-framework' )`, with the same `translators:` comments. Placeholders instead of template literals, so translators can move them.
+- After adding or changing such a text, run `php tools/translations` (in the tools image): it writes `languages/wp-app-framework.pot` from `src/` and `assets/` and compiles every `languages/wp-app-framework-{locale}.po` into the `.l10n.php` file next to it, which ships with the framework. Translate the new texts in the PO files and run it again; `FrameworkTranslationsTest` fails while a text is untranslated or a compiled file is out of date.
+- The first instance of a request loads the translation for PHP; the scripts of the editor, the settings page and the meta boxes get it as locale data of `wp.i18n` (`I18n\FrameworkTranslations`).
+
 ## The public API
 
 What consumers may rely on is the **consumer API**: attributes and their parameters, the boot methods, Twig functions, the JavaScript exports of its imports (`@saij/wp-app-framework`, `/view`, `/settings`), the webpack helper and its conventions, the documented script handles, the `release` command and the generator commands, the filter `wp_app_framework/cache/backends/{slug}` and the inputs of `consumer-release.yml`. The [API reference](../api/index.md) lists it: classes marked `@api <group>` (without their `@internal` members), `types/*.d.ts`, the `exports` of `package.json` and the pages on hooks, commands and the workflow. Everything else is internal.

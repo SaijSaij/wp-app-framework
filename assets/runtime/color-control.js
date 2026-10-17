@@ -7,6 +7,7 @@ import {
 } from '@wordpress/components';
 
 import { COLOR_PATTERN, hexColors } from './colors';
+import { __ } from '@wordpress/i18n';
 
 /**
  * The control of a #[Color] value: a compact button with a swatch and the
@@ -34,14 +35,17 @@ export function createColorControl( usePalette ) {
 						<Button
 							className="wp-app-framework-color__toggle"
 							aria-expanded={ isOpen }
-							aria-label={ `${ name }: ${ value || 'no color' }` }
+							aria-label={ `${ name }: ${
+								value || __( 'no color', 'wp-app-framework' )
+							}` }
 							onClick={ onToggle }
 						>
 							<ColorIndicator colorValue={ value || undefined } />
 							<span className="wp-app-framework-color__value">
 								{ named
 									? `${ named.name } (${ value })`
-									: value || 'No color' }
+									: value ||
+										__( 'No color', 'wp-app-framework' ) }
 							</span>
 						</Button>
 					) }

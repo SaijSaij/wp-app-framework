@@ -1,3 +1,5 @@
+import { __, sprintf } from '@wordpress/i18n';
+
 /**
  * Title of a list item: its first plain text field (the first line of a
  * multiline one), else the text of its first rich text field, else the label
@@ -10,7 +12,13 @@
  * @param {string}                           [itemLabel] What one item is, e.g. "Badge".
  * @return {string} Title.
  */
-export function itemTitle( item, index, path, fields, itemLabel = 'Item' ) {
+export function itemTitle(
+	item,
+	index,
+	path,
+	fields,
+	itemLabel = __( 'Item', 'wp-app-framework' )
+) {
 	const prefix = `${ path }.*.`;
 	const candidates = Object.entries( fields )
 		.filter(
@@ -84,9 +92,24 @@ export function listLimits( control, count ) {
 	const missing = min - count;
 	let notice = null;
 	if ( excess > 0 ) {
-		notice = `${ count } items, but at most ${ max } allowed: only the first ${ max } are used. Remove ${ excess }.`;
+		notice = sprintf(
+			/* translators: 1: number of items, 2: largest number allowed, 3: items too many */
+			__(
+				'%1$d items, but at most %2$d allowed: only the first %2$d are used. Remove %3$d.',
+				'wp-app-framework'
+			),
+			count,
+			max,
+			excess
+		);
 	} else if ( missing > 0 ) {
-		notice = `${ count } of at least ${ min } items. Add ${ missing }.`;
+		notice = sprintf(
+			/* translators: 1: number of items, 2: smallest number allowed, 3: items missing */
+			__( '%1$d of at least %2$d items. Add %3$d.', 'wp-app-framework' ),
+			count,
+			min,
+			missing
+		);
 	}
 	return {
 		canAdd: max === null || count < max,

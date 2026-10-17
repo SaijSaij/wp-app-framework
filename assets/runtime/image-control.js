@@ -1,5 +1,6 @@
 import { BaseControl, Button, Flex } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Passes its children through: the settings page needs no upload check, its
@@ -59,7 +60,11 @@ export function createImageControl( {
 						render={ ( { open } ) =>
 							id === null ? (
 								<Button variant="secondary" onClick={ open }>
-									{ `Select ${ name }` }
+									{ sprintf(
+										/* translators: %s: label of an image */
+										__( 'Select %s', 'wp-app-framework' ),
+										name
+									) }
 								</Button>
 							) : (
 								<div className="wp-app-framework-image">
@@ -73,18 +78,38 @@ export function createImageControl( {
 									<Flex justify="flex-start">
 										<Button
 											variant="secondary"
-											aria-label={ `Replace ${ name }` }
+											aria-label={ sprintf(
+												/* translators: %s: label of an image */
+												__(
+													'Replace %s',
+													'wp-app-framework'
+												),
+												name
+											) }
 											onClick={ open }
 										>
-											Replace
+											{ __(
+												'Replace',
+												'wp-app-framework'
+											) }
 										</Button>
 										<Button
 											variant="tertiary"
 											isDestructive
-											aria-label={ `Remove ${ name }` }
+											aria-label={ sprintf(
+												/* translators: %s: label of an image */
+												__(
+													'Remove %s',
+													'wp-app-framework'
+												),
+												name
+											) }
 											onClick={ () => onChange( null ) }
 										>
-											Remove
+											{ __(
+												'Remove',
+												'wp-app-framework'
+											) }
 										</Button>
 									</Flex>
 								</div>

@@ -18,6 +18,7 @@ const PROVIDED_BY_WORDPRESS = [
 	'@wordpress/dom-ready',
 	'@wordpress/editor',
 	'@wordpress/element',
+	'@wordpress/i18n',
 	'@wordpress/media-utils',
 	'@wordpress/notices',
 	'@wordpress/plugins',

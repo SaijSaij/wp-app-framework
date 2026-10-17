@@ -29,6 +29,7 @@ use Saij\WpAppFramework\Editor\EditorAssets;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Editor\RenderController;
 use Saij\WpAppFramework\Hook\HookRegistrar;
+use Saij\WpAppFramework\I18n\FrameworkTranslations;
 use Saij\WpAppFramework\I18n\TranslationLoader;
 use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Lifecycle\LifecycleCollector;
@@ -182,8 +183,10 @@ final readonly class Instance
         $translations = new TranslationLoader($manifest['textDomain'], $manifest['translations'], $this->directory, $development ? $cacheDirectory : null);
         if ($afterInit) {
             $translations->load();
+            FrameworkTranslations::load();
         } else {
             add_action('init', $translations->load(...), 0);
+            add_action('init', FrameworkTranslations::load(...), 0);
         }
         $templateCallables = $manifest['templateCallables'];
         $templateProviders = $manifest['templateProviders'];

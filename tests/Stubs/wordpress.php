@@ -2512,3 +2512,21 @@ function load_textdomain(string $domain, string $mofile, ?string $locale = null)
 
     return true;
 }
+
+function __(string $text, string $domain = 'default'): string
+{
+    return translate($text, $domain);
+}
+
+function esc_html__(string $text, string $domain = 'default'): string
+{
+    return esc_html(translate($text, $domain));
+}
+
+/**
+ * True once load_textdomain() was called for the domain in a test.
+ */
+function is_textdomain_loaded(string $domain): bool
+{
+    return isset($GLOBALS['wp_app_framework_test_textdomains'][$domain]);
+}

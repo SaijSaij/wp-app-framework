@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Editor;
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\I18n\FrameworkTranslations;
 use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Post\MetaBoxes;
@@ -100,6 +101,7 @@ final readonly class EditorAssets
         $handle = self::runtimeHandle($this->slug);
         $version = $this->assets->registerScript($handle, self::RUNTIME);
         wp_add_inline_script($handle, $this->configScript(), 'before');
+        FrameworkTranslations::addTo($handle);
         wp_enqueue_script($handle);
 
         $this->assets->registerStyle($handle, self::RUNTIME, ['wp-components'], $version);

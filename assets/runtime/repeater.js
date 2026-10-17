@@ -10,6 +10,7 @@ import { useSelect } from '@wordpress/data';
 import { memo } from '@wordpress/element';
 
 import { REPEATER_ITEM } from './analyze';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Items of a repeater (blocks whose render() accepts a Repeater): the server
@@ -89,7 +90,7 @@ const PreviewElement = memo( function Preview( {
 			{ ...preview }
 			role="button"
 			tabIndex={ 0 }
-			aria-label="Edit this item"
+			aria-label={ __( 'Edit this item', 'wp-app-framework' ) }
 			onClick={ onActivate }
 			onKeyDown={ ( event ) => {
 				if ( event.key === 'Enter' || event.key === ' ' ) {

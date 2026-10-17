@@ -7,6 +7,7 @@ import {
 	fromLinkControlValue,
 	toLinkControlValue,
 } from './links';
+import { __ } from '@wordpress/i18n';
 
 /**
  * A link value (`Link`) in the block editor (inspector, meta panels of the
@@ -45,12 +46,16 @@ export function LinkValueControl( { control, value, onChange, label } ) {
 						__next40pxDefaultSize
 						aria-expanded={ isOpen }
 						aria-label={ `${ name }: ${
-							url === '' ? 'Add link' : url
+							url === ''
+								? __( 'Add link', 'wp-app-framework' )
+								: url
 						}` }
 						onClick={ onToggle }
 					>
 						<span className="wp-app-framework-link__url">
-							{ url === '' ? 'Add link' : displayUrl( url ) }
+							{ url === ''
+								? __( 'Add link', 'wp-app-framework' )
+								: displayUrl( url ) }
 						</span>
 					</Button>
 				) }

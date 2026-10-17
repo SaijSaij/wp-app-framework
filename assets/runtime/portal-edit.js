@@ -35,6 +35,7 @@ import { BlockMarkup } from './markup';
 import { blankInlineText, stableStringify } from './paths';
 import { parsePreview } from './parse-preview';
 import { PreviewMarkup, usePreview } from './preview';
+import { __ } from '@wordpress/i18n';
 
 /** Root props while new markup loads: the old markup stays, dimmed, without layout change. */
 const LOADING_PROPS = {
@@ -180,7 +181,7 @@ function Toolbar( { buttons, hasView, isPreview, setPreview, buttonProps } ) {
 				<BlockControls group="other">
 					<ToolbarButton
 						icon="visibility"
-						label="Preview"
+						label={ __( 'Preview', 'wp-app-framework' ) }
 						isPressed={ isPreview }
 						onClick={ () => setPreview( ! isPreview ) }
 					/>

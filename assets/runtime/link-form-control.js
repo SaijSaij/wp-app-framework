@@ -22,6 +22,7 @@ import {
 	searchPath,
 	unlink,
 } from './links';
+import { __ } from '@wordpress/i18n';
 
 /** Delay before a typed search is sent. */
 const SEARCH_DELAY = 300;
@@ -139,7 +140,7 @@ export function LinkFormControl( { control, value, onChange, label } ) {
 								onChange( unlink( link, linked?.url ) )
 							}
 						>
-							Unlink
+							{ __( 'Unlink', 'wp-app-framework' ) }
 						</Button>
 					</FlexItem>
 				</Flex>
@@ -148,7 +149,7 @@ export function LinkFormControl( { control, value, onChange, label } ) {
 					<ComboboxControl
 						__next40pxDefaultSize
 						__nextHasNoMarginBottom
-						label="Search content"
+						label={ __( 'Search content', 'wp-app-framework' ) }
 						value={ null }
 						options={ results.map( ( item ) => ( {
 							value: String( item.id ),
@@ -172,7 +173,7 @@ export function LinkFormControl( { control, value, onChange, label } ) {
 					<TextControl
 						__next40pxDefaultSize
 						__nextHasNoMarginBottom
-						label="URL"
+						label={ __( 'URL', 'wp-app-framework' ) }
 						type="url"
 						value={ text }
 						onChange={ change }
@@ -182,7 +183,7 @@ export function LinkFormControl( { control, value, onChange, label } ) {
 			) }
 			<ToggleControl
 				__nextHasNoMarginBottom
-				label="Open in new tab"
+				label={ __( 'Open in new tab', 'wp-app-framework' ) }
 				checked={ link.opensInNewTab }
 				onChange={ ( checked ) =>
 					onChange( {

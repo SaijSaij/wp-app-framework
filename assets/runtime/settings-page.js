@@ -20,6 +20,7 @@ import { ValueControl } from './controls';
 import { createImageControl } from './image-control';
 import { LinkFormControl } from './link-form-control';
 import { editedGroups, groupValue, saveErrorMessage } from './settings-data';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Controls of #[Image] settings (media library of `@wordpress/media-utils`),
@@ -168,7 +169,9 @@ export function SettingsPage( { config, registry } ) {
 			await saveEditedEntityRecord( 'root', 'site', undefined, {
 				throwOnError: true,
 			} );
-			createSuccessNotice( 'Settings saved.', { type: 'snackbar' } );
+			createSuccessNotice( __( 'Settings saved.', 'wp-app-framework' ), {
+				type: 'snackbar',
+			} );
 		} catch ( error ) {
 			createErrorNotice( saveErrorMessage( error, groups ) );
 		}
@@ -218,7 +221,7 @@ export function SettingsPage( { config, registry } ) {
 					accessibleWhenDisabled
 					onClick={ save }
 				>
-					Save
+					{ __( 'Save', 'wp-app-framework' ) }
 				</Button>
 			</div>
 		</div>

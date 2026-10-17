@@ -174,10 +174,10 @@ final readonly class RenderController
         }
         $post = get_post($postId);
         if ($post === null) {
-            return self::error('wp_app_framework_post_not_found', sprintf('Post %d does not exist.', $postId));
+            return self::error('wp_app_framework_post_not_found', sprintf(/* translators: %d: ID of the post */ __('Post %d does not exist.', 'wp-app-framework'), $postId));
         }
         if (!current_user_can('edit_post', $postId) && !is_post_publicly_viewable($post)) {
-            return self::error('wp_app_framework_forbidden', sprintf('You may not edit post %d, and it is not public.', $postId));
+            return self::error('wp_app_framework_forbidden', sprintf(/* translators: %d: ID of the post */ __('You may not edit post %d, and it is not public.', 'wp-app-framework'), $postId));
         }
 
         return ['post' => $post];
@@ -235,7 +235,7 @@ final readonly class RenderController
                 'file' => $exception->getFile(),
                 'line' => $exception->getLine(),
             ])
-            : self::error('wp_app_framework_render_failed', sprintf('Block %s could not be rendered.', $name));
+            : self::error('wp_app_framework_render_failed', sprintf(/* translators: %s: name of the block */ __('Block %s could not be rendered.', 'wp-app-framework'), $name));
     }
 
     /**

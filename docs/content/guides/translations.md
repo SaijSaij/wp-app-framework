@@ -87,6 +87,10 @@ The framework loads the translation for the locale of the request (`determine_lo
 
 Fuzzy and untranslated entries of a PO file are left out, as gettext's `msgfmt` does. Translations WordPress has for the text domain in `wp-content/languages/` – from translate.wordpress.org or a translation plugin – are loaded as well; an entry of your PO file wins.
 
+## Texts of the framework
+
+The controls of the editor, the settings page and the meta boxes – "Add item", "Remove", "No date" – are texts of the framework, with the text domain `wp-app-framework`. The framework brings their translations along, German so far (also for `de_DE_formal`, `de_AT` and `de_CH`), and loads them by itself.
+
 ## Rules
 
 - The `Text Domain` header is required; without it the build fails.

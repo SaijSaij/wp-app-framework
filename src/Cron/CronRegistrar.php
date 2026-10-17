@@ -172,7 +172,8 @@ final readonly class CronRegistrar
             if (is_int($event['interval'])) {
                 $schedules[self::intervalName($this->slug, $event['interval'])] = [
                     'interval' => $event['interval'],
-                    'display' => sprintf('Every %d seconds (%s)', $event['interval'], $this->slug),
+                    /* translators: 1: number of seconds, 2: slug of the theme or plugin */
+                    'display' => sprintf(__('Every %1$d seconds (%2$s)', 'wp-app-framework'), $event['interval'], $this->slug),
                 ];
             }
         }

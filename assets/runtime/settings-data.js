@@ -1,3 +1,5 @@
+import { __, sprintf } from '@wordpress/i18n';
+
 /**
  * Data of the settings page without React: values, edits and error messages.
  */
@@ -48,10 +50,16 @@ export function saveErrorMessage( error, groups ) {
 			return group ? `${ group.title }: ${ text }` : String( text );
 		} );
 		if ( details.length > 0 ) {
-			return `The settings were not saved. ${ details.join( ' ' ) }`;
+			return sprintf(
+				/* translators: %s: the errors */
+				__( 'The settings were not saved. %s', 'wp-app-framework' ),
+				details.join( ' ' )
+			);
 		}
 	}
-	return `The settings were not saved. ${
-		error?.message ?? 'Unknown error.'
-	}`;
+	return sprintf(
+		/* translators: %s: the error */
+		__( 'The settings were not saved. %s', 'wp-app-framework' ),
+		error?.message ?? __( 'Unknown error.', 'wp-app-framework' )
+	);
 }
