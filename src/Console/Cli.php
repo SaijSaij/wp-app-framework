@@ -10,6 +10,7 @@ use Saij\WpAppFramework\Asset\ImageVariants;
 use Saij\WpAppFramework\Cache\CodeGeneration;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Filesystem\AtomicFile;
+use Saij\WpAppFramework\I18n\PotCommand;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\Discovery\Source;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
@@ -37,6 +38,7 @@ use Saij\WpAppFramework\Twig\TemplateVersion;
  *   ({MetaClass}Fields.php); an existing file only with --force.
  * - `table-fields <row class> [--force]` writes the class with #[TableFields] for a row class next to it
  *   ({RowClass}Fields.php); an existing file only with --force. The two are the only commands that write source code.
+ * - `pot` writes languages/{text domain}.pot, the texts of the project to translate (attributes, templates, PHP).
  * - `compile-templates --manifest=<file> --output=<directory>` compiles all
  *   templates as release mode would; internal step of `release`, run with the
  *   prefixed classes of the build copy.
@@ -44,7 +46,7 @@ use Saij\WpAppFramework\Twig\TemplateVersion;
 #[NoService]
 final class Cli
 {
-    private const string USAGE = "Usage:\n  wp-app-framework build [--output=<file>]\n  wp-app-framework release [--output=<zip>] [--expect-version=<version>] [--package-source=<package>=<directory>]...\n  wp-app-framework meta-fields <meta class> [--force]\n  wp-app-framework table-fields <row class> [--force]";
+    private const string USAGE = "Usage:\n  wp-app-framework build [--output=<file>]\n  wp-app-framework release [--output=<zip>] [--expect-version=<version>] [--package-source=<package>=<directory>]...\n  wp-app-framework meta-fields <meta class> [--force]\n  wp-app-framework table-fields <row class> [--force]\n  wp-app-framework pot";
 
     /**
      * @param list<string> $arguments Command line arguments without the script name.
@@ -61,6 +63,7 @@ final class Cli
             'compile-templates' => self::compileTemplates($arguments, $projectDirectory, $stdout, $stderr),
             'meta-fields' => self::fields('meta-fields', $arguments, $projectDirectory, $stdout, $stderr),
             'table-fields' => self::fields('table-fields', $arguments, $projectDirectory, $stdout, $stderr),
+            'pot' => self::pot($arguments, $projectDirectory, $stdout, $stderr),
             default => self::usage($stderr),
         };
     }
@@ -106,6 +109,33 @@ final class Cli
             return 1;
         }
         fwrite($stdout, sprintf("%d templates compiled to %s.\n", $count, $options['output']));
+
+        return 0;
+    }
+
+    /**
+     * `pot`: writes the template of the translations.
+     *
+     * @param list<string> $arguments
+     * @param resource     $stdout
+     * @param resource     $stderr
+     */
+    private static function pot(array $arguments, string $projectDirectory, $stdout, $stderr): int
+    {
+        if ($arguments !== []) {
+            return self::usage($stderr, $arguments[0]);
+        }
+        try {
+            ['file' => $file, 'count' => $count, 'notices' => $notices] = PotCommand::run($projectDirectory);
+        } catch (BuildException $exception) {
+            fwrite($stderr, $exception->getMessage() . "\n");
+
+            return 1;
+        }
+        foreach ($notices as $notice) {
+            fwrite($stdout, $notice . "\n");
+        }
+        fwrite($stdout, sprintf("Written %s (%d texts).\n", $file, $count));
 
         return 0;
     }

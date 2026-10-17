@@ -52,6 +52,25 @@ Templates translate with `__()`, `_x()`, `_n()` and `_nx()`, which take the argu
 
 The result is text; Twig escapes it like any other value. Fill placeholders with Twig's `format` filter.
 
+## The template of the translations
+
+Translators start from a template that lists every text of the project, a POT file. The framework writes it:
+
+```sh
+vendor/bin/wp-app-framework pot
+```
+
+It writes `languages/{text domain}.pot` with:
+
+- the name and the description of the theme or plugin from its header;
+- the texts of attributes (see above), each with the file of the class that declares it;
+- the texts of templates: every call of `__()`, `_x()`, `_n()` and `_nx()` in `src/` whose texts are literal strings – a text built at run time cannot be translated ahead, and the command names such calls;
+- the texts of PHP files: every call of WordPress' translation functions (`__()`, `_e()`, `_x()`, `_n()`, `esc_html__()`, `esc_attr__()` and their siblings) with the text domain of the project and literal strings, in the PSR-4 directories and the boot file (`functions.php` or the main file of the plugin). A comment starting with `translators:` before a call becomes the comment of its text, as with WordPress' own tools.
+
+The command needs no WordPress and no WP-CLI. Run it after changing texts; it replaces the template each time. Create a translation from it with a PO editor such as Poedit (`languages/datebook-de_DE.po`), and update an existing translation with the editor's "Update from POT file": new texts are added, texts that are gone are marked obsolete.
+
+Texts in JavaScript of your editor scripts are not part of the template.
+
 ## Translation files
 
 The translations are PO files in the directory `languages/` of your theme or plugin, named after the text domain and the locale:

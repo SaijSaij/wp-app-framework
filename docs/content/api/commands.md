@@ -8,7 +8,8 @@ The framework installs the command `vendor/bin/wp-app-framework` into your proje
 | `release [--output=<zip>] [--expect-version=<version>] [--package-source=<package>=<directory>]...` | Builds the release ZIP: copies the project, installs the dependencies, prefixes them with Strauss, builds the manifest and the scripts and checks the result. `--expect-version` fails if the version in the header differs; `--package-source` builds with a local checkout of a package. See [Release](../build-and-release/release.md). |
 | `meta-fields <meta class> [--force]` | Writes the class with `#[MetaFields]` for a meta class, next to it. See [Queries](../guides/queries.md#meta-fields-in-queries). |
 | `table-fields <row class> [--force]` | Writes the class with `#[TableFields]` for a row class, next to it. See [Tables](../guides/tables.md#field-classes). |
+| `pot` | Writes `languages/{text domain}.pot`, the template of the translations: the texts of attributes, templates and PHP files. See [Translations](../guides/translations.md#the-template-of-the-translations). |
 
-Options take their value with `=`: `--output=dist/theme.zip`. `meta-fields` and `table-fields` replace an existing file only with `--force`; they are the only commands that write source code.
+Options take their value with `=`: `--output=dist/theme.zip`. `meta-fields` and `table-fields` replace an existing file only with `--force`; they are the only commands that write source code. `pot` replaces the template every time; it is no source code, translators work on the PO files made from it.
 
 Your project usually runs them through Composer scripts, for example `"build-manifest": "wp-app-framework build"` and `"release": "wp-app-framework release"` (see [Getting started](../getting-started.md)).
