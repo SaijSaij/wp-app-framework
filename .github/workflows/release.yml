@@ -53,7 +53,7 @@ jobs:
       repository: webcodingcat/theme-dev-test-child
       ref: main
       framework-ref: ${{ github.ref }}
-      with-theme: webcodingcat/theme-dev-test@v0.3.0
+      with-theme: webcodingcat/theme-dev-test@v0.19.0
       publish: false
 
   gate-starter:
