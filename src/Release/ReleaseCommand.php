@@ -10,7 +10,10 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\Filesystem\AtomicFile;
 use Saij\WpAppFramework\Filesystem\FileTree;
+use Saij\WpAppFramework\I18n\PoFile;
+use Saij\WpAppFramework\I18n\TranslationLoader;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Project\ComposerProject;
@@ -173,6 +176,21 @@ final class ReleaseCommand
         }
         $prefixedTool = [PHP_BINARY, $tool, $prefixed . '/autoload.php', $build];
         $this->process->run([...$prefixedTool, 'build', '--output=' . $build . '/generated/manifest.php'], $build);
+
+        $manifest = Manifest::load($build . '/generated/manifest.php');
+        if ($manifest['textDomain'] !== null && $manifest['translations'] !== []) {
+            $this->step('Compiling translations');
+            foreach ($manifest['translations'] as $locale) {
+                $name = $manifest['textDomain'] . '-' . $locale;
+                $source = $build . '/' . TranslationLoader::DIRECTORY . '/' . $name . '.po';
+                $content = file_get_contents($source);
+                if ($content === false) {
+                    throw new ReleaseException(sprintf('The translation %s cannot be read.', $source));
+                }
+                AtomicFile::write($build . '/generated/' . TranslationLoader::COMPILED_DIRECTORY . '/' . $name . '.l10n.php', PoFile::parse($content, $name . '.po')->toPhp(), createDirectory: true);
+                $this->print(sprintf('%s compiled', $name . '.po'));
+            }
+        }
 
         $this->step('Checking the compiled templates');
         $compiled = $work . '/compiled-templates';

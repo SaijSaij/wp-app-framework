@@ -133,6 +133,8 @@ final class ManifestGenerator
             'kind' => $result->getKind()->value,
             'slug' => $result->getSlug(),
             'namespace' => $result->getNamespace(),
+            'textDomain' => $result->getTextDomain(),
+            'translations' => $result->getLocales(),
             'candidates' => $result->getCandidates(),
             'services' => $result->getServices(),
             'hooks' => $hooks,

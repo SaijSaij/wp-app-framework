@@ -29,6 +29,8 @@ use Saij\WpAppFramework\Editor\EditorAssets;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Editor\RenderController;
 use Saij\WpAppFramework\Hook\HookRegistrar;
+use Saij\WpAppFramework\I18n\TranslationLoader;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Lifecycle\LifecycleCollector;
 use Saij\WpAppFramework\Lifecycle\LifecycleRegistrar;
 use Saij\WpAppFramework\Lifecycle\Uninstaller;
@@ -174,6 +176,15 @@ final readonly class Instance
         }
 
         $renderContext = new RenderContext();
+        // Texts of the instance: its translation for the locale is loaded on `init`, before blocks and post types are
+        // registered; a plugin activated after `init` loads it right away.
+        $translator = new Translator($manifest['textDomain']);
+        $translations = new TranslationLoader($manifest['textDomain'], $manifest['translations'], $this->directory, $development ? $cacheDirectory : null);
+        if ($afterInit) {
+            $translations->load();
+        } else {
+            add_action('init', $translations->load(...), 0);
+        }
         $templateCallables = $manifest['templateCallables'];
         $templateProviders = $manifest['templateProviders'];
         $releaseTemplateVersion = $development ? null : self::releaseTemplateVersion($manifest['templateVersion'], $releaseManifest);
@@ -247,7 +258,7 @@ final readonly class Instance
             : [$this->directory . '/generated/' . ImageVariants::DIRECTORY, $this->directoryUri . '/generated/' . ImageVariants::DIRECTORY];
         $container = new Container(
             $manifest['services'],
-            [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext, PostStore::class => $postStore, ViewData::class => $viewData],
+            [$this->consumer::class => $this->consumer, RenderContext::class => $renderContext, PostStore::class => $postStore, ViewData::class => $viewData, Translator::class => $translator],
             [
                 CacheStore::class => static fn(Container $container): CacheStore => new CacheStore($slug, $backends, $tagVersions, $generation, $container, $tagNames),
                 CronScheduler::class => static fn(): CronScheduler => new CronScheduler(CronRegistrar::taskHooks($slug, $cronTasks)),
@@ -346,12 +357,12 @@ final readonly class Instance
         $scripts = $manifest['scripts'];
         $buildAssets = new BuildAssets($this->slug, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY, $scripts['shared']);
         $viewAssets = new ViewAssets($this->slug, $buildAssets);
-        $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug, $this->slug, $viewAssets, $cache, $viewData);
+        $blockRegistrar = new BlockRegistrar($container, $values, $renderContext, $debug, $this->slug, $viewAssets, $cache, $viewData, $translator);
         add_action('init', static function () use ($blockRegistrar, $blocks, $blockCategories): void {
             $blockRegistrar->register($blocks, $blockCategories);
         });
 
-        $postTypeRegistrar = $this->registerPosts($postStore, $manifest['rewrite'], $prefix . 'rewrite');
+        $postTypeRegistrar = $this->registerPosts($postStore, $manifest['rewrite'], $prefix . 'rewrite', $translator);
         new LifecycleRegistrar(
             $this->kind,
             $this->slug,
@@ -384,6 +395,7 @@ final readonly class Instance
             $postStore,
             $scripts['editorScripts'],
             $scripts['shared'],
+            $translator,
         );
         add_action('enqueue_block_editor_assets', $editorAssets->enqueue(...));
         add_action('enqueue_block_editor_assets', static fn() => $editorAssets->printData($viewData), PHP_INT_MAX);
@@ -412,6 +424,7 @@ final readonly class Instance
                 $this->directory . '/' . self::BUILD_DIRECTORY,
                 $this->directoryUri . '/' . self::BUILD_DIRECTORY,
                 $scripts['shared'],
+                $translator,
             );
             add_action('admin_menu', $settingsPage->addPage(...));
             add_action('admin_enqueue_scripts', $settingsPage->enqueue(...));
@@ -434,16 +447,16 @@ final readonly class Instance
      * @param non-empty-string|null $rewrite Hash of the rewrite-relevant declarations.
      * @param non-empty-string      $option  The option with the hash of the rewrite rules last flushed for.
      */
-    private function registerPosts(PostStore $store, ?string $rewrite, string $option): PostTypeRegistrar
+    private function registerPosts(PostStore $store, ?string $rewrite, string $option, Translator $translator): PostTypeRegistrar
     {
-        $registrar = new PostTypeRegistrar($store, $option, $rewrite);
+        $registrar = new PostTypeRegistrar($store, $option, $rewrite, $translator);
         add_action('init', $registrar->register(...));
         add_action('init', $registrar->flushRewriteRules(...), PHP_INT_MAX);
 
         if ($store->getMeta() === []) {
             return $registrar;
         }
-        $boxes = new MetaBoxes($this->slug, $store, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY);
+        $boxes = new MetaBoxes($this->slug, $store, $this->directory . '/' . self::BUILD_DIRECTORY, $this->directoryUri . '/' . self::BUILD_DIRECTORY, $translator);
         add_action('add_meta_boxes', $boxes->add(...));
         add_action('save_post', $boxes->save(...), 10, 2);
         add_action('admin_notices', $boxes->notices(...));

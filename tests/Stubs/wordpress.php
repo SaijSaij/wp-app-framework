@@ -2453,3 +2453,62 @@ function wp_update_attachment_metadata($attachment_id, $data): int|false
 
     return $attachment_id;
 }
+
+/**
+ * Translations of a test: $GLOBALS['wp_app_framework_test_translations'][$domain][$key], keys as in the translation
+ * files of WordPress (`context\4text`, `singular\0plural`; plural translations joined with `\0`).
+ */
+function translate(string $text, string $domain = 'default'): string
+{
+    return $GLOBALS['wp_app_framework_test_translations'][$domain][$text] ?? $text;
+}
+
+function translate_with_gettext_context(string $text, string $context, string $domain = 'default'): string
+{
+    return $GLOBALS['wp_app_framework_test_translations'][$domain][$context . "\4" . $text] ?? $text;
+}
+
+/**
+ * Plural forms of the test translations as in English: the first for 1, the second otherwise.
+ */
+function _n(string $single, string $plural, int $number, string $domain = 'default'): string
+{
+    $translation = $GLOBALS['wp_app_framework_test_translations'][$domain][$single . "\0" . $plural] ?? null;
+    $forms = $translation === null ? [$single, $plural] : explode("\0", $translation);
+
+    return $number === 1 ? $forms[0] : ($forms[1] ?? $forms[0]);
+}
+
+function _nx(string $single, string $plural, int $number, string $context, string $domain = 'default'): string
+{
+    $translation = $GLOBALS['wp_app_framework_test_translations'][$domain][$context . "\4" . $single . "\0" . $plural] ?? null;
+    $forms = $translation === null ? [$single, $plural] : explode("\0", $translation);
+
+    return $number === 1 ? $forms[0] : ($forms[1] ?? $forms[0]);
+}
+
+/**
+ * The locale of a test: $GLOBALS['wp_app_framework_test_locale'], en_US without.
+ */
+function determine_locale(): string
+{
+    return $GLOBALS['wp_app_framework_test_locale'] ?? 'en_US';
+}
+
+/**
+ * Records loaded translation files in $GLOBALS['wp_app_framework_test_textdomains'][$domain] and adds the messages
+ * of a `.l10n.php` file to the test translations.
+ */
+function load_textdomain(string $domain, string $mofile, ?string $locale = null): bool
+{
+    $GLOBALS['wp_app_framework_test_textdomains'][$domain][] = $mofile;
+    if (!is_file($mofile)) {
+        return false;
+    }
+    $data = include $mofile;
+    foreach (is_array($data) && is_array($data['messages'] ?? null) ? $data['messages'] : [] as $key => $translation) {
+        $GLOBALS['wp_app_framework_test_translations'][$domain][(string) $key] ??= $translation;
+    }
+
+    return true;
+}

@@ -11,6 +11,7 @@ use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Block\BlockRegistrar;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\Editor\RenderContext;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Manifest\ManifestGenerator;
 use Saij\WpAppFramework\Tests\Support\Recorded;
@@ -74,6 +75,20 @@ final class BlockRegistrarTest extends TestCase
         self::assertIsCallable($hero['render_callback']);
         unset($hero['render_callback']);
         self::assertSame($this->manifest['blocks'][1]['args'], $hero);
+    }
+
+    public function testTranslatesTitleDescriptionAndKeywordsWithTheTextDomain(): void
+    {
+        $GLOBALS['wp_app_framework_test_translations'] = ['my-theme' => ['Hero' => 'Großes Banner', 'A hero.' => 'Ein Banner.', 'banner' => 'Kopfbild']];
+        try {
+            new BlockRegistrar(new Container($this->manifest['services']), new ValueFactory($this->manifest['values']), new RenderContext(), false, 'my-theme', new ViewAssets('my-theme', new BuildAssets('my-theme', '/nonexistent/build', 'https://example.test/build')), translator: new Translator('my-theme'))
+                ->register($this->manifest['blocks']);
+        } finally {
+            unset($GLOBALS['wp_app_framework_test_translations']);
+        }
+
+        $hero = Recorded::blocks()['fixture/hero'];
+        self::assertSame(['Großes Banner', 'Ein Banner.', ['Kopfbild']], [$hero['title'] ?? null, $hero['description'] ?? null, $hero['keywords'] ?? null]);
     }
 
     public function testRenderCallbackPassesAttributesContentAndBlockByType(): void

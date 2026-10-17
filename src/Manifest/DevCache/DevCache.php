@@ -259,9 +259,12 @@ final class DevCache
             $trackedFiles = [...$trackedFiles, ...$result->getMarkup()->getAbsoluteFiles()];
         }
 
+        // Directories whose listing matters: the asset directory and the PO files of the translations.
         $assets = [];
-        if ($result->getAssetDirectory() !== null) {
-            $assets[] = [...$this->relative($result->getAssetDirectory()), self::assetListingHash($result->getAssetDirectory())];
+        foreach ([$result->getAssetDirectory(), $result->getLanguageDirectory()] as $directory) {
+            if ($directory !== null) {
+                $assets[] = [...$this->relative($directory), self::assetListingHash($directory)];
+            }
         }
 
         $files = [];

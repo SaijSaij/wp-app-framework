@@ -160,6 +160,18 @@ final readonly class ComposerProject
     }
 
     /**
+     * The text domain of the theme or plugin (`Text Domain:` header), null if the header file or the header is missing.
+     *
+     * @return non-empty-string|null
+     */
+    public function getTextDomain(): ?string
+    {
+        $file = $this->getHeaderFile();
+
+        return is_file($file) ? FileHeader::value($file, 'Text Domain') : null;
+    }
+
+    /**
      * The version of the theme or plugin (`Version:` header), null if the header file or the header is missing.
      *
      * @return non-empty-string|null

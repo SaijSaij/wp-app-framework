@@ -9,6 +9,7 @@ use Saij\WpAppFramework\Api\PluginTemplateFunctions;
 use Saij\WpAppFramework\Asset\AssetTemplateFunctions;
 use Saij\WpAppFramework\Block\BlockTemplateFunctions;
 use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
+use Saij\WpAppFramework\I18n\TranslationTemplateFunctions;
 use Saij\WpAppFramework\Manifest\BuildException;
 use Saij\WpAppFramework\Manifest\BuildResult;
 use Saij\WpAppFramework\Manifest\ManifestBuilder;
@@ -56,6 +57,10 @@ final class TemplateCallableCollectorTest extends TestCase
                 [TemplateCallableKind::Function, 'inner_blocks', EditorTemplateFunctions::class, 'innerBlocks', true],
                 [TemplateCallableKind::Function, 'repeater_item', EditorTemplateFunctions::class, 'repeaterItem', true],
                 [TemplateCallableKind::Function, 'is_editor', EditorTemplateFunctions::class, 'isEditor', false],
+                [TemplateCallableKind::Function, '__', TranslationTemplateFunctions::class, 'translate', false],
+                [TemplateCallableKind::Function, '_x', TranslationTemplateFunctions::class, 'translateWithContext', false],
+                [TemplateCallableKind::Function, '_n', TranslationTemplateFunctions::class, 'translatePlural', false],
+                [TemplateCallableKind::Function, '_nx', TranslationTemplateFunctions::class, 'translatePluralWithContext', false],
                 [TemplateCallableKind::Function, 'post', PostTemplateFunctions::class, 'post', false],
                 [TemplateCallableKind::Function, 'wp_attachment_image', WordPressTemplateFunctions::class, 'attachmentImage', true],
                 [TemplateCallableKind::Function, 'wp_attachment_image_url', WordPressTemplateFunctions::class, 'attachmentImageUrl', false],

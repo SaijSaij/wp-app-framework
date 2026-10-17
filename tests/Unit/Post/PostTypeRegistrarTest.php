@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Tests\Unit\Post;
 
 use PHPUnit\Framework\TestCase;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Post\PostTypeRegistrar;
 use Saij\WpAppFramework\Tests\Support\Posts;
 use Saij\WpAppFramework\Tests\Support\Recorded;
@@ -54,6 +55,20 @@ final class PostTypeRegistrarTest extends TestCase
         $GLOBALS['wp_app_framework_test_caps'] = ['unfiltered_html'];
         self::assertSame('<b>x</b><script>y</script>', $sanitize('<b>x</b><script>y</script>'));
         unset($GLOBALS['wp_app_framework_test_caps']);
+    }
+
+    public function testTranslatesTheLabelsWithTheTextDomain(): void
+    {
+        [$store, $manifest] = Posts::store();
+        $GLOBALS['wp_app_framework_test_translations'] = ['my-theme' => ['Events' => 'Veranstaltungen', 'Genres' => 'Genres (de)']];
+        try {
+            new PostTypeRegistrar($store, 'my_theme_rewrite', $manifest['rewrite'], new Translator('my-theme'))->register();
+        } finally {
+            unset($GLOBALS['wp_app_framework_test_translations']);
+        }
+
+        self::assertSame('Veranstaltungen', ((array) Recorded::postTypes()['fixture_event']['labels'])['name']);
+        self::assertSame('Genres (de)', ((array) Recorded::taxonomies()['fixture_genre'][1]['labels'])['name']);
     }
 
     public function testFlushesTheRewriteRulesWhenTheDeclarationsChange(): void

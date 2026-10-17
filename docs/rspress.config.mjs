@@ -112,6 +112,7 @@ export default defineConfig( {
 							link: '/guides/lifecycle',
 						},
 						{ text: 'Values', link: '/guides/values' },
+						{ text: 'Translations', link: '/guides/translations' },
 						{ text: 'Plugins', link: '/guides/plugins' },
 						{ text: 'Child themes', link: '/guides/child-themes' },
 					],

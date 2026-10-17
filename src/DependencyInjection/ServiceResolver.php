@@ -14,6 +14,7 @@ use Saij\WpAppFramework\Api\PluginApi;
 use Saij\WpAppFramework\Api\ThemeApi;
 use Saij\WpAppFramework\ChildTheme;
 use Saij\WpAppFramework\Editor\RenderContext;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Plugin;
 use Saij\WpAppFramework\Post\PostStore;
 use Saij\WpAppFramework\Project\ComposerProject;
@@ -41,7 +42,7 @@ final class ServiceResolver
      * Services the framework provides at run time for its own classes only: classes of the theme or plugin cannot
      * inject them.
      */
-    private const array INTERNAL = [RenderContext::class, PostStore::class];
+    private const array INTERNAL = [RenderContext::class, PostStore::class, Translator::class];
 
     /** @var array<class-string, array<string, ServiceArgument>> */
     private array $resolved = [];

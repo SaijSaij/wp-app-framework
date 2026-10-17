@@ -58,8 +58,8 @@ final class BlockMarkupValidatorTest extends TestCase
         $project = sys_get_temp_dir() . '/wpaf-markup-' . bin2hex(random_bytes(4));
         mkdir($project . '/src', 0777, true);
         mkdir($project . '/patterns');
-        file_put_contents($project . '/style.css', "/*\nTheme Name: Probe\n*/\n");
-        file_put_contents($project . '/' . basename($project) . '.php', "<?php\n/**\n * Plugin Name: Probe\n */\n");
+        file_put_contents($project . '/style.css', "/*\nTheme Name: Probe\nText Domain: probe\n*/\n");
+        file_put_contents($project . '/' . basename($project) . '.php', "<?php\n/**\n * Plugin Name: Probe\n * Text Domain: probe\n */\n");
         // WordPress registers patterns of themes only.
         file_put_contents($project . '/patterns/broken.php', '<!-- wp:fixture/card {"title":} /-->');
         $loader = ProjectLoader::register($project);

@@ -84,6 +84,8 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
  *     kind: value-of<\Saij\WpAppFramework\Project\ProjectKind>,
  *     slug: non-empty-string|null,
  *     namespace: non-empty-string,
+ *     textDomain: non-empty-string|null,
+ *     translations: list<string>,
  *     parent: non-empty-string|null,
  *     candidates: list<class-string>,
  *     services: array<class-string, array<string, ServiceArgument>>,
@@ -116,7 +118,7 @@ use Saij\WpAppFramework\WpCli\CliCommandDefinition;
 #[NoService]
 final class Manifest
 {
-    public const int FORMAT = 30;
+    public const int FORMAT = 31;
 
     /**
      * @return ManifestData

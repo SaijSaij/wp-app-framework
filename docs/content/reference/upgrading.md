@@ -4,6 +4,10 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.19
+
+**The `Text Domain` header is required.** The framework translates the texts of attributes – titles of blocks, labels of post types and values – with the text domain of the theme or plugin (see [Translations](../guides/translations.md)). A theme or plugin without a `Text Domain` header in `style.css` or its main file is a build error now; add the header, usually with the slug as value. Projects created with wp-app-starter have it.
+
 ## 0.16
 
 **`delete()` moves posts of every type to the trash.** `AbstractPost::delete()` used to call `wp_delete_post()`, which moves only posts and pages to the trash and deletes posts of other types permanently. Now `delete()` moves every post to the trash, so an editor can restore it (see [Posts](../guides/posts.md#working-with-posts)). Code that relied on permanent deletion of its own post types calls `delete(true)`. A post already in the trash, and every post while the trash is disabled, is still deleted permanently.

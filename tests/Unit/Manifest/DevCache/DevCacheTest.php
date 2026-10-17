@@ -23,7 +23,7 @@ final class DevCacheTest extends TestCase
             ['type' => 'wordpress-theme', 'autoload' => ['psr-4' => ['DevCacheProbe\\' => 'src/']], 'extra' => ['wp-app-framework' => ['namespace' => 'probe']]],
             JSON_THROW_ON_ERROR,
         ));
-        file_put_contents($this->theme . '/style.css', "/*\nTheme Name: Probe\n*/\n");
+        file_put_contents($this->theme . '/style.css', "/*\nTheme Name: Probe\nText Domain: probe\n*/\n");
         $this->writeHooks("return 'first';", '');
     }
 
@@ -271,7 +271,7 @@ final class DevCacheTest extends TestCase
 
         // The name of the theme is the title of the settings page.
         $this->probe('load');
-        file_put_contents($this->theme . '/style.css', "/*\nTheme Name: Renamed\n*/\n");
+        file_put_contents($this->theme . '/style.css', "/*\nTheme Name: Renamed\nText Domain: probe\n*/\n");
         touch($this->theme . '/style.css', time() + 10);
         self::assertSame('stale', $this->probe('check'));
     }

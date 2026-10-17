@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Saij\WpAppFramework\Post;
 
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Value\HtmlFilter;
 use Saij\WpAppFramework\Value\Identifiers;
 
@@ -38,19 +39,45 @@ final readonly class PostTypeRegistrar
         private PostStore $store,
         private string $option,
         private ?string $rewrite,
+        private ?Translator $translator = null,
     ) {}
+
+    /**
+     * The labels and the description of a post type or taxonomy, translated with the text domain of the instance: the
+     * build composes the labels as whole sentences ("Add New Event"), which translators translate as such.
+     *
+     * @template T of array<string, mixed>
+     * @param T $args
+     * @return T
+     */
+    private function translateLabels(array $args): array
+    {
+        $translator = $this->translator;
+        if ($translator === null) {
+            return $args;
+        }
+        if (isset($args['labels']) && is_array($args['labels'])) {
+            $args['labels'] = array_map(static fn(mixed $label): mixed => is_string($label) ? $translator->translate($label) : $label, $args['labels']);
+        }
+        if (isset($args['description']) && is_string($args['description'])) {
+            $args['description'] = $translator->translate($args['description']);
+        }
+
+        /** @var T $args */
+        return $args;
+    }
 
     public function register(): void
     {
         $posts = $this->store->getPosts();
         foreach ($posts as $post) {
             if (!$post['builtin'] && $post['args'] !== null) {
-                register_post_type($post['name'], $post['args']);
+                register_post_type($post['name'], $this->translateLabels($post['args']));
             }
         }
         foreach ($this->store->getTaxonomies() as $taxonomy) {
             if (!$taxonomy['builtin'] && $taxonomy['args'] !== null) {
-                register_taxonomy($taxonomy['name'], $taxonomy['postTypes'], $taxonomy['args']);
+                register_taxonomy($taxonomy['name'], $taxonomy['postTypes'], $this->translateLabels($taxonomy['args']));
             }
         }
         foreach ($this->store->getMeta() as $meta) {

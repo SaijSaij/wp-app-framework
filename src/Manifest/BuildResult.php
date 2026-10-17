@@ -86,6 +86,10 @@ final readonly class BuildResult
      * @param bool                                              $stylePreload The stylesheet marks fonts for preloading.
      * @param array<string, string>                             $unloaded     Scanned classes the build does not load, with the
      *                                                                         class outside the project they build on.
+     * @param non-empty-string|null                             $textDomain   The Text Domain header; null for builds of fixtures.
+     * @param list<string>                                      $locales      Locales of the PO files in the language directory.
+     * @param string|null                                       $languageDirectory The consumer's `languages/` directory, also if
+     *                                                                         it does not exist; null for builds of fixtures.
      */
     public function __construct(
         private array $sources,
@@ -122,7 +126,31 @@ final readonly class BuildResult
         private array $notices = [],
         private bool $stylePreload = false,
         private array $unloaded = [],
+        private ?string $textDomain = null,
+        private array $locales = [],
+        private ?string $languageDirectory = null,
     ) {}
+
+    /**
+     * @return non-empty-string|null
+     */
+    public function getTextDomain(): ?string
+    {
+        return $this->textDomain;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getLocales(): array
+    {
+        return $this->locales;
+    }
+
+    public function getLanguageDirectory(): ?string
+    {
+        return $this->languageDirectory;
+    }
 
     /**
      * Scanned classes the build does not load, because they build on a class outside the project, its Composer

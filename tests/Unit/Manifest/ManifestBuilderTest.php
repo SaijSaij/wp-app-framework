@@ -203,6 +203,8 @@ final class ManifestBuilderTest extends TestCase
                 \Saij\WpAppFramework\Cron\CronScheduler::class,
                 \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class,
                 \Saij\WpAppFramework\Editor\RenderContext::class,
+                \Saij\WpAppFramework\I18n\TranslationTemplateFunctions::class,
+                \Saij\WpAppFramework\I18n\Translator::class,
                 \Saij\WpAppFramework\Post\PostStore::class,
                 \Saij\WpAppFramework\Post\PostTemplateFunctions::class,
                 \Saij\WpAppFramework\Theme::class,
@@ -221,6 +223,7 @@ final class ManifestBuilderTest extends TestCase
                     'context' => \Saij\WpAppFramework\Editor\RenderContext::class,
                 ],
                 \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class => ['context' => \Saij\WpAppFramework\Editor\RenderContext::class],
+                \Saij\WpAppFramework\I18n\TranslationTemplateFunctions::class => ['translator' => \Saij\WpAppFramework\I18n\Translator::class],
                 \Saij\WpAppFramework\Post\PostTemplateFunctions::class => [
                     'store' => \Saij\WpAppFramework\Post\PostStore::class,
                     'context' => \Saij\WpAppFramework\Editor\RenderContext::class,

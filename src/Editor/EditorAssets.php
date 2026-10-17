@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Editor;
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Post\MetaBoxes;
 use Saij\WpAppFramework\Post\PostStore;
@@ -67,6 +68,7 @@ final readonly class EditorAssets
         private ?PostStore $posts = null,
         private array $editorScripts = [],
         array $shared = [],
+        private ?Translator $translator = null,
     ) {
         $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri, $shared);
         $this->views = new ViewAssets($slug, $this->assets);
@@ -166,7 +168,7 @@ final readonly class EditorAssets
         $panels = [];
         foreach ($this->posts->getMeta() as $meta) {
             foreach ($meta['postTypes'] as $postClass) {
-                $panels[$posts[$postClass]['name']][] = MetaBoxes::form($meta);
+                $panels[$posts[$postClass]['name']][] = MetaBoxes::form($meta, $this->translator);
             }
         }
 
@@ -198,8 +200,9 @@ final readonly class EditorAssets
         $blocks = [];
         foreach ($this->blocks as $block) {
             $blocks[$block['name']] = [
-                'fields' => (object) $block['editor']['fields'],
-                'controls' => (object) $block['editor']['controls'],
+                // Labels of fields and controls, translated with the text domain of the instance.
+                'fields' => (object) ($this->translator?->translateLabels($block['editor']['fields']) ?? $block['editor']['fields']),
+                'controls' => (object) ($this->translator?->translateLabels($block['editor']['controls']) ?? $block['editor']['controls']),
                 'innerBlocks' => $block['editor']['innerBlocks'],
                 'repeater' => $block['editor']['repeater'],
                 'innerBlockOptions' => (object) $block['editor']['innerBlockOptions'],

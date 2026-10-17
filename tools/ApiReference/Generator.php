@@ -536,7 +536,8 @@ final class Generator
                             'html' => $instance->html,
                             'method' => $method,
                             'class' => $class,
-                            'page' => self::TWIG_PAGES . '/' . $instance->name,
+                            // Rspress leaves out files whose name starts with "_" (partials): __() is on fn__.md.
+                            'page' => self::TWIG_PAGES . '/' . (str_starts_with($instance->name, '_') ? 'fn' : '') . $instance->name,
                             'group' => str_ends_with($class->getName(), 'WordPressTemplateFunctions') ? 'WordPress' : 'Framework',
                         ];
                     }

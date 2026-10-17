@@ -9,6 +9,7 @@ use Saij\WpAppFramework\Cache\CacheStore;
 use Saij\WpAppFramework\DependencyInjection\Container;
 use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\Editor\RenderContext;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Manifest\Manifest;
 use Saij\WpAppFramework\Post\AbstractPost;
 use Saij\WpAppFramework\Table\AbstractRow;
@@ -99,7 +100,43 @@ final readonly class BlockRegistrar
         private ViewAssets $views,
         private ?CacheStore $cache = null,
         private ?ViewData $viewData = null,
+        private ?Translator $translator = null,
     ) {}
+
+    /**
+     * The texts of a block in the editor – title, description, keywords and those of its variations – translated with
+     * the text domain of the instance.
+     *
+     * @template T of array<string, mixed>
+     * @param T $args
+     * @return T
+     */
+    private function translateArgs(array $args): array
+    {
+        $translator = $this->translator;
+        if ($translator === null) {
+            return $args;
+        }
+        $translate = static function (array $entry) use ($translator): array {
+            foreach (['title', 'description'] as $key) {
+                if (isset($entry[$key]) && is_string($entry[$key])) {
+                    $entry[$key] = $translator->translate($entry[$key]);
+                }
+            }
+            if (isset($entry['keywords']) && is_array($entry['keywords'])) {
+                $entry['keywords'] = array_map(static fn(mixed $keyword): mixed => is_string($keyword) ? $translator->translate($keyword) : $keyword, $entry['keywords']);
+            }
+
+            return $entry;
+        };
+        $args = $translate($args);
+        if (isset($args['variations']) && is_array($args['variations'])) {
+            $args['variations'] = array_map(static fn(mixed $variation): mixed => is_array($variation) ? $translate($variation) : $variation, $args['variations']);
+        }
+
+        /** @var T $args */
+        return $args;
+    }
 
     /**
      * @param list<BlockEntry>         $blocks
@@ -108,10 +145,11 @@ final readonly class BlockRegistrar
     public function register(array $blocks, array $categories = []): void
     {
         if ($categories !== []) {
-            add_filter('block_categories_all', static function (array $existing) use ($categories): array {
+            $translator = $this->translator;
+            add_filter('block_categories_all', static function (array $existing) use ($categories, $translator): array {
                 $added = [];
                 foreach ($categories as $category) {
-                    $added[] = ['slug' => $category['slug'], 'title' => $category['title'], 'icon' => $category['icon']];
+                    $added[] = ['slug' => $category['slug'], 'title' => $translator?->translate($category['title']) ?? $category['title'], 'icon' => $category['icon']];
                 }
 
                 return [...$added, ...$existing];
@@ -135,7 +173,7 @@ final readonly class BlockRegistrar
             }
 
             register_block_type($block['name'], [
-                ...$block['args'],
+                ...$this->translateArgs($block['args']),
                 // WP_Block_Type::render() calls render callbacks without the block instance.
                 'render_callback' => function (array $attributes, string $content = '', ?WP_Block $instance = null) use ($block): string {
                     /** @var array<string, mixed> $attributes Prepared by WP_Block_Type::prepare_attributes_for_render(). */

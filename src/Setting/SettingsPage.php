@@ -7,6 +7,7 @@ namespace Saij\WpAppFramework\Setting;
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\Asset\ScriptKind;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Project\ProjectKind;
 use Saij\WpAppFramework\Value\FormAssets;
 
@@ -52,8 +53,18 @@ final class SettingsPage
         string $buildDirectory,
         string $buildUri,
         array $shared = [],
+        private readonly ?Translator $translator = null,
     ) {
         $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri, $shared);
+    }
+
+    /**
+     * The title of the page: the name of the theme or plugin, translated like WordPress translates it in the lists of
+     * themes and plugins.
+     */
+    private function title(): string
+    {
+        return $this->translator?->translate($this->title) ?? $this->title;
     }
 
     /**
@@ -79,15 +90,15 @@ final class SettingsPage
     {
         $render = $this->render(...);
         $this->hookSuffix = $this->kind === ProjectKind::Plugin
-            ? add_options_page($this->title, $this->title, self::CAPABILITY, self::pageSlug($this->slug), $render)
-            : add_theme_page($this->title, $this->title, self::CAPABILITY, self::pageSlug($this->slug), $render);
+            ? add_options_page($this->title(), $this->title(), self::CAPABILITY, self::pageSlug($this->slug), $render)
+            : add_theme_page($this->title(), $this->title(), self::CAPABILITY, self::pageSlug($this->slug), $render);
     }
 
     public function render(): void
     {
         printf(
             '<div class="wrap"><h1>%s</h1><div id="%s"></div></div>',
-            esc_html($this->title),
+            esc_html($this->title()),
             esc_attr(self::pageSlug($this->slug)),
         );
     }
@@ -133,11 +144,11 @@ final class SettingsPage
             $groups[] = [
                 'name' => $group['name'],
                 'option' => $group['option'],
-                'title' => $group['title'],
-                'description' => $group['description'],
+                'title' => $this->translator?->translate($group['title']) ?? $group['title'],
+                'description' => $this->translator?->translate($group['description']) ?? $group['description'],
                 'schema' => $group['schema'],
                 'default' => (object) $group['default'],
-                'controls' => (object) $group['controls'],
+                'controls' => (object) ($this->translator?->translateLabels($group['controls']) ?? $group['controls']),
             ];
         }
 

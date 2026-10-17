@@ -6,6 +6,7 @@ namespace Saij\WpAppFramework\Post;
 
 use Saij\WpAppFramework\Asset\BuildAssets;
 use Saij\WpAppFramework\DependencyInjection\NoService;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Value\FormAssets;
 use WP_Post;
 use WP_Screen;
@@ -43,6 +44,7 @@ final class MetaBoxes
         private readonly PostStore $store,
         string $buildDirectory,
         string $buildUri,
+        private readonly ?Translator $translator = null,
     ) {
         $this->assets = new BuildAssets($slug, $buildDirectory, $buildUri);
         $posts = $store->getPosts();
@@ -75,7 +77,7 @@ final class MetaBoxes
             $meta = $this->store->getMeta()[$class];
             add_meta_box(
                 $this->boxId($meta['name']),
-                $meta['title'],
+                $this->translator?->translate($meta['title']) ?? $meta['title'],
                 fn(WP_Post $post): null => $this->render($post, $class),
                 $postType,
                 'normal',
@@ -141,7 +143,7 @@ final class MetaBoxes
                     delete_post_meta($postId, $field['key']);
                     continue;
                 }
-                $valid = rest_validate_value_from_schema($value, $field['schema'], $meta['title'] . ': ' . $name);
+                $valid = rest_validate_value_from_schema($value, $field['schema'], ($this->translator?->translate($meta['title']) ?? $meta['title']) . ': ' . $name);
                 if (is_wp_error($valid)) {
                     $errors[] = $valid->get_error_message();
                     continue;
@@ -211,7 +213,7 @@ final class MetaBoxes
         $boxes = [];
         foreach ($classes as $class) {
             $meta = $this->store->getMeta()[$class];
-            $boxes[$meta['name']] = self::form($meta);
+            $boxes[$meta['name']] = self::form($meta, $this->translator);
         }
 
         return sprintf(
@@ -222,19 +224,25 @@ final class MetaBoxes
     }
 
     /**
-     * The form of a meta class for the scripts: schema, default and ID flag of each field, and the controls.
+     * The form of a meta class for the scripts: schema, default and ID flag of each field, and the controls; title and
+     * labels translated with the text domain of the instance.
      *
      * @param MetaEntry $meta
      * @return array<string, mixed>
      */
-    public static function form(array $meta): array
+    public static function form(array $meta, ?Translator $translator = null): array
     {
         $fields = [];
         foreach ($meta['fields'] as $name => $field) {
             $fields[$name] = ['key' => $field['key'], 'schema' => $field['schema'], 'default' => $field['default'], 'id' => $field['id']];
         }
 
-        return ['name' => $meta['name'], 'title' => $meta['title'], 'fields' => (object) $fields, 'controls' => (object) $meta['controls']];
+        return [
+            'name' => $meta['name'],
+            'title' => $translator?->translate($meta['title']) ?? $meta['title'],
+            'fields' => (object) $fields,
+            'controls' => (object) ($translator?->translateLabels($meta['controls']) ?? $meta['controls']),
+        ];
     }
 
     private function boxId(string $name): string

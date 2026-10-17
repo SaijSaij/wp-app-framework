@@ -28,6 +28,9 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
 use Saij\WpAppFramework\Editor\RenderContext;
 use Saij\WpAppFramework\Hook\HookCollector;
+use Saij\WpAppFramework\I18n\Languages;
+use Saij\WpAppFramework\I18n\TranslationLoader;
+use Saij\WpAppFramework\I18n\Translator;
 use Saij\WpAppFramework\Lifecycle\LifecycleCollector;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDeclaration;
 use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
@@ -105,6 +108,7 @@ final class ManifestBuilder
      * @param string|null            $projectDirectory  Root of the project: only its Composer autoloader resolves parent
      *                                                  classes outside the sources; null for builds of fixtures (every
      *                                                  registered Composer autoloader).
+     * @param non-empty-string|null  $textDomain        The Text Domain header of the project; null for builds of fixtures.
      */
     public function __construct(
         private readonly array $sources,
@@ -123,6 +127,7 @@ final class ManifestBuilder
         private readonly ?string $pluginDirectory = null,
         private readonly ?string $assetDirectory = null,
         private readonly ?string $projectDirectory = null,
+        private readonly ?string $textDomain = null,
     ) {}
 
     /**
@@ -181,6 +186,7 @@ final class ManifestBuilder
             pluginDirectory: $project->getKind() === ProjectKind::Plugin ? $root : null,
             assetDirectory: $root . '/' . AssetDirectory::NAME,
             projectDirectory: $root,
+            textDomain: $project->getTextDomain(),
         );
     }
 
@@ -213,7 +219,7 @@ final class ManifestBuilder
         // framework's own template functions (post(), asset_url() …).
         $resolver = ServiceResolver::forClasses(
             $classes,
-            [...$this->predefined, PostStore::class, ViewData::class, Assets::class, MediaLibrary::class],
+            [...$this->predefined, PostStore::class, ViewData::class, Assets::class, MediaLibrary::class, Translator::class],
             $this->parent,
             SettingsCollector::groupClasses($classes),
             // Task classes first: a post class keeps its own, more telling description.
@@ -293,8 +299,19 @@ final class ManifestBuilder
         $imageVariants = new ImageVariantCollector();
         $assets = $imageVariants->collect($this->scriptDirectory, AssetCollector::collect($this->assetDirectory));
 
+        $languages = Languages::of($this->projectDirectory === null ? null : $this->projectDirectory . '/' . TranslationLoader::DIRECTORY, $this->textDomain);
+        if ($this->projectDirectory !== null && $this->slug !== null && $this->textDomain === null) {
+            $errors[] = sprintf(
+                'The %s has no Text Domain header (%s); its texts are translated with it, usually its slug: Text Domain: %s',
+                $this->kind->getLabel(),
+                $this->kind->getHeaderFile($this->slug),
+                $this->slug,
+            );
+        }
+
         $errors = [
             ...$errors,
+            ...$languages->errors(),
             ...$hookCollector->errors(),
             ...$cronCollector->errors(),
             ...$lifecycleCollector->errors(),
@@ -359,6 +376,9 @@ final class ManifestBuilder
             stylePreload: $this->assetDirectory !== null && is_file($this->assetDirectory . '/' . StyleAssets::SOURCE)
                 && StyleAssets::hasPreloads($this->assetDirectory . '/' . StyleAssets::SOURCE),
             unloaded: $this->unloaded,
+            textDomain: $this->textDomain,
+            locales: $languages->getLocales(),
+            languageDirectory: $this->projectDirectory === null ? null : $this->projectDirectory . '/' . TranslationLoader::DIRECTORY,
         );
     }
 
