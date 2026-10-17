@@ -5,12 +5,23 @@
  * controls, 8px between related items).
  */
 
+// Values one below the other; colors next to each other where there is room
+// (on the settings page), one below the other in the narrow inspector.
 .wp-app-framework-controls,
 .wp-app-framework-group,
 .wp-app-framework-list__body {
 	display: flex;
-	flex-direction: column;
+	flex-flow: row wrap;
 	gap: 16px;
+
+	> * {
+		flex: 1 1 100%;
+		min-width: 0;
+	}
+
+	> .wp-app-framework-color {
+		flex: 1 1 9rem;
+	}
 }
 
 .wp-app-framework-control {
