@@ -109,7 +109,7 @@ The runtime generates the block inspector from the attribute class. Each type ge
 | `bool` | toggle |
 | `int`, `float` | number |
 | `string` | text; with `#[Url]` a URL field |
-| [`#[Color]`](./values.md#colors) | the colors of the theme's palette and a color picker with transparency |
+| [`#[Color]`](./values.md#colors) | a button with a swatch and the hex value; it opens the colors of the theme's palette and a color picker with transparency |
 | value class | the controls of its values |
 | field with `inspector: true` | text, rich text or image selection |
 | `#[PlainText(inspector: true, multiline: true)]` | text area |

@@ -22,6 +22,17 @@
 	}
 }
 
+// The settings of a group are headings of their own on the page; the labels of
+// the values inside them keep the small style of the inspector.
+$setting: ".wp-app-framework-settings__group > .wp-app-framework-controls > *";
+
+#{$setting} > .components-base-control__label,
+#{$setting} > .components-toggle-control,
+#{$setting}.wp-app-framework-list > :first-child {
+	font-size: 14px;
+	font-weight: 600;
+	text-transform: none;
+}
 
 // The form is wider than the block inspector, whose sidebar limits the preview.
 .wp-app-framework-settings .wp-app-framework-image__preview {

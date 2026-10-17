@@ -116,7 +116,7 @@ A theme or plugin with settings groups gets one settings page. Its title is the 
 
 - Themes and child themes find the page under "Appearance", plugins under "Settings".
 - Only users with `manage_options` can open it.
-- Each group is a form built from the same controls as the block inspector: text, number, toggle, select, rich text, image from the media library, reference search, nested values and the list editor. Several groups appear as tabs; a tab with unsaved changes is marked with "•".
+- Each group is a form built from the same controls as the block inspector: text, number, toggle, select, rich text, image from the media library, color, reference search, nested values and the list editor. The settings of a group are titled like headings, the values inside them like the inspector. Several groups appear as tabs; a tab with unsaved changes is marked with "•".
 - A list item is titled with its first text, a `#[PlainText]` or `#[RichText]` value, else with the item label and its number (see [Lists](./values.md#lists)).
 - One "Save" button saves all groups in a single request through `/wp/v2/settings`. If a value is invalid, WordPress rejects the whole request, the page names the group and the setting, and nothing is saved.
 

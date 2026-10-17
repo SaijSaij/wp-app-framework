@@ -128,3 +128,34 @@
 	white-space: nowrap;
 	font-weight: 500;
 }
+
+// A color: a compact button with swatch and value; the palette opens in a
+// popover.
+.components-button.wp-app-framework-color__toggle {
+	gap: 8px;
+	justify-content: flex-start;
+	width: 100%;
+	height: auto;
+	min-height: 40px;
+	padding: 6px 12px;
+	border: 1px solid #ddd;
+	border-radius: 2px;
+	color: inherit;
+
+	&:hover:not(:disabled) {
+		border-color: var(--wp-admin-theme-color);
+	}
+}
+
+.wp-app-framework-color__value {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-family: monospace;
+}
+
+.wp-app-framework-color__picker {
+	width: 260px;
+	padding: 16px;
+}
+

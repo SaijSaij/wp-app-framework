@@ -114,7 +114,7 @@ final readonly class BannerAttributes
 }
 ```
 
-The value is a hex color – `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`, the last two digits being the transparency – or an empty string for no color. Editors choose it with a color picker: it offers the colors of the theme's palette, a picker for any color with transparency, and "Clear" for no color. The palette is the one of the block editor: the colors changed in the site editor if there are any, else those of `theme.json`. Only its hex colors can be chosen, because a color is stored as hex value, not as the slug of the palette entry. A color picked from the palette therefore stays as it is when the palette changes later.
+The value is a hex color – `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`, the last two digits being the transparency – or an empty string for no color. Editors see a compact button with a swatch and the hex value, like the color controls of the block editor; it opens the colors of the theme's palette, a picker for any color with transparency, and "Clear" for no color. The palette is the one of the block editor: the colors changed in the site editor if there are any, else those of `theme.json`. Only its hex colors can be chosen, because a color is stored as hex value, not as the slug of the palette entry. A color picked from the palette therefore stays as it is when the palette changes later.
 
 The schema of a color has a `pattern`, so WordPress rejects any other value, and the value factory checks it again – also values that were stored without the schema, such as an option changed with `update_option()`. A template can therefore print the color into a `style` attribute:
 
@@ -129,7 +129,7 @@ The schema of a color has a `pattern`, so WordPress rejects any other value, and
 | Type | `string`, never nullable; `''` means no color |
 | Allowed in | block attributes, value classes, lists, settings groups, meta classes, REST arguments |
 | Schema | `string` with a `pattern` that allows the four hex formats and the empty string |
-| Control | the color palette of the theme and a color picker with transparency |
+| Control | a button with swatch and value that opens the color palette of the theme and a color picker with transparency |
 
 The following are build errors:
 
