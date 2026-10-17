@@ -15,8 +15,8 @@ A template name is always the full path relative to `src/`, including the extens
 A service renders a template through the `TemplateRenderer`, which it asks for in its constructor. `render(name, context)` returns the HTML as a string:
 
 ```php
-use Saij\WpAppFramework\Hook\Hook;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 final class Mail
 {
@@ -90,8 +90,8 @@ Directories of older releases are removed by a daily [WP-Cron event](./cron.md),
 Your own Twig functions and filters are methods of services with `#[TemplateFunction]` or `#[TemplateFilter]`:
 
 ```php
-use Saij\WpAppFramework\Twig\TemplateFilter;
-use Saij\WpAppFramework\Twig\TemplateFunction;
+use WebCodingCat\WpAppFramework\Twig\TemplateFilter;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 final class Formatting
 {

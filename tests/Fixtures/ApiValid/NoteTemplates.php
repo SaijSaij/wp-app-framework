@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ApiValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ApiValid;
 
-use Saij\WpAppFramework\Twig\TemplateFilter;
-use Saij\WpAppFramework\Twig\TemplateFunction;
+use WebCodingCat\WpAppFramework\Twig\TemplateFilter;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 final class NoteTemplates
 {

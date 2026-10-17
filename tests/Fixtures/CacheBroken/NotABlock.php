@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CacheBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CacheBroken;
 
-use Saij\WpAppFramework\Cache\Cache;
+use WebCodingCat\WpAppFramework\Cache\Cache;
 
 #[Cache(ttl: 60)]
 final class NotABlock

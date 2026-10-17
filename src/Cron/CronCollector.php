@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cron;
+namespace WebCodingCat\WpAppFramework\Cron;
 
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Manifest\EntryPointInspector;
-use Saij\WpAppFramework\Post\AbstractPost;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Manifest\EntryPointInspector;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 
 /**
  * Collects and validates `#[CronEvent]` and `#[CronTask]` methods during the

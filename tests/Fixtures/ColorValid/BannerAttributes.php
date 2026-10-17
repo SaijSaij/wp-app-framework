@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ColorValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ColorValid;
 
-use Saij\WpAppFramework\Value\Color;
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\Color;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Value\ListOf;
 
 final readonly class BannerAttributes
 {

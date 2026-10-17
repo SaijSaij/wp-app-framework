@@ -8,10 +8,10 @@ declare(strict_types=1);
 // languages/wp-app-framework-{locale}.po into the .l10n.php file next to it, which ships with the framework.
 // Run it after changing texts or translations: php tools/translations
 
-use Saij\WpAppFramework\I18n\FrameworkTranslations;
-use Saij\WpAppFramework\I18n\PhpTexts;
-use Saij\WpAppFramework\I18n\PoFile;
-use Saij\WpAppFramework\I18n\PotFile;
+use WebCodingCat\WpAppFramework\I18n\FrameworkTranslations;
+use WebCodingCat\WpAppFramework\I18n\PhpTexts;
+use WebCodingCat\WpAppFramework\I18n\PoFile;
+use WebCodingCat\WpAppFramework\I18n\PotFile;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ContainerBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerBroken;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
 
 #[Block('peeker', title: 'Peeker', category: BlockCategory::Text, usesContext: ['fixture/box/size'])]
 final class Peeker

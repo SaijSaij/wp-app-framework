@@ -71,8 +71,8 @@ The webpack helper finds the marked rules, takes the first `woff2` file of each 
 Some content needs an attachment rather than a file of the theme: an `#[Image]` field stores the ID of an attachment, and so does content a theme creates on activation. The service `MediaLibrary` imports an asset into the media library and returns the ID of its attachment:
 
 ```php
-use Saij\WpAppFramework\Asset\MediaLibrary;
-use Saij\WpAppFramework\Lifecycle\OnActivation;
+use WebCodingCat\WpAppFramework\Asset\MediaLibrary;
+use WebCodingCat\WpAppFramework\Lifecycle\OnActivation;
 
 final readonly class StarterContent
 {
@@ -94,7 +94,7 @@ The import is idempotent per site: an asset that was imported with the same cont
 The service `Assets` offers the same as methods, for a pattern written in PHP, a REST response or a mail. Inject it like any service:
 
 ```php
-use Saij\WpAppFramework\Asset\Assets;
+use WebCodingCat\WpAppFramework\Asset\Assets;
 
 final readonly class Newsletter
 {

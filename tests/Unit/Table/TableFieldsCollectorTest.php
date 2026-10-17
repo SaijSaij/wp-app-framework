@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Table;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Table;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 /**
  * Classes with #[TableFields] in the build: every method that returns a field is checked against its column.
@@ -20,8 +20,8 @@ final class TableFieldsCollectorTest extends TestCase
             new ManifestBuilder([ManifestBuilderTest::fixture('TableFieldsBroken'), ManifestBuilder::frameworkSource()], slug: 'my-theme')->build();
             self::fail('The build must fail.');
         } catch (BuildException $exception) {
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\TableFieldsBroken\\';
-            $fw = 'Saij\\WpAppFramework\\';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\TableFieldsBroken\\';
+            $fw = 'WebCodingCat\\WpAppFramework\\';
             self::assertSame([
                 "{$ns}EntryFields::wrongClass(): {$ns}Entry::\$seats needs {$fw}Query\\Field\\IntField, {$fw}Query\\Field\\StringField given.",
                 "{$ns}EntryFields::notNullable(): {$ns}Entry::\$seats needs {$fw}Query\\Field\\IntField, {$fw}Query\\Field\\NullableIntField given.",

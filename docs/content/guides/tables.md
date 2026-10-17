@@ -22,7 +22,7 @@ Use posts for content that people edit, link to or translate; use a table for da
 A row class extends `AbstractRow` and carries `#[Table]` with the name of the table. Its promoted constructor parameters are the columns:
 
 ```php
-use Saij\WpAppFramework\Table\{AbstractRow, Table, PrimaryKey, Indexed, Length, Text};
+use WebCodingCat\WpAppFramework\Table\{AbstractRow, Table, PrimaryKey, Indexed, Length, Text};
 
 #[Table('log')]
 final class LogEntry extends AbstractRow

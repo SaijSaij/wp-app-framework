@@ -1,6 +1,6 @@
 /**
  * Base classes of view scripts (front-end scripts of blocks, block supports and
- * the whole document), imported from `@saij/wp-app-framework/view`.
+ * the whole document), imported from `@webcodingcat/wp-app-framework/view`.
  *
  * The view runtime creates one instance per root element of a block and calls
  * mount(); when the block goes away (editor preview) it calls unmount() and

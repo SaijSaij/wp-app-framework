@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Block;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Block;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\BlockCollector;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Block\Support\SupportCollector;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\BlockValid;
-use Saij\WpAppFramework\Tests\Support\Reflection;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
+use WebCodingCat\WpAppFramework\Block\BlockCollector;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Block\Support\SupportCollector;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\BlockValid;
+use WebCodingCat\WpAppFramework\Tests\Support\Reflection;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 
 final class BlockCollectorTest extends TestCase
 {
@@ -166,7 +166,7 @@ final class BlockCollectorTest extends TestCase
             new ManifestBuilder([ManifestBuilderTest::fixture('BlockBroken')])->build();
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\BlockBroken\\';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\BlockBroken\\';
             $a = "parameter \$%s of {$ns}BrokenAttributes::__construct()";
             $supported = 'use int, float, string, bool, a backed enum, a value class or array with #[ListOf]';
             $render = 'is not supported: render() accepts the block attribute class, string $content or Repeater $repeater, WP_Block $block, each at most once and not nullable, values of ancestors marked with #[Context] and the current item of a repeater marked with #[Item]; inject services through the constructor.';

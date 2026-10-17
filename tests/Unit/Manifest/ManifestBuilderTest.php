@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Manifest;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Manifest;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\Discovery\Source;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\ExternalParent;
-use Saij\WpAppFramework\Tests\Fixtures\Valid;
-use Saij\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\Discovery\Source;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ExternalParent;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\Valid;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
 
 final class ManifestBuilderTest extends TestCase
 {
     public static function fixture(string $name): Source
     {
         return new Source(
-            'Saij\\WpAppFramework\\Tests\\Fixtures\\' . $name . '\\',
+            'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\' . $name . '\\',
             (string) realpath(__DIR__ . '/../../Fixtures/' . $name),
         );
     }
@@ -91,14 +91,14 @@ final class ManifestBuilderTest extends TestCase
             new ManifestBuilder([self::fixture('Broken')])->build();
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\Broken\\';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\Broken\\';
             $expected = [
                 "Cannot autowire parameter \$logger of {$ns}InterfaceDependent::__construct(): {$ns}LoggerLike is an interface and cannot be injected (aliases are not supported).",
                 "Cannot autowire parameter \$excluded of {$ns}ExcludedDependent::__construct(): {$ns}Excluded is marked #[NoService] and cannot be injected.",
                 "Cannot autowire parameter \$name of {$ns}ScalarDependent::__construct(): type string is not a service and the parameter has no default value.",
                 "Cannot autowire parameter \$storage of {$ns}OutsideDependent::__construct(): ArrayObject is outside the scanned PSR-4 directories of the project and the framework and cannot be injected.",
-                "Cannot autowire parameter \$context of {$ns}InternalDependent::__construct(): Saij\\WpAppFramework\\Editor\\RenderContext is internal to the framework and cannot be injected into classes of a theme or plugin.",
-                "Cannot autowire parameter \$posts of {$ns}InternalDependent::__construct(): Saij\\WpAppFramework\\Post\\PostStore is internal to the framework and cannot be injected into classes of a theme or plugin.",
+                "Cannot autowire parameter \$context of {$ns}InternalDependent::__construct(): WebCodingCat\\WpAppFramework\\Editor\\RenderContext is internal to the framework and cannot be injected into classes of a theme or plugin.",
+                "Cannot autowire parameter \$posts of {$ns}InternalDependent::__construct(): WebCodingCat\\WpAppFramework\\Post\\PostStore is internal to the framework and cannot be injected into classes of a theme or plugin.",
                 "Circular dependency: {$ns}CycleA -> {$ns}CycleB -> {$ns}CycleA",
                 "{$ns}ExcludedWithHook::run() has #[Hook], but {$ns}ExcludedWithHook is marked #[NoService] and therefore not a service.",
                 "{$ns}BrokenHooks::missingReturnType() has #[Hook] and needs a declared return type: void for an action, the filtered type for a filter.",
@@ -116,7 +116,7 @@ final class ManifestBuilderTest extends TestCase
     public function testFileNotDeclaringItsPsr4ClassIsAnError(): void
     {
         $this->expectException(BuildException::class);
-        $this->expectExceptionMessage('Declared.php does not declare Saij\\WpAppFramework\\Tests\\Fixtures\\Mismatch\\Declared as expected by PSR-4.');
+        $this->expectExceptionMessage('Declared.php does not declare WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\Mismatch\\Declared as expected by PSR-4.');
 
         new ManifestBuilder([self::fixture('Mismatch')])->build();
     }
@@ -155,7 +155,7 @@ final class ManifestBuilderTest extends TestCase
             new ManifestBuilder([self::fixture('ExternalParentBroken')])->build();
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\ExternalParentBroken\\';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\ExternalParentBroken\\';
             self::assertSame([
                 "{$ns}Widget has #[Hook], but the build does not load it: it builds on WP_Widget, which is outside the project, its Composer dependencies and PHP. Framework attributes have no effect there; move them to a service that creates the class.",
                 "Cannot autowire parameter \$widget of {$ns}NeedsWidget::__construct(): {$ns}Widget is a class building on WP_Widget, which is outside the project, its Composer dependencies and PHP, and therefore not loaded by the build and cannot be injected; create it yourself where you need it (new Widget(…) in a hook, for example).",
@@ -173,7 +173,7 @@ final class ManifestBuilderTest extends TestCase
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
             self::assertSame([
-                'The build needs Saij\\WpAppFramework\\Tests\\Fixtures\\ExternalParentAccess\\Widget, but does not load it: it builds on WP_Widget, which is outside the project, its Composer dependencies and PHP. Use it only in code that runs in WordPress, not as a type or attribute argument the build reads.',
+                'The build needs WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\ExternalParentAccess\\Widget, but does not load it: it builds on WP_Widget, which is outside the project, its Composer dependencies and PHP. Use it only in code that runs in WordPress, not as a type or attribute argument the build reads.',
             ], $exception->getErrors());
         }
         self::assertSame($autoloaders, spl_autoload_functions(), 'The guard is removed after the build.');
@@ -183,53 +183,53 @@ final class ManifestBuilderTest extends TestCase
     {
         $source = ManifestBuilder::frameworkSource();
 
-        self::assertSame('Saij\\WpAppFramework\\', $source->getPrefix());
+        self::assertSame('WebCodingCat\\WpAppFramework\\', $source->getPrefix());
         self::assertSame(realpath(__DIR__ . '/../../../src'), $source->getDirectory());
     }
 
     public function testFrameworkServicesAreThePredefinedOnesAndItsTemplateFunctions(): void
     {
-        $predefined = [\Saij\WpAppFramework\Theme::class, \Saij\WpAppFramework\Twig\TemplateRenderer::class, \Saij\WpAppFramework\Editor\RenderContext::class, \Saij\WpAppFramework\Cache\CacheStore::class, \Saij\WpAppFramework\Cron\CronScheduler::class];
+        $predefined = [\WebCodingCat\WpAppFramework\Theme::class, \WebCodingCat\WpAppFramework\Twig\TemplateRenderer::class, \WebCodingCat\WpAppFramework\Editor\RenderContext::class, \WebCodingCat\WpAppFramework\Cache\CacheStore::class, \WebCodingCat\WpAppFramework\Cron\CronScheduler::class];
         $result = new ManifestBuilder([ManifestBuilder::frameworkSource()], [], $predefined)->build();
 
         self::assertSame(
             [
-                \Saij\WpAppFramework\Api\PluginTemplateFunctions::class,
-                \Saij\WpAppFramework\Asset\AssetTemplateFunctions::class,
-                \Saij\WpAppFramework\Asset\Assets::class,
-                \Saij\WpAppFramework\Asset\MediaLibrary::class,
-                \Saij\WpAppFramework\Block\BlockTemplateFunctions::class,
-                \Saij\WpAppFramework\Cache\CacheStore::class,
-                \Saij\WpAppFramework\Cron\CronScheduler::class,
-                \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class,
-                \Saij\WpAppFramework\Editor\RenderContext::class,
-                \Saij\WpAppFramework\I18n\TranslationTemplateFunctions::class,
-                \Saij\WpAppFramework\I18n\Translator::class,
-                \Saij\WpAppFramework\Post\PostStore::class,
-                \Saij\WpAppFramework\Post\PostTemplateFunctions::class,
-                \Saij\WpAppFramework\Theme::class,
-                \Saij\WpAppFramework\Twig\TemplateRenderer::class,
-                \Saij\WpAppFramework\Twig\WordPressTemplateFunctions::class,
-                \Saij\WpAppFramework\Value\LinkTemplateFunctions::class,
-                \Saij\WpAppFramework\View\ViewData::class,
+                \WebCodingCat\WpAppFramework\Api\PluginTemplateFunctions::class,
+                \WebCodingCat\WpAppFramework\Asset\AssetTemplateFunctions::class,
+                \WebCodingCat\WpAppFramework\Asset\Assets::class,
+                \WebCodingCat\WpAppFramework\Asset\MediaLibrary::class,
+                \WebCodingCat\WpAppFramework\Block\BlockTemplateFunctions::class,
+                \WebCodingCat\WpAppFramework\Cache\CacheStore::class,
+                \WebCodingCat\WpAppFramework\Cron\CronScheduler::class,
+                \WebCodingCat\WpAppFramework\Editor\EditorTemplateFunctions::class,
+                \WebCodingCat\WpAppFramework\Editor\RenderContext::class,
+                \WebCodingCat\WpAppFramework\I18n\TranslationTemplateFunctions::class,
+                \WebCodingCat\WpAppFramework\I18n\Translator::class,
+                \WebCodingCat\WpAppFramework\Post\PostStore::class,
+                \WebCodingCat\WpAppFramework\Post\PostTemplateFunctions::class,
+                \WebCodingCat\WpAppFramework\Theme::class,
+                \WebCodingCat\WpAppFramework\Twig\TemplateRenderer::class,
+                \WebCodingCat\WpAppFramework\Twig\WordPressTemplateFunctions::class,
+                \WebCodingCat\WpAppFramework\Value\LinkTemplateFunctions::class,
+                \WebCodingCat\WpAppFramework\View\ViewData::class,
             ],
             $result->getCandidates(),
         );
         self::assertSame(
             [
-                \Saij\WpAppFramework\Api\PluginTemplateFunctions::class => [],
-                \Saij\WpAppFramework\Asset\AssetTemplateFunctions::class => ['assets' => \Saij\WpAppFramework\Asset\Assets::class],
-                \Saij\WpAppFramework\Block\BlockTemplateFunctions::class => [
-                    'context' => \Saij\WpAppFramework\Editor\RenderContext::class,
+                \WebCodingCat\WpAppFramework\Api\PluginTemplateFunctions::class => [],
+                \WebCodingCat\WpAppFramework\Asset\AssetTemplateFunctions::class => ['assets' => \WebCodingCat\WpAppFramework\Asset\Assets::class],
+                \WebCodingCat\WpAppFramework\Block\BlockTemplateFunctions::class => [
+                    'context' => \WebCodingCat\WpAppFramework\Editor\RenderContext::class,
                 ],
-                \Saij\WpAppFramework\Editor\EditorTemplateFunctions::class => ['context' => \Saij\WpAppFramework\Editor\RenderContext::class],
-                \Saij\WpAppFramework\I18n\TranslationTemplateFunctions::class => ['translator' => \Saij\WpAppFramework\I18n\Translator::class],
-                \Saij\WpAppFramework\Post\PostTemplateFunctions::class => [
-                    'store' => \Saij\WpAppFramework\Post\PostStore::class,
-                    'context' => \Saij\WpAppFramework\Editor\RenderContext::class,
+                \WebCodingCat\WpAppFramework\Editor\EditorTemplateFunctions::class => ['context' => \WebCodingCat\WpAppFramework\Editor\RenderContext::class],
+                \WebCodingCat\WpAppFramework\I18n\TranslationTemplateFunctions::class => ['translator' => \WebCodingCat\WpAppFramework\I18n\Translator::class],
+                \WebCodingCat\WpAppFramework\Post\PostTemplateFunctions::class => [
+                    'store' => \WebCodingCat\WpAppFramework\Post\PostStore::class,
+                    'context' => \WebCodingCat\WpAppFramework\Editor\RenderContext::class,
                 ],
-                \Saij\WpAppFramework\Twig\WordPressTemplateFunctions::class => ['context' => \Saij\WpAppFramework\Editor\RenderContext::class],
-                \Saij\WpAppFramework\Value\LinkTemplateFunctions::class => [],
+                \WebCodingCat\WpAppFramework\Twig\WordPressTemplateFunctions::class => ['context' => \WebCodingCat\WpAppFramework\Editor\RenderContext::class],
+                \WebCodingCat\WpAppFramework\Value\LinkTemplateFunctions::class => [],
             ],
             $result->getServices(),
         );

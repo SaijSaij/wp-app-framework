@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Manifest\Discovery;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Manifest\Discovery;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\Discovery\ClassDeclaration;
+use WebCodingCat\WpAppFramework\Manifest\Discovery\ClassDeclaration;
 
 final class ClassDeclarationTest extends TestCase
 {
@@ -37,12 +37,12 @@ final class ClassDeclarationTest extends TestCase
             [],
         ];
         yield 'attributes with nested arguments' => [
-            '<?php namespace App; use Saij\WpAppFramework\Hook\Hook; use Lib\Attr;
+            '<?php namespace App; use WebCodingCat\WpAppFramework\Hook\Hook; use Lib\Attr;
             #[\AllowDynamicProperties, Attr([1, 2], new Value(#[Inner] fn() => 1))]
             final class C { #[Hook("init"), \Override] public function f(#[Param] int $a): void {} }',
             'App\C',
             [],
-            ['AllowDynamicProperties', 'Lib\Attr', 'App\Inner', 'Saij\WpAppFramework\Hook\Hook', 'Override', 'App\Param'],
+            ['AllowDynamicProperties', 'Lib\Attr', 'App\Inner', 'WebCodingCat\WpAppFramework\Hook\Hook', 'Override', 'App\Param'],
         ];
     }
 

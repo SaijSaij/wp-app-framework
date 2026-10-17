@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
 use Closure;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Query\Field\Field;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Query\Field\Field;
 
 /**
  * The build check of a field class (#[MetaFields], #[TableFields]): every public static method that returns a field

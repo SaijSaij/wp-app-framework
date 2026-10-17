@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\WpCliValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliValid;
 
 enum ImportMode: string
 {

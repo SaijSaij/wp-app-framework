@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Rest;
+namespace WebCodingCat\WpAppFramework\Rest;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * A validated `#[RestRoute]` method.
  *
- * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type Value from \WebCodingCat\WpAppFramework\Value\ValueFactory
  * @phpstan-type RestArgument array{param: string, kind: 'service', class: class-string}
  *     |array{param: string, kind: 'request'}
  *     |array{param: string, kind: 'url'|'param', value: Value}
  * @phpstan-type RestPermission array{type: 'public'}
  *     |array{type: 'capability', capability: string}
  *     |array{type: 'callback', class: class-string, method: string, arguments: list<RestArgument>}
- * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
+ * @phpstan-import-type CacheEntry from \WebCodingCat\WpAppFramework\Cache\CachePolicy
  */
 #[NoService]
 final readonly class RestRouteDefinition

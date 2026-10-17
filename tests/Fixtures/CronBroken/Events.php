@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CronBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CronBroken;
 
-use Saij\WpAppFramework\Cron\CronEvent;
-use Saij\WpAppFramework\Cron\CronInterval;
-use Saij\WpAppFramework\Cron\CronTask;
-use Saij\WpAppFramework\Cron\Weekday;
+use WebCodingCat\WpAppFramework\Cron\CronEvent;
+use WebCodingCat\WpAppFramework\Cron\CronInterval;
+use WebCodingCat\WpAppFramework\Cron\CronTask;
+use WebCodingCat\WpAppFramework\Cron\Weekday;
 
 /**
  * Every build error of #[CronEvent] (and of a method with both attributes).

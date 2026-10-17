@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ExternalParent;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ExternalParent;
 
-use Saij\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Hook\Hook;
 
 // Creates the widget itself, when WordPress is loaded.
 final class Widgets

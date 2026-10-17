@@ -198,8 +198,8 @@ jobs:
           bin/tools -e COMPOSER_AUTH -e FRAMEWORK -w "${SLUG}" sh -euc "
             composer install --no-interaction --no-progress
             if [ \"\${FRAMEWORK}\" = true ]; then
-              rm -r vendor/saij/wp-app-framework
-              ln -s ../../../wp-app-framework vendor/saij/wp-app-framework
+              rm -r vendor/webcodingcat/wp-app-framework
+              ln -s ../../../wp-app-framework vendor/webcodingcat/wp-app-framework
             fi
             if composer run-script --list | grep -q '^  lint '; then composer lint; else echo 'No composer lint script.'; fi
             npm ci --no-audit --no-fund
@@ -220,7 +220,7 @@ jobs:
             arguments+=("--expect-version=${VERSION}")
           fi
           if [[ "${FRAMEWORK}" == "true" ]]; then
-            arguments+=("--package-source=saij/wp-app-framework=../wp-app-framework")
+            arguments+=("--package-source=webcodingcat/wp-app-framework=../wp-app-framework")
           fi
           bin/tools -e COMPOSER_AUTH -w "${SLUG}" vendor/bin/wp-app-framework release "${arguments[@]}"
           zip="$(find "../${SLUG}/dist" -maxdepth 1 -name "${SLUG}-*.zip" -print -quit)"

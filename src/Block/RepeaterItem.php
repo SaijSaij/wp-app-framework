@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace WebCodingCat\WpAppFramework\Block;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * One item of a repeater (`Repeater`): the inner blocks rendered for a post, term, comment, user or row. Print the

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Query;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Query;
 
 use DateTimeImmutable;
 use DateTimeZone;
@@ -13,42 +13,42 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
-use Saij\WpAppFramework\Cache\Backend\FileBackend;
-use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\Cache\CodeGeneration;
-use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
-use Saij\WpAppFramework\Cache\Tag\TaxonomyTag;
-use Saij\WpAppFramework\Cache\TagNames;
-use Saij\WpAppFramework\Cache\TagVersions;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Post\Category;
-use Saij\WpAppFramework\Post\Page;
-use Saij\WpAppFramework\Post\Post;
-use Saij\WpAppFramework\Post\PostFormat;
-use Saij\WpAppFramework\Post\PostStatus;
-use Saij\WpAppFramework\Query\All;
-use Saij\WpAppFramework\Query\Any;
-use Saij\WpAppFramework\Query\Comparison;
-use Saij\WpAppFramework\Query\Condition;
-use Saij\WpAppFramework\Query\Direction;
-use Saij\WpAppFramework\Query\DiscussionStatus;
-use Saij\WpAppFramework\Query\Field\StringField;
-use Saij\WpAppFramework\Query\MetaOrderClauses;
-use Saij\WpAppFramework\Query\PostOrder;
-use Saij\WpAppFramework\Query\PostQuery;
-use Saij\WpAppFramework\Query\SearchColumn;
-use Saij\WpAppFramework\Query\Terms;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Density;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Event;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetails;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetailsFields;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\ExtrasFields;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Genre;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Venue;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Support\Posts;
-use Saij\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Cache\Backend\FileBackend;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\Cache\CodeGeneration;
+use WebCodingCat\WpAppFramework\Cache\Tag\PostTypeTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\TaxonomyTag;
+use WebCodingCat\WpAppFramework\Cache\TagNames;
+use WebCodingCat\WpAppFramework\Cache\TagVersions;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Post\Category;
+use WebCodingCat\WpAppFramework\Post\Page;
+use WebCodingCat\WpAppFramework\Post\Post;
+use WebCodingCat\WpAppFramework\Post\PostFormat;
+use WebCodingCat\WpAppFramework\Post\PostStatus;
+use WebCodingCat\WpAppFramework\Query\All;
+use WebCodingCat\WpAppFramework\Query\Any;
+use WebCodingCat\WpAppFramework\Query\Comparison;
+use WebCodingCat\WpAppFramework\Query\Condition;
+use WebCodingCat\WpAppFramework\Query\Direction;
+use WebCodingCat\WpAppFramework\Query\DiscussionStatus;
+use WebCodingCat\WpAppFramework\Query\Field\StringField;
+use WebCodingCat\WpAppFramework\Query\MetaOrderClauses;
+use WebCodingCat\WpAppFramework\Query\PostOrder;
+use WebCodingCat\WpAppFramework\Query\PostQuery;
+use WebCodingCat\WpAppFramework\Query\SearchColumn;
+use WebCodingCat\WpAppFramework\Query\Terms;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\Density;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\Event;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetails;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetailsFields;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\ExtrasFields;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\Genre;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\Venue;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Support\Posts;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
 use WP_Term;
 
 /**
@@ -242,7 +242,7 @@ final class PostQueryTest extends TestCase
             self::fail('A field class of another type.');
         } catch (LogicException $exception) {
             self::assertSame(
-                sprintf('%s::$capacity needs %s, %s given; check the class with #[MetaFields] (rebuild the manifest after code changes).', EventDetails::class, \Saij\WpAppFramework\Query\Field\IntField::class, StringField::class),
+                sprintf('%s::$capacity needs %s, %s given; check the class with #[MetaFields] (rebuild the manifest after code changes).', EventDetails::class, \WebCodingCat\WpAppFramework\Query\Field\IntField::class, StringField::class),
                 $exception->getMessage(),
             );
         }

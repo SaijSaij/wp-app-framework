@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace WebCodingCat\WpAppFramework\Block;
 
 use BackedEnum;
 use LogicException;
@@ -11,19 +11,19 @@ use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
-use Saij\WpAppFramework\Asset\ScriptKind;
-use Saij\WpAppFramework\Block\Markup\BlockMarkupValidator;
-use Saij\WpAppFramework\Block\Support\SupportCollector;
-use Saij\WpAppFramework\Block\Support\UseSupport;
-use Saij\WpAppFramework\Cache\CacheCollector;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Manifest\EntryPointInspector;
-use Saij\WpAppFramework\Post\AbstractPost;
-use Saij\WpAppFramework\Table\AbstractRow;
-use Saij\WpAppFramework\Table\TableNames;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
+use WebCodingCat\WpAppFramework\Asset\ScriptKind;
+use WebCodingCat\WpAppFramework\Block\Markup\BlockMarkupValidator;
+use WebCodingCat\WpAppFramework\Block\Support\SupportCollector;
+use WebCodingCat\WpAppFramework\Block\Support\UseSupport;
+use WebCodingCat\WpAppFramework\Cache\CacheCollector;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Manifest\EntryPointInspector;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Table\AbstractRow;
+use WebCodingCat\WpAppFramework\Table\TableNames;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 
 /**
  * Collects and validates `#[Block]` classes during the build, derives the
@@ -40,7 +40,7 @@ use Throwable;
  * @phpstan-import-type Control from ValueSchemaBuilder
  * @phpstan-import-type EditorField from ValueSchemaBuilder
  * @phpstan-import-type Field from ValueSchemaBuilder
- * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type Value from \WebCodingCat\WpAppFramework\Value\ValueFactory
  * @phpstan-type ContextArgument array{param: string, kind: 'context', name: string, schema: array<string, mixed>, value: Value, hasDefault: bool}
  * @phpstan-type Pending array{
  *     definition: BlockDefinition,

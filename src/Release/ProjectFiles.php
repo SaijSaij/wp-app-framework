@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Release;
+namespace WebCodingCat\WpAppFramework\Release;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The files of a git working tree that make up a release: everything git does

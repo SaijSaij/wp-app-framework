@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CronBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CronBroken;
 
-use Saij\WpAppFramework\Cron\CronEvent;
-use Saij\WpAppFramework\Cron\CronInterval;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Cron\CronEvent;
+use WebCodingCat\WpAppFramework\Cron\CronInterval;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 #[NoService]
 final class NotAService

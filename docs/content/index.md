@@ -51,8 +51,8 @@ The test theme [theme-dev-test](https://github.com/webcodingcat/theme-dev-test) 
 
 | What | Name |
 |---|---|
-| Composer package | `saij/wp-app-framework` |
-| PHP namespace | `Saij\WpAppFramework` |
-| JavaScript import | `@saij/wp-app-framework` (editor scripts), `@saij/wp-app-framework/view` (front-end scripts) |
+| Composer package | `webcodingcat/wp-app-framework` |
+| PHP namespace | `WebCodingCat\WpAppFramework` |
+| JavaScript import | `@webcodingcat/wp-app-framework` (editor scripts), `@webcodingcat/wp-app-framework/view` (front-end scripts) |
 | JavaScript global at run time | `window.wpAppFramework[slug]`, one per framework instance |
 | Source code | [github.com/webcodingcat/wp-app-framework](https://github.com/webcodingcat/wp-app-framework) |

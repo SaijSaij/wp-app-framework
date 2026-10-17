@@ -1,5 +1,5 @@
 /**
- * The API of settings scripts, `@saij/wp-app-framework/settings`: the webpack
+ * The API of settings scripts, `@webcodingcat/wp-app-framework/settings`: the webpack
  * helper maps the import to `wpAppFramework[slug].settingsApi`. Its functions
  * are declared in types/settings.d.ts.
  *

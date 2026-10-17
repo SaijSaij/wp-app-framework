@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ChildApi;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ChildApi;
 
-use Saij\WpAppFramework\Api\ThemeApi;
-use Saij\WpAppFramework\ChildTheme;
-use Saij\WpAppFramework\Hook\Hook;
-use Saij\WpAppFramework\Tests\Fixtures\ParentTheme\SectionsApi;
+use WebCodingCat\WpAppFramework\Api\ThemeApi;
+use WebCodingCat\WpAppFramework\ChildTheme;
+use WebCodingCat\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ParentTheme\SectionsApi;
 
 /**
  * A service of a child theme that uses the public API of its parent theme.

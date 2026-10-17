@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Manifest\Discovery;
+namespace WebCodingCat\WpAppFramework\Manifest\Discovery;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * A PSR-4 namespace prefix and the directory it maps to.
@@ -13,7 +13,7 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
 final readonly class Source
 {
     /**
-     * @param string $prefix    Namespace prefix with trailing backslash, e.g. `Saij\ThemeDevTest\`.
+     * @param string $prefix    Namespace prefix with trailing backslash, e.g. `WebCodingCat\ThemeDevTest\`.
      * @param string $directory Absolute real path without trailing slash.
      */
     public function __construct(

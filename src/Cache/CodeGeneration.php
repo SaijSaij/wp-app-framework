@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache;
+namespace WebCodingCat\WpAppFramework\Cache;
 
 use Closure;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The version of the code that produced a cache entry, part of every key:

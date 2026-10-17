@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Rest;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Rest;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Rest\RestRouteDefinition;
-use Saij\WpAppFramework\Tests\Fixtures\RestValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Rest\RestRouteDefinition;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\RestValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 final class RestRouteCollectorTest extends TestCase
 {
@@ -135,8 +135,8 @@ final class RestRouteCollectorTest extends TestCase
             new ManifestBuilder([ManifestBuilderTest::fixture('RestBroken')])->build();
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
-            $c = 'Saij\\WpAppFramework\\Tests\\Fixtures\\RestBroken\\BrokenRoutes';
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\RestBroken\\';
+            $c = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\RestBroken\\BrokenRoutes';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\RestBroken\\';
             $supported = 'use int, float, string, bool, a backed enum, a value class or array with #[ListOf]';
             $expected = [
                 "#[RestController] on {$ns}BadController has the invalid version \"/broken/\": use letters, digits, \".\", \"_\", \"-\" and \"/\" without leading or trailing slash, e.g. \"v1\"; the routes are registered under \"fixture/{version}\".",

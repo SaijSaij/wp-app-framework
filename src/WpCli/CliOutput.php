@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\WpCli;
+namespace WebCodingCat\WpAppFramework\WpCli;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 use WP_CLI;
 
 use function WP_CLI\Utils\format_items;

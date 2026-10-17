@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Lifecycle;
+namespace WebCodingCat\WpAppFramework\Lifecycle;
 
 use Closure;
 use LogicException;
-use Saij\WpAppFramework\Cron\CronRegistrar;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Hook\HookRegistrar;
-use Saij\WpAppFramework\Post\PostTypeRegistrar;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Table\TableStore;
 use Throwable;
+use WebCodingCat\WpAppFramework\Cron\CronRegistrar;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Hook\HookRegistrar;
+use WebCodingCat\WpAppFramework\Post\PostTypeRegistrar;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Table\TableStore;
 use WP_Site;
 use WP_Theme;
 

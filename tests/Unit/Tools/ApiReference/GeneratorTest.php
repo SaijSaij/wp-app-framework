@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Tools\ApiReference;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Tools\ApiReference;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Tests\Fixtures\ApiReference\Broken\Gadget;
-use Saij\WpAppFramework\Tests\Fixtures\ApiReference\Broken\Odd;
-use Saij\WpAppFramework\Tests\Fixtures\ApiReference\Broken\Part;
-use Saij\WpAppFramework\Tools\ApiReference\Generator;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ApiReference\Broken\Gadget;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ApiReference\Broken\Odd;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ApiReference\Broken\Part;
+use WebCodingCat\WpAppFramework\Tools\ApiReference\Generator;
 
 final class GeneratorTest extends TestCase
 {
@@ -94,7 +94,7 @@ final class GeneratorTest extends TestCase
     {
         return new Generator(
             dirname(__DIR__, 3) . '/Fixtures/ApiReference/' . $fixture,
-            'Saij\\WpAppFramework\\Tests\\Fixtures\\ApiReference\\' . $fixture . '\\',
+            'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\ApiReference\\' . $fixture . '\\',
             $content,
         );
     }

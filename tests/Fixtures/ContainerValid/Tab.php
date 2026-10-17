@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ContainerValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerValid;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\Context;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\Context;
 
 #[Block('tab', title: 'Tab', category: Category::Extras, parent: [Tabs::class])]
 final class Tab

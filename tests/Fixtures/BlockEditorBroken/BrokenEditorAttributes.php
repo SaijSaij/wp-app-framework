@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockEditorBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockEditorBroken;
 
-use Saij\WpAppFramework\Value\Hidden;
-use Saij\WpAppFramework\Value\Image;
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Value\PlainText;
-use Saij\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Value\Hidden;
+use WebCodingCat\WpAppFramework\Value\Image;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\RichText;
 
 final readonly class BrokenEditorAttributes
 {

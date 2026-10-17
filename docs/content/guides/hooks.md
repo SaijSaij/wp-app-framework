@@ -7,7 +7,7 @@ Hooks are how your code talks to WordPress. In a plain theme you would call `add
 This filter changes post titles with the help of a `Formatter` service:
 
 ```php
-use Saij\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Hook\Hook;
 
 final class TitleFilter
 {

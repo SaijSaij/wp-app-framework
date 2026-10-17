@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\IdentifierValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\IdentifierValid;
 
-use Saij\WpAppFramework\Value\Identifier;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\Identifier;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\PlainText;
 
 final readonly class Tab
 {

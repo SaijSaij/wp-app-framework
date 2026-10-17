@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Project;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Project;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Project\NamePrefix;
+use WebCodingCat\WpAppFramework\Project\NamePrefix;
 
 final class NamePrefixTest extends TestCase
 {

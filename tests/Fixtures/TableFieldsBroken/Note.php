@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TableFieldsBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TableFieldsBroken;
 
-use Saij\WpAppFramework\Table\AbstractRow;
-use Saij\WpAppFramework\Table\PrimaryKey;
-use Saij\WpAppFramework\Table\Table;
+use WebCodingCat\WpAppFramework\Table\AbstractRow;
+use WebCodingCat\WpAppFramework\Table\PrimaryKey;
+use WebCodingCat\WpAppFramework\Table\Table;
 
 #[Table('note')]
 final class Note extends AbstractRow

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Value;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Value;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Value\Link;
-use Saij\WpAppFramework\Value\LinkKind;
-use Saij\WpAppFramework\Value\LinkTemplateFunctions;
+use WebCodingCat\WpAppFramework\Value\Link;
+use WebCodingCat\WpAppFramework\Value\LinkKind;
+use WebCodingCat\WpAppFramework\Value\LinkTemplateFunctions;
 
 final class LinkTemplateFunctionsTest extends TestCase
 {

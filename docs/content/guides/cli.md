@@ -24,7 +24,7 @@ wp help sections events import      # shows its help
 Start with a class that imports events. `#[CliCommand]` gives the group its name and a one-line description:
 
 ```php
-use Saij\WpAppFramework\WpCli\CliCommand;
+use WebCodingCat\WpAppFramework\WpCli\CliCommand;
 
 #[CliCommand('events', 'Manage the events of the theme.')]
 final class EventCommands
@@ -36,11 +36,11 @@ final class EventCommands
 Each subcommand is a public method that returns `void`. `#[CliSubcommand]` names it and describes it in one line; `longDescription` adds text that the help shows after the options, typically examples:
 
 ```php
-use Saij\WpAppFramework\WpCli\Argument;
-use Saij\WpAppFramework\WpCli\CliException;
-use Saij\WpAppFramework\WpCli\CliOutput;
-use Saij\WpAppFramework\WpCli\CliSubcommand;
-use Saij\WpAppFramework\WpCli\Option;
+use WebCodingCat\WpAppFramework\WpCli\Argument;
+use WebCodingCat\WpAppFramework\WpCli\CliException;
+use WebCodingCat\WpAppFramework\WpCli\CliOutput;
+use WebCodingCat\WpAppFramework\WpCli\CliSubcommand;
+use WebCodingCat\WpAppFramework\WpCli\Option;
 
 #[CliSubcommand('import', 'Import events from a feed.', longDescription: "## EXAMPLES\n\n    wp sections events import https://example.com/feed --limit=10")]
 public function import(

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\I18n;
+namespace WebCodingCat\WpAppFramework\I18n;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Filesystem\AtomicFile;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Project\ComposerProject;
-use Saij\WpAppFramework\Release\FileHeader;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Filesystem\AtomicFile;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Project\ComposerProject;
+use WebCodingCat\WpAppFramework\Release\FileHeader;
 
 /**
  * `wp-app-framework pot`: writes `languages/{text domain}.pot`, the template of the translations of the project, with

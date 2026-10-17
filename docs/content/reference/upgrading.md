@@ -4,6 +4,18 @@ From 1.0 on, the consumer API only grows within a major version: nothing is rena
 
 The documentation is published for each minor version. The version switcher in the navigation bar shows the documentation of other versions, so you can compare the old and the new state.
 
+## 0.20
+
+**The framework is published by Web Coding Cat.** The repositories moved from the personal account `saijsaij` to the organization [webcodingcat](https://github.com/webcodingcat), and every name with the vendor `saij` follows: the Composer package is `webcodingcat/wp-app-framework`, the PHP namespace `WebCodingCat\WpAppFramework`, the npm package `@webcodingcat/wp-app-framework`. `saij/wp-app-framework` is abandoned on Packagist and gets no release after 0.19. Nothing changes at run time: the global `wpAppFramework`, the hooks between instances, and the names of blocks, options, tables and REST routes derive from your namespace and slug as before, so stored content and settings stay valid. In your theme or plugin:
+
+- In `composer.json`, replace `"saij/wp-app-framework": "^0.19"` with `"webcodingcat/wp-app-framework": "^0.20"` and run `composer update saij/wp-app-framework webcodingcat/wp-app-framework`, which removes the old package and installs the new one.
+- In `package.json`, replace the dependency with `"@webcodingcat/wp-app-framework": "file:vendor/webcodingcat/wp-app-framework"` and run `npm install`.
+- Replace `Saij\WpAppFramework\` with `WebCodingCat\WpAppFramework\` in your PHP code, Twig templates and PHPStan configuration, also where the backslashes are escaped (`Saij\\WpAppFramework\\`). The old names no longer exist, so PHP, PHPStan or the build reports every place you missed.
+- Replace `@saij/wp-app-framework` with `@webcodingcat/wp-app-framework` in your scripts, `webpack.config.js` and ESLint configuration. The build of your scripts fails on every import of the old name.
+- In the workflow that calls `consumer-release.yml`, use `webcodingcat/wp-app-framework/.github/workflows/consumer-release.yml@v0.20.0`.
+
+The documentation moved to [webcodingcat.github.io/wp-app-framework](https://webcodingcat.github.io/wp-app-framework/); the starter is `webcodingcat/wp-app-starter`.
+
 ## 0.19
 
 **The `Text Domain` header is required.** The framework translates the texts of attributes – titles of blocks, labels of post types and values – with the text domain of the theme or plugin (see [Translations](../guides/translations.md)). A theme or plugin without a `Text Domain` header in `style.css` or its main file is a build error now; add the header, usually with the slug as value. Projects created with wp-app-starter have it.

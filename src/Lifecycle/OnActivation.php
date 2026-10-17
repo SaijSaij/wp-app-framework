@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Lifecycle;
+namespace WebCodingCat\WpAppFramework\Lifecycle;
 
 use Attribute;
 

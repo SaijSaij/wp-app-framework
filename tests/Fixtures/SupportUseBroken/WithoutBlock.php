@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SupportUseBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SupportUseBroken;
 
-use Saij\WpAppFramework\Block\Support\UseSupport;
+use WebCodingCat\WpAppFramework\Block\Support\UseSupport;
 
 #[UseSupport(Surface::class)]
 final class WithoutBlock {}

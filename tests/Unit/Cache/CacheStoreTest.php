@@ -2,40 +2,40 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Cache;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Cache;
 
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Cache\Backend\FileBackend;
-use Saij\WpAppFramework\Cache\Backend\ObjectBackend;
-use Saij\WpAppFramework\Cache\Backend\TransientBackend;
-use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\Cache\CodeGeneration;
-use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
-use Saij\WpAppFramework\Cache\Tag\SettingsTag;
-use Saij\WpAppFramework\Cache\Tag\TaxonomyTag;
-use Saij\WpAppFramework\Cache\TagHooks;
-use Saij\WpAppFramework\Cache\TagNames;
-use Saij\WpAppFramework\Cache\TagVersions;
-use Saij\WpAppFramework\Cache\Vary\CookieVary;
-use Saij\WpAppFramework\Cache\Vary\HeaderVary;
-use Saij\WpAppFramework\Cache\Vary\LoggedInVary;
-use Saij\WpAppFramework\Cache\Vary\QueryParamVary;
-use Saij\WpAppFramework\Cache\Vary\RoleVary;
-use Saij\WpAppFramework\Cache\Vary\ServiceVary;
-use Saij\WpAppFramework\Cache\Vary\UrlVary;
-use Saij\WpAppFramework\Cache\Vary\UserVary;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Tests\Fixtures\CacheBroken\NotAProvider;
-use Saij\WpAppFramework\Tests\Fixtures\CacheValid\Feed;
-use Saij\WpAppFramework\Tests\Fixtures\CacheValid\Region;
-use Saij\WpAppFramework\Tests\Fixtures\CacheValid\SiteSettings;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Support\Recorded;
 use stdClass;
+use WebCodingCat\WpAppFramework\Cache\Backend\FileBackend;
+use WebCodingCat\WpAppFramework\Cache\Backend\ObjectBackend;
+use WebCodingCat\WpAppFramework\Cache\Backend\TransientBackend;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\Cache\CodeGeneration;
+use WebCodingCat\WpAppFramework\Cache\Tag\PostTypeTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\SettingsTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\TaxonomyTag;
+use WebCodingCat\WpAppFramework\Cache\TagHooks;
+use WebCodingCat\WpAppFramework\Cache\TagNames;
+use WebCodingCat\WpAppFramework\Cache\TagVersions;
+use WebCodingCat\WpAppFramework\Cache\Vary\CookieVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\HeaderVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\LoggedInVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\QueryParamVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\RoleVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\ServiceVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\UrlVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\UserVary;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CacheBroken\NotAProvider;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CacheValid\Feed;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CacheValid\Region;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CacheValid\SiteSettings;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
 use WP_Post;
 use WP_Term;
 use WP_User;
@@ -100,8 +100,8 @@ final class CacheStoreTest extends TestCase
 
     /**
      * @phpstan-impure Computes or reads the cache.
-     * @param list<\Saij\WpAppFramework\Cache\CacheTag>  $tags
-     * @param list<\Saij\WpAppFramework\Cache\CacheVary> $vary
+     * @param list<\WebCodingCat\WpAppFramework\Cache\CacheTag>  $tags
+     * @param list<\WebCodingCat\WpAppFramework\Cache\CacheVary> $vary
      */
     private function remember(CacheStore $store, array $tags = [], array $vary = []): int
     {

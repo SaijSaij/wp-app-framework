@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Release;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Release;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Release\ReleaseCommand;
-use Saij\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Release\ReleaseCommand;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
 
 /**
  * Argument handling and the checks before anything is copied. The pipeline

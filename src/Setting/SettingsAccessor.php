@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Setting;
+namespace WebCodingCat\WpAppFramework\Setting;
 
 use ArrayAccess;
 use LogicException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The global `settings` of the templates of an instance: `settings.general`

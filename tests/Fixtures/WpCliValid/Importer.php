@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\WpCliValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliValid;
 
 /**
  * Records the calls of the commands; counts its instances to show that services are resolved only when a command runs.

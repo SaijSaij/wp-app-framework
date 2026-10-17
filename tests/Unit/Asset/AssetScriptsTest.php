@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Asset;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Asset;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Asset\AssetScripts;
-use Saij\WpAppFramework\Asset\ScriptKind;
-use Saij\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Asset\AssetScripts;
+use WebCodingCat\WpAppFramework\Asset\ScriptKind;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
 
 /**
  * Document views, editor scripts and shared modules in the asset directory during the build.

@@ -120,7 +120,7 @@ WordPress itself names context values; the framework derives the names, `{namesp
 A list of events, the terms of a taxonomy, the comments of a post: some containers show their inner blocks once for every item, like `core/post-template` in a query loop. Editors design one item from blocks, and the container repeats it. Such a container asks for a [`Repeater`](../api/php/Block/Repeater.md) in `render()` instead of `string $content`, decides which items there are, and renders the inner blocks for each:
 
 ```php
-use Saij\WpAppFramework\Block\Repeater;
+use WebCodingCat\WpAppFramework\Block\Repeater;
 
 #[Block('event-list', title: 'Event list', category: BlockCategory::Design)]
 #[InnerBlocks(allowed: [EventCard::class, CoreBlock::PostTitle])]

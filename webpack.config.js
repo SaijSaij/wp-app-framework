@@ -22,15 +22,15 @@
  *   with the comment `/* wp-app-framework: preload *\/` in their `@font-face` are listed in
  *   build/styles.preload.php, from which the framework prints <link rel="preload">.
  *
- * Imports of `@saij/wp-app-framework` resolve to the runtime of the same instance
+ * Imports of `@webcodingcat/wp-app-framework` resolve to the runtime of the same instance
  * (global `wpAppFramework[slug].api`, script handle `{slug}-wp-app-framework`), imports of
- * `@saij/wp-app-framework/view` to its view runtime (global `wpAppFramework[slug].view`,
+ * `@webcodingcat/wp-app-framework/view` to its view runtime (global `wpAppFramework[slug].view`,
  * script handle `{slug}-wp-app-framework-view`). A view script must not import
- * `@saij/wp-app-framework`: the editor runtime is not loaded on the front end.
+ * `@webcodingcat/wp-app-framework`: the editor runtime is not loaded on the front end.
  *
  * Usage in the consumer's webpack.config.js:
  *
- *     module.exports = require( '@saij/wp-app-framework/webpack' )( {
+ *     module.exports = require( '@webcodingcat/wp-app-framework/webpack' )( {
  *         slug: 'theme-dev-test',
  *         root: __dirname,
  *     } );
@@ -49,9 +49,9 @@ const VIEW_ENTRY = 'vendor/wp-app-framework/view';
 const CANVAS_ENTRY = 'vendor/wp-app-framework/canvas';
 const SETTINGS_ENTRY = 'vendor/wp-app-framework/settings';
 const META_BOX_ENTRY = 'vendor/wp-app-framework/meta-box';
-const IMPORT_NAME = '@saij/wp-app-framework';
-const VIEW_IMPORT_NAME = '@saij/wp-app-framework/view';
-const SETTINGS_IMPORT_NAME = '@saij/wp-app-framework/settings';
+const IMPORT_NAME = '@webcodingcat/wp-app-framework';
+const VIEW_IMPORT_NAME = '@webcodingcat/wp-app-framework/view';
+const SETTINGS_IMPORT_NAME = '@webcodingcat/wp-app-framework/settings';
 const STYLES_ENTRY = 'styles';
 const STYLES_SOURCE = 'styles.css';
 /** Directory of the consumer for everything without a PHP class: stylesheet, scripts without a block, static files. */
@@ -161,7 +161,7 @@ function kebab( name ) {
 }
 
 /**
- * The requests of the modules of an entry, among them the external ones (`@saij/wp-app-framework`, `#shared/…`).
+ * The requests of the modules of an entry, among them the external ones (`@webcodingcat/wp-app-framework`, `#shared/…`).
  *
  * @param {Object} compilation
  * @param {Object} entrypoint

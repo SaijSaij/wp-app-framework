@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Setting;
+namespace WebCodingCat\WpAppFramework\Setting;
 
 use LogicException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Project\NamePrefix;
-use Saij\WpAppFramework\Value\HtmlFilter;
-use Saij\WpAppFramework\Value\Identifiers;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Project\NamePrefix;
+use WebCodingCat\WpAppFramework\Value\HtmlFilter;
+use WebCodingCat\WpAppFramework\Value\Identifiers;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * The settings groups of one framework instance: registers their options

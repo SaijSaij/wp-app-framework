@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\WpCliBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliBroken;
 
-use Saij\WpAppFramework\WpCli\CliSubcommand;
+use WebCodingCat\WpAppFramework\WpCli\CliSubcommand;
 
 final class NoCommand
 {

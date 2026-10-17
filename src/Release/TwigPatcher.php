@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Release;
+namespace WebCodingCat\WpAppFramework\Release;
 
 use ParseError;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Prefixes the class names Twig's compiler writes into compiled templates.

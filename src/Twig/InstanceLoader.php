@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Twig;
+namespace WebCodingCat\WpAppFramework\Twig;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
 use Twig\Loader\FilesystemLoader;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Filesystem loader whose cache keys start with the slug of the framework

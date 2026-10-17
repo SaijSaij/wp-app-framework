@@ -1,5 +1,5 @@
 /**
- * The editor API of `@saij/wp-app-framework`, for editor scripts of a theme or plugin (`*.editor.js` next to a
+ * The editor API of `@webcodingcat/wp-app-framework`, for editor scripts of a theme or plugin (`*.editor.js` next to a
  * block or block support class, or in `assets/`).
  *
  * The import is no module of its own: the webpack helper maps it to the editor runtime of your theme or plugin,

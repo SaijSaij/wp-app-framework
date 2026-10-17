@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\WpCliBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliBroken;
 
-use Saij\WpAppFramework\WpCli\CliCommand;
-use Saij\WpAppFramework\WpCli\CliSubcommand;
+use WebCodingCat\WpAppFramework\WpCli\CliCommand;
+use WebCodingCat\WpAppFramework\WpCli\CliSubcommand;
 
 #[CliCommand('dup', 'First.')]
 final class FirstDuplicate

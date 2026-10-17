@@ -33,11 +33,11 @@ The child theme reaches its parent theme only through the parent's public interf
 
 **Template callables.** The child theme's templates call the parent's public template functions and filters directly. Unlike with plugins, the child theme doesn't need to list the parent in its `composer.json`.
 
-**Public API.** The child theme receives the parent's public API through a constructor parameter with `#[ThemeApi]` (`Saij\WpAppFramework\Api\ThemeApi`):
+**Public API.** The child theme receives the parent's public API through a constructor parameter with `#[ThemeApi]` (`WebCodingCat\WpAppFramework\Api\ThemeApi`):
 
 ```php
 use My\Theme\Api\SectionsApi;
-use Saij\WpAppFramework\Api\ThemeApi;
+use WebCodingCat\WpAppFramework\Api\ThemeApi;
 
 final class Teasers
 {

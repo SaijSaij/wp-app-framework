@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Value;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Value;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\LinkValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
-use Saij\WpAppFramework\Value\Link;
-use Saij\WpAppFramework\Value\LinkKind;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\LinkValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Value\Link;
+use WebCodingCat\WpAppFramework\Value\LinkKind;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 use WP_Post;
 use WP_Term;
 
@@ -135,7 +135,7 @@ final class LinkTest extends TestCase
 
     public function testReportsAllErrors(): void
     {
-        $at = static fn(string $name): string => sprintf('parameter $%s of %s::__construct()', $name, \Saij\WpAppFramework\Tests\Fixtures\LinkBroken\BrokenAttributes::class);
+        $at = static fn(string $name): string => sprintf('parameter $%s of %s::__construct()', $name, \WebCodingCat\WpAppFramework\Tests\Fixtures\LinkBroken\BrokenAttributes::class);
         $expected = [
             $at('nullable') . ': a link is never null; use Link $nullable = new Link(), an empty URL means no link.',
             $at('content') . ' is a Link and has #[Content]; a link is content with its own control.',

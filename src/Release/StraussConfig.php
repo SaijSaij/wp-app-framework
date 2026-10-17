@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Release;
+namespace WebCodingCat\WpAppFramework\Release;
 
 use JsonException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The Strauss settings of a consumer (`extra.strauss` in its composer.json).

@@ -34,7 +34,7 @@ Next to the block class goes the view script. It exports a class that extends `B
 
 ```js
 // src/Block/Faq/Faq.view.js
-import { BlockView } from '@saij/wp-app-framework/view';
+import { BlockView } from '@webcodingcat/wp-app-framework/view';
 
 export default class Faq extends BlockView {
 	mount() {
@@ -77,7 +77,7 @@ A [block support](./supports.md) can have a view script too, next to its class: 
 
 ```js
 // src/Support/Reveal.view.js
-import { SupportView } from '@saij/wp-app-framework/view';
+import { SupportView } from '@webcodingcat/wp-app-framework/view';
 
 export default class Reveal extends SupportView {
 	mount() {
@@ -99,7 +99,7 @@ Its class extends `DocumentView`. The view runtime creates one instance per page
 
 ```js
 // assets/menu.view.js
-import { DocumentView } from '@saij/wp-app-framework/view';
+import { DocumentView } from '@webcodingcat/wp-app-framework/view';
 
 export default class Menu extends DocumentView {
 	mount() {
@@ -121,8 +121,8 @@ export default class Menu extends DocumentView {
 Scripts often need values that only the server knows: a setting, a key for a map service, a URL. Set them on the service `ViewData`, which you inject anywhere – in a hook, in a block's `render()`:
 
 ```php
-use Saij\WpAppFramework\Hook\Hook;
-use Saij\WpAppFramework\View\ViewData;
+use WebCodingCat\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\View\ViewData;
 
 final readonly class MapData
 {
@@ -159,7 +159,7 @@ async mount() {
 }
 ```
 
-The script loads only on pages where the view mounts, so a block's library loads only with the block. Each URL loads once per document, also when several views or several themes and plugins ask for it; the promise of every call settles when the script has loaded. Outside a view, import `loadScript` from `@saij/wp-app-framework/view`, or from `@saij/wp-app-framework` in editor scripts.
+The script loads only on pages where the view mounts, so a block's library loads only with the block. Each URL loads once per document, also when several views or several themes and plugins ask for it; the promise of every call settles when the script has loaded. Outside a view, import `loadScript` from `@webcodingcat/wp-app-framework/view`, or from `@webcodingcat/wp-app-framework` in editor scripts.
 
 The download starts only when the view mounts. Whether a visitor has agreed to a third-party script is up to your code.
 
@@ -177,7 +177,7 @@ export function register( dialog ) {
 
 ```js
 // src/Block/Modal/Modal.view.js
-import { BlockView } from '@saij/wp-app-framework/view';
+import { BlockView } from '@webcodingcat/wp-app-framework/view';
 import { register } from '#shared/dialogs';
 ```
 
@@ -215,7 +215,7 @@ Two things differ from the front end, and the view must allow for them:
 | document view | in `assets/`: `assets/menu.view.js` | a class extending `DocumentView` |
 | shared module | in `assets/shared/`: `assets/shared/dialogs.js`, imported as `#shared/dialogs` | any exports |
 
-A view script outside the directory your build compiles (`src/`) is a build error, and so is one in `src/` without a block or block support class next to it. A view script that imports `@saij/wp-app-framework` – the editor runtime, which a page does not load – fails the build of the webpack helper, also when it imports it through shared modules; view scripts import `@saij/wp-app-framework/view`. An import of a shared module that does not exist, shared modules that import each other in a cycle, and shared modules without the `imports` entry in `package.json` fail the build as well. Two scripts in `assets/` whose names give the same script handle are a build error.
+A view script outside the directory your build compiles (`src/`) is a build error, and so is one in `src/` without a block or block support class next to it. A view script that imports `@webcodingcat/wp-app-framework` – the editor runtime, which a page does not load – fails the build of the webpack helper, also when it imports it through shared modules; view scripts import `@webcodingcat/wp-app-framework/view`. An import of a shared module that does not exist, shared modules that import each other in a cycle, and shared modules without the `imports` entry in `package.json` fail the build as well. Two scripts in `assets/` whose names give the same script handle are a build error.
 
 **`BlockView`, `SupportView` and `DocumentView`**
 
@@ -243,7 +243,7 @@ In a block's view, `find()` and `findAll()` skip the elements of nested blocks t
 | `set( string $key, mixed $value )` | Sets a value; a later call with the same key replaces it. The key consists of letters, digits, `-` and `_` and starts with a letter. The value is `null`, a scalar or an array of these; objects and the floats `NAN` and `INF` throw. |
 | `has( string $key )`, `get( string $key )` | Read a value in PHP; `get()` throws for an unknown key. |
 
-A value set after the values were printed – after the footer scripts of the front end, after `enqueue_block_editor_assets` in the editor – throws with `WP_DEBUG` and is logged otherwise. The values are printed only where a runtime of the instance loads: on the front end with the view runtime, in the editor with the editor runtime. In JavaScript, `getData( key )` of `@saij/wp-app-framework/view` and `@saij/wp-app-framework` reads them like `this.data( key )`.
+A value set after the values were printed – after the footer scripts of the front end, after `enqueue_block_editor_assets` in the editor – throws with `WP_DEBUG` and is logged otherwise. The values are printed only where a runtime of the instance loads: on the front end with the view runtime, in the editor with the editor runtime. In JavaScript, `getData( key )` of `@webcodingcat/wp-app-framework/view` and `@webcodingcat/wp-app-framework` reads them like `this.data( key )`.
 
 **`loadScript( url, attributes )`**
 

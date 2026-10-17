@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Project;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Project;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Project\ComposerProject;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Project\ComposerProject;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
 
 final class ComposerProjectTest extends TestCase
 {
@@ -77,9 +77,9 @@ final class ComposerProjectTest extends TestCase
             'packages' => [
                 ['name' => 'twig/twig', 'autoload' => ['psr-4' => ['Twig\\' => 'src/']]],
                 ['name' => 'phpstan/phpstan', 'autoload' => ['files' => ['bootstrap.php']]],
-                ['name' => 'saij/other-plugin', 'autoload' => ['psr-4' => ['Saij\\Other\\' => 'src/']]],
+                ['name' => 'webcodingcat/other-plugin', 'autoload' => ['psr-4' => ['WebCodingCat\\Other\\' => 'src/']]],
             ],
-            'dev-package-names' => ['phpstan/phpstan', 'saij/other-plugin'],
+            'dev-package-names' => ['phpstan/phpstan', 'webcodingcat/other-plugin'],
         ]));
 
         $project = ComposerProject::load($directory);

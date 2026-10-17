@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ListLimitValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitValid;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
 
 #[Block('gallery', title: 'Gallery', category: BlockCategory::Design)]
 final class Gallery

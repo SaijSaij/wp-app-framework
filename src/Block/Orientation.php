@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace WebCodingCat\WpAppFramework\Block;
 
 /**
  * Direction in which the inner blocks of a container are laid out; the editor

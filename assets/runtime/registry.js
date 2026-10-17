@@ -1,7 +1,7 @@
 /**
  * Inspector controls, panels and toolbar buttons registered by the consumer's
  * editor scripts (`registerControl`, `registerSupportControl`, `registerPanel`,
- * `registerToolbarButton` of `@saij/wp-app-framework`). A control registered for a block wins over a
+ * `registerToolbarButton` of `@webcodingcat/wp-app-framework`). A control registered for a block wins over a
  * control registered for a block support. The register functions take block names
  * without namespace (`hero`); the registry adds the namespace of the instance.
  *

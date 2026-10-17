@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockPostContent;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockPostContent;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
 
 #[Block('card', title: 'Card', category: BlockCategory::Text)]
 final readonly class Card

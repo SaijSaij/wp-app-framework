@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Release;
+namespace WebCodingCat\WpAppFramework\Release;
 
 use FilesystemIterator;
 use JsonException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Filesystem\AtomicFile;
-use Saij\WpAppFramework\Filesystem\FileTree;
-use Saij\WpAppFramework\I18n\PoFile;
-use Saij\WpAppFramework\I18n\TranslationLoader;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Project\ComposerProject;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Filesystem\AtomicFile;
+use WebCodingCat\WpAppFramework\Filesystem\FileTree;
+use WebCodingCat\WpAppFramework\I18n\PoFile;
+use WebCodingCat\WpAppFramework\I18n\TranslationLoader;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Project\ComposerProject;
 
 /**
  * `wp-app-framework release`: builds the release ZIP of a theme or plugin (the
@@ -40,7 +40,7 @@ final class ReleaseCommand
     public const string USAGE = 'Usage: wp-app-framework release [--output=<zip>] [--expect-version=<version>] [--package-source=<package>=<directory>]...';
 
     /** Package name of the framework; its prefixed copy runs the build steps that need prefixed classes. */
-    private const string FRAMEWORK_PACKAGE = 'saij/wp-app-framework';
+    private const string FRAMEWORK_PACKAGE = 'webcodingcat/wp-app-framework';
 
     /** Build tool files and directories; never shipped. */
     private const array DEVELOPMENT_FILES = ['node_modules', 'vendor', 'composer.json', 'composer.lock', 'package.json', 'package-lock.json'];

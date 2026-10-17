@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\PostTypeValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid;
 
-use Saij\WpAppFramework\Post\PostMeta;
-use Saij\WpAppFramework\Value\Image;
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Value\Link;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\PostReference;
-use Saij\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Post\PostMeta;
+use WebCodingCat\WpAppFramework\Value\Image;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Value\Link;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\PostReference;
+use WebCodingCat\WpAppFramework\Value\RichText;
 
 #[PostMeta('details', title: 'Event details', postTypes: [Event::class])]
 final class EventDetails

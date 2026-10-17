@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\I18n;
+namespace WebCodingCat\WpAppFramework\I18n;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Translates the texts of one instance with its text domain (the `Text Domain` header of the theme or plugin): the

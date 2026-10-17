@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\IdentifierBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\IdentifierBroken;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
 
 #[Block('top', title: 'Top', category: BlockCategory::Design)]
 final class Top

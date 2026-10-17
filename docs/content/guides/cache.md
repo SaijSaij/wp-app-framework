@@ -23,8 +23,8 @@ A block that shows the latest posts queries the database each time it renders. W
 
 ```php
 // src/Block/LatestPosts/LatestPosts.php
-use Saij\WpAppFramework\Cache\Cache;
-use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
+use WebCodingCat\WpAppFramework\Cache\Cache;
+use WebCodingCat\WpAppFramework\Cache\Tag\PostTypeTag;
 
 #[Block('latest-posts', title: 'Latest posts', category: BlockCategory::Widgets)]
 #[Cache(ttl: 3600, tags: [new PostTypeTag('post')])]
@@ -95,7 +95,7 @@ A cached route answers only `GET`.
 For anything else, inject `CacheStore` and call `remember()`. It returns the cached value or calls your function, stores its result and returns it:
 
 ```php
-use Saij\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
 
 final readonly class Weather
 {
@@ -133,7 +133,7 @@ Three tags are invalidated by the framework itself:
 For everything else, define tags of your own. A tag is a case of a string-backed enum that implements `CacheTag`:
 
 ```php
-use Saij\WpAppFramework\Cache\CacheTag;
+use WebCodingCat\WpAppFramework\Cache\CacheTag;
 
 enum Feed: string implements CacheTag
 {

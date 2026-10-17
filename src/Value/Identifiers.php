@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Value;
+namespace WebCodingCat\WpAppFramework\Value;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Fills in the identifiers (`#[Identifier]`) of list items in a stored value, e.g. a settings group before it is

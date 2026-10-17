@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Query\Field\Field;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Query\Field\Field;
 
 /**
  * A condition on a field, created by the methods of the field classes: the field, the operator and the compared

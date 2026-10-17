@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ListLimitBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitBroken;
 
-use Saij\WpAppFramework\Post\Post;
-use Saij\WpAppFramework\Value\Hidden;
-use Saij\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Post\Post;
+use WebCodingCat\WpAppFramework\Value\Hidden;
+use WebCodingCat\WpAppFramework\Value\ListOf;
 
 final readonly class BrokenAttributes
 {

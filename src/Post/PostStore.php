@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Post;
+namespace WebCodingCat\WpAppFramework\Post;
 
 use BackedEnum;
 use Closure;
 use LogicException;
-use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Query\Field\Field;
-use Saij\WpAppFramework\Query\Field\FieldTypes;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Query\Field\Field;
+use WebCodingCat\WpAppFramework\Query\Field\FieldTypes;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * The post types, taxonomies and meta classes of one instance at run time: loads

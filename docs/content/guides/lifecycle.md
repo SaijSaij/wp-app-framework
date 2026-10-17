@@ -27,7 +27,7 @@ Themes cannot be uninstalled. WordPress loads no code of a theme it deletes, so 
 A lifecycle method is a public method of a [service](./services.md) that returns `void`. Its parameters are services; WordPress passes nothing the method could use. Take a plugin that keeps a page with its overview:
 
 ```php
-use Saij\WpAppFramework\Lifecycle\OnActivation;
+use WebCodingCat\WpAppFramework\Lifecycle\OnActivation;
 
 final readonly class OverviewPage
 {

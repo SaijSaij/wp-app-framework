@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\RepeaterBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\RepeaterBroken;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\Repeater;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Repeater;
 
 #[Block('both', title: 'Both', category: BlockCategory::Design)]
 final class Both

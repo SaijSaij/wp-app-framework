@@ -1,3 +1,3 @@
-import { SupportView } from '@saij/wp-app-framework/view';
+import { SupportView } from '@webcodingcat/wp-app-framework/view';
 
 export default class Reveal extends SupportView {}

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\PostTypeBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeBroken;
 
-use Saij\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
 
 final class WithoutAttribute extends AbstractPost {}

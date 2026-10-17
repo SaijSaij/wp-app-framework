@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache;
+namespace WebCodingCat\WpAppFramework\Cache;
 
 use Closure;
 use InvalidArgumentException;
 use LogicException;
-use Saij\WpAppFramework\Cache\Backend\Backend;
-use Saij\WpAppFramework\Cache\Backend\FileBackend;
-use Saij\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Cache\Backend\Backend;
+use WebCodingCat\WpAppFramework\Cache\Backend\FileBackend;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
 
 /**
  * The cache of a theme or plugin. Inject it to cache data of your own, for

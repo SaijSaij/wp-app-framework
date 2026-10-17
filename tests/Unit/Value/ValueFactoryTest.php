@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Value;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Value;
 
 use DateTimeImmutable;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Tests\Fixtures\BlockValid;
-use Saij\WpAppFramework\Tests\Unit\Block\BlockCollectorTest;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\BlockValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Block\BlockCollectorTest;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 final class ValueFactoryTest extends TestCase
 {

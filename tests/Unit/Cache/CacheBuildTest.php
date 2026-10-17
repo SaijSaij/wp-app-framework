@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Cache;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Cache;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\CacheBroken;
-use Saij\WpAppFramework\Tests\Fixtures\CacheValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CacheBroken;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CacheValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * #[Cache] in the build: the entries of blocks and routes, and every error.

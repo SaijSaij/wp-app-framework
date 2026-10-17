@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockView;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockView;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
 
 /** Has a view script (Bare.view.js), but prints its root element without block_wrapper_attributes(). */
 #[Block('bare', title: 'Bare', category: BlockCategory::Text)]

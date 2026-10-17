@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Style;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Style;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Style\StyleAssets;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Style\StyleAssets;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
 
 final class StyleAssetsTest extends TestCase
 {

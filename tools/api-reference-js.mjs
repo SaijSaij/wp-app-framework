@@ -1,6 +1,6 @@
 /**
  * Generates the JavaScript part of the API reference from the type declarations in types/: one page per export
- * of `@saij/wp-app-framework`, `@saij/wp-app-framework/view` and `@saij/wp-app-framework/settings` in docs/content/api/js/, and their sidebar in
+ * of `@webcodingcat/wp-app-framework`, `@webcodingcat/wp-app-framework/view` and `@webcodingcat/wp-app-framework/settings` in docs/content/api/js/, and their sidebar in
  * docs/.generated/api-js.json. Run by the documentation build (npm run build in docs/).
  *
  * Every page comes from the declarations and their JSDoc. An export, member or parameter without description fails
@@ -14,19 +14,19 @@ import ts from 'typescript';
 /** The imports and their declaration files, in the order of the sidebar. */
 export const MODULES = [
 	{
-		name: '@saij/wp-app-framework',
+		name: '@webcodingcat/wp-app-framework',
 		file: 'index.d.ts',
 		directory: 'editor',
 		title: 'Editor',
 	},
 	{
-		name: '@saij/wp-app-framework/view',
+		name: '@webcodingcat/wp-app-framework/view',
 		file: 'view.d.ts',
 		directory: 'view',
 		title: 'View',
 	},
 	{
-		name: '@saij/wp-app-framework/settings',
+		name: '@webcodingcat/wp-app-framework/settings',
 		file: 'settings.d.ts',
 		directory: 'settings',
 		title: 'Settings',

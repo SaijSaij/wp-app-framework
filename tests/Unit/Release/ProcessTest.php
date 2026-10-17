@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Release;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Release;
 
-use Saij\WpAppFramework\Release\ReleaseException;
+use WebCodingCat\WpAppFramework\Release\ReleaseException;
 
 final class ProcessTest extends ReleaseTestCase
 {

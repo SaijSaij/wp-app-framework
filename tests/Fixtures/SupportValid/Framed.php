@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SupportValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SupportValid;
 
-use Saij\WpAppFramework\Block\Support\BlockSupport;
-use Saij\WpAppFramework\Block\Support\SupportGroup;
+use WebCodingCat\WpAppFramework\Block\Support\BlockSupport;
+use WebCodingCat\WpAppFramework\Block\Support\SupportGroup;
 
 #[BlockSupport('framed', label: 'Framed', group: SupportGroup::Settings)]
 final class Framed

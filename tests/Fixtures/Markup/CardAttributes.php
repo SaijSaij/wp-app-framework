@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\Markup;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\Markup;
 
-use Saij\WpAppFramework\Value\Color;
-use Saij\WpAppFramework\Value\Link as ContentLink;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\Color;
+use WebCodingCat\WpAppFramework\Value\Link as ContentLink;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\PlainText;
 
 final readonly class CardAttributes
 {

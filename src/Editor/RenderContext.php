@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Editor;
+namespace WebCodingCat\WpAppFramework\Editor;
 
 use Closure;
 use LogicException;

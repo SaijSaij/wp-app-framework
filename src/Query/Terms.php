@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
 use InvalidArgumentException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 use WP_Term;
 
 /**

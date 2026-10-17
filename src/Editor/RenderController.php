@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Editor;
+namespace WebCodingCat\WpAppFramework\Editor;
 
 use Closure;
-use Saij\WpAppFramework\DependencyInjection\NoService;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 use WP_Block;
 use WP_Block_Type_Registry;
 use WP_Error;

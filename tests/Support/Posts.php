@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Support;
+namespace WebCodingCat\WpAppFramework\Tests\Support;
 
 use Closure;
-use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Post\PostRegistry;
-use Saij\WpAppFramework\Post\PostStore;
-use Saij\WpAppFramework\Tests\Unit\Post\PostTypeCollectorTest;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Post\PostRegistry;
+use WebCodingCat\WpAppFramework\Post\PostStore;
+use WebCodingCat\WpAppFramework\Tests\Unit\Post\PostTypeCollectorTest;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 use WP_Post;
 use WP_Term;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
 /**
  * Whether comments or pings of a post are open.

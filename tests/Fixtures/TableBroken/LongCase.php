@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TableBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TableBroken;
 
 enum LongCase: string
 {

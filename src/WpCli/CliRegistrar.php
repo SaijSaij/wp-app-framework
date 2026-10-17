@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\WpCli;
+namespace WebCodingCat\WpAppFramework\WpCli;
 
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Value\ValueFactory;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 use WP_CLI;
 use WP_CLI\ExitException;
 

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block\Support;
+namespace WebCodingCat\WpAppFramework\Block\Support;
 
 use ReflectionClass;
 use ReflectionNamedType;
-use Saij\WpAppFramework\Asset\ScriptKind;
-use Saij\WpAppFramework\Block\BlockCollector;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Manifest\EntryPointInspector;
-use Saij\WpAppFramework\Value\ValueFactory;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
+use WebCodingCat\WpAppFramework\Asset\ScriptKind;
+use WebCodingCat\WpAppFramework\Block\BlockCollector;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Manifest\EntryPointInspector;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 
 /**
  * Collects and validates `#[BlockSupport]` classes during the build and the

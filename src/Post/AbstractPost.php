@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Post;
+namespace WebCodingCat\WpAppFramework\Post;
 
 use DateTimeImmutable;
 use DateTimeZone;
 use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
-use Saij\WpAppFramework\Query\PostQuery;
+use WebCodingCat\WpAppFramework\Query\PostQuery;
 use WP_Post;
 use WP_Term;
 

@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Cron;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Cron;
 
 use DateTimeImmutable;
 use DateTimeZone;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Cron\CronInterval;
-use Saij\WpAppFramework\Cron\CronRegistrar;
-use Saij\WpAppFramework\Cron\CronScheduler;
-use Saij\WpAppFramework\Cron\CronTime;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Hook\HookRegistrar;
-use Saij\WpAppFramework\Instance;
-use Saij\WpAppFramework\Tests\Fixtures\CronValid;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Cron\CronInterval;
+use WebCodingCat\WpAppFramework\Cron\CronRegistrar;
+use WebCodingCat\WpAppFramework\Cron\CronScheduler;
+use WebCodingCat\WpAppFramework\Cron\CronTime;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Hook\HookRegistrar;
+use WebCodingCat\WpAppFramework\Instance;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CronValid;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 final class CronRegistrarTest extends TestCase
 {

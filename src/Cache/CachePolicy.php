@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache;
+namespace WebCodingCat\WpAppFramework\Cache;
 
 use BackedEnum;
 use Closure;
-use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
-use Saij\WpAppFramework\Cache\Tag\SettingsTag;
-use Saij\WpAppFramework\Cache\Tag\TaxonomyTag;
-use Saij\WpAppFramework\Cache\Vary\CookieVary;
-use Saij\WpAppFramework\Cache\Vary\HeaderVary;
-use Saij\WpAppFramework\Cache\Vary\LoggedInVary;
-use Saij\WpAppFramework\Cache\Vary\QueryParamVary;
-use Saij\WpAppFramework\Cache\Vary\RoleVary;
-use Saij\WpAppFramework\Cache\Vary\ServiceVary;
-use Saij\WpAppFramework\Cache\Vary\UrlVary;
-use Saij\WpAppFramework\Cache\Vary\UserVary;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Cache\Tag\PostTypeTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\SettingsTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\TaxonomyTag;
+use WebCodingCat\WpAppFramework\Cache\Vary\CookieVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\HeaderVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\LoggedInVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\QueryParamVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\RoleVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\ServiceVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\UrlVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\UserVary;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Turns the ttl, tags and variants of a cache entry into plain data, the same

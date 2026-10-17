@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Table;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Table;
 
 use DateTimeImmutable;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Table\TableRegistry;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\Counter;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\Level;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\LogEntry;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\Priority;
-use Saij\WpAppFramework\Tests\Support\Database;
-use Saij\WpAppFramework\Tests\Support\Tables;
+use WebCodingCat\WpAppFramework\Table\TableRegistry;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\Counter;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\Level;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\LogEntry;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\Priority;
+use WebCodingCat\WpAppFramework\Tests\Support\Database;
+use WebCodingCat\WpAppFramework\Tests\Support\Tables;
 
 /**
  * Row objects: loading, saving and deleting through the store of their instance.

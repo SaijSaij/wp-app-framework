@@ -9,11 +9,11 @@ With the framework, a route is a method with `#[RestRoute]`. The framework deriv
 Routes live in a controller class. `#[RestController]` on the class sets the REST namespace and an optional base path for all its routes:
 
 ```php
-use Saij\WpAppFramework\Rest\HttpMethod;
-use Saij\WpAppFramework\Rest\Permission\PublicAccess;
-use Saij\WpAppFramework\Rest\RestController;
-use Saij\WpAppFramework\Rest\RestException;
-use Saij\WpAppFramework\Rest\RestRoute;
+use WebCodingCat\WpAppFramework\Rest\HttpMethod;
+use WebCodingCat\WpAppFramework\Rest\Permission\PublicAccess;
+use WebCodingCat\WpAppFramework\Rest\RestController;
+use WebCodingCat\WpAppFramework\Rest\RestException;
+use WebCodingCat\WpAppFramework\Rest\RestRoute;
 
 #[RestController('v1', base: '/items')]
 final class ItemController
@@ -40,7 +40,7 @@ The method returns an array, which becomes a JSON response with status 200. If t
 
 ## Permission
 
-Every route says who may call it. There are three kinds of permission, all in the namespace `Saij\WpAppFramework\Rest\Permission`:
+Every route says who may call it. There are three kinds of permission, all in the namespace `WebCodingCat\WpAppFramework\Rest\Permission`:
 
 ```php
 new PublicAccess()                      // everybody
@@ -80,7 +80,7 @@ A single value class without `#[ListOf]` is not supported as a request argument,
 
 From the request arguments the framework builds the route's argument schema (`type`, `enum`, `items`, `required`, `default`, and `minItems` and `maxItems` from the [limits of lists](./values.md#lists)). WordPress then does the work it always does with a schema: it validates and sanitizes the arguments, answers with 400 if one is invalid, and shows the schema on an `OPTIONS` request. Missing optional arguments get the parameter's default. Enums, value objects and lists are converted by the value factory, so your method receives typed values.
 
-`#[Param]` (`Saij\WpAppFramework\Rest\Param`) adds further constraints to the schema:
+`#[Param]` (`WebCodingCat\WpAppFramework\Rest\Param`) adds further constraints to the schema:
 
 ```php
 public function update(
@@ -90,7 +90,7 @@ public function update(
 ): WP_REST_Response
 ```
 
-Its arguments are `description`, `minimum`, `maximum`, `minLength`, `maxLength`, `pattern` and `format` (a case of `Saij\WpAppFramework\Rest\Format`). The build checks that each one applies to the parameter's type.
+Its arguments are `description`, `minimum`, `maximum`, `minLength`, `maxLength`, `pattern` and `format` (a case of `WebCodingCat\WpAppFramework\Rest\Format`). The build checks that each one applies to the parameter's type.
 
 ## Responses and errors
 

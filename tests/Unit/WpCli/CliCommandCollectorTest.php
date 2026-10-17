@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\WpCli;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\WpCli;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\WpCliValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\WpCli\CliCommandCollector;
-use Saij\WpAppFramework\WpCli\CliCommandDefinition;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\WpCli\CliCommandCollector;
+use WebCodingCat\WpAppFramework\WpCli\CliCommandDefinition;
 
 /**
  * @phpstan-import-type CliSubcommandEntry from CliCommandDefinition
@@ -133,7 +133,7 @@ final class CliCommandCollectorTest extends TestCase
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
             self::assertSame(
-                ['The namespace "post" (extra.wp-app-framework.namespace) is a command of WP-CLI, "wp post"; WP-CLI commands of the project (Saij\\WpAppFramework\\Tests\\Fixtures\\WpCliNamespace\\PostCommands) cannot be registered under it. Choose another namespace.'],
+                ['The namespace "post" (extra.wp-app-framework.namespace) is a command of WP-CLI, "wp post"; WP-CLI commands of the project (WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\WpCliNamespace\\PostCommands) cannot be registered under it. Choose another namespace.'],
                 $exception->getErrors(),
             );
         }
@@ -147,7 +147,7 @@ final class CliCommandCollectorTest extends TestCase
             new ManifestBuilder([ManifestBuilderTest::fixture('WpCliBroken')])->build();
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\WpCliBroken\\';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\WpCliBroken\\';
             $c = $ns . 'BrokenCommands';
             $supported = 'use string, int, float, a backed enum or, for an option, bool';
             $marker = 'and must not have #[Argument] or #[Option].';

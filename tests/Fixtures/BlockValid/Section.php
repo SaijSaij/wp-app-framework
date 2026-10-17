@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockValid;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\Supports;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Supports;
 
 #[Block('section', title: 'Section', category: BlockCategory::Design)]
 #[Supports(contentRole: true, customCSS: false)]

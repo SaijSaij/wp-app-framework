@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tools\ApiReference;
+namespace WebCodingCat\WpAppFramework\Tools\ApiReference;
 
 use Attribute;
 use FilesystemIterator;
@@ -16,11 +16,11 @@ use ReflectionException;
 use ReflectionMethod;
 use ReflectionParameter;
 use RuntimeException;
-use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
-use Saij\WpAppFramework\Manifest\Discovery\Source;
-use Saij\WpAppFramework\Twig\TemplateFilter;
-use Saij\WpAppFramework\Twig\TemplateFunction;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\Manifest\Discovery\ClassDiscovery;
+use WebCodingCat\WpAppFramework\Manifest\Discovery\Source;
+use WebCodingCat\WpAppFramework\Twig\TemplateFilter;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 /**
  * Generates the PHP and Twig part of the API reference in `docs/content/api/`
@@ -75,7 +75,7 @@ final class Generator
 
     /**
      * @param string $source  The framework's `src/` directory.
-     * @param string $prefix  Its namespace prefix, e.g. `Saij\WpAppFramework\`.
+     * @param string $prefix  Its namespace prefix, e.g. `WebCodingCat\WpAppFramework\`.
      * @param string $content The `docs/content/` directory.
      */
     public function __construct(

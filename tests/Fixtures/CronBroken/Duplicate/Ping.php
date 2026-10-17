@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CronBroken\Duplicate;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CronBroken\Duplicate;
 
 /**
  * The same short name as CronBroken\Ping.

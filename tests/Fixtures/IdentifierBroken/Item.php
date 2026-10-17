@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\IdentifierBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\IdentifierBroken;
 
-use Saij\WpAppFramework\Value\Identifier;
+use WebCodingCat\WpAppFramework\Value\Identifier;
 
 final readonly class Item
 {

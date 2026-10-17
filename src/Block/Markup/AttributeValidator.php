@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block\Markup;
+namespace WebCodingCat\WpAppFramework\Block\Markup;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Checks a value from block markup against an attribute schema as the build derives it (ValueSchemaBuilder):

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Asset;
+namespace WebCodingCat\WpAppFramework\Asset;
 
 use LogicException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Registers scripts and styles from a consumer's build directory: each script

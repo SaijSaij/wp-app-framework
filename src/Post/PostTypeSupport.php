@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Post;
+namespace WebCodingCat\WpAppFramework\Post;
 
 /**
  * Features of a post type (`supports` of register_post_type()). The framework adds

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Editor;
+namespace WebCodingCat\WpAppFramework\Editor;
 
 use InvalidArgumentException;
-use Saij\WpAppFramework\Block\RepeaterItem;
-use Saij\WpAppFramework\Twig\TemplateFunction;
+use WebCodingCat\WpAppFramework\Block\RepeaterItem;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 /**
  * Twig functions that mark the editable parts of a block template. In the

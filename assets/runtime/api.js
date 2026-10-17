@@ -2,7 +2,7 @@ import { getData } from '../view/data';
 import { loadScript } from '../view/load-script';
 
 /**
- * The editor API of an instance: the import `@saij/wp-app-framework` of its editor scripts, which the webpack helper
+ * The editor API of an instance: the import `@webcodingcat/wp-app-framework` of its editor scripts, which the webpack helper
  * maps to wpAppFramework[slug].api. Holds exactly what types/index.d.ts declares; the rest of the instance global is
  * internal.
  *

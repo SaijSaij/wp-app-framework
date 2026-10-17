@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Table;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Table;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Query\FieldClassGenerator;
-use Saij\WpAppFramework\Table\TableCollector;
-use Saij\WpAppFramework\Table\TableFields;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid;
-use Saij\WpAppFramework\Tests\Support\Tables;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Query\FieldClassGenerator;
+use WebCodingCat\WpAppFramework\Table\TableCollector;
+use WebCodingCat\WpAppFramework\Table\TableFields;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid;
+use WebCodingCat\WpAppFramework\Tests\Support\Tables;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 /**
  * Row classes in the build: the structure of the tables in the manifest, the hash of the schema and every
@@ -103,8 +103,8 @@ final class TableCollectorTest extends TestCase
             new ManifestBuilder([ManifestBuilderTest::fixture('TableBroken'), ManifestBuilder::frameworkSource()], slug: 'my-theme', namespace: 'dev-test')->build();
             self::fail('The build must fail.');
         } catch (BuildException $exception) {
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\TableBroken\\';
-            $fw = 'Saij\\WpAppFramework\\';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\TableBroken\\';
+            $fw = 'WebCodingCat\\WpAppFramework\\';
             self::assertSame([
                 "parameter \$fields of {$ns}RowInService::run(): {$ns}ValidFields is a table fields class; WordPress passes no such objects to hooks.",
                 "#[Table] on {$ns}AbstractTable: the class must not be abstract.",
@@ -179,6 +179,6 @@ final class TableCollectorTest extends TestCase
         $this->expectException(BuildException::class);
         $this->expectExceptionMessage('has no #[PrimaryKey]');
         new ManifestBuilder([ManifestBuilderTest::fixture('TableBroken'), ManifestBuilder::frameworkSource()], slug: 'my-theme')
-            ->tableFieldValues('Saij\\WpAppFramework\\Tests\\Fixtures\\TableBroken\\NoPrimaryKey');
+            ->tableFieldValues('WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\TableBroken\\NoPrimaryKey');
     }
 }

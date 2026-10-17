@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache\Backend;
+namespace WebCodingCat\WpAppFramework\Cache\Backend;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Filesystem\AtomicFile;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Filesystem\AtomicFile;
 
 /**
  * PHP files below a directory of the instance (wp-content/cache/{slug}/data):

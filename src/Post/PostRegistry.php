@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Post;
+namespace WebCodingCat\WpAppFramework\Post;
 
 use LogicException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Which instance a post, meta or taxonomy class belongs to. Post objects load and

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Twig;
+namespace WebCodingCat\WpAppFramework\Twig;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Saij\WpAppFramework\DependencyInjection\NoService;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Lists the templates of one level (its `src/` directory).

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\I18n;
+namespace WebCodingCat\WpAppFramework\I18n;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The texts of a project to translate, as a POT file (gettext template): one entry per text, context and plural,

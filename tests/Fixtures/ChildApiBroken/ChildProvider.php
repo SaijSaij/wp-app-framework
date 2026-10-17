@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ChildApiBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ChildApiBroken;
 
-use Saij\WpAppFramework\Api\PublicApi;
-use Saij\WpAppFramework\Twig\TemplateFunction;
+use WebCodingCat\WpAppFramework\Api\PublicApi;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 /**
  * Child themes have no consumers, so they offer nothing public.

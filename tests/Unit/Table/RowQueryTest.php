@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Table;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Table;
 
 use DateTimeImmutable;
 use InvalidArgumentException;
@@ -12,23 +12,23 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
-use Saij\WpAppFramework\Query\All;
-use Saij\WpAppFramework\Query\Any;
-use Saij\WpAppFramework\Query\Direction;
-use Saij\WpAppFramework\Query\Field\IntField;
-use Saij\WpAppFramework\Query\Field\StringField;
-use Saij\WpAppFramework\Table\RowQuery;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Event;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetailsFields;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\Counter;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\CounterFields;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\Level;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\LogEntry;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\LogEntryFields as F;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\Priority;
-use Saij\WpAppFramework\Tests\Support\Database;
-use Saij\WpAppFramework\Tests\Support\Posts;
-use Saij\WpAppFramework\Tests\Support\Tables;
+use WebCodingCat\WpAppFramework\Query\All;
+use WebCodingCat\WpAppFramework\Query\Any;
+use WebCodingCat\WpAppFramework\Query\Direction;
+use WebCodingCat\WpAppFramework\Query\Field\IntField;
+use WebCodingCat\WpAppFramework\Query\Field\StringField;
+use WebCodingCat\WpAppFramework\Table\RowQuery;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\Event;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetailsFields;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\Counter;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\CounterFields;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\Level;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\LogEntry;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\LogEntryFields as F;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\Priority;
+use WebCodingCat\WpAppFramework\Tests\Support\Database;
+use WebCodingCat\WpAppFramework\Tests\Support\Posts;
+use WebCodingCat\WpAppFramework\Tests\Support\Tables;
 
 /**
  * Queries of rows: their SQL, running them and the checks of their conditions.
@@ -160,7 +160,7 @@ final class RowQueryTest extends TestCase
             $query = LogEntry::query()->where(new IntField(LogEntry::class, 'postId')->equals(1));
             self::fail('The field class must be rejected.');
         } catch (LogicException $exception) {
-            self::assertSame(sprintf('%s::$postId needs %s, %s given; check the class with #[TableFields] (rebuild the manifest after code changes).', LogEntry::class, \Saij\WpAppFramework\Query\Field\NullableIntField::class, IntField::class), $exception->getMessage());
+            self::assertSame(sprintf('%s::$postId needs %s, %s given; check the class with #[TableFields] (rebuild the manifest after code changes).', LogEntry::class, \WebCodingCat\WpAppFramework\Query\Field\NullableIntField::class, IntField::class), $exception->getMessage());
         }
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(sprintf('%s has no column $title (columns: id, level, message, context, reference, attempts, ratio, flagged, postId, priority, handled, created); check the class with #[TableFields]', LogEntry::class));

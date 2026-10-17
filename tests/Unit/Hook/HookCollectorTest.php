@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Hook;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Hook;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Hook\HookCollector;
-use Saij\WpAppFramework\Hook\HookDefinition;
-use Saij\WpAppFramework\Tests\Fixtures\Valid;
-use Saij\WpAppFramework\Tests\Support\Reflection;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Hook\HookCollector;
+use WebCodingCat\WpAppFramework\Hook\HookDefinition;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\Valid;
+use WebCodingCat\WpAppFramework\Tests\Support\Reflection;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 final class HookCollectorTest extends TestCase
 {

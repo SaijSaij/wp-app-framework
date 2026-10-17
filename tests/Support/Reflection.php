@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Support;
+namespace WebCodingCat\WpAppFramework\Tests\Support;
 
 use LogicException;
 use ReflectionClass;
-use Saij\WpAppFramework\Manifest\Discovery\ClassDiscovery;
-use Saij\WpAppFramework\Manifest\Discovery\Source;
+use WebCodingCat\WpAppFramework\Manifest\Discovery\ClassDiscovery;
+use WebCodingCat\WpAppFramework\Manifest\Discovery\Source;
 
 final class Reflection
 {

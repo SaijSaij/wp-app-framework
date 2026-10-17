@@ -1,5 +1,5 @@
 {
-    "name": "saij/wp-app-framework",
+    "name": "webcodingcat/wp-app-framework",
     "description": "Framework for standalone full site editing themes for WordPress.",
     "type": "library",
     "license": "GPL-2.0-or-later",
@@ -24,13 +24,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Saij\\WpAppFramework\\": "src/"
+            "WebCodingCat\\WpAppFramework\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Saij\\WpAppFramework\\Tests\\": "tests/",
-            "Saij\\WpAppFramework\\Tools\\": "tools/"
+            "WebCodingCat\\WpAppFramework\\Tests\\": "tests/",
+            "WebCodingCat\\WpAppFramework\\Tools\\": "tools/"
         }
     },
     "bin": [

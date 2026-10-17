@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\Valid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\Valid;
 
 use Attribute;
 

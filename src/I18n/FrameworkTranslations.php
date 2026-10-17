@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\I18n;
+namespace WebCodingCat\WpAppFramework\I18n;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The translations of the framework's own texts – the controls of the editor, the settings page and the meta boxes,

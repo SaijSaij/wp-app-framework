@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Lifecycle;
+namespace WebCodingCat\WpAppFramework\Lifecycle;
 
 use Closure;
 use RuntimeException;
-use Saij\WpAppFramework\Cron\CronRegistrar;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Filesystem\FileTree;
-use Saij\WpAppFramework\Post\PostStore;
-use Saij\WpAppFramework\Project\NamePrefix;
-use Saij\WpAppFramework\Table\TableStore;
+use WebCodingCat\WpAppFramework\Cron\CronRegistrar;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Filesystem\FileTree;
+use WebCodingCat\WpAppFramework\Post\PostStore;
+use WebCodingCat\WpAppFramework\Project\NamePrefix;
+use WebCodingCat\WpAppFramework\Table\TableStore;
 use WP_Error;
 
 /**

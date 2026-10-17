@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query\Field;
+namespace WebCodingCat\WpAppFramework\Query\Field;
 
 use BackedEnum;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * A nullable backed enum column of a table (`?Level`). notEquals() and notIn() also match rows whose column is

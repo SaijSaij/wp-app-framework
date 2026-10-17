@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Rest;
+namespace WebCodingCat\WpAppFramework\Rest;
 
 use Closure;
 use LogicException;
-use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Value\ValueFactory;
 use Throwable;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;

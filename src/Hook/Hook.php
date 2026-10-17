@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Hook;
+namespace WebCodingCat\WpAppFramework\Hook;
 
 use Attribute;
 

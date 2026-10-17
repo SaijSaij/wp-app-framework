@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query\Field;
+namespace WebCodingCat\WpAppFramework\Query\Field;
 
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Query\Condition;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Query\Condition;
 
 /**
  * A time column of a table (`DateTimeImmutable`), stored in UTC to the second; times of other time zones are

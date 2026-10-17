@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache;
+namespace WebCodingCat\WpAppFramework\Cache;
 
 use ReflectionClass;
 use ReflectionMethod;
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Rest\RestRoute;
-use Saij\WpAppFramework\Setting\SettingsGroup;
 use Throwable;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Rest\RestRoute;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
 
 /**
  * Reads `#[Cache]` during the build: the block and REST route collectors ask

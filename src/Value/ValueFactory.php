@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Value;
+namespace WebCodingCat\WpAppFramework\Value;
 
 use BackedEnum;
 use DateTimeImmutable;
 use DateTimeZone;
 use InvalidArgumentException;
 use LogicException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
 use WP_Post;
 use WP_Term;
 use WP_User;

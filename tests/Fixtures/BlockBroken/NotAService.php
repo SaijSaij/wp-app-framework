@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockBroken;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 #[Block('not-a-service', title: 'X', category: BlockCategory::Text)]
 #[NoService]

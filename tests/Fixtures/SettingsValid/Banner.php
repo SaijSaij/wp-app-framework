@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SettingsValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SettingsValid;
 
-use Saij\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Hook\Hook;
 
 /**
  * A service that receives settings groups through its constructor.

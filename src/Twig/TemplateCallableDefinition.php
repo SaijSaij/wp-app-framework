@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Twig;
+namespace WebCodingCat\WpAppFramework\Twig;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * A validated `#[TemplateFunction]` or `#[TemplateFilter]` method.

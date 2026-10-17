@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Table;
+namespace WebCodingCat\WpAppFramework\Table;
 
 use ReflectionClass;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Query\Field\Field;
-use Saij\WpAppFramework\Query\Field\FieldTypes;
-use Saij\WpAppFramework\Query\FieldClassCheck;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Query\Field\Field;
+use WebCodingCat\WpAppFramework\Query\Field\FieldTypes;
+use WebCodingCat\WpAppFramework\Query\FieldClassCheck;
 
 /**
  * Checks the classes with #[TableFields] in the build: every public static method that returns a field is called,

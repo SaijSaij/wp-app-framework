@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Value;
+namespace WebCodingCat\WpAppFramework\Value;
 
-use Saij\WpAppFramework\Twig\TemplateFunction;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 /**
  * Twig functions for links (`Link` values).

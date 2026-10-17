@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Support;
+namespace WebCodingCat\WpAppFramework\Tests\Support;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Cron;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Cron;
 
 use DateTimeImmutable;
 use DateTimeZone;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Cron\CronInterval;
-use Saij\WpAppFramework\Cron\CronTime;
-use Saij\WpAppFramework\Cron\Weekday;
+use WebCodingCat\WpAppFramework\Cron\CronInterval;
+use WebCodingCat\WpAppFramework\Cron\CronTime;
+use WebCodingCat\WpAppFramework\Cron\Weekday;
 
 final class CronTimeTest extends TestCase
 {

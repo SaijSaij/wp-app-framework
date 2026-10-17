@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Value;
+namespace WebCodingCat\WpAppFramework\Value;
 
 /**
  * What a link points to: a URL entered freely or a content object of the site

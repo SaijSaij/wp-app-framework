@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CacheValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CacheValid;
 
 final readonly class LatestAttributes
 {

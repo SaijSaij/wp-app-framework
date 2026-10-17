@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Table;
+namespace WebCodingCat\WpAppFramework\Table;
 
 use InvalidArgumentException;
 use LogicException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Query\All;
-use Saij\WpAppFramework\Query\Condition;
-use Saij\WpAppFramework\Query\Direction;
-use Saij\WpAppFramework\Query\Field\Field;
-use Saij\WpAppFramework\Query\FieldCondition;
-use Saij\WpAppFramework\Query\Group;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Query\All;
+use WebCodingCat\WpAppFramework\Query\Condition;
+use WebCodingCat\WpAppFramework\Query\Direction;
+use WebCodingCat\WpAppFramework\Query\Field\Field;
+use WebCodingCat\WpAppFramework\Query\FieldCondition;
+use WebCodingCat\WpAppFramework\Query\Group;
 
 /**
  * A query for rows of a table, started with `LogEntry::query()` and returning row objects; it writes its SQL itself.

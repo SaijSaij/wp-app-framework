@@ -24,7 +24,7 @@ The framework is developed together with a few repositories that test it, measur
 | [theme-bench](https://github.com/webcodingcat/theme-bench) | Benchmark: a theme with the framework against the same theme without it | The cost of the framework per request, now and then on request |
 | [wp-test-env](https://github.com/webcodingcat/wp-test-env) | Docker test environment: fresh WordPress instances, run in parallel, and a tools image with PHP, Composer and Node | Runs every check and test, locally and in CI |
 | [wp-dev-env](https://github.com/webcodingcat/wp-dev-env) | Docker development environment: one local WordPress site per project | Trying things out; never used for tests |
-| [wp-app-starter](https://github.com/webcodingcat/wp-app-starter) | `composer create-project saij/wp-app-starter` for new themes and plugins | Release gate: projects created from it must pass their own checks |
+| [wp-app-starter](https://github.com/webcodingcat/wp-app-starter) | `composer create-project webcodingcat/wp-app-starter` for new themes and plugins | Release gate: projects created from it must pass their own checks |
 
 wp-test-env and wp-dev-env know nothing about the framework; they are general environments for any WordPress project. Each repository has a README with its details and a `CLAUDE.md` with the instructions for Claude Code; these pages describe what concerns the framework and the interplay of the repositories.
 

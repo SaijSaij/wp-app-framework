@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Project;
+namespace WebCodingCat\WpAppFramework\Project;
 
 /**
  * Kind of a consumer of the framework. The build derives it from the `type` of

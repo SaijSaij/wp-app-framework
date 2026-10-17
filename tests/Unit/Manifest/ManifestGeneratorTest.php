@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Manifest;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Manifest;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Tests\Fixtures\Valid;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\Valid;
 
 final class ManifestGeneratorTest extends TestCase
 {

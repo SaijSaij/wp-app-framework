@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CacheBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CacheBroken;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Cache\Cache;
-use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
-use Saij\WpAppFramework\Cache\Tag\SettingsTag;
-use Saij\WpAppFramework\Cache\Tag\TaxonomyTag;
-use Saij\WpAppFramework\Cache\Vary\CookieVary;
-use Saij\WpAppFramework\Cache\Vary\HeaderVary;
-use Saij\WpAppFramework\Cache\Vary\QueryParamVary;
-use Saij\WpAppFramework\Cache\Vary\ServiceVary;
-use Saij\WpAppFramework\Cache\Vary\UserVary;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Cache\Cache;
+use WebCodingCat\WpAppFramework\Cache\Tag\PostTypeTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\SettingsTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\TaxonomyTag;
+use WebCodingCat\WpAppFramework\Cache\Vary\CookieVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\HeaderVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\QueryParamVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\ServiceVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\UserVary;
 
 #[Block('broken-cache', title: 'Broken cache', category: BlockCategory::Design)]
 #[Cache(

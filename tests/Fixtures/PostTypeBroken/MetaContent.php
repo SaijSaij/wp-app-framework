@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\PostTypeBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeBroken;
 
-use Saij\WpAppFramework\Post\PostMeta;
-use Saij\WpAppFramework\Value\Content;
+use WebCodingCat\WpAppFramework\Post\PostMeta;
+use WebCodingCat\WpAppFramework\Value\Content;
 
 #[PostMeta('content', title: 'Meta', postTypes: [Valid::class])]
 final class MetaContent

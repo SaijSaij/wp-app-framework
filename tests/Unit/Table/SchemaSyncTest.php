@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Table;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Table;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Table\TableStore;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\LogEntry;
-use Saij\WpAppFramework\Tests\Support\Database;
-use Saij\WpAppFramework\Tests\Support\Tables;
+use WebCodingCat\WpAppFramework\Table\TableStore;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\LogEntry;
+use WebCodingCat\WpAppFramework\Tests\Support\Database;
+use WebCodingCat\WpAppFramework\Tests\Support\Tables;
 
 /**
  * The schema sync: when it runs (hash, version, lock, failures, sites) and what it changes in the tables.

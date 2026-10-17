@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Table;
+namespace WebCodingCat\WpAppFramework\Table;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Project\NamePrefix;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Project\NamePrefix;
 
 /**
  * Names of the tables and options of an instance: tables `{$wpdb->prefix}{namespace}_{name}` – the prefix of the

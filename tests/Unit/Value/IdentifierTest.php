@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Value;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Value;
 
 use Closure;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Setting\SettingsStore;
-use Saij\WpAppFramework\Tests\Fixtures\IdentifierBroken;
-use Saij\WpAppFramework\Tests\Fixtures\IdentifierValid;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Value\Identifier;
-use Saij\WpAppFramework\Value\Identifiers;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Setting\SettingsStore;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\IdentifierBroken;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\IdentifierValid;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Value\Identifier;
+use WebCodingCat\WpAppFramework\Value\Identifiers;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * Identifiers of list items (`#[Identifier]`): schema with pattern, no control, the identifier in the list's value

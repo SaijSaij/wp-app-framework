@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\DependencyInjection;
+namespace WebCodingCat\WpAppFramework\DependencyInjection;
 
 use Attribute;
 use ReflectionClass;
@@ -10,15 +10,15 @@ use ReflectionIntersectionType;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
-use Saij\WpAppFramework\Api\PluginApi;
-use Saij\WpAppFramework\Api\ThemeApi;
-use Saij\WpAppFramework\ChildTheme;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\I18n\Translator;
-use Saij\WpAppFramework\Plugin;
-use Saij\WpAppFramework\Post\PostStore;
-use Saij\WpAppFramework\Project\ComposerProject;
-use Saij\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Api\PluginApi;
+use WebCodingCat\WpAppFramework\Api\ThemeApi;
+use WebCodingCat\WpAppFramework\ChildTheme;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\Plugin;
+use WebCodingCat\WpAppFramework\Post\PostStore;
+use WebCodingCat\WpAppFramework\Project\ComposerProject;
+use WebCodingCat\WpAppFramework\Theme;
 
 /**
  * Resolves constructor dependencies of reachable services.

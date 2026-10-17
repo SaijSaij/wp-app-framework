@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block\Support;
+namespace WebCodingCat\WpAppFramework\Block\Support;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Value\ValueFactory;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 
 /**
  * A validated `#[BlockSupport]` class.

@@ -2,62 +2,62 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework;
+namespace WebCodingCat\WpAppFramework;
 
 use Closure;
 use LogicException;
-use Saij\WpAppFramework\Api\InstanceBridge;
-use Saij\WpAppFramework\Asset\AssetDirectory;
-use Saij\WpAppFramework\Asset\Assets;
-use Saij\WpAppFramework\Asset\BuildAssets;
-use Saij\WpAppFramework\Asset\ImageVariants;
-use Saij\WpAppFramework\Asset\MediaLibrary;
-use Saij\WpAppFramework\Block\BlockRegistrar;
-use Saij\WpAppFramework\Cache\Backend\FileBackend;
-use Saij\WpAppFramework\Cache\Backend\ObjectBackend;
-use Saij\WpAppFramework\Cache\Backend\TransientBackend;
-use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\Cache\CodeGeneration;
-use Saij\WpAppFramework\Cache\TagHooks;
-use Saij\WpAppFramework\Cache\TagNames;
-use Saij\WpAppFramework\Cache\TagVersions;
-use Saij\WpAppFramework\Cron\CronRegistrar;
-use Saij\WpAppFramework\Cron\CronScheduler;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Editor\EditorAssets;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Editor\RenderController;
-use Saij\WpAppFramework\Hook\HookRegistrar;
-use Saij\WpAppFramework\I18n\FrameworkTranslations;
-use Saij\WpAppFramework\I18n\TranslationLoader;
-use Saij\WpAppFramework\I18n\Translator;
-use Saij\WpAppFramework\Lifecycle\LifecycleCollector;
-use Saij\WpAppFramework\Lifecycle\LifecycleRegistrar;
-use Saij\WpAppFramework\Lifecycle\Uninstaller;
-use Saij\WpAppFramework\Manifest\DevCache\DevCache;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Post\MetaBoxes;
-use Saij\WpAppFramework\Post\PostRegistry;
-use Saij\WpAppFramework\Post\PostStore;
-use Saij\WpAppFramework\Post\PostTypeRegistrar;
-use Saij\WpAppFramework\Project\NamePrefix;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Rest\RestRegistrar;
-use Saij\WpAppFramework\Setting\SettingsAccessor;
-use Saij\WpAppFramework\Setting\SettingsPage;
-use Saij\WpAppFramework\Setting\SettingsStore;
-use Saij\WpAppFramework\Style\StyleAssets;
-use Saij\WpAppFramework\Table\TableRegistry;
-use Saij\WpAppFramework\Table\TableStore;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
-use Saij\WpAppFramework\Twig\TwigCacheCleanUp;
-use Saij\WpAppFramework\Value\ValueFactory;
-use Saij\WpAppFramework\View\ViewAssets;
-use Saij\WpAppFramework\View\ViewData;
-use Saij\WpAppFramework\WpCli\CliRegistrar;
 use Twig\Environment;
+use WebCodingCat\WpAppFramework\Api\InstanceBridge;
+use WebCodingCat\WpAppFramework\Asset\AssetDirectory;
+use WebCodingCat\WpAppFramework\Asset\Assets;
+use WebCodingCat\WpAppFramework\Asset\BuildAssets;
+use WebCodingCat\WpAppFramework\Asset\ImageVariants;
+use WebCodingCat\WpAppFramework\Asset\MediaLibrary;
+use WebCodingCat\WpAppFramework\Block\BlockRegistrar;
+use WebCodingCat\WpAppFramework\Cache\Backend\FileBackend;
+use WebCodingCat\WpAppFramework\Cache\Backend\ObjectBackend;
+use WebCodingCat\WpAppFramework\Cache\Backend\TransientBackend;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\Cache\CodeGeneration;
+use WebCodingCat\WpAppFramework\Cache\TagHooks;
+use WebCodingCat\WpAppFramework\Cache\TagNames;
+use WebCodingCat\WpAppFramework\Cache\TagVersions;
+use WebCodingCat\WpAppFramework\Cron\CronRegistrar;
+use WebCodingCat\WpAppFramework\Cron\CronScheduler;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Editor\EditorAssets;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Editor\RenderController;
+use WebCodingCat\WpAppFramework\Hook\HookRegistrar;
+use WebCodingCat\WpAppFramework\I18n\FrameworkTranslations;
+use WebCodingCat\WpAppFramework\I18n\TranslationLoader;
+use WebCodingCat\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\Lifecycle\LifecycleCollector;
+use WebCodingCat\WpAppFramework\Lifecycle\LifecycleRegistrar;
+use WebCodingCat\WpAppFramework\Lifecycle\Uninstaller;
+use WebCodingCat\WpAppFramework\Manifest\DevCache\DevCache;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Post\MetaBoxes;
+use WebCodingCat\WpAppFramework\Post\PostRegistry;
+use WebCodingCat\WpAppFramework\Post\PostStore;
+use WebCodingCat\WpAppFramework\Post\PostTypeRegistrar;
+use WebCodingCat\WpAppFramework\Project\NamePrefix;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Rest\RestRegistrar;
+use WebCodingCat\WpAppFramework\Setting\SettingsAccessor;
+use WebCodingCat\WpAppFramework\Setting\SettingsPage;
+use WebCodingCat\WpAppFramework\Setting\SettingsStore;
+use WebCodingCat\WpAppFramework\Style\StyleAssets;
+use WebCodingCat\WpAppFramework\Table\TableRegistry;
+use WebCodingCat\WpAppFramework\Table\TableStore;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Twig\TwigCacheCleanUp;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\View\ViewAssets;
+use WebCodingCat\WpAppFramework\View\ViewData;
+use WebCodingCat\WpAppFramework\WpCli\CliRegistrar;
 
 /**
  * Boots one framework instance: a theme (Theme::boot()) or a plugin
@@ -80,7 +80,7 @@ final readonly class Instance
     public const string BUILD_DIRECTORY = 'build';
 
     /** Package of the framework, as installed in the project's vendor directory. */
-    private const string FRAMEWORK_PACKAGE = 'saij/wp-app-framework';
+    private const string FRAMEWORK_PACKAGE = 'webcodingcat/wp-app-framework';
 
     /**
      * @param non-empty-string            $slug

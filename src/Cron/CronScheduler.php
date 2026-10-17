@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cron;
+namespace WebCodingCat\WpAppFramework\Cron;
 
 use DateTimeInterface;
 use LogicException;
 use RuntimeException;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 use WP_Error;
 
 /**

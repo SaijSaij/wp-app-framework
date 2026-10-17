@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Post;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Post;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Post\MetaBoxes;
-use Saij\WpAppFramework\Post\PostTypeRegistrar;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Posts;
-use Saij\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Post\MetaBoxes;
+use WebCodingCat\WpAppFramework\Post\PostTypeRegistrar;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Posts;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
 
 /**
  * Meta boxes of the classic edit screen.

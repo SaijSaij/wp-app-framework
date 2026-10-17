@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Post;
+namespace WebCodingCat\WpAppFramework\Post;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\I18n\Translator;
-use Saij\WpAppFramework\Value\HtmlFilter;
-use Saij\WpAppFramework\Value\Identifiers;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\Value\HtmlFilter;
+use WebCodingCat\WpAppFramework\Value\Identifiers;
 
 /**
  * Registers the post types, taxonomies and meta fields of an instance on `init`

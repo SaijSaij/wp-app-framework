@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\View;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\View;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Asset\BuildAssets;
-use Saij\WpAppFramework\Block\BlockRegistrar;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Value\ValueFactory;
-use Saij\WpAppFramework\View\ViewAssets;
+use WebCodingCat\WpAppFramework\Asset\BuildAssets;
+use WebCodingCat\WpAppFramework\Block\BlockRegistrar;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\View\ViewAssets;
 use WP_Block;
 
 /**

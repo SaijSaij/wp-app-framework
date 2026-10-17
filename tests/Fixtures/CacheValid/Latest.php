@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CacheValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CacheValid;
 
 use RuntimeException;
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Cache\Cache;
-use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
-use Saij\WpAppFramework\Cache\Tag\SettingsTag;
-use Saij\WpAppFramework\Cache\Vary\QueryParamVary;
-use Saij\WpAppFramework\Cache\Vary\ServiceVary;
-use Saij\WpAppFramework\View\ViewData;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Cache\Cache;
+use WebCodingCat\WpAppFramework\Cache\Tag\PostTypeTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\SettingsTag;
+use WebCodingCat\WpAppFramework\Cache\Vary\QueryParamVary;
+use WebCodingCat\WpAppFramework\Cache\Vary\ServiceVary;
+use WebCodingCat\WpAppFramework\View\ViewData;
 use WP_Block;
 
 /** Counts its renders and shows the count; sets view data with the attribute data. */

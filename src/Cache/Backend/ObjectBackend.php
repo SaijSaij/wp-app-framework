@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache\Backend;
+namespace WebCodingCat\WpAppFramework\Cache\Backend;
 
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The persistent object cache: available if an object-cache.php drop-in is

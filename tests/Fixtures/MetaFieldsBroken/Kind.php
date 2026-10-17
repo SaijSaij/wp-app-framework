@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\MetaFieldsBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\MetaFieldsBroken;
 
 enum Kind: string
 {

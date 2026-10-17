@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\I18n;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\I18n;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Filesystem\FileTree;
-use Saij\WpAppFramework\I18n\TranslationLoader;
+use WebCodingCat\WpAppFramework\Filesystem\FileTree;
+use WebCodingCat\WpAppFramework\I18n\TranslationLoader;
 
 /**
  * Loading the translation of an instance: compiled from the PO file in development mode, the compiled file of a

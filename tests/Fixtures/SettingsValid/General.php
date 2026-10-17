@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SettingsValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SettingsValid;
 
-use Saij\WpAppFramework\Setting\SettingsGroup;
-use Saij\WpAppFramework\Value\Color;
-use Saij\WpAppFramework\Value\Hidden;
-use Saij\WpAppFramework\Value\Image;
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Value\Link as ContentLink;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\PlainText;
-use Saij\WpAppFramework\Value\PostReference;
-use Saij\WpAppFramework\Value\RichText;
-use Saij\WpAppFramework\Value\Url;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
+use WebCodingCat\WpAppFramework\Value\Color;
+use WebCodingCat\WpAppFramework\Value\Hidden;
+use WebCodingCat\WpAppFramework\Value\Image;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Value\Link as ContentLink;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\PostReference;
+use WebCodingCat\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Value\Url;
 
 #[SettingsGroup('general', title: 'General', description: 'Main settings.', position: 20)]
 final readonly class General

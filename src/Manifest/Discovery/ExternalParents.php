@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Manifest\Discovery;
+namespace WebCodingCat\WpAppFramework\Manifest\Discovery;
 
 use ReflectionClass;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Finds the scanned classes that build on a class outside the project: neither in the scanned sources, nor found by

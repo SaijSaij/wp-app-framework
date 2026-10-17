@@ -6,8 +6,8 @@ declare(strict_types=1);
 // Generates the PHP and Twig pages of the API reference (docs/content/api/php/, docs/content/api/twig/) and their
 // sidebar (docs/.generated/api-php.json). Run by the documentation build (npm run build in docs/).
 
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Tools\ApiReference\Generator;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Tools\ApiReference\Generator;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 

@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Setting;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Setting;
 
 use Closure;
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Setting\SettingsAccessor;
-use Saij\WpAppFramework\Setting\SettingsStore;
-use Saij\WpAppFramework\Tests\Fixtures\SettingsValid;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Setting\SettingsAccessor;
+use WebCodingCat\WpAppFramework\Setting\SettingsStore;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\SettingsValid;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * Settings at runtime: registration, group objects from the stored values, injection and the template global.

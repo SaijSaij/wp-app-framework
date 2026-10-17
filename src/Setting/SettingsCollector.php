@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Setting;
+namespace WebCodingCat\WpAppFramework\Setting;
 
 use ReflectionClass;
-use Saij\WpAppFramework\Asset\ScriptKind;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
+use WebCodingCat\WpAppFramework\Asset\ScriptKind;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 
 /**
  * Collects and validates `#[SettingsGroup]` classes during the build and

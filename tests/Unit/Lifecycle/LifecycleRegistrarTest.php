@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Lifecycle;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Lifecycle;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Cron\CronRegistrar;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Hook\HookRegistrar;
-use Saij\WpAppFramework\Lifecycle\LifecycleRegistrar;
-use Saij\WpAppFramework\Lifecycle\Uninstaller;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Post\PostRegistry;
-use Saij\WpAppFramework\Post\PostTypeRegistrar;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Tests\Fixtures\LifecycleValid\Journal;
-use Saij\WpAppFramework\Tests\Support\Database;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Support\Posts;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Tests\Support\Tables;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Cron\CronRegistrar;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Hook\HookRegistrar;
+use WebCodingCat\WpAppFramework\Lifecycle\LifecycleRegistrar;
+use WebCodingCat\WpAppFramework\Lifecycle\Uninstaller;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Post\PostRegistry;
+use WebCodingCat\WpAppFramework\Post\PostTypeRegistrar;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\LifecycleValid\Journal;
+use WebCodingCat\WpAppFramework\Tests\Support\Database;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Support\Posts;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Tests\Support\Tables;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 use WP_Site;
 
 /**
@@ -179,7 +179,7 @@ final class LifecycleRegistrarTest extends TestCase
         self::assertFalse(wp_next_scheduled(self::CLEAN_UP));
         $log = implode("\n", Tables::log());
         self::assertStringContainsString(
-            'wp-app-framework: action Saij\WpAppFramework\Tests\Fixtures\LifecycleValid\Alpha::both() on hook "deactivate_my-theme/my-theme.php" failed: RuntimeException: Writing "alpha" failed.',
+            'wp-app-framework: action WebCodingCat\WpAppFramework\Tests\Fixtures\LifecycleValid\Alpha::both() on hook "deactivate_my-theme/my-theme.php" failed: RuntimeException: Writing "alpha" failed.',
             $log,
         );
     }

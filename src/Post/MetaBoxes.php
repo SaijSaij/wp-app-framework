@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Post;
+namespace WebCodingCat\WpAppFramework\Post;
 
-use Saij\WpAppFramework\Asset\BuildAssets;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\I18n\FrameworkTranslations;
-use Saij\WpAppFramework\I18n\Translator;
-use Saij\WpAppFramework\Value\FormAssets;
+use WebCodingCat\WpAppFramework\Asset\BuildAssets;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\I18n\FrameworkTranslations;
+use WebCodingCat\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\Value\FormAssets;
 use WP_Post;
 use WP_Screen;
 

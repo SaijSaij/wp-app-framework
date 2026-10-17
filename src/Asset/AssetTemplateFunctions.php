@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Asset;
+namespace WebCodingCat\WpAppFramework\Asset;
 
-use Saij\WpAppFramework\Twig\TemplateFunction;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 /**
  * Twig functions for the static files in `assets/` (see Assets).

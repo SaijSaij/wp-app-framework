@@ -25,11 +25,11 @@ Here is a hero block with a topline, a headline, an image, a gradient and a list
 ### The block class
 
 ```php
-use Saij\WpAppFramework\Block\Align;
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\Supports;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Block\Align;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Supports;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 #[Block('hero', title: 'Hero', category: BlockCategory::Design, icon: 'cover-image')]
 #[Supports(anchor: true, align: [Align::Wide, Align::Full])]
@@ -53,13 +53,13 @@ final class Hero
 ### The attribute class
 
 ```php
-use Saij\WpAppFramework\Value\Content;
-use Saij\WpAppFramework\Value\Image;
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Value\PlainText;
-use Saij\WpAppFramework\Value\RichText;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\Url;
+use WebCodingCat\WpAppFramework\Value\Content;
+use WebCodingCat\WpAppFramework\Value\Image;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\Url;
 
 final readonly class HeroAttributes
 {

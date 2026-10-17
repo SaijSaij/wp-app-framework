@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Manifest\DevCache;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Manifest\DevCache;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
 
 final class DevCacheTest extends TestCase
 {
@@ -41,7 +41,7 @@ final class DevCacheTest extends TestCase
 
             namespace DevCacheProbe;
 
-            use Saij\\WpAppFramework\\Hook\\Hook;
+            use WebCodingCat\\WpAppFramework\\Hook\\Hook;
 
             final class Hooks
             {
@@ -146,10 +146,10 @@ final class DevCacheTest extends TestCase
 
             namespace DevCacheProbe;
 
-            use Saij\\WpAppFramework\\Rest\\HttpMethod;
-            use Saij\\WpAppFramework\\Rest\\Permission\\Callback;
-            use Saij\\WpAppFramework\\Rest\\RestController;
-            use Saij\\WpAppFramework\\Rest\\RestRoute;
+            use WebCodingCat\\WpAppFramework\\Rest\\HttpMethod;
+            use WebCodingCat\\WpAppFramework\\Rest\\Permission\\Callback;
+            use WebCodingCat\\WpAppFramework\\Rest\\RestController;
+            use WebCodingCat\\WpAppFramework\\Rest\\RestRoute;
 
             #[RestController('v1')]
             final class Controller
@@ -201,8 +201,8 @@ final class DevCacheTest extends TestCase
 
     public function testEditorChangesRebuild(): void
     {
-        $enum = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Value\\Labeled;\n\nenum Tone: string implements Labeled\n{\n    case Light = 'light';\n\n    public function label(): string\n    {\n        return '{$label}';\n    }\n}\n";
-        $attributes = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Value\\Label;\n\nfinal readonly class Attributes\n{\n    public function __construct(#[Label('{$label}')] public Tone \$tone = Tone::Light)\n    {\n    }\n}\n";
+        $enum = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse WebCodingCat\\WpAppFramework\\Value\\Labeled;\n\nenum Tone: string implements Labeled\n{\n    case Light = 'light';\n\n    public function label(): string\n    {\n        return '{$label}';\n    }\n}\n";
+        $attributes = static fn(string $label): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse WebCodingCat\\WpAppFramework\\Value\\Label;\n\nfinal readonly class Attributes\n{\n    public function __construct(#[Label('{$label}')] public Tone \$tone = Tone::Light)\n    {\n    }\n}\n";
 
         $this->writeSource('Tone.php', $enum('Bright'));
         $this->writeSource('Attributes.php', $attributes('Tone'));
@@ -218,7 +218,7 @@ final class DevCacheTest extends TestCase
         self::assertSame('stale', $this->probe('check'));
 
         // Whether a block has an editor script is part of the manifest.
-        $this->writeSource('Probe.php', "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Block;\nuse Saij\\WpAppFramework\\Block\\BlockCategory;\n\n#[Block('probe', title: 'Probe', category: BlockCategory::Text)]\nfinal class Probe\n{\n    public function render(): string\n    {\n        return '<div>Probe</div>';\n    }\n}\n");
+        $this->writeSource('Probe.php', "<?php\n\nnamespace DevCacheProbe;\n\nuse WebCodingCat\\WpAppFramework\\Block\\Block;\nuse WebCodingCat\\WpAppFramework\\Block\\BlockCategory;\n\n#[Block('probe', title: 'Probe', category: BlockCategory::Text)]\nfinal class Probe\n{\n    public function render(): string\n    {\n        return '<div>Probe</div>';\n    }\n}\n");
         $this->probe('load');
         file_put_contents($this->theme . '/src/Probe.editor.js', '');
         self::assertSame('stale', $this->probe('check'));
@@ -239,7 +239,7 @@ final class DevCacheTest extends TestCase
 
     public function testBlockSupportChangesRebuild(): void
     {
-        $support = static fn(string $label, string $default): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Block\\Support\\BlockSupport;\n\n#[BlockSupport('framed', label: '{$label}')]\nfinal class Framed\n{\n    public function className(bool \$value = {$default}): ?string\n    {\n        return \$value ? 'framed' : null;\n    }\n}\n";
+        $support = static fn(string $label, string $default): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse WebCodingCat\\WpAppFramework\\Block\\Support\\BlockSupport;\n\n#[BlockSupport('framed', label: '{$label}')]\nfinal class Framed\n{\n    public function className(bool \$value = {$default}): ?string\n    {\n        return \$value ? 'framed' : null;\n    }\n}\n";
 
         $this->writeSource('Framed.php', $support('Framed', 'false'));
         $this->probe('load');
@@ -256,7 +256,7 @@ final class DevCacheTest extends TestCase
 
     public function testSettingsChangesRebuild(): void
     {
-        $group = static fn(string $title, string $default): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse Saij\\WpAppFramework\\Setting\\SettingsGroup;\n\n#[SettingsGroup('general', title: '{$title}')]\nfinal readonly class General\n{\n    public function __construct(public bool \$wide = {$default})\n    {\n    }\n}\n";
+        $group = static fn(string $title, string $default): string => "<?php\n\nnamespace DevCacheProbe;\n\nuse WebCodingCat\\WpAppFramework\\Setting\\SettingsGroup;\n\n#[SettingsGroup('general', title: '{$title}')]\nfinal readonly class General\n{\n    public function __construct(public bool \$wide = {$default})\n    {\n    }\n}\n";
 
         $this->writeSource('General.php', $group('General', 'false'));
         $this->probe('load');

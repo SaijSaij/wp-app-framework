@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\View;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\View;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Asset\BuildAssets;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\View\ViewAssets;
-use Saij\WpAppFramework\View\ViewData;
+use WebCodingCat\WpAppFramework\Asset\BuildAssets;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\View\ViewAssets;
+use WebCodingCat\WpAppFramework\View\ViewData;
 
 /**
  * Document views (assets/*.view.js), shared modules and the view data on the front end.

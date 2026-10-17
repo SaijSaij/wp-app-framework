@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Setting;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Setting;
 
 use Closure;
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Setting\SettingsPage;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Setting\SettingsPage;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
 
 /**
  * The settings page of an instance: menu entry, script, styles and configuration.

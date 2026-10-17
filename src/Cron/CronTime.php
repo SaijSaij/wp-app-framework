@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cron;
+namespace WebCodingCat\WpAppFramework\Cron;
 
 use DateTimeImmutable;
 use DateTimeZone;
 use LogicException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The times of events with a fixed start time (`#[CronEvent(at: …)]`) in the

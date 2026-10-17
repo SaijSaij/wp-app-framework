@@ -17,8 +17,8 @@ WordPress stores all scheduled events, with their arguments, in the option `cron
 A recurring event is a public method of a [service](./services.md) with `#[CronEvent]`. It names the event and its interval:
 
 ```php
-use Saij\WpAppFramework\Cron\CronEvent;
-use Saij\WpAppFramework\Cron\CronInterval;
+use WebCodingCat\WpAppFramework\Cron\CronEvent;
+use WebCodingCat\WpAppFramework\Cron\CronInterval;
 
 final readonly class FeedSync
 {
@@ -81,7 +81,7 @@ final readonly class SendReminder
 ```
 
 ```php
-use Saij\WpAppFramework\Cron\CronTask;
+use WebCodingCat\WpAppFramework\Cron\CronTask;
 
 final readonly class Reminders
 {
@@ -99,8 +99,8 @@ The first parameter of the handler is the task; further parameters are services.
 To plan a task, inject `CronScheduler` and pass it a task object and a time:
 
 ```php
-use Saij\WpAppFramework\Cron\CronScheduler;
-use Saij\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Cron\CronScheduler;
+use WebCodingCat\WpAppFramework\Hook\Hook;
 
 final readonly class ReminderPlanner
 {

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Editor;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Editor;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\BlockEditorBroken;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\BlockEditorBroken;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 final class EditorBuildTest extends TestCase
 {
@@ -142,7 +142,7 @@ final class EditorBuildTest extends TestCase
             sprintf($a, 'emptyLabel') . ' has an empty #[Label].',
             sprintf($a, 'badFormats') . ': allowedFormats of #[RichText] must be a list of format names such as "core/bold", or null for all formats.',
             sprintf($a, 'emptyCaseLabel') . ': ' . BlockEditorBroken\EmptyLabel::class . '::A->label() returned an empty label.',
-            sprintf($a, 'labeledValue') . ': value class ' . BlockEditorBroken\LabeledValue::class . ' implements Saij\WpAppFramework\Value\Labeled, which only labels the cases of backed enums.',
+            sprintf($a, 'labeledValue') . ': value class ' . BlockEditorBroken\LabeledValue::class . ' implements WebCodingCat\WpAppFramework\Value\Labeled, which only labels the cases of backed enums.',
             BlockEditorBroken\AllowedWithoutContent::class . ' has #[InnerBlocks], but ' . BlockEditorBroken\AllowedWithoutContent::class . '::render() accepts no string $content, so the block has no inner blocks.',
             '#[InnerBlocks] on ' . BlockEditorBroken\AllowedInvalid::class . ': allowed must contain block classes, CoreBlock cases and full block names, string given.',
             '#[InnerBlocks] on ' . BlockEditorBroken\AllowedUnknown::class . ': allowed names missing, which is no block class of this theme or plugin (a class with #[Block]); name core blocks by CoreBlock and other blocks in full, e.g. "acme/slider".',

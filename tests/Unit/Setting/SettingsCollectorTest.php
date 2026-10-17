@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Setting;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Setting;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\SettingsValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\SettingsValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 /**
  * Build of settings groups (`#[SettingsGroup]`).
@@ -153,7 +153,7 @@ final class SettingsCollectorTest extends TestCase
 
     public function testReportsAllErrors(): void
     {
-        $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\SettingsBroken\\';
+        $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\SettingsBroken\\';
         $expected = [
             "{$ns}HookOnGroup::run() has #[Hook], but {$ns}HookOnGroup is a settings group and therefore not a service.",
             "parameter \$settings of {$ns}UsedInHook::run(): settings group {$ns}Valid is injected into constructors of services only, not in hooks.",

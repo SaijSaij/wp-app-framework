@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Cron;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Cron;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\Cron\CronScheduler;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Tests\Fixtures\CronBroken;
-use Saij\WpAppFramework\Tests\Fixtures\CronValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\Cron\CronScheduler;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CronBroken;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CronValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * #[CronEvent] and #[CronTask] in the build: the manifest entries and every error.
@@ -108,7 +108,7 @@ final class CronCollectorTest extends TestCase
             $events . 'statically() has #[CronEvent] and must be public and non-static.',
             $events . 'returns() has #[CronEvent] and must return void.',
             $events . 'untyped() has #[CronEvent] and must return void.',
-            'Invalid #[CronEvent] on ' . $events . 'constant(): Undefined constant "Saij\WpAppFramework\Tests\Fixtures\CronBroken\HOUR_IN_SECONDS" (attribute arguments are evaluated in the build, where constants WordPress defines, such as MINUTE_IN_SECONDS, do not exist; write the number itself)',
+            'Invalid #[CronEvent] on ' . $events . 'constant(): Undefined constant "WebCodingCat\WpAppFramework\Tests\Fixtures\CronBroken\HOUR_IN_SECONDS" (attribute arguments are evaluated in the build, where constants WordPress defines, such as MINUTE_IN_SECONDS, do not exist; write the number itself)',
             'parameter $count of ' . $events . 'argument(): WP-Cron passes no arguments to recurring events; the parameters of a #[CronEvent] method must be services.',
             'parameter $helpers of ' . $events . 'variadic(): variadic and by-reference parameters are not supported in cron events.',
             $event . 'short(): the interval must be at least 60 seconds, 30 given.',
@@ -120,12 +120,12 @@ final class CronCollectorTest extends TestCase
             $event . 'weeklyWeekday(): weekday needs the interval CronInterval::Weekly and at.',
             $events . 'both() has #[CronEvent] and #[CronTask]; a method is either a recurring event or the handler of a task.',
             CronBroken\NotAService::class . '::run() has #[CronEvent], but ' . CronBroken\NotAService::class . ' is marked #[NoService] and therefore not a service.',
-            'Invalid #[CronTask] on ' . $tasks . 'unnamed(): Too few arguments to function Saij\\WpAppFramework\\Cron\\CronTask::__construct(), 0 passed in ' . dirname(__DIR__, 2) . '/Fixtures/CronBroken/Tasks.php on line 16 and exactly 1 expected',
+            'Invalid #[CronTask] on ' . $tasks . 'unnamed(): Too few arguments to function WebCodingCat\\WpAppFramework\\Cron\\CronTask::__construct(), 0 passed in ' . dirname(__DIR__, 2) . '/Fixtures/CronBroken/Tasks.php on line 16 and exactly 1 expected',
             $tasks . 'none() has #[CronTask] and needs the task as first parameter: a value class whose object carries the data of the task.',
             'parameter $id of ' . $tasks . 'scalar(): the task must be typed with a value class, int given.',
             $task . 'nullable(): the task must not be nullable.',
             $task . 'union(): the task must be typed with a value class, ' . CronBroken\Plain::class . '|' . CronBroken\Other::class . ' given.',
-            $task . 'post(): Saij\WpAppFramework\Post\Post is a post class; a task stores the ID of a post (int $postId) and the handler loads the post.',
+            $task . 'post(): WebCodingCat\WpAppFramework\Post\Post is a post class; a task stores the ID of a post (int $postId) and the handler loads the post.',
             $task . 'references(): "task.post' . $reference,
             $task . 'references(): "task.author.user' . $reference,
             $task . 'references(): "task.authors[*].user' . $reference,

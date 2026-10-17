@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Post;
+namespace WebCodingCat\WpAppFramework\Post;
 
 use ReflectionClass;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Project\NamePrefix;
-use Saij\WpAppFramework\Query\MetaFields;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Project\NamePrefix;
+use WebCodingCat\WpAppFramework\Query\MetaFields;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 
 /**
  * Collects and validates post classes (`#[PostType]`), meta classes (`#[PostMeta]`)

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Posts that meet at least one of the conditions: `Any::of($a, $b)`.

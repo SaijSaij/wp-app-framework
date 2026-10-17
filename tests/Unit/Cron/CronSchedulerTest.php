@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Cron;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Cron;
 
 use DateTimeImmutable;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Cron\CronScheduler;
-use Saij\WpAppFramework\Tests\Fixtures\CronValid\Recipient;
-use Saij\WpAppFramework\Tests\Fixtures\CronValid\ReminderKind;
-use Saij\WpAppFramework\Tests\Fixtures\CronValid\SendReminder;
+use WebCodingCat\WpAppFramework\Cron\CronScheduler;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CronValid\Recipient;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CronValid\ReminderKind;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\CronValid\SendReminder;
 
 final class CronSchedulerTest extends TestCase
 {

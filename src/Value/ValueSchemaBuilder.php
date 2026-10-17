@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Value;
+namespace WebCodingCat\WpAppFramework\Value;
 
 use BackedEnum;
 use ReflectionClass;
 use ReflectionEnum;
 use ReflectionNamedType;
 use ReflectionParameter;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Post\AbstractPost;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
 
 /**
  * Derives the JSON schema and the runtime description of typed values during

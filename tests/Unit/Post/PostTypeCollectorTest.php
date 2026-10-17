@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Post;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Post;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Cache\CachePolicy;
-use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
-use Saij\WpAppFramework\Cache\Tag\TaxonomyTag;
-use Saij\WpAppFramework\Cache\TagNames;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Post\Category;
-use Saij\WpAppFramework\Post\Page;
-use Saij\WpAppFramework\Post\Post;
-use Saij\WpAppFramework\Post\Tag;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Cache\CachePolicy;
+use WebCodingCat\WpAppFramework\Cache\Tag\PostTypeTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\TaxonomyTag;
+use WebCodingCat\WpAppFramework\Cache\TagNames;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Post\Category;
+use WebCodingCat\WpAppFramework\Post\Page;
+use WebCodingCat\WpAppFramework\Post\Post;
+use WebCodingCat\WpAppFramework\Post\Tag;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 /**
  * Build of post classes (#[PostType]), meta classes (#[PostMeta]) and taxonomies (#[Taxonomy]).
@@ -158,8 +158,8 @@ final class PostTypeCollectorTest extends TestCase
             new ManifestBuilder([ManifestBuilderTest::fixture('PostTypeBroken'), ManifestBuilder::frameworkSource()], slug: 'my-theme')->build();
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\PostTypeBroken\\';
-            $abstract = 'Saij\\WpAppFramework\\Post\\AbstractPost';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\PostTypeBroken\\';
+            $abstract = 'WebCodingCat\\WpAppFramework\\Post\\AbstractPost';
             $expected = [
                 "parameter \$post of {$ns}PostInHook::run(): {$ns}Valid is a post class; WordPress passes no such objects to hooks.",
                 "#[PostType] on {$ns}BadName has the invalid name \"Bad-Name\": use lowercase letters, digits and \"_\", starting with a letter, e.g. \"event\".",

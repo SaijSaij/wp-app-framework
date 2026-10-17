@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ContainerValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerValid;
 
-use Saij\WpAppFramework\Block\Appender;
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\CoreBlock;
-use Saij\WpAppFramework\Block\Example;
-use Saij\WpAppFramework\Block\InnerBlocks;
-use Saij\WpAppFramework\Block\Orientation;
-use Saij\WpAppFramework\Block\TemplateBlock;
-use Saij\WpAppFramework\Block\TemplateLock;
-use Saij\WpAppFramework\Block\Variation;
-use Saij\WpAppFramework\Block\VariationScope;
+use WebCodingCat\WpAppFramework\Block\Appender;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\CoreBlock;
+use WebCodingCat\WpAppFramework\Block\Example;
+use WebCodingCat\WpAppFramework\Block\InnerBlocks;
+use WebCodingCat\WpAppFramework\Block\Orientation;
+use WebCodingCat\WpAppFramework\Block\TemplateBlock;
+use WebCodingCat\WpAppFramework\Block\TemplateLock;
+use WebCodingCat\WpAppFramework\Block\Variation;
+use WebCodingCat\WpAppFramework\Block\VariationScope;
 
 #[Block('tabs', title: 'Tabs', category: Category::Sections)]
 #[InnerBlocks(

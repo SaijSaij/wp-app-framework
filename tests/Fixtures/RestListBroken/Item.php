@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\RestListBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\RestListBroken;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 #[NoService]
 final readonly class Item

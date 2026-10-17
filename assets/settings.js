@@ -4,7 +4,7 @@
  * WP_APP_FRAMEWORK_SLUG; the page configuration comes from
  * `wpAppFramework[slug].settings` (SettingsPage in PHP).
  *
- * The API of the settings scripts (`@saij/wp-app-framework/settings`, mapped
+ * The API of the settings scripts (`@webcodingcat/wp-app-framework/settings`, mapped
  * to `wpAppFramework[slug].settingsApi`) exists as soon as this script ran;
  * the settings scripts load after it and register their controls before the
  * page renders on DOMContentLoaded.

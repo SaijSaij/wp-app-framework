@@ -1,5 +1,5 @@
 /**
- * The front-end API of `@saij/wp-app-framework/view`, for view scripts (`*.view.js` next to a block or block support
+ * The front-end API of `@webcodingcat/wp-app-framework/view`, for view scripts (`*.view.js` next to a block or block support
  * class, or in `assets/` for document views).
  *
  * The import is no module of its own: the webpack helper maps it to the view runtime of your theme or plugin,

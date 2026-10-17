@@ -1,7 +1,7 @@
 /**
  * Loads external scripts (from a CDN, a payment provider and the like) for
- * views and editor scripts: loadScript() from `@saij/wp-app-framework/view`,
- * `@saij/wp-app-framework` and View#loadScript().
+ * views and editor scripts: loadScript() from `@webcodingcat/wp-app-framework/view`,
+ * `@webcodingcat/wp-app-framework` and View#loadScript().
  *
  * Each URL loads once per document, also when several views or framework
  * instances ask for it: the script element carries its state, so runtimes

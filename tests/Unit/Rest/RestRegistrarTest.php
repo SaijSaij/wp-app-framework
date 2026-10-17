@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Rest;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Rest;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Rest\RestException;
-use Saij\WpAppFramework\Rest\RestRegistrar;
-use Saij\WpAppFramework\Tests\Fixtures\RestValid;
-use Saij\WpAppFramework\Tests\Support\Requests;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Rest\RestException;
+use WebCodingCat\WpAppFramework\Rest\RestRegistrar;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\RestValid;
+use WebCodingCat\WpAppFramework\Tests\Support\Requests;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;

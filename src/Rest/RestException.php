@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Rest;
+namespace WebCodingCat\WpAppFramework\Rest;
 
 use InvalidArgumentException;
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Ends a REST request with an error response: thrown from a route or permission

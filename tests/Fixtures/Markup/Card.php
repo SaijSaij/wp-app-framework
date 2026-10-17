@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\Markup;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\Markup;
 
-use Saij\WpAppFramework\Block\Align;
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\Supports;
+use WebCodingCat\WpAppFramework\Block\Align;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Supports;
 
 #[Block('card', title: 'Card', category: BlockCategory::Text)]
 #[Supports(anchor: true, align: [Align::Wide, Align::Full])]

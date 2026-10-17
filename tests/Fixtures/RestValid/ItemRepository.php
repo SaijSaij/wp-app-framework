@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\RestValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\RestValid;
 
 final class ItemRepository
 {

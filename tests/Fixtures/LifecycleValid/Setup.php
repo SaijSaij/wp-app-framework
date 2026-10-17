@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\LifecycleValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\LifecycleValid;
 
-use Saij\WpAppFramework\Lifecycle\OnActivation;
-use Saij\WpAppFramework\Lifecycle\OnDeactivation;
-use Saij\WpAppFramework\Lifecycle\OnUninstall;
+use WebCodingCat\WpAppFramework\Lifecycle\OnActivation;
+use WebCodingCat\WpAppFramework\Lifecycle\OnDeactivation;
+use WebCodingCat\WpAppFramework\Lifecycle\OnUninstall;
 
 final readonly class Setup
 {

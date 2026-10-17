@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Hook;
+namespace WebCodingCat\WpAppFramework\Hook;
 
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Manifest\Manifest;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
 
 /**
  * Registers the hooks of the manifest with WordPress.

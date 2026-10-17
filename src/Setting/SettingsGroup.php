@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Setting;
+namespace WebCodingCat\WpAppFramework\Setting;
 
 use Attribute;
 

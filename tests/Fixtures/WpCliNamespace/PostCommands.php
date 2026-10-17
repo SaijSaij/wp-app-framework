@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\WpCliNamespace;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliNamespace;
 
-use Saij\WpAppFramework\WpCli\CliCommand;
-use Saij\WpAppFramework\WpCli\CliSubcommand;
+use WebCodingCat\WpAppFramework\WpCli\CliCommand;
+use WebCodingCat\WpAppFramework\WpCli\CliSubcommand;
 
 #[CliCommand('events', 'Events.')]
 final class PostCommands

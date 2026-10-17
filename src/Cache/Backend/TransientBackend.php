@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache\Backend;
+namespace WebCodingCat\WpAppFramework\Cache\Backend;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Transients: always available; in the database unless an object cache stores them.

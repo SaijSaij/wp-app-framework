@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Api;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Api;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\ChildTheme;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Plugin;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Tests\Fixtures\ApiBroken;
-use Saij\WpAppFramework\Tests\Fixtures\ApiValid;
-use Saij\WpAppFramework\Tests\Fixtures\ChildApi;
-use Saij\WpAppFramework\Tests\Fixtures\ChildApiBroken;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\ChildTheme;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Plugin;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ApiBroken;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ApiValid;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ChildApi;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ChildApiBroken;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * Public APIs (`#[PublicApi]`, `#[PluginApi]`, `#[ThemeApi]`) and public template callables in the build.
@@ -77,7 +77,7 @@ final class PublicApiBuildTest extends TestCase
         self::assertSame([ApiValid\NoteApi::class], $result->getPublicApis());
         self::assertSame(['store' => ApiValid\NoteStore::class], $result->getServices()[ApiValid\NoteApi::class]);
         self::assertSame(
-            ['store' => ApiValid\NoteStore::class, 'notes' => ['provider' => 'other-plugin', 'kind' => 'plugin', 'class' => 'Saij\\WpAppFramework\\Tests\\Fixtures\\OtherPlugin\\NotesApi']],
+            ['store' => ApiValid\NoteStore::class, 'notes' => ['provider' => 'other-plugin', 'kind' => 'plugin', 'class' => 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\OtherPlugin\\NotesApi']],
             $result->getServices()[ApiValid\Consumer::class],
         );
     }
@@ -117,7 +117,7 @@ final class PublicApiBuildTest extends TestCase
         self::assertSame('my-theme', $result->getParent());
         self::assertSame(['my_theme_' => 'my-theme'], $result->getTemplateProviders());
         self::assertSame(
-            ['childTheme' => ChildTheme::class, 'sections' => ['provider' => 'my-theme', 'kind' => 'theme', 'class' => 'Saij\\WpAppFramework\\Tests\\Fixtures\\ParentTheme\\SectionsApi']],
+            ['childTheme' => ChildTheme::class, 'sections' => ['provider' => 'my-theme', 'kind' => 'theme', 'class' => 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\ParentTheme\\SectionsApi']],
             $result->getServices()[ChildApi\ChildConsumer::class],
         );
     }
@@ -142,7 +142,7 @@ final class PublicApiBuildTest extends TestCase
             [
                 "{$provider} has #[PublicApi], but only plugins and themes provide public APIs; this project is a child theme.",
                 "#[TemplateFunction] on {$provider}::count() has public: true, but only plugins and themes offer template callables to other consumers.",
-                "#[ThemeApi] on parameter \$required of {$consumer}::__construct() must be nullable with the default null (?Saij\\WpAppFramework\\Tests\\Fixtures\\ParentTheme\\SectionsApi \$required = null): it is null if the theme is not active.",
+                "#[ThemeApi] on parameter \$required of {$consumer}::__construct() must be nullable with the default null (?WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\ParentTheme\\SectionsApi \$required = null): it is null if the theme is not active.",
                 "Parameter \$both of {$consumer}::__construct() has both #[PluginApi] and #[ThemeApi]; use one.",
                 "parameter \$sections of {$hook}::run(): #[ThemeApi] is only supported on constructor parameters of services, not in hooks.",
             ],
@@ -162,11 +162,11 @@ final class PublicApiBuildTest extends TestCase
             [
                 "Parameter \$environment of {$leaking}::environment() of public API {$leaking} uses Twig\\Environment; " . sprintf($prefixed, 'Twig\\'),
                 "The return type of {$leaking}::environment() of public API {$leaking} uses Twig\\Environment; " . sprintf($prefixed, 'Twig\\'),
-                'Property $renderer of ' . ApiBroken\Wrapper::class . " of public API {$leaking} uses Saij\\WpAppFramework\\Twig\\TemplateRenderer; " . sprintf($prefixed, 'Saij\\WpAppFramework\\'),
+                'Property $renderer of ' . ApiBroken\Wrapper::class . " of public API {$leaking} uses WebCodingCat\\WpAppFramework\\Twig\\TemplateRenderer; " . sprintf($prefixed, 'WebCodingCat\\WpAppFramework\\'),
                 "#[TemplateFunction] on {$templates}::unprefixed() has public: true, so its name \"unprefixed\" must start with the template prefix \"my_plugin_\" of the project.",
                 "Parameter \$markup of {$templates}::leak() of public template function \"my_plugin_leak\" uses Twig\\Markup; " . sprintf($prefixed, 'Twig\\'),
                 "#[TemplateFunction] on {$templates}::reserved() uses the name \"other_plugin_name\"; names starting with \"other_plugin_\" are reserved for the public template callables of other-plugin (template-plugins or parent theme).",
-                "#[PluginApi] on parameter \$notNullable of {$consumer}::__construct() must be nullable with the default null (?Saij\\WpAppFramework\\Tests\\Fixtures\\OtherPlugin\\NotesApi \$notNullable = null): it is null if the plugin is not active.",
+                "#[PluginApi] on parameter \$notNullable of {$consumer}::__construct() must be nullable with the default null (?WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\OtherPlugin\\NotesApi \$notNullable = null): it is null if the plugin is not active.",
                 "#[PluginApi] on parameter \$badSlug of {$consumer}::__construct() names \"Other Plugin\", which is not a plugin slug (lowercase letters, digits, \"-\", \"_\").",
                 "#[PluginApi] on parameter \$builtin of {$consumer}::__construct() needs the class of the public API as type.",
                 "#[PluginApi] on parameter \$own of {$consumer}::__construct(): {$leaking} belongs to this project or the framework, not to plugin other-plugin.",

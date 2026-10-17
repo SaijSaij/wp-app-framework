@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Lifecycle;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Lifecycle;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Cron\CronRegistrar;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Hook\HookRegistrar;
-use Saij\WpAppFramework\Lifecycle\Uninstaller;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Post\PostRegistry;
-use Saij\WpAppFramework\Post\PostStore;
-use Saij\WpAppFramework\Table\TableNames;
-use Saij\WpAppFramework\Table\TableStore;
-use Saij\WpAppFramework\Tests\Support\Database;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Support\Posts;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Tests\Support\Tables;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Cron\CronRegistrar;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Hook\HookRegistrar;
+use WebCodingCat\WpAppFramework\Lifecycle\Uninstaller;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Post\PostRegistry;
+use WebCodingCat\WpAppFramework\Post\PostStore;
+use WebCodingCat\WpAppFramework\Table\TableNames;
+use WebCodingCat\WpAppFramework\Table\TableStore;
+use WebCodingCat\WpAppFramework\Tests\Support\Database;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Support\Posts;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Tests\Support\Tables;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * The data the uninstallation of a plugin removes – and the data of other instances it leaves alone.

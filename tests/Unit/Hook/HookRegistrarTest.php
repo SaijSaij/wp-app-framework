@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Hook;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Hook;
 
 use ArgumentCountError;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Hook\HookRegistrar;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Tests\Fixtures\Runtime\FailingHooks;
-use Saij\WpAppFramework\Tests\Fixtures\Valid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Hook\HookRegistrar;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\Runtime\FailingHooks;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\Valid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 /**
  * @phpstan-import-type HookEntry from Manifest

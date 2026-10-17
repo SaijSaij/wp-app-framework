@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ApiBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ApiBroken;
 
-use Saij\WpAppFramework\Api\PluginApi;
-use Saij\WpAppFramework\Hook\Hook;
-use Saij\WpAppFramework\Tests\Fixtures\OtherPlugin\NotesApi;
+use WebCodingCat\WpAppFramework\Api\PluginApi;
+use WebCodingCat\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\OtherPlugin\NotesApi;
 
 final class BrokenConsumer
 {

@@ -2,37 +2,37 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Manifest;
+namespace WebCodingCat\WpAppFramework\Manifest;
 
 use ReflectionClass;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Block\Markup\MarkupFiles;
-use Saij\WpAppFramework\Cron\CronEventDefinition;
-use Saij\WpAppFramework\Cron\CronTaskDefinition;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Hook\HookDefinition;
-use Saij\WpAppFramework\Manifest\Discovery\Source;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Rest\RestRouteDefinition;
-use Saij\WpAppFramework\Twig\TemplateCallableDefinition;
-use Saij\WpAppFramework\WpCli\CliCommandDefinition;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Block\Markup\MarkupFiles;
+use WebCodingCat\WpAppFramework\Cron\CronEventDefinition;
+use WebCodingCat\WpAppFramework\Cron\CronTaskDefinition;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Hook\HookDefinition;
+use WebCodingCat\WpAppFramework\Manifest\Discovery\Source;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Rest\RestRouteDefinition;
+use WebCodingCat\WpAppFramework\Twig\TemplateCallableDefinition;
+use WebCodingCat\WpAppFramework\WpCli\CliCommandDefinition;
 
 /**
  * Everything the builder found; input for the manifest generator and the dev cache.
  *
- * @phpstan-import-type ValueField from \Saij\WpAppFramework\Value\ValueFactory
- * @phpstan-import-type ScriptsData from \Saij\WpAppFramework\Asset\AssetScripts
- * @phpstan-import-type AssetEntry from \Saij\WpAppFramework\Asset\AssetCollector
- * @phpstan-import-type ServiceArgument from \Saij\WpAppFramework\DependencyInjection\Container
- * @phpstan-import-type SettingsGroupEntry from \Saij\WpAppFramework\Setting\SettingsCollector
- * @phpstan-import-type PostClassEntry from \Saij\WpAppFramework\Post\PostTypeCollector
- * @phpstan-import-type TaxonomyEntry from \Saij\WpAppFramework\Post\PostTypeCollector
- * @phpstan-import-type MetaEntry from \Saij\WpAppFramework\Post\PostTypeCollector
- * @phpstan-import-type BlockCategoryEntry from \Saij\WpAppFramework\Manifest\Manifest
- * @phpstan-import-type TablesData from \Saij\WpAppFramework\Table\TableCollector
- * @phpstan-import-type LifecycleData from \Saij\WpAppFramework\Lifecycle\LifecycleCollector
+ * @phpstan-import-type ValueField from \WebCodingCat\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type ScriptsData from \WebCodingCat\WpAppFramework\Asset\AssetScripts
+ * @phpstan-import-type AssetEntry from \WebCodingCat\WpAppFramework\Asset\AssetCollector
+ * @phpstan-import-type ServiceArgument from \WebCodingCat\WpAppFramework\DependencyInjection\Container
+ * @phpstan-import-type SettingsGroupEntry from \WebCodingCat\WpAppFramework\Setting\SettingsCollector
+ * @phpstan-import-type PostClassEntry from \WebCodingCat\WpAppFramework\Post\PostTypeCollector
+ * @phpstan-import-type TaxonomyEntry from \WebCodingCat\WpAppFramework\Post\PostTypeCollector
+ * @phpstan-import-type MetaEntry from \WebCodingCat\WpAppFramework\Post\PostTypeCollector
+ * @phpstan-import-type BlockCategoryEntry from \WebCodingCat\WpAppFramework\Manifest\Manifest
+ * @phpstan-import-type TablesData from \WebCodingCat\WpAppFramework\Table\TableCollector
+ * @phpstan-import-type LifecycleData from \WebCodingCat\WpAppFramework\Lifecycle\LifecycleCollector
  * @phpstan-type PostData array{
- *     posts: array<class-string<\Saij\WpAppFramework\Post\AbstractPost>, PostClassEntry>,
+ *     posts: array<class-string<\WebCodingCat\WpAppFramework\Post\AbstractPost>, PostClassEntry>,
  *     taxonomies: array<class-string, TaxonomyEntry>,
  *     meta: array<class-string, MetaEntry>,
  *     rewrite: non-empty-string|null

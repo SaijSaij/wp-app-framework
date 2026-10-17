@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Post;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Post;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\I18n\Translator;
-use Saij\WpAppFramework\Post\PostTypeRegistrar;
-use Saij\WpAppFramework\Tests\Support\Posts;
-use Saij\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\Post\PostTypeRegistrar;
+use WebCodingCat\WpAppFramework\Tests\Support\Posts;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
 
 /**
  * Registration of post types, taxonomies and meta on init, and the rewrite rules.

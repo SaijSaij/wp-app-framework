@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Hook;
+namespace WebCodingCat\WpAppFramework\Hook;
 
 use ReflectionClass;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Manifest\EntryPointInspector;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Manifest\EntryPointInspector;
 
 /**
  * Collects and validates `#[Hook]` methods during the build and resolves the

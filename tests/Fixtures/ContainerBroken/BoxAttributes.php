@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ContainerBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerBroken;
 
-use Saij\WpAppFramework\Block\ProvidesContext;
+use WebCodingCat\WpAppFramework\Block\ProvidesContext;
 
 final readonly class BoxAttributes
 {

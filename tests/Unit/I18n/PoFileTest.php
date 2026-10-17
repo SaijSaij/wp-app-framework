@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\I18n;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\I18n;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\I18n\PoFile;
+use WebCodingCat\WpAppFramework\I18n\PoFile;
 
 /**
  * PO files compiled into the messages of a translation file of WordPress.

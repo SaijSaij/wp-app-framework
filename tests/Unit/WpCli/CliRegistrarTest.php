@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\WpCli;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\WpCli;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Tests\Fixtures\WpCliValid\Importer;
-use Saij\WpAppFramework\Tests\Fixtures\WpCliValid\ImportMode;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Value\ValueFactory;
-use Saij\WpAppFramework\WpCli\CliRegistrar;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliValid\Importer;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliValid\ImportMode;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\WpCli\CliRegistrar;
 use WP_CLI\ExitException;
 
 /**
@@ -206,7 +206,7 @@ final class CliRegistrarTest extends TestCase
 
         self::assertSame([1, 'Command failed: RuntimeException: Broken feed.'], self::failCommand('fixture events crash'));
         self::assertStringContainsString(
-            'wp-app-framework: WP-CLI command "wp fixture events crash" (Saij\WpAppFramework\Tests\Fixtures\WpCliValid\EventCommands::crash()) failed: RuntimeException: Broken feed. in ',
+            'wp-app-framework: WP-CLI command "wp fixture events crash" (WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliValid\EventCommands::crash()) failed: RuntimeException: Broken feed. in ',
             (string) file_get_contents($this->log),
         );
     }

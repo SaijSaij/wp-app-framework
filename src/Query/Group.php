@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
 use InvalidArgumentException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Table\AbstractRow;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Table\AbstractRow;
 
 /**
  * Conditions joined with OR (Any) or AND (All). A group holds conditions of one kind: on meta fields, on terms or on

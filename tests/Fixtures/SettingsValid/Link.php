@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SettingsValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SettingsValid;
 
-use Saij\WpAppFramework\Value\Image;
-use Saij\WpAppFramework\Value\Url;
+use WebCodingCat\WpAppFramework\Value\Image;
+use WebCodingCat\WpAppFramework\Value\Url;
 
 final readonly class Link
 {

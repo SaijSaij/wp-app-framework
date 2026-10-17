@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Twig;
+namespace WebCodingCat\WpAppFramework\Twig;
 
-use Saij\WpAppFramework\Api\InstanceBridge;
-use Saij\WpAppFramework\DependencyInjection\Container;
 use Stringable;
 use Twig\Cache\FilesystemCache;
 use Twig\Environment;
@@ -16,6 +14,8 @@ use Twig\Markup;
 use Twig\Runtime\EscaperRuntime;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
+use WebCodingCat\WpAppFramework\Api\InstanceBridge;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
 
 /**
  * Renders the Twig templates of a framework instance (theme, child theme or plugin).

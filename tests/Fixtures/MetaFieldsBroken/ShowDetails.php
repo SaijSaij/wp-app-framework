@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\MetaFieldsBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\MetaFieldsBroken;
 
-use Saij\WpAppFramework\Post\PostMeta;
-use Saij\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Post\PostMeta;
+use WebCodingCat\WpAppFramework\Value\ListOf;
 
 #[PostMeta('details', title: 'Details', postTypes: [Show::class])]
 final class ShowDetails

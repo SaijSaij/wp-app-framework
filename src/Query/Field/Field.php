@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query\Field;
+namespace WebCodingCat\WpAppFramework\Query\Field;
 
 use InvalidArgumentException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Query\Condition;
-use Saij\WpAppFramework\Query\FieldCondition;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Query\Condition;
+use WebCodingCat\WpAppFramework\Query\FieldCondition;
 
 /**
  * A field of a meta class or a column of a table in queries: its methods create conditions, and the query sorts by

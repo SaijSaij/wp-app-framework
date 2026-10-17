@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace WebCodingCat\WpAppFramework\Block;
 
 use LogicException;
-use Saij\WpAppFramework\Cache\CacheStore;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\I18n\Translator;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Post\AbstractPost;
-use Saij\WpAppFramework\Table\AbstractRow;
-use Saij\WpAppFramework\Value\ValueFactory;
-use Saij\WpAppFramework\View\ViewAssets;
-use Saij\WpAppFramework\View\ViewData;
 use Throwable;
+use WebCodingCat\WpAppFramework\Cache\CacheStore;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Table\AbstractRow;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\View\ViewAssets;
+use WebCodingCat\WpAppFramework\View\ViewData;
 use WP_Block;
 use WP_Block_Type_Registry;
 use WP_Comment;

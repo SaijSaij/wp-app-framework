@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockView;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockView;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
 
 /** Neither view scripts nor block supports: needs no block_wrapper_attributes() and loads no script. */
 #[Block('plain', title: 'Plain', category: BlockCategory::Text)]

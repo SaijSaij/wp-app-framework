@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ApiReference\Valid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ApiReference\Valid;
 
-use Saij\WpAppFramework\Twig\TemplateFunction;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 /**
  * Holds widgets.

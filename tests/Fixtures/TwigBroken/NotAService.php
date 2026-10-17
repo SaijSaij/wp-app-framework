@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TwigBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TwigBroken;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Twig\TemplateFunction;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 #[NoService]
 final class NotAService

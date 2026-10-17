@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CronBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CronBroken;
 
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\PostReference;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\PostReference;
 
 /**
  * References at several depths.

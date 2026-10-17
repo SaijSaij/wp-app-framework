@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Value;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Value;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\ListLimitBroken\BrokenAttributes;
-use Saij\WpAppFramework\Tests\Fixtures\ListLimitBroken\BrokenSettings;
-use Saij\WpAppFramework\Tests\Fixtures\ListLimitBroken\NestedAttributes;
-use Saij\WpAppFramework\Tests\Fixtures\ListLimitValid;
-use Saij\WpAppFramework\Tests\Fixtures\ListLimitValid\Slide;
-use Saij\WpAppFramework\Tests\Fixtures\ListLimitValid\Tone;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitBroken\BrokenAttributes;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitBroken\BrokenSettings;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitBroken\NestedAttributes;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitValid;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitValid\Slide;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitValid\Tone;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * Limits of lists (`min` and `max` of #[ListOf]): never in the schema of stored values, in the value description

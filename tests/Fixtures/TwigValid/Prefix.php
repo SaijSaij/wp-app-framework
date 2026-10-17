@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TwigValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TwigValid;
 
 final class Prefix
 {

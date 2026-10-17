@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Twig;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Twig;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Api\PluginTemplateFunctions;
-use Saij\WpAppFramework\Asset\AssetTemplateFunctions;
-use Saij\WpAppFramework\Block\BlockTemplateFunctions;
-use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
-use Saij\WpAppFramework\I18n\TranslationTemplateFunctions;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Post\PostTemplateFunctions;
-use Saij\WpAppFramework\Tests\Fixtures\TwigValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateCallableKind;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
-use Saij\WpAppFramework\Twig\WordPressTemplateFunctions;
-use Saij\WpAppFramework\Value\LinkTemplateFunctions;
+use WebCodingCat\WpAppFramework\Api\PluginTemplateFunctions;
+use WebCodingCat\WpAppFramework\Asset\AssetTemplateFunctions;
+use WebCodingCat\WpAppFramework\Block\BlockTemplateFunctions;
+use WebCodingCat\WpAppFramework\Editor\EditorTemplateFunctions;
+use WebCodingCat\WpAppFramework\I18n\TranslationTemplateFunctions;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Post\PostTemplateFunctions;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TwigValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateCallableKind;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Twig\WordPressTemplateFunctions;
+use WebCodingCat\WpAppFramework\Value\LinkTemplateFunctions;
 
 final class TemplateCallableCollectorTest extends TestCase
 {
@@ -109,8 +109,8 @@ final class TemplateCallableCollectorTest extends TestCase
             new ManifestBuilder([ManifestBuilderTest::fixture('TwigBroken')])->build();
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
-            $c = 'Saij\\WpAppFramework\\Tests\\Fixtures\\TwigBroken\\BrokenCallables';
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\TwigBroken\\';
+            $c = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\TwigBroken\\BrokenCallables';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\TwigBroken\\';
             $expected = [
                 "#[TemplateFunction] on {$c}::invalidName() has the invalid name \"bad-name\"; use letters, digits and underscores, not starting with a digit.",
                 "#[TemplateFunction] on {$c}::builtInFunction() uses the name \"range\", which Twig already provides as a function.",

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query\Field;
+namespace WebCodingCat\WpAppFramework\Query\Field;
 
 use InvalidArgumentException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Post\AbstractPost;
-use Saij\WpAppFramework\Query\Condition;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Query\Condition;
 
 /**
  * A field of a meta class that refers to a post of a post class (`?Venue`), stored as its ID; no post is stored as 0

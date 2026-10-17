@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache\Vary;
+namespace WebCodingCat\WpAppFramework\Cache\Vary;
 
-use Saij\WpAppFramework\Cache\CacheVary;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Cache\CacheVary;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Whether the visitor is logged in.

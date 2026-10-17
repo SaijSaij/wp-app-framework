@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\RestList;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\RestList;
 
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\Url;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\Url;
 
 final readonly class Entry
 {

@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Twig;
+namespace WebCodingCat\WpAppFramework\Twig;
 
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
-use Saij\WpAppFramework\Api\PublicSignatureInspector;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Manifest\EntryPointInspector;
 use Throwable;
+use WebCodingCat\WpAppFramework\Api\PublicSignatureInspector;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Manifest\EntryPointInspector;
 
 /**
  * Collects and validates `#[TemplateFunction]` and `#[TemplateFilter]` methods

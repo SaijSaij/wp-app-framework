@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ReferenceBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ReferenceBroken;
 
 final readonly class Item
 {

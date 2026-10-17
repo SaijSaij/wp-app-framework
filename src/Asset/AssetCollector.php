@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Asset;
+namespace WebCodingCat\WpAppFramework\Asset;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Lists the static files of a consumer's `assets/` directory during the build:

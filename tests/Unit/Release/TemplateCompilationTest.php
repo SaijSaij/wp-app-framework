@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Release;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Release;
 
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Release\ReleaseException;
-use Saij\WpAppFramework\Release\TemplateCompilation;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Release\ReleaseException;
+use WebCodingCat\WpAppFramework\Release\TemplateCompilation;
 
 final class TemplateCompilationTest extends ReleaseTestCase
 {

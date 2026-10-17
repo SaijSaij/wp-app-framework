@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Release;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Release;
 
-use Saij\WpAppFramework\Release\ReleaseException;
-use Saij\WpAppFramework\Release\StraussConfig;
+use WebCodingCat\WpAppFramework\Release\ReleaseException;
+use WebCodingCat\WpAppFramework\Release\StraussConfig;
 
 final class StraussConfigTest extends ReleaseTestCase
 {

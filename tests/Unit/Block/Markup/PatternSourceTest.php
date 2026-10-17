@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Block\Markup;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Block\Markup;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\Markup\BlockMarkupParser;
-use Saij\WpAppFramework\Block\Markup\PatternSource;
+use WebCodingCat\WpAppFramework\Block\Markup\BlockMarkupParser;
+use WebCodingCat\WpAppFramework\Block\Markup\PatternSource;
 
 final class PatternSourceTest extends TestCase
 {

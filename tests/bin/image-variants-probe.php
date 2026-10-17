@@ -10,7 +10,7 @@ declare(strict_types=1);
  * Prints "written" or the message of the exception.
  */
 
-use Saij\WpAppFramework\Asset\ImageVariants;
+use WebCodingCat\WpAppFramework\Asset\ImageVariants;
 
 require __DIR__ . '/../../vendor/autoload.php';
 

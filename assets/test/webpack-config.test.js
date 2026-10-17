@@ -312,7 +312,7 @@ describe( 'webpack helper', () => {
 			packages: TOOLCHAIN,
 			files: {
 				'Block/Faq/Faq.view.js': [
-					"import { BlockView } from '@saij/wp-app-framework/view';",
+					"import { BlockView } from '@webcodingcat/wp-app-framework/view';",
 					"import domReady from '@wordpress/dom-ready';",
 					'export default class Faq extends BlockView { mount() { domReady( () => {} ); } }',
 				].join( '\n' ),
@@ -343,7 +343,7 @@ describe( 'webpack helper', () => {
 			files: {
 				'Block/Faq/Faq.php': '<?php',
 				'Block/Faq/Faq.editor.js': [
-					"import { registerPanel } from '@saij/wp-app-framework';",
+					"import { registerPanel } from '@webcodingcat/wp-app-framework';",
 					"registerPanel( 'faq', () => null );",
 				].join( '\n' ),
 			},
@@ -368,7 +368,7 @@ describe( 'webpack helper', () => {
 			files: {
 				'Setting/Design.php': '<?php',
 				'Setting/Design.settings.js': [
-					"import { registerSettingsControl } from '@saij/wp-app-framework/settings';",
+					"import { registerSettingsControl } from '@webcodingcat/wp-app-framework/settings';",
 					"registerSettingsControl( 'design', 'title', () => null );",
 				].join( '\n' ),
 			},
@@ -402,16 +402,16 @@ describe( 'webpack helper', () => {
 			packages: TOOLCHAIN,
 			files: {
 				'Setting/Design.settings.js': [
-					"import { registerPanel } from '@saij/wp-app-framework';",
-					"import { BlockView } from '@saij/wp-app-framework/view';",
+					"import { registerPanel } from '@webcodingcat/wp-app-framework';",
+					"import { BlockView } from '@webcodingcat/wp-app-framework/view';",
 					'export default [ registerPanel, BlockView ];',
 				].join( '\n' ),
 				'Block/Faq/Faq.view.js': [
-					"import { registerSettingsControl } from '@saij/wp-app-framework/settings';",
+					"import { registerSettingsControl } from '@webcodingcat/wp-app-framework/settings';",
 					'export default registerSettingsControl;',
 				].join( '\n' ),
 				'Block/Faq/Faq.editor.js':
-					"import '@saij/wp-app-framework/settings';",
+					"import '@webcodingcat/wp-app-framework/settings';",
 			},
 		} );
 
@@ -423,10 +423,10 @@ describe( 'webpack helper', () => {
 				.errors.map( ( error ) => error.message )
 				.sort()
 		).toEqual( [
-			'wp-app-framework: the editor script src/Block/Faq/Faq.editor.js imports @saij/wp-app-framework/settings, the API of the settings page, which is not loaded in the block editor; editor scripts import @saij/wp-app-framework.',
-			'wp-app-framework: the settings script src/Setting/Design.settings.js imports @saij/wp-app-framework, the editor runtime, which is not loaded on the settings page; settings scripts import @saij/wp-app-framework/settings.',
-			'wp-app-framework: the settings script src/Setting/Design.settings.js imports @saij/wp-app-framework/view, the view runtime, which is not loaded on the settings page; settings scripts import @saij/wp-app-framework/settings.',
-			'wp-app-framework: the view script src/Block/Faq/Faq.view.js imports @saij/wp-app-framework/settings, the API of the settings page, which is not loaded on the front end; view scripts import @saij/wp-app-framework/view.',
+			'wp-app-framework: the editor script src/Block/Faq/Faq.editor.js imports @webcodingcat/wp-app-framework/settings, the API of the settings page, which is not loaded in the block editor; editor scripts import @webcodingcat/wp-app-framework.',
+			'wp-app-framework: the settings script src/Setting/Design.settings.js imports @webcodingcat/wp-app-framework, the editor runtime, which is not loaded on the settings page; settings scripts import @webcodingcat/wp-app-framework/settings.',
+			'wp-app-framework: the settings script src/Setting/Design.settings.js imports @webcodingcat/wp-app-framework/view, the view runtime, which is not loaded on the settings page; settings scripts import @webcodingcat/wp-app-framework/settings.',
+			'wp-app-framework: the view script src/Block/Faq/Faq.view.js imports @webcodingcat/wp-app-framework/settings, the API of the settings page, which is not loaded on the front end; view scripts import @webcodingcat/wp-app-framework/view.',
 		] );
 	}, 30000 );
 
@@ -436,7 +436,7 @@ describe( 'webpack helper', () => {
 			packages: TOOLCHAIN,
 			files: {
 				'Block/Faq/Faq.view.js': [
-					"import { registerPanel } from '@saij/wp-app-framework';",
+					"import { registerPanel } from '@webcodingcat/wp-app-framework';",
 					'export default registerPanel;',
 				].join( '\n' ),
 			},
@@ -447,14 +447,14 @@ describe( 'webpack helper', () => {
 		expect(
 			stats.toJson().errors.map( ( error ) => error.message )
 		).toEqual( [
-			'wp-app-framework: the view script src/Block/Faq/Faq.view.js imports @saij/wp-app-framework, the editor runtime, which is not loaded on the front end; view scripts import @saij/wp-app-framework/view.',
+			'wp-app-framework: the view script src/Block/Faq/Faq.view.js imports @webcodingcat/wp-app-framework, the editor runtime, which is not loaded on the front end; view scripts import @webcodingcat/wp-app-framework/view.',
 		] );
 	}, 30000 );
 
 	it( 'maps shared modules to the global and the script handle of the instance', async () => {
 		const root = consumerWithShared( {
 			'menu.view.js': [
-				"import { DocumentView } from '@saij/wp-app-framework/view';",
+				"import { DocumentView } from '@webcodingcat/wp-app-framework/view';",
 				"import { count } from '#shared/ui/Counter';",
 				'export default class Menu extends DocumentView { mount() { count(); } }',
 			].join( '\n' ),
@@ -506,7 +506,7 @@ describe( 'webpack helper', () => {
 		const root = consumerWithShared(
 			{
 				'shared/format.js': [
-					"import { registerPanel } from '@saij/wp-app-framework';",
+					"import { registerPanel } from '@webcodingcat/wp-app-framework';",
 					'export default registerPanel;',
 				].join( '\n' ),
 			},
@@ -520,7 +520,7 @@ describe( 'webpack helper', () => {
 		expect(
 			stats.toJson().errors.map( ( error ) => error.message )
 		).toEqual( [
-			'wp-app-framework: the view script src/Block/Faq/Faq.view.js uses assets/shared/format.js (src/Block/Faq/Faq.view.js → assets/shared/format.js), which imports @saij/wp-app-framework, the editor runtime, which is not loaded on the front end; modules used by view scripts import @saij/wp-app-framework/view.',
+			'wp-app-framework: the view script src/Block/Faq/Faq.view.js uses assets/shared/format.js (src/Block/Faq/Faq.view.js → assets/shared/format.js), which imports @webcodingcat/wp-app-framework, the editor runtime, which is not loaded on the front end; modules used by view scripts import @webcodingcat/wp-app-framework/view.',
 		] );
 	}, 30000 );
 

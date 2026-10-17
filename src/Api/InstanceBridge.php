@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Api;
+namespace WebCodingCat\WpAppFramework\Api;
 
 use Closure;
 use LogicException;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Twig\TemplateCallableKind;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Twig\TemplateCallableKind;
 
 /**
  * The only connection between framework instances: WordPress hooks named after
@@ -27,7 +27,7 @@ use Saij\WpAppFramework\Twig\TemplateCallableKind;
  * @internal
  *
  * @phpstan-type PublicTemplateCallable array{callable: Closure, html: bool}
- * @phpstan-import-type TemplateCallableEntry from \Saij\WpAppFramework\Twig\TemplateRenderer
+ * @phpstan-import-type TemplateCallableEntry from \WebCodingCat\WpAppFramework\Twig\TemplateRenderer
  */
 #[NoService]
 final class InstanceBridge

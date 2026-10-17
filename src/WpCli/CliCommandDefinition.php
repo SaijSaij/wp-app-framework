@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\WpCli;
+namespace WebCodingCat\WpAppFramework\WpCli;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * A validated `#[CliCommand]` service with its `#[CliSubcommand]` methods.
  *
- * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type Value from \WebCodingCat\WpAppFramework\Value\ValueFactory
  * @phpstan-type CliArgument array{param: string, kind: 'service', class: class-string}
  *     |array{param: string, kind: 'output'}
  *     |array{param: string, kind: 'positional', name: non-empty-string, index: int, variadic: bool, value: Value, schema: array<string, mixed>, default?: mixed}

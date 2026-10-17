@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Api;
+namespace WebCodingCat\WpAppFramework\Api;
 
 use ReflectionClass;
 use ReflectionFunctionAbstract;
@@ -12,7 +12,7 @@ use ReflectionNamedType;
 use ReflectionProperty;
 use ReflectionType;
 use ReflectionUnionType;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Checks the signatures a plugin or theme offers to other consumers (public APIs and

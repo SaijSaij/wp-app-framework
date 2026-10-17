@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Release;
+namespace WebCodingCat\WpAppFramework\Release;
 
-use Saij\WpAppFramework\Asset\AssetDirectory;
-use Saij\WpAppFramework\Asset\ImageVariants;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Editor\EditorAssets;
-use Saij\WpAppFramework\Instance;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Post\MetaBoxes;
-use Saij\WpAppFramework\Setting\SettingsPage;
-use Saij\WpAppFramework\Style\StyleAssets;
-use Saij\WpAppFramework\View\ViewAssets;
+use WebCodingCat\WpAppFramework\Asset\AssetDirectory;
+use WebCodingCat\WpAppFramework\Asset\ImageVariants;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Editor\EditorAssets;
+use WebCodingCat\WpAppFramework\Instance;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Post\MetaBoxes;
+use WebCodingCat\WpAppFramework\Setting\SettingsPage;
+use WebCodingCat\WpAppFramework\Style\StyleAssets;
+use WebCodingCat\WpAppFramework\View\ViewAssets;
 
 /**
  * Checks that the build directory of a release holds every built file the

@@ -14,4 +14,4 @@ if (count($arguments) < 4) {
 
 require $arguments[1];
 
-exit(\Saij\WpAppFramework\Console\Cli::run(array_slice($arguments, 3), $arguments[2], STDOUT, STDERR));
+exit(\WebCodingCat\WpAppFramework\Console\Cli::run(array_slice($arguments, 3), $arguments[2], STDOUT, STDERR));

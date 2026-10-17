@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Editor;
+namespace WebCodingCat\WpAppFramework\Editor;
 
-use Saij\WpAppFramework\Asset\BuildAssets;
-use Saij\WpAppFramework\Asset\ScriptKind;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\I18n\FrameworkTranslations;
-use Saij\WpAppFramework\I18n\Translator;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Post\MetaBoxes;
-use Saij\WpAppFramework\Post\PostStore;
-use Saij\WpAppFramework\Value\FormAssets;
-use Saij\WpAppFramework\View\ViewAssets;
-use Saij\WpAppFramework\View\ViewData;
+use WebCodingCat\WpAppFramework\Asset\BuildAssets;
+use WebCodingCat\WpAppFramework\Asset\ScriptKind;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\I18n\FrameworkTranslations;
+use WebCodingCat\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Post\MetaBoxes;
+use WebCodingCat\WpAppFramework\Post\PostStore;
+use WebCodingCat\WpAppFramework\Value\FormAssets;
+use WebCodingCat\WpAppFramework\View\ViewAssets;
+use WebCodingCat\WpAppFramework\View\ViewData;
 
 /**
  * Loads the editor runtime and the block editor scripts of one framework

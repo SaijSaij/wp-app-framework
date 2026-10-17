@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block\Support;
+namespace WebCodingCat\WpAppFramework\Block\Support;
 
 /**
  * Where the inspector shows the control of a block support. Neither is shown

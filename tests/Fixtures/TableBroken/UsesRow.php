@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TableBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TableBroken;
 
-use Saij\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Hook\Hook;
 
 final class UsesRow
 {

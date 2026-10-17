@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ReferenceValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ReferenceValid;
 
-use Saij\WpAppFramework\Value\PostReference;
+use WebCodingCat\WpAppFramework\Value\PostReference;
 
 final readonly class Card
 {

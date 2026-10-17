@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TableValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid;
 
-use Saij\WpAppFramework\Table\AbstractRow;
-use Saij\WpAppFramework\Table\PrimaryKey;
-use Saij\WpAppFramework\Table\Table;
+use WebCodingCat\WpAppFramework\Table\AbstractRow;
+use WebCodingCat\WpAppFramework\Table\PrimaryKey;
+use WebCodingCat\WpAppFramework\Table\Table;
 
 /**
  * A second table with protected columns and a field class written by hand.

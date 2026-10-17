@@ -2,9 +2,9 @@
 
 PHP/JS framework for building standalone full site editing themes, child themes and plugins for WordPress 7 (PHP 8.5).
 
-- Composer package: `saij/wp-app-framework`
-- PHP namespace: `Saij\WpAppFramework`
-- JS import name: `@saij/wp-app-framework`, runtime global: `window.wpAppFramework[slug]` (one per framework instance)
+- Composer package: `webcodingcat/wp-app-framework`
+- PHP namespace: `WebCodingCat\WpAppFramework`
+- JS import name: `@webcodingcat/wp-app-framework`, runtime global: `window.wpAppFramework[slug]` (one per framework instance)
 
 The framework is a library that themes, child themes and plugins (its *consumers*) include via Composer. It is neither a theme nor a plugin and registers no blocks itself. Each consumer runs its own framework instance; blocks, REST routes and settings are named after the consumer's namespace (`extra.wp-app-framework.namespace`), technical names – script handles, JS global, cache directory, init action – after its slug, so a theme and several plugins with different framework versions run side by side.
 

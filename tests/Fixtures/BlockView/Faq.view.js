@@ -1,3 +1,3 @@
-import { BlockView } from '@saij/wp-app-framework/view';
+import { BlockView } from '@webcodingcat/wp-app-framework/view';
 
 export default class Faq extends BlockView {}

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\DependencyInjection;
+namespace WebCodingCat\WpAppFramework\DependencyInjection;
 
 use Closure;
 use LogicException;
-use Saij\WpAppFramework\Api\InstanceBridge;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Setting\SettingsStore;
+use WebCodingCat\WpAppFramework\Api\InstanceBridge;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Setting\SettingsStore;
 
 /**
  * Minimal service container driven by the service data of the manifest:

@@ -18,7 +18,7 @@ require is_file(__DIR__ . '/vendor-prefixed/autoload.php')
     ? __DIR__ . '/vendor-prefixed/autoload.php'
     : __DIR__ . '/vendor/autoload.php';
 
-Saij\WpAppFramework\Theme::boot();
+WebCodingCat\WpAppFramework\Theme::boot();
 ```
 
 The autoloader lines choose between two directories. In your Git checkout, Composer installs everything into `vendor/`. A release ZIP contains `vendor-prefixed/` instead, with every dependency renamed into the theme's own namespace (see [Release](../build-and-release/release.md)). If neither exists, `require` fails with a fatal error that names the missing path.
@@ -41,7 +41,7 @@ require is_file(__DIR__ . '/vendor-prefixed/autoload.php')
     ? __DIR__ . '/vendor-prefixed/autoload.php'
     : __DIR__ . '/vendor/autoload.php';
 
-Saij\WpAppFramework\Plugin::boot(__FILE__);
+WebCodingCat\WpAppFramework\Plugin::boot(__FILE__);
 ```
 
 The framework needs the file to find the plugin's directory and its URL; asset URLs of a plugin come from `plugin_dir_url()`.
@@ -50,7 +50,7 @@ The framework needs the file to find the plugin's directory and its URL; asset U
 
 A child theme without code needs neither a boot nor a build. It overrides templates of its parent theme and adjusts `theme.json` like any child theme.
 
-A child theme with code of its own – blocks, hooks, REST routes – boots its own framework instance in its `functions.php`. It uses the same autoloader lines and `Saij\WpAppFramework\ChildTheme::boot();`. [Child themes](./child-themes.md) explains how it works next to its parent theme.
+A child theme with code of its own – blocks, hooks, REST routes – boots its own framework instance in its `functions.php`. It uses the same autoloader lines and `WebCodingCat\WpAppFramework\ChildTheme::boot();`. [Child themes](./child-themes.md) explains how it works next to its parent theme.
 
 ### Slug, namespace and init action
 
@@ -86,7 +86,7 @@ In development mode the framework and its dependencies are not prefixed. All con
 
 To rule that out, the boot checks two things and fails if either does not hold:
 
-- the loaded framework is the consumer's own `vendor/saij/wp-app-framework`, compared by real path;
+- the loaded framework is the consumer's own `vendor/webcodingcat/wp-app-framework`, compared by real path;
 - the loaded Twig version is the one recorded in the consumer's `vendor/composer/installed.php`.
 
 In practice, link the same framework checkout into every consumer. The option `WP_PACKAGE_LINKS` of [wp-dev-env](https://github.com/webcodingcat/wp-dev-env) does exactly that. Twig may also come from somewhere else: in a Bedrock site, the root `vendor/` of the site can load it before any consumer. The error names the directory the loaded Twig comes from, so you know which installation to align.

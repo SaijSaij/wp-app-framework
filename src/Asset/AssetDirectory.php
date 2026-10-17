@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Asset;
+namespace WebCodingCat\WpAppFramework\Asset;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The `assets/` directory of a consumer, next to `src/`: everything of the

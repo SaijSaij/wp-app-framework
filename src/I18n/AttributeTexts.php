@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\I18n;
+namespace WebCodingCat\WpAppFramework\I18n;
 
 use ReflectionClass;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
 
 /**
  * Finds the texts of attributes in the result of the build – the texts the framework translates at run time (see

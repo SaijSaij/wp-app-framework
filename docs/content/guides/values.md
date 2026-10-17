@@ -100,10 +100,10 @@ A `min` below 0, a `max` below 1, a `min` greater than `max`, a default outside 
 
 ## Colors
 
-A background, an accent, the color of a banner: some values are colors that editors choose freely. Mark such a string with [`#[Color]`](../api/php/Value/Color.md) (namespace `Saij\WpAppFramework\Value\`):
+A background, an accent, the color of a banner: some values are colors that editors choose freely. Mark such a string with [`#[Color]`](../api/php/Value/Color.md) (namespace `WebCodingCat\WpAppFramework\Value\`):
 
 ```php
-use Saij\WpAppFramework\Value\Color;
+use WebCodingCat\WpAppFramework\Value\Color;
 
 final readonly class BannerAttributes
 {
@@ -142,10 +142,10 @@ A stored value that is no color is a [wrong value](#wrong-values). The build che
 
 ## Dates
 
-The start of an event, the day a sale ends, the date of a notice: some values are dates that editors choose. Mark such a string with [`#[DateTime]`](../api/php/Value/DateTime.md) (namespace `Saij\WpAppFramework\Value\`), or with `#[DateTime(time: false)]` for a date without time of day:
+The start of an event, the day a sale ends, the date of a notice: some values are dates that editors choose. Mark such a string with [`#[DateTime]`](../api/php/Value/DateTime.md) (namespace `WebCodingCat\WpAppFramework\Value\`), or with `#[DateTime(time: false)]` for a date without time of day:
 
 ```php
-use Saij\WpAppFramework\Value\DateTime;
+use WebCodingCat\WpAppFramework\Value\DateTime;
 
 final class EventDetails
 {
@@ -198,12 +198,12 @@ A stored value that is no date in the format, or a date that does not exist, is 
 
 ## Identifiers
 
-Some list items are referred to from elsewhere: a block picks one of the color schemes listed in the settings, a tab is opened by a link. The position of the item is no good reference, because editors reorder lists, and neither is its name, because they rename items. Mark a string of the item class with [`#[Identifier]`](../api/php/Value/Identifier.md) (namespace `Saij\WpAppFramework\Value\`), and each item gets an identifier that never changes:
+Some list items are referred to from elsewhere: a block picks one of the color schemes listed in the settings, a tab is opened by a link. The position of the item is no good reference, because editors reorder lists, and neither is its name, because they rename items. Mark a string of the item class with [`#[Identifier]`](../api/php/Value/Identifier.md) (namespace `WebCodingCat\WpAppFramework\Value\`), and each item gets an identifier that never changes:
 
 ```php
-use Saij\WpAppFramework\Value\Color;
-use Saij\WpAppFramework\Value\Identifier;
-use Saij\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\Color;
+use WebCodingCat\WpAppFramework\Value\Identifier;
+use WebCodingCat\WpAppFramework\Value\PlainText;
 
 final readonly class ColorScheme
 {
@@ -253,11 +253,11 @@ A stored value that is no identifier is a [wrong value](#wrong-values). The buil
 
 ## Links
 
-A call to action, a link in a footer setting, a registration link of an event: a link points either to content of the site or to any address. `#[Url]` stores the address as text, so a link to a page breaks when someone changes the page's slug. A `Link` (namespace `Saij\WpAppFramework\Value\`) stores the ID of the page instead, and the framework looks up its current URL when it renders – the same idea as [references](#references), plus a URL entered freely and "Open in new tab".
+A call to action, a link in a footer setting, a registration link of an event: a link points either to content of the site or to any address. `#[Url]` stores the address as text, so a link to a page breaks when someone changes the page's slug. A `Link` (namespace `WebCodingCat\WpAppFramework\Value\`) stores the ID of the page instead, and the framework looks up its current URL when it renders – the same idea as [references](#references), plus a URL entered freely and "Open in new tab".
 
 ```php
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Value\Link;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Value\Link;
 
 final readonly class TeaserAttributes
 {
@@ -329,7 +329,7 @@ A stored link whose kind and ID do not match is a [wrong value](#wrong-values). 
 
 A block that links to another page, a setting that names the privacy policy page, a teaser that shows a category: these are references to WordPress objects. Storing the URL or the title would break as soon as someone renames the page. References store the ID instead, and the framework looks up the current data when it renders.
 
-[`#[PostReference(postTypes: null)]`](../api/php/Value/PostReference.md), [`#[TermReference(taxonomies: null)]`](../api/php/Value/TermReference.md) and [`#[UserReference]`](../api/php/Value/UserReference.md) (namespace `Saij\WpAppFramework\Value\`) mark such IDs in block attributes, value classes and settings groups:
+[`#[PostReference(postTypes: null)]`](../api/php/Value/PostReference.md), [`#[TermReference(taxonomies: null)]`](../api/php/Value/TermReference.md) and [`#[UserReference]`](../api/php/Value/UserReference.md) (namespace `WebCodingCat\WpAppFramework\Value\`) mark such IDs in block attributes, value classes and settings groups:
 
 ```php
 #[PostReference(postTypes: ['page'])] public ?int $target = null,   // one page, null without

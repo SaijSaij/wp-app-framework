@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cron;
+namespace WebCodingCat\WpAppFramework\Cron;
 
 /**
  * The intervals WordPress defines for recurring WP-Cron events; the values are

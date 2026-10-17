@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ApiReference\Valid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ApiReference\Valid;
 
 /**
  * Not part of the API: no @api tag.

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Manifest;
+namespace WebCodingCat\WpAppFramework\Manifest;
 
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
-use Saij\WpAppFramework\Api\PluginApi;
-use Saij\WpAppFramework\Api\ThemeApi;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Api\PluginApi;
+use WebCodingCat\WpAppFramework\Api\ThemeApi;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
 
 /**
  * Checks shared by the collectors of entry point attributes such as `#[Hook]`

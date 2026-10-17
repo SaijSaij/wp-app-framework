@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\Runtime;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\Runtime;
 
 use RuntimeException;
 

@@ -1,6 +1,6 @@
 # CLAUDE.md – wp-app-framework
 
-PHP/JS library (Composer `saij/wp-app-framework`, namespace `Saij\WpAppFramework`, JS `@saij/wp-app-framework`) for building standalone full site editing themes, child themes and plugins for WordPress 7 (latest stable, never beta) on PHP 8.5. It is neither a theme nor a plugin and registers no blocks itself. The user documentation is the website built from `docs/` (https://webcodingcat.github.io/wp-app-framework/); the README covers development of the framework; this file lists what matters when changing the framework.
+PHP/JS library (Composer `webcodingcat/wp-app-framework`, namespace `WebCodingCat\WpAppFramework`, JS `@webcodingcat/wp-app-framework`) for building standalone full site editing themes, child themes and plugins for WordPress 7 (latest stable, never beta) on PHP 8.5. It is neither a theme nor a plugin and registers no blocks itself. The user documentation is the website built from `docs/` (https://webcodingcat.github.io/wp-app-framework/); the README covers development of the framework; this file lists what matters when changing the framework.
 
 <!-- Maintainers: keep this file under 200 lines; describe behavior in the documentation (docs/content/) and link to it from here. -->
 

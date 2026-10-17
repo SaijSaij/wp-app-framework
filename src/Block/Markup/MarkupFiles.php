@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block\Markup;
+namespace WebCodingCat\WpAppFramework\Block\Markup;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Saij\WpAppFramework\DependencyInjection\NoService;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The files with block markup of a theme or child theme: block templates, template parts and patterns.

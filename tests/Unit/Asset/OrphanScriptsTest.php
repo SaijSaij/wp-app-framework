@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Asset;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Asset;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Asset\OrphanScripts;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Unit\View\ViewBuildTest;
+use WebCodingCat\WpAppFramework\Asset\OrphanScripts;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Unit\View\ViewBuildTest;
 
 /**
  * Editor and view scripts in src/ without a block or block support next to them.

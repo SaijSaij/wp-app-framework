@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Style;
+namespace WebCodingCat\WpAppFramework\Style;
 
 use LogicException;
-use Saij\WpAppFramework\Asset\AssetDirectory;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Asset\AssetDirectory;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Loads the consumer's stylesheet on the front end and in the editor canvas.

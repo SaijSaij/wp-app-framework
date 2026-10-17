@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\Valid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\Valid;
 
 // @phpstan-ignore trait.unused (fixture: traits are no service candidates; nothing uses it)
 trait SomeTrait {}

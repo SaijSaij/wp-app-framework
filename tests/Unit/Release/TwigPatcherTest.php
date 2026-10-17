@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Release;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Release;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Saij\WpAppFramework\Release\ReleaseException;
-use Saij\WpAppFramework\Release\TwigPatcher;
 use SplFileInfo;
 use Twig\Environment;
+use WebCodingCat\WpAppFramework\Release\ReleaseException;
+use WebCodingCat\WpAppFramework\Release\TwigPatcher;
 
 final class TwigPatcherTest extends ReleaseTestCase
 {

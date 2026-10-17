@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit;
+namespace WebCodingCat\WpAppFramework\Tests\Unit;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Api\InstanceBridge;
-use Saij\WpAppFramework\ChildTheme;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Instance;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Tests\Fixtures\ParentTheme\SectionsApi;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Api\InstanceBridge;
+use WebCodingCat\WpAppFramework\ChildTheme;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Instance;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ParentTheme\SectionsApi;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * Child themes with code of their own boot a framework instance of their own

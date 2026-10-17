@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ChildApiBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ChildApiBroken;
 
-use Saij\WpAppFramework\Api\PluginApi;
-use Saij\WpAppFramework\Api\ThemeApi;
-use Saij\WpAppFramework\Hook\Hook;
-use Saij\WpAppFramework\Tests\Fixtures\ParentTheme\SectionsApi;
+use WebCodingCat\WpAppFramework\Api\PluginApi;
+use WebCodingCat\WpAppFramework\Api\ThemeApi;
+use WebCodingCat\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ParentTheme\SectionsApi;
 
 final class BrokenChildConsumer
 {

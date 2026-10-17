@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ListLimitValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitValid;
 
 enum Tone: string
 {

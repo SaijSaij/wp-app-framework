@@ -15,7 +15,7 @@ A minimal theme:
 {
     "name": "vendor/my-theme",
     "type": "wordpress-theme",
-    "require": { "saij/wp-app-framework": "^0.15" },
+    "require": { "webcodingcat/wp-app-framework": "^0.15" },
     "extra": {
         "wp-app-framework": { "namespace": "my-theme" }
     }

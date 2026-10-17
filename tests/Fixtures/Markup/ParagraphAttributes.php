@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\Markup;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\Markup;
 
-use Saij\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Value\RichText;
 
 final readonly class ParagraphAttributes
 {

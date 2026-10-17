@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\DependencyInjection;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\DependencyInjection;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Tests\Fixtures\Valid\Clock;
-use Saij\WpAppFramework\Tests\Fixtures\Valid\Greeter;
 use stdClass;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\Valid\Clock;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\Valid\Greeter;
 
 final class ContainerTest extends TestCase
 {

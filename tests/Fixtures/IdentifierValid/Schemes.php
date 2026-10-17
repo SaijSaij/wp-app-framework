@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\IdentifierValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\IdentifierValid;
 
-use Saij\WpAppFramework\Setting\SettingsGroup;
-use Saij\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
+use WebCodingCat\WpAppFramework\Value\ListOf;
 
 #[SettingsGroup('schemes', title: 'Schemes')]
 final readonly class Schemes

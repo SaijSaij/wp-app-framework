@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Value;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Value;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\DateTimeBroken\BrokenAttributes;
-use Saij\WpAppFramework\Tests\Fixtures\DateTimeValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Value\DateTime;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\DateTimeBroken\BrokenAttributes;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\DateTimeValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Value\DateTime;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * Dates (`#[DateTime]`): schema with pattern, control and value description, the check of the value factory and

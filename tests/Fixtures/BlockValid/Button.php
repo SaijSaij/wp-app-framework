@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockValid;
 
-use Saij\WpAppFramework\Value\PlainText;
-use Saij\WpAppFramework\Value\Url;
+use WebCodingCat\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\Url;
 
 final readonly class Button
 {

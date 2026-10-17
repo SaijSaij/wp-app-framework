@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\View;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\View;
 
 use InvalidArgumentException;
 use LogicException;
 use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\View\ViewData;
 use stdClass;
+use WebCodingCat\WpAppFramework\View\ViewData;
 
 final class ViewDataTest extends TestCase
 {

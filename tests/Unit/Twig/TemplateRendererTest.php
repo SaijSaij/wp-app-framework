@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Twig;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Twig;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Tests\Fixtures\TwigValid\TextHelpers;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateOverrides;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TwigValid\TextHelpers;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateOverrides;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 final class TemplateRendererTest extends TestCase
 {

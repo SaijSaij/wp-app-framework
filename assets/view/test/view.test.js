@@ -196,7 +196,7 @@ describe( 'mountWithin', () => {
 
 		expect( error.mock.calls.map( ( [ message ] ) => message ) ).toEqual( [
 			'wp-app-framework: the view script Missing.view of my-theme is not loaded.',
-			'wp-app-framework: the default export of the view script Wrong.view of my-theme must be a class that extends BlockView from @saij/wp-app-framework/view.',
+			'wp-app-framework: the default export of the view script Wrong.view of my-theme must be a class that extends BlockView from @webcodingcat/wp-app-framework/view.',
 			'wp-app-framework: the view script Plain.view of my-theme is not loaded.',
 		] );
 		expect( mounted ).toEqual( [ 'right' ] );

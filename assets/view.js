@@ -4,7 +4,7 @@
  * render a block with view scripts and in the block editor.
  *
  * Provides the base classes as wpAppFramework[slug].view (the import
- * `@saij/wp-app-framework/view` of view scripts), and, for the editor runtime,
+ * `@webcodingcat/wp-app-framework/view` of view scripts), and, for the editor runtime,
  * wpAppFramework[slug].viewRuntime. On the front end it mounts the views of the
  * instance on DOMContentLoaded, after the deferred view scripts have run: first
  * its document views (wpAppFramework[slug].documentViews, printed by the

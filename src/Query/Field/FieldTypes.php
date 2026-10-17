@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query\Field;
+namespace WebCodingCat\WpAppFramework\Query\Field;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Table\TableCollector;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Table\TableCollector;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * Which field class belongs to a meta field or a column of a table: shared by the build, the queries at run time and

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block\Markup;
+namespace WebCodingCat\WpAppFramework\Block\Markup;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Turns a pattern file into the block markup the build can check. WordPress includes pattern files and uses

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Filesystem;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Filesystem;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Filesystem\FileTree;
-use Saij\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Filesystem\FileTree;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
 
 final class FileTreeTest extends TestCase
 {

@@ -76,7 +76,7 @@ describe( 'document views', () => {
 		expect( mounted ).toEqual( [ 'fine' ] );
 		expect( error.mock.calls.map( ( [ message ] ) => message ) ).toEqual( [
 			'wp-app-framework: the document view assets/missing.view of my-theme is not loaded.',
-			'wp-app-framework: the default export of the document view assets/wrong.view of my-theme must be a class that extends DocumentView from @saij/wp-app-framework/view.',
+			'wp-app-framework: the default export of the document view assets/wrong.view of my-theme must be a class that extends DocumentView from @webcodingcat/wp-app-framework/view.',
 			'wp-app-framework: the document view assets/failing.view of my-theme failed to mount.',
 		] );
 	} );

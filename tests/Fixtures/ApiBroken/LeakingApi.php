@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ApiBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ApiBroken;
 
-use Saij\WpAppFramework\Api\PublicApi;
 use Twig\Environment;
+use WebCodingCat\WpAppFramework\Api\PublicApi;
 
 #[PublicApi]
 final class LeakingApi

@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use InvalidArgumentException;
 use LogicException;
-use Saij\WpAppFramework\Cache\CachePolicy;
-use Saij\WpAppFramework\Cache\CacheTag;
-use Saij\WpAppFramework\Cache\CacheVary;
-use Saij\WpAppFramework\Cache\Tag\PostTypeTag;
-use Saij\WpAppFramework\Cache\Tag\TaxonomyTag;
-use Saij\WpAppFramework\Cache\TagNames;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Post\AbstractPost;
-use Saij\WpAppFramework\Post\PostFormat;
-use Saij\WpAppFramework\Post\PostRegistry;
-use Saij\WpAppFramework\Post\PostStatus;
-use Saij\WpAppFramework\Query\Field\Field;
+use WebCodingCat\WpAppFramework\Cache\CachePolicy;
+use WebCodingCat\WpAppFramework\Cache\CacheTag;
+use WebCodingCat\WpAppFramework\Cache\CacheVary;
+use WebCodingCat\WpAppFramework\Cache\Tag\PostTypeTag;
+use WebCodingCat\WpAppFramework\Cache\Tag\TaxonomyTag;
+use WebCodingCat\WpAppFramework\Cache\TagNames;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Post\PostFormat;
+use WebCodingCat\WpAppFramework\Post\PostRegistry;
+use WebCodingCat\WpAppFramework\Post\PostStatus;
+use WebCodingCat\WpAppFramework\Query\Field\Field;
 use WP_Post;
 use WP_Query;
 use wpdb;

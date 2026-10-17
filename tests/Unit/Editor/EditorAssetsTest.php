@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Editor;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Editor;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Editor\EditorAssets;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Tests\Unit\Block\Support\SupportCollectorTest;
-use Saij\WpAppFramework\Tests\Unit\View\ViewBuildTest;
-use Saij\WpAppFramework\View\ViewData;
+use WebCodingCat\WpAppFramework\Editor\EditorAssets;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Tests\Unit\Block\Support\SupportCollectorTest;
+use WebCodingCat\WpAppFramework\Tests\Unit\View\ViewBuildTest;
+use WebCodingCat\WpAppFramework\View\ViewData;
 
 final class EditorAssetsTest extends TestCase
 {

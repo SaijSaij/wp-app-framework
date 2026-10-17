@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Post;
+namespace WebCodingCat\WpAppFramework\Post;
 
 /**
  * A post of the post type `post` of WordPress. Meta classes and taxonomies of a theme or

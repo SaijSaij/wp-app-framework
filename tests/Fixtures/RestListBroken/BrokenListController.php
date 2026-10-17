@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\RestListBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\RestListBroken;
 
-use Saij\WpAppFramework\Rest\Format;
-use Saij\WpAppFramework\Rest\HttpMethod;
-use Saij\WpAppFramework\Rest\Param;
-use Saij\WpAppFramework\Rest\Permission\Callback;
-use Saij\WpAppFramework\Rest\Permission\PublicAccess;
-use Saij\WpAppFramework\Rest\RestController;
-use Saij\WpAppFramework\Rest\RestRoute;
-use Saij\WpAppFramework\Value\Color;
-use Saij\WpAppFramework\Value\DateTime;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\Url;
+use WebCodingCat\WpAppFramework\Rest\Format;
+use WebCodingCat\WpAppFramework\Rest\HttpMethod;
+use WebCodingCat\WpAppFramework\Rest\Param;
+use WebCodingCat\WpAppFramework\Rest\Permission\Callback;
+use WebCodingCat\WpAppFramework\Rest\Permission\PublicAccess;
+use WebCodingCat\WpAppFramework\Rest\RestController;
+use WebCodingCat\WpAppFramework\Rest\RestRoute;
+use WebCodingCat\WpAppFramework\Value\Color;
+use WebCodingCat\WpAppFramework\Value\DateTime;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\Url;
 
 #[RestController('v1')]
 final class BrokenListController

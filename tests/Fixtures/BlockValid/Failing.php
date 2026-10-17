@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockValid;
 
 use RuntimeException;
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
 
 #[Block('failing', title: 'Failing', category: BlockCategory::Widgets)]
 final class Failing

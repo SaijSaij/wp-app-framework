@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace WebCodingCat\WpAppFramework\Block;
 
 use Closure;
 use InvalidArgumentException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Post\AbstractPost;
-use Saij\WpAppFramework\Table\AbstractRow;
-use Saij\WpAppFramework\Table\TableRegistry;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Table\AbstractRow;
+use WebCodingCat\WpAppFramework\Table\TableRegistry;
 use WP_Block;
 use WP_Comment;
 use WP_Post;

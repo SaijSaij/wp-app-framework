@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Rest\Permission;
+namespace WebCodingCat\WpAppFramework\Rest\Permission;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The current user needs the capability, checked with current_user_can().

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\Broken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\Broken;
 
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Post\PostStore;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Post\PostStore;
 
 final class InternalDependent
 {

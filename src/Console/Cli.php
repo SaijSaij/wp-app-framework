@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Console;
+namespace WebCodingCat\WpAppFramework\Console;
 
 use ReflectionClass;
 use RuntimeException;
-use Saij\WpAppFramework\Asset\ImageVariants;
-use Saij\WpAppFramework\Cache\CodeGeneration;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Filesystem\AtomicFile;
-use Saij\WpAppFramework\I18n\PotCommand;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\Discovery\Source;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Query\Field\FieldTypes;
-use Saij\WpAppFramework\Query\FieldClassGenerator;
-use Saij\WpAppFramework\Query\MetaFields;
-use Saij\WpAppFramework\Release\ReleaseCommand;
-use Saij\WpAppFramework\Release\ReleaseException;
-use Saij\WpAppFramework\Release\TemplateCompilation;
-use Saij\WpAppFramework\Table\TableFields;
-use Saij\WpAppFramework\Twig\TemplateCallableKind;
-use Saij\WpAppFramework\Twig\TemplateOverrides;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
-use Saij\WpAppFramework\Twig\TemplateVersion;
+use WebCodingCat\WpAppFramework\Asset\ImageVariants;
+use WebCodingCat\WpAppFramework\Cache\CodeGeneration;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Filesystem\AtomicFile;
+use WebCodingCat\WpAppFramework\I18n\PotCommand;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\Discovery\Source;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Query\Field\FieldTypes;
+use WebCodingCat\WpAppFramework\Query\FieldClassGenerator;
+use WebCodingCat\WpAppFramework\Query\MetaFields;
+use WebCodingCat\WpAppFramework\Release\ReleaseCommand;
+use WebCodingCat\WpAppFramework\Release\ReleaseException;
+use WebCodingCat\WpAppFramework\Release\TemplateCompilation;
+use WebCodingCat\WpAppFramework\Table\TableFields;
+use WebCodingCat\WpAppFramework\Twig\TemplateCallableKind;
+use WebCodingCat\WpAppFramework\Twig\TemplateOverrides;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Twig\TemplateVersion;
 
 /**
  * Command line entry point.

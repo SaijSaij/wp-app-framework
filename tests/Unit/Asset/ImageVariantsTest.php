@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Asset;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Asset;
 
 use LogicException;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Asset\AssetCollector;
-use Saij\WpAppFramework\Asset\Assets;
-use Saij\WpAppFramework\Asset\ImageVariantCollector;
-use Saij\WpAppFramework\Asset\ImageVariants;
-use Saij\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Asset\AssetCollector;
+use WebCodingCat\WpAppFramework\Asset\Assets;
+use WebCodingCat\WpAppFramework\Asset\ImageVariantCollector;
+use WebCodingCat\WpAppFramework\Asset\ImageVariants;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
 
 /**
  * Image variants: the calls of asset_image() the build reads, the files it writes with Imagick or GD, and the

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Support;
+namespace WebCodingCat\WpAppFramework\Tests\Support;
 
 /**
  * Resets the hooks and actions recorded by the WordPress test doubles.

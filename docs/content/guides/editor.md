@@ -129,7 +129,7 @@ Content attributes (`role: content`) appear in the "Content" group, which stays 
 When the generated controls are not enough, a block can extend the editor with a script next to its class, for example `src/Block/Hero/Hero.editor.js`. It is loaded together with the runtime:
 
 ```jsx
-import { registerControl, registerPanel } from '@saij/wp-app-framework';
+import { registerControl, registerPanel } from '@webcodingcat/wp-app-framework';
 import { PanelBody, RangeControl } from '@wordpress/components';
 
 // Replaces the generated control of an attribute.
@@ -145,7 +145,7 @@ registerPanel( 'hero', ( { attributes, setAttributes } ) => <PanelBody title="He
 
 Every component you register receives the same props: the block's `attributes`, `setAttributes`, its `clientId` and `isPreview` (whether the block shows its [preview](#preview)). A control receives the `value` of its attribute and `onChange` as well.
 
-The import `@saij/wp-app-framework` is not a module that webpack bundles. The webpack helper maps it to the runtime of your theme or plugin in the editor, `window.wpAppFramework[slug].api`, which holds exactly these functions: `registerControl()`, `registerSupportControl()`, `registerPanel()`, `registerToolbarButton()`, `loadScript()` and `getData()`. The package ships TypeScript declarations for this import and for `@saij/wp-app-framework/view`, so your IDE knows the functions and their props; you write plain JavaScript all the same.
+The import `@webcodingcat/wp-app-framework` is not a module that webpack bundles. The webpack helper maps it to the runtime of your theme or plugin in the editor, `window.wpAppFramework[slug].api`, which holds exactly these functions: `registerControl()`, `registerSupportControl()`, `registerPanel()`, `registerToolbarButton()`, `loadScript()` and `getData()`. The package ships TypeScript declarations for this import and for `@webcodingcat/wp-app-framework/view`, so your IDE knows the functions and their props; you write plain JavaScript all the same.
 
 ### Editor scripts without a block
 
@@ -153,7 +153,7 @@ Some extensions of the editor belong to no block of your own: a format for rich 
 
 ```jsx
 // assets/highlight.editor.js
-import { getData } from '@saij/wp-app-framework';
+import { getData } from '@webcodingcat/wp-app-framework';
 import { RichTextToolbarButton } from '@wordpress/block-editor';
 import { registerFormatType, toggleFormat } from '@wordpress/rich-text';
 
@@ -172,14 +172,14 @@ registerFormatType( 'my-theme/highlight', {
 } );
 ```
 
-`getData()` reads [data from PHP](./frontend.md#data-from-php), which the framework prints with the runtime. Editor scripts can import [shared modules](./frontend.md#shared-modules) and load [external scripts](./frontend.md#external-scripts) with `loadScript()` of `@saij/wp-app-framework`. Their handle is `{slug}-document-{path}-editor` (`assets/highlight.editor.js` → `my-theme-document-highlight-editor`).
+`getData()` reads [data from PHP](./frontend.md#data-from-php), which the framework prints with the runtime. Editor scripts can import [shared modules](./frontend.md#shared-modules) and load [external scripts](./frontend.md#external-scripts) with `loadScript()` of `@webcodingcat/wp-app-framework`. Their handle is `{slug}-document-{path}-editor` (`assets/highlight.editor.js` → `my-theme-document-highlight-editor`).
 
 ### Toolbar buttons
 
 `registerToolbarButton()` adds buttons of your own to a block's toolbar, for actions that belong right at the block rather than in the inspector:
 
 ```jsx
-import { registerToolbarButton } from '@saij/wp-app-framework';
+import { registerToolbarButton } from '@webcodingcat/wp-app-framework';
 import { ToolbarButton } from '@wordpress/components';
 
 registerToolbarButton( 'faq', ( { attributes, setAttributes } ) => (
@@ -196,7 +196,7 @@ The component receives the block's `attributes`, `setAttributes`, its `clientId`
 
 Controls of block supports are replaced with `registerSupportControl()`, in a script next to the support class (see [Block supports](./supports.md#in-the-editor)).
 
-`@saij/wp-app-framework` always maps to the runtime of your own framework instance, never to that of another theme or plugin.
+`@webcodingcat/wp-app-framework` always maps to the runtime of your own framework instance, never to that of another theme or plugin.
 
 ## Preview
 
@@ -210,7 +210,7 @@ The framework ships only the sources of the runtime, in `assets/`. The theme or 
 {
 	"scripts": { "build": "wp-scripts build", "start": "wp-scripts start" },
 	"devDependencies": {
-		"@saij/wp-app-framework": "file:vendor/saij/wp-app-framework",
+		"@webcodingcat/wp-app-framework": "file:vendor/webcodingcat/wp-app-framework",
 		"@wordpress/scripts": "^36.1.0"
 	}
 }
@@ -218,7 +218,7 @@ The framework ships only the sources of the runtime, in `assets/`. The theme or 
 
 ```js
 // webpack.config.js of the theme or plugin
-module.exports = require( '@saij/wp-app-framework/webpack' )( {
+module.exports = require( '@webcodingcat/wp-app-framework/webpack' )( {
 	slug: 'theme-dev-test', // get_template() of a theme, the directory name of a plugin
 	root: __dirname,
 } );

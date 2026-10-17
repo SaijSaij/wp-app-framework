@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CacheValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CacheValid;
 
-use Saij\WpAppFramework\Setting\SettingsGroup;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
 
 #[SettingsGroup('site', title: 'Site')]
 final readonly class SiteSettings

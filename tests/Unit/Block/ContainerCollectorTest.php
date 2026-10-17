@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Block;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Block;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\ContainerBroken;
-use Saij\WpAppFramework\Tests\Fixtures\ContainerValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerBroken;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 /**
  * The block API for containers: inner block options, references to other blocks, context, categories, examples and
@@ -158,7 +158,7 @@ final class ContainerCollectorTest extends TestCase
             '#[InnerBlocks] on ' . $box . ': defaultBlock has inner blocks; the editor inserts the default block with its attributes only.',
             '#[InnerBlocks] on ' . $box . ': prioritized contains acme/other, which is not in allowed.',
             '#[Block] on ' . ContainerBroken\Stray::class . ': parent names ' . $box . ', whose #[InnerBlocks(allowed)] does not contain ' . ContainerBroken\Stray::class . '; the block could never be inserted.',
-            '#[Block] on ' . $item . ': ancestor names Saij\WpAppFramework\Tests\Fixtures\ContainerBroken\Missing, which is no block class of this theme or plugin (a class with #[Block]); name core blocks by CoreBlock and other blocks in full, e.g. "acme/slider".',
+            '#[Block] on ' . $item . ': ancestor names WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerBroken\Missing, which is no block class of this theme or plugin (a class with #[Block]); name core blocks by CoreBlock and other blocks in full, e.g. "acme/slider".',
             '#[Block] on ' . ContainerBroken\Peeker::class . ': usesContext contains "fixture/box/size" of this theme or plugin; read values of its blocks with a render() parameter marked #[Context(Block::class, \'attribute\')].',
             'parameter $size of ' . $reader . '::render() has #[Context(' . $box . ', "size")], but attribute "size" of ' . $box . ' is not marked with #[ProvidesContext] (marked: tone).',
             'parameter $tone of ' . $reader . '::render() has the type int, but attribute "tone" of ' . $box . ' has the type string.',

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ExternalParentBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ExternalParentBroken;
 
-use Saij\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Hook\Hook;
 
 // Framework attributes on a class the build does not load are an error; attributes of PHP are not.
 final class Widget extends \WP_Widget

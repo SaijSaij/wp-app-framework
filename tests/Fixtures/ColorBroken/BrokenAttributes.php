@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ColorBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ColorBroken;
 
-use Saij\WpAppFramework\Value\Color;
-use Saij\WpAppFramework\Value\PlainText;
-use Saij\WpAppFramework\Value\Url;
+use WebCodingCat\WpAppFramework\Value\Color;
+use WebCodingCat\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\Url;
 
 final readonly class BrokenAttributes
 {

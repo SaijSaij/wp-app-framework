@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Twig;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Twig;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Twig\TwigCacheCleanUp;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Twig\TwigCacheCleanUp;
 
 /**
  * Deleting compiled templates of older releases.

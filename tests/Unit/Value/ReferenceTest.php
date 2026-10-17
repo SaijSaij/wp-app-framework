@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Value;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Value;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\ReferenceValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ReferenceValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 use WP_Post;
 use WP_Term;
 use WP_User;
@@ -97,7 +97,7 @@ final class ReferenceTest extends TestCase
 
     public function testReportsAllErrors(): void
     {
-        $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\ReferenceBroken\\';
+        $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\ReferenceBroken\\';
         $at = static fn(string $name): string => "parameter \${$name} of {$ns}BrokenAttributes::__construct()";
         $expected = [
             "parameter \$id of {$ns}ReferenceRoute::post(): #[PostReference], #[TermReference] and #[UserReference] mark fields of blocks and settings groups, not REST arguments; declare the ID as int.",

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\IdentifierValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\IdentifierValid;
 
-use Saij\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\ListOf;
 
 final readonly class TabsAttributes
 {

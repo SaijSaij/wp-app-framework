@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockPostContentBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockPostContentBroken;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
 
 #[Block('post-content-inner', title: 'PostContentInner', category: BlockCategory::Text)]
 final readonly class PostContentInner

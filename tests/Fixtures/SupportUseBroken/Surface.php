@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SupportUseBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SupportUseBroken;
 
-use Saij\WpAppFramework\Block\Support\BlockSupport;
+use WebCodingCat\WpAppFramework\Block\Support\BlockSupport;
 
 #[BlockSupport('surface', label: 'Surface')]
 final class Surface

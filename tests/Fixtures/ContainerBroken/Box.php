@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ContainerBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerBroken;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\CoreBlock;
-use Saij\WpAppFramework\Block\InnerBlocks;
-use Saij\WpAppFramework\Block\TemplateBlock;
-use Saij\WpAppFramework\Block\Variation;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\CoreBlock;
+use WebCodingCat\WpAppFramework\Block\InnerBlocks;
+use WebCodingCat\WpAppFramework\Block\TemplateBlock;
+use WebCodingCat\WpAppFramework\Block\Variation;
 
 #[Block('box', title: 'Box', category: BadCategory::Good)]
 #[InnerBlocks(

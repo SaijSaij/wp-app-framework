@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\I18n;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\I18n;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Filesystem\FileTree;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Tests\Support\ProjectLoader;
+use WebCodingCat\WpAppFramework\Filesystem\FileTree;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Tests\Support\ProjectLoader;
 
 /**
  * The text domain and the translations of a project in the build: the Text Domain header is required, the PO files

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\DateTimeValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\DateTimeValid;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
 
 #[Block('concert', title: 'Concert', category: BlockCategory::Widgets)]
 final class Concert

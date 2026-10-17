@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Table;
+namespace WebCodingCat\WpAppFramework\Table;
 
 use BackedEnum;
 use DateTime;
@@ -12,10 +12,10 @@ use ReflectionClass;
 use ReflectionEnum;
 use ReflectionNamedType;
 use ReflectionParameter;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Project\NamePrefix;
-use Saij\WpAppFramework\Value\ValueFactory;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Project\NamePrefix;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * Collects and validates the row classes (#[Table]) in the build: one column per promoted constructor parameter, the

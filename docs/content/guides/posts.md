@@ -15,9 +15,9 @@ The build checks the declarations, and the framework registers everything on `in
 A post class extends `AbstractPost` and carries `#[PostType]`:
 
 ```php
-use Saij\WpAppFramework\Post\AbstractPost;
-use Saij\WpAppFramework\Post\PostType;
-use Saij\WpAppFramework\Post\PostTypeSupport;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Post\PostType;
+use WebCodingCat\WpAppFramework\Post\PostTypeSupport;
 
 #[PostType('event', label: 'Events', singularLabel: 'Event', supports: [PostTypeSupport::Title, PostTypeSupport::Editor], archive: true)]
 final class Event extends AbstractPost {}
@@ -49,10 +49,10 @@ A post type of the framework is public unless you say otherwise; WordPress' own 
 Meta fields are declared in a class of their own, a *meta class*. Its promoted constructor parameters are the fields, usually private with getters and setters of your own:
 
 ```php
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Value\RichText;
-use Saij\WpAppFramework\Post\PostMeta;
-use Saij\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Post\PostMeta;
+use WebCodingCat\WpAppFramework\Value\ListOf;
 
 #[PostMeta('details', title: 'Event details', postTypes: [Event::class])]
 final class EventDetails
@@ -94,8 +94,8 @@ A [`Link`](./values.md#links) – `private Link $registration = new Link()` – 
 One post type can have several meta classes, and one meta class can belong to several post types. Meta for the post types of WordPress names the framework classes `Post` and `Page`:
 
 ```php
-use Saij\WpAppFramework\Post\Page;
-use Saij\WpAppFramework\Post\Post;
+use WebCodingCat\WpAppFramework\Post\Page;
+use WebCodingCat\WpAppFramework\Post\Post;
 
 #[PostMeta('extras', title: 'Extras', postTypes: [Post::class, Page::class])]
 final class Extras

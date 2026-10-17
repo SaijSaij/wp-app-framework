@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\I18n;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\I18n;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\I18n\Translator;
 
 /**
  * Texts of an instance translated with its text domain: single texts, plurals and the labels of control descriptions.

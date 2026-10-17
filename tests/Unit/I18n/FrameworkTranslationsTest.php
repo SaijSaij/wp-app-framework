@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\I18n;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\I18n;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\I18n\FrameworkTranslations;
-use Saij\WpAppFramework\I18n\PoFile;
+use WebCodingCat\WpAppFramework\I18n\FrameworkTranslations;
+use WebCodingCat\WpAppFramework\I18n\PoFile;
 
 /**
  * The translations of the framework's own texts: complete, compiled and handed to the scripts.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\RestList;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\RestList;
 
 enum Priority: int
 {

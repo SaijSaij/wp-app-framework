@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CronValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CronValid;
 
 final class Journal
 {

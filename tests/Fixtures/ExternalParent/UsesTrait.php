@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ExternalParent;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ExternalParent;
 
 // Only a trait of WordPress, written as a fully qualified name.
 final class UsesTrait

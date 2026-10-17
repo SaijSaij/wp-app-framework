@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache\Tag;
+namespace WebCodingCat\WpAppFramework\Cache\Tag;
 
-use Saij\WpAppFramework\Cache\CacheTag;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Cache\CacheTag;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Invalidated when a post of the post type is created, changed, trashed or

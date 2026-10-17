@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockView;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockView;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\BlockTemplateFunctions;
-use Saij\WpAppFramework\Block\Support\UseSupport;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\BlockTemplateFunctions;
+use WebCodingCat\WpAppFramework\Block\Support\UseSupport;
 
 /** A view script of its own (Faq.view.js) and the one of the Reveal support. */
 #[Block('faq', title: 'FAQ', category: BlockCategory::Text)]

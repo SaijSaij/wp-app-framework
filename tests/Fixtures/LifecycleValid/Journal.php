@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\LifecycleValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\LifecycleValid;
 
 use RuntimeException;
 

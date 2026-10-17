@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SupportUseBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SupportUseBroken;
 
 enum Tone: string
 {

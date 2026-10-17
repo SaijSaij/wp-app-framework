@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Setting;
+namespace WebCodingCat\WpAppFramework\Setting;
 
-use Saij\WpAppFramework\Asset\BuildAssets;
-use Saij\WpAppFramework\Asset\ScriptKind;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\I18n\FrameworkTranslations;
-use Saij\WpAppFramework\I18n\Translator;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Value\FormAssets;
+use WebCodingCat\WpAppFramework\Asset\BuildAssets;
+use WebCodingCat\WpAppFramework\Asset\ScriptKind;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\I18n\FrameworkTranslations;
+use WebCodingCat\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Value\FormAssets;
 
 /**
  * The settings page of one framework instance: one admin page with the forms
@@ -119,7 +119,7 @@ final class SettingsPage
         FrameworkTranslations::addTo($handle);
         wp_enqueue_script($handle);
         // The settings scripts of the groups depend on the page script (their import of
-        // @saij/wp-app-framework/settings), so they run after it, in the head like it: the page renders on
+        // @webcodingcat/wp-app-framework/settings), so they run after it, in the head like it: the page renders on
         // DOMContentLoaded, after their controls are registered.
         foreach ($this->groups as $group) {
             if ($group['script'] !== null) {

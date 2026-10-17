@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TableBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TableBroken;
 
-use Saij\WpAppFramework\Table\AbstractRow;
-use Saij\WpAppFramework\Table\Indexed;
-use Saij\WpAppFramework\Table\PrimaryKey;
-use Saij\WpAppFramework\Table\Table;
+use WebCodingCat\WpAppFramework\Table\AbstractRow;
+use WebCodingCat\WpAppFramework\Table\Indexed;
+use WebCodingCat\WpAppFramework\Table\PrimaryKey;
+use WebCodingCat\WpAppFramework\Table\Table;
 
 /**
  * An index of more than 3072 bytes and a row of more than 65535.

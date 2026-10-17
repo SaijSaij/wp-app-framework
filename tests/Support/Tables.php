@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Support;
+namespace WebCodingCat\WpAppFramework\Tests\Support;
 
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Table\TableCollector;
-use Saij\WpAppFramework\Table\TableRegistry;
-use Saij\WpAppFramework\Table\TableStore;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Table\TableCollector;
+use WebCodingCat\WpAppFramework\Table\TableRegistry;
+use WebCodingCat\WpAppFramework\Table\TableStore;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 /**
  * The table store of the TableValid fixture (namespace dev-test, slug my-theme), registered like a booted instance,

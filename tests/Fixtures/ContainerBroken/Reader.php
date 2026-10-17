@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ContainerBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerBroken;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\Context;
-use Saij\WpAppFramework\Block\Example;
-use Saij\WpAppFramework\Block\TemplateBlock;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Context;
+use WebCodingCat\WpAppFramework\Block\Example;
+use WebCodingCat\WpAppFramework\Block\TemplateBlock;
 
 #[Block('reader', title: 'Reader', category: BlockCategory::Text)]
 #[Example(attributes: ['tone' => 5], innerBlocks: [new TemplateBlock('acme/x')])]

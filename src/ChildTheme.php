@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework;
+namespace WebCodingCat\WpAppFramework;
 
 use LogicException;
-use Saij\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
 
 /**
  * Boots the framework for an active child theme with code of its own and

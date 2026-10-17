@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Table;
+namespace WebCodingCat\WpAppFramework\Table;
 
 use InvalidArgumentException;
 

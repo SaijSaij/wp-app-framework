@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TableBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TableBroken;
 
-use Saij\WpAppFramework\Table\Table;
+use WebCodingCat\WpAppFramework\Table\Table;
 
 #[Table('not_a_row')]
 final class NotARow

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Manifest\Discovery;
+namespace WebCodingCat\WpAppFramework\Manifest\Discovery;
 
 use PhpToken;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The declaration of a class, interface, trait or enum read from its file with the tokenizer, without loading it:

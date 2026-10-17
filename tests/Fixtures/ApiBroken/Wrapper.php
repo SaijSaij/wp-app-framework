@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ApiBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ApiBroken;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * Part of the public API through LeakingApi::wrapper(), so its public members are checked too.

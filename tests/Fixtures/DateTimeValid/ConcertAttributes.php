@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\DateTimeValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\DateTimeValid;
 
-use Saij\WpAppFramework\Value\DateTime;
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\DateTime;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Value\ListOf;
 
 final readonly class ConcertAttributes
 {

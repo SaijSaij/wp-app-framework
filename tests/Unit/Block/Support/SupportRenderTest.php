@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Block\Support;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Block\Support;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Asset\BuildAssets;
-use Saij\WpAppFramework\Block\BlockRegistrar;
-use Saij\WpAppFramework\Block\BlockTemplateFunctions;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Value\ValueFactory;
-use Saij\WpAppFramework\View\ViewAssets;
+use WebCodingCat\WpAppFramework\Asset\BuildAssets;
+use WebCodingCat\WpAppFramework\Block\BlockRegistrar;
+use WebCodingCat\WpAppFramework\Block\BlockTemplateFunctions;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\View\ViewAssets;
 use WP_Block;
 
 /**
@@ -92,7 +92,7 @@ final class SupportRenderTest extends TestCase
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(
-            'Block support Saij\\WpAppFramework\\Tests\\Fixtures\\SupportValid\\Accent::className() returned the invalid class name "a"b" for the value \'a"b\' of attribute "accent" of block fixture/card; use letters, digits, "-" and "_".',
+            'Block support WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\SupportValid\\Accent::className() returned the invalid class name "a"b" for the value \'a"b\' of attribute "accent" of block fixture/card; use letters, digits, "-" and "_".',
         );
         self::render('fixture/card', ['surface' => 'dark', 'framed' => false, 'accent' => 'a"b']);
     }
@@ -115,7 +115,7 @@ final class SupportRenderTest extends TestCase
         self::assertSame('', self::render('fixture/unwrapped', ['framed' => true]));
         self::assertSame('', self::render('fixture/card', ['surface' => 'dark', 'framed' => false, 'accent' => 'a b!']));
         $log = (string) file_get_contents($this->log);
-        self::assertStringContainsString('wp-app-framework: block fixture/unwrapped (Saij\\WpAppFramework\\Tests\\Fixtures\\SupportValid\\Unwrapped::render()) failed: LogicException: Block fixture/unwrapped uses block supports', $log);
+        self::assertStringContainsString('wp-app-framework: block fixture/unwrapped (WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\SupportValid\\Unwrapped::render()) failed: LogicException: Block fixture/unwrapped uses block supports', $log);
         self::assertStringContainsString('returned the invalid class name "b!"', $log);
     }
 

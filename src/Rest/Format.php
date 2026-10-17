@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Rest;
+namespace WebCodingCat\WpAppFramework\Rest;
 
 /**
  * String formats supported by the WordPress REST schema

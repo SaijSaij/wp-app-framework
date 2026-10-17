@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Asset;
+namespace WebCodingCat\WpAppFramework\Asset;
 
 use FilesystemIterator;
 use GdImage;
@@ -11,8 +11,8 @@ use ImagickException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Smaller versions and other formats of image assets, for `srcset` and

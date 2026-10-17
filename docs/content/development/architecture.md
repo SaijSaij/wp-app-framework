@@ -104,7 +104,7 @@ New areas get their own directory following the same pattern; `tests/Unit/` mirr
 Next to `src/`:
 
 - `assets/` – the JavaScript and styles of the runtimes: `editor.js` (editor runtime, modules in `runtime/`), `view.js` (view runtime, `view/`), `settings.js` and `meta-box.js` (settings page and meta boxes) with their styles, and their Vitest tests in `test/` directories;
-- `webpack.config.js` – the webpack helper consumers use (`@saij/wp-app-framework/webpack`);
+- `webpack.config.js` – the webpack helper consumers use (`@webcodingcat/wp-app-framework/webpack`);
 - `types/` – TypeScript declarations of both JavaScript imports, checked by `tsc` over `types/check/`;
 - `tools/` – the generators of the API reference, run by the documentation build;
 - `docs/` – this website (Rspress, `docs/content/`), not part of the package;

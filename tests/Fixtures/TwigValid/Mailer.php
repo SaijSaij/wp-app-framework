@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TwigValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TwigValid;
 
-use Saij\WpAppFramework\Hook\Hook;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 final class Mailer
 {

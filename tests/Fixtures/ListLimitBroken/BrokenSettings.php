@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ListLimitBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ListLimitBroken;
 
-use Saij\WpAppFramework\Setting\SettingsGroup;
-use Saij\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
+use WebCodingCat\WpAppFramework\Value\ListOf;
 
 #[SettingsGroup('broken', title: 'Broken')]
 final readonly class BrokenSettings

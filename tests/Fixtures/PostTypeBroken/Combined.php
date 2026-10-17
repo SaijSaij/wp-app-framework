@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\PostTypeBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeBroken;
 
-use Saij\WpAppFramework\Post\AbstractPost;
-use Saij\WpAppFramework\Post\PostType;
-use Saij\WpAppFramework\Post\Taxonomy;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Post\PostType;
+use WebCodingCat\WpAppFramework\Post\Taxonomy;
 
 #[PostType('combined', label: 'Items', singularLabel: 'Item')]
 #[Taxonomy('combined', label: 'Items', singularLabel: 'Item', postTypes: [Valid::class])]

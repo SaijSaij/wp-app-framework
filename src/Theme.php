@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework;
+namespace WebCodingCat\WpAppFramework;
 
 use LogicException;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * Boots the framework for the active theme and provides its paths.

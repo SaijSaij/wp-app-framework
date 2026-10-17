@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Rest;
+namespace WebCodingCat\WpAppFramework\Rest;
 
 use BackedEnum;
 use ReflectionClass;
@@ -13,16 +13,16 @@ use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionType;
 use ReflectionUnionType;
-use Saij\WpAppFramework\Cache\CacheCollector;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Manifest\EntryPointInspector;
-use Saij\WpAppFramework\Rest\Permission\Callback;
-use Saij\WpAppFramework\Rest\Permission\Capability;
-use Saij\WpAppFramework\Rest\Permission\PublicAccess;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
+use WebCodingCat\WpAppFramework\Cache\CacheCollector;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Manifest\EntryPointInspector;
+use WebCodingCat\WpAppFramework\Rest\Permission\Callback;
+use WebCodingCat\WpAppFramework\Rest\Permission\Capability;
+use WebCodingCat\WpAppFramework\Rest\Permission\PublicAccess;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 
 /**
  * Collects and validates `#[RestRoute]` methods during the build, derives the
@@ -30,8 +30,8 @@ use Throwable;
  *
  * @phpstan-import-type RestArgument from RestRouteDefinition
  * @phpstan-import-type RestPermission from RestRouteDefinition
- * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
- * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
+ * @phpstan-import-type Value from \WebCodingCat\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type CacheEntry from \WebCodingCat\WpAppFramework\Cache\CachePolicy
  * @phpstan-type ServiceParameter array{param: string, kind: 'service', class: class-string}
  * @phpstan-type RequestParameter array{param: string, kind: 'request'}
  * @phpstan-type ArgumentParameter array{

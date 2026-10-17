@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\I18n;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\I18n;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Filesystem\FileTree;
-use Saij\WpAppFramework\I18n\AttributeTexts;
-use Saij\WpAppFramework\I18n\PhpTexts;
-use Saij\WpAppFramework\I18n\PoFile;
-use Saij\WpAppFramework\I18n\PotFile;
-use Saij\WpAppFramework\I18n\TemplateTexts;
-use Saij\WpAppFramework\Tests\Unit\Block\BlockCollectorTest;
+use WebCodingCat\WpAppFramework\Filesystem\FileTree;
+use WebCodingCat\WpAppFramework\I18n\AttributeTexts;
+use WebCodingCat\WpAppFramework\I18n\PhpTexts;
+use WebCodingCat\WpAppFramework\I18n\PoFile;
+use WebCodingCat\WpAppFramework\I18n\PotFile;
+use WebCodingCat\WpAppFramework\I18n\TemplateTexts;
+use WebCodingCat\WpAppFramework\Tests\Unit\Block\BlockCollectorTest;
 
 /**
  * The template of the translations: texts of attributes, templates and PHP files, written as a POT file.

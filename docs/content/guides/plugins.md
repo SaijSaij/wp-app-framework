@@ -17,12 +17,12 @@ The provider is responsible for keeping its interface compatible across its own 
 
 ## Public API
 
-`#[PublicApi]` (`Saij\WpAppFramework\Api\PublicApi`) marks a service of a plugin, or of a theme, as its API:
+`#[PublicApi]` (`WebCodingCat\WpAppFramework\Api\PublicApi`) marks a service of a plugin, or of a theme, as its API:
 
 ```php
 namespace My\Plugin\Api;
 
-use Saij\WpAppFramework\Api\PublicApi;
+use WebCodingCat\WpAppFramework\Api\PublicApi;
 
 #[PublicApi]
 final class NoteApi
@@ -35,7 +35,7 @@ Another consumer receives the API of a plugin through a constructor parameter wi
 
 ```php
 use My\Plugin\Api\NoteApi;
-use Saij\WpAppFramework\Api\PluginApi;
+use WebCodingCat\WpAppFramework\Api\PluginApi;
 
 final class Notes
 {

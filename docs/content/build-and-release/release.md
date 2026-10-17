@@ -74,7 +74,7 @@ The project declares the Strauss settings in its `composer.json`. The command ca
 Normally the release uses the framework version from the lock file. To test a release with framework changes that are not released yet, replace the package with a local checkout:
 
 ```sh
-composer release -- --package-source=saij/wp-app-framework=../wp-app-framework
+composer release -- --package-source=webcodingcat/wp-app-framework=../wp-app-framework
 ```
 
 `--package-source=<package>=<directory>` copies the checkout's files without those marked `export-ignore`, like a distribution archive. The output says that the build is not from the lock file. Composer path repositories are not supported, because the temporary copy has no sibling checkouts.

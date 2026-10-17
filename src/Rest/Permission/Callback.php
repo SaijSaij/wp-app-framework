@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Rest\Permission;
+namespace WebCodingCat\WpAppFramework\Rest\Permission;
 
 use Closure;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * A public static method decides, passed as first-class callable: `new Callback(self::canEdit(...))`.

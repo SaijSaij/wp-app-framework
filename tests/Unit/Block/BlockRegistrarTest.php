@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Block;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Block;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Asset\BuildAssets;
-use Saij\WpAppFramework\Block\BlockRegistrar;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\I18n\Translator;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Value\ValueFactory;
-use Saij\WpAppFramework\View\ViewAssets;
+use WebCodingCat\WpAppFramework\Asset\BuildAssets;
+use WebCodingCat\WpAppFramework\Block\BlockRegistrar;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\I18n\Translator;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\View\ViewAssets;
 use WP_Block;
 use WP_Block_Type_Registry;
 
@@ -113,7 +113,7 @@ final class BlockRegistrarTest extends TestCase
 
         self::assertSame('', Recorded::renderCallback('fixture/failing')([], '', new WP_Block(['blockName' => 'fixture/failing'])));
         self::assertStringContainsString(
-            'wp-app-framework: block fixture/failing (Saij\\WpAppFramework\\Tests\\Fixtures\\BlockValid\\Failing::render()) failed: RuntimeException: fixture block failure in ',
+            'wp-app-framework: block fixture/failing (WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\BlockValid\\Failing::render()) failed: RuntimeException: fixture block failure in ',
             (string) file_get_contents($this->log),
         );
 
@@ -136,7 +136,7 @@ final class BlockRegistrarTest extends TestCase
         $this->register(true);
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Block fixture/post-title was rendered without a WP_Block instance, but Saij\\WpAppFramework\\Tests\\Fixtures\\BlockValid\\PostTitle::render() needs one.');
+        $this->expectExceptionMessage('Block fixture/post-title was rendered without a WP_Block instance, but WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\BlockValid\\PostTitle::render() needs one.');
         Recorded::renderCallback('fixture/post-title')([]);
     }
 

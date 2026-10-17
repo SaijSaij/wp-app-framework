@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Filesystem;
+namespace WebCodingCat\WpAppFramework\Filesystem;
 
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Writes files atomically: into a temporary file in the same directory, then

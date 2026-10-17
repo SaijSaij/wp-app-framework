@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ContainerBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerBroken;
 
-use Saij\WpAppFramework\Block\CustomBlockCategory;
+use WebCodingCat\WpAppFramework\Block\CustomBlockCategory;
 
 enum BadCategory: string implements CustomBlockCategory
 {

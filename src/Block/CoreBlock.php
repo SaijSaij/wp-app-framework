@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace WebCodingCat\WpAppFramework\Block;
 
 /**
  * The blocks WordPress core registers (WordPress 7.1.3), to name them in

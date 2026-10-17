@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SettingsBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SettingsBroken;
 
-use Saij\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Hook\Hook;
 
 final class UsedInHook
 {

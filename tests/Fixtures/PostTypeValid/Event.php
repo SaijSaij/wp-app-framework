@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\PostTypeValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid;
 
-use Saij\WpAppFramework\Post\AbstractPost;
-use Saij\WpAppFramework\Post\PostType;
-use Saij\WpAppFramework\Post\PostTypeLabels;
-use Saij\WpAppFramework\Post\PostTypeSupport;
+use WebCodingCat\WpAppFramework\Post\AbstractPost;
+use WebCodingCat\WpAppFramework\Post\PostType;
+use WebCodingCat\WpAppFramework\Post\PostTypeLabels;
+use WebCodingCat\WpAppFramework\Post\PostTypeSupport;
 
 #[PostType(
     'event',

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ApiValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ApiValid;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 #[NoService]
 final readonly class Note

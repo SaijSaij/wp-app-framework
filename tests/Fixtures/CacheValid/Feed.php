@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CacheValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CacheValid;
 
-use Saij\WpAppFramework\Cache\CacheTag;
+use WebCodingCat\WpAppFramework\Cache\CacheTag;
 
 enum Feed: string implements CacheTag
 {

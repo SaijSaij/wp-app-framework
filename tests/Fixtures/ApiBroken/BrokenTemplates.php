@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ApiBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ApiBroken;
 
-use Saij\WpAppFramework\Twig\TemplateFunction;
 use Twig\Markup;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 final class BrokenTemplates
 {

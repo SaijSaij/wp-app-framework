@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SupportBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SupportBroken;
 
-use Saij\WpAppFramework\Block\Support\BlockSupport;
+use WebCodingCat\WpAppFramework\Block\Support\BlockSupport;
 
 #[BlockSupport('objectValue', label: 'X')]
 final class ObjectValue

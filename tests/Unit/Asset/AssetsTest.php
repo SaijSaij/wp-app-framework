@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Asset;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Asset;
 
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Asset\AssetCollector;
-use Saij\WpAppFramework\Asset\Assets;
-use Saij\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Asset\AssetCollector;
+use WebCodingCat\WpAppFramework\Asset\Assets;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
 
 /**
  * Static assets: the list of the build and their URLs, images and inline SVGs at run time, with overrides and the

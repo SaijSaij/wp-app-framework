@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SupportBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SupportBroken;
 
-use Saij\WpAppFramework\Block\Support\BlockSupport;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Block\Support\BlockSupport;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 #[BlockSupport('notAService', label: 'X')]
 #[NoService]

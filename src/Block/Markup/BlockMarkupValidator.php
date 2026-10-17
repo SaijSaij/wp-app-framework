@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block\Markup;
+namespace WebCodingCat\WpAppFramework\Block\Markup;
 
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Checks the block templates, template parts and patterns of a theme or child theme against the blocks of the

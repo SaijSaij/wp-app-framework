@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Api;
+namespace WebCodingCat\WpAppFramework\Api;
 
-use Saij\WpAppFramework\Twig\TemplateFunction;
+use WebCodingCat\WpAppFramework\Twig\TemplateFunction;
 
 /**
  * Twig functions about plugins built with the framework.

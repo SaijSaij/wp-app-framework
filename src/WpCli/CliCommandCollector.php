@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\WpCli;
+namespace WebCodingCat\WpAppFramework\WpCli;
 
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Manifest\EntryPointInspector;
-use Saij\WpAppFramework\Rest\Param;
-use Saij\WpAppFramework\Value\PostReference;
-use Saij\WpAppFramework\Value\TermReference;
-use Saij\WpAppFramework\Value\UserReference;
-use Saij\WpAppFramework\Value\ValueSchemaBuilder;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Manifest\EntryPointInspector;
+use WebCodingCat\WpAppFramework\Rest\Param;
+use WebCodingCat\WpAppFramework\Value\PostReference;
+use WebCodingCat\WpAppFramework\Value\TermReference;
+use WebCodingCat\WpAppFramework\Value\UserReference;
+use WebCodingCat\WpAppFramework\Value\ValueSchemaBuilder;
 
 /**
  * Collects and validates `#[CliCommand]` services and their `#[CliSubcommand]`
@@ -26,7 +26,7 @@ use Throwable;
  *
  * @phpstan-import-type CliArgument from CliCommandDefinition
  * @phpstan-import-type CliSubcommandEntry from CliCommandDefinition
- * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type Value from \WebCodingCat\WpAppFramework\Value\ValueFactory
  */
 #[NoService]
 final class CliCommandCollector

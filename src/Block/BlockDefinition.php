@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace WebCodingCat\WpAppFramework\Block;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * A validated `#[Block]` class.
@@ -28,8 +28,8 @@ use Saij\WpAppFramework\DependencyInjection\NoService;
  * }
  * @phpstan-type BlockExcerpt array{fields: array<string, 'plain'|'rich'>, wrapper: bool}
  * @phpstan-type BlockSupportEntry array{attribute: string, class: class-string, value: Value, editorScript: string|null, viewScript: string|null}
- * @phpstan-import-type Value from \Saij\WpAppFramework\Value\ValueFactory
- * @phpstan-import-type CacheEntry from \Saij\WpAppFramework\Cache\CachePolicy
+ * @phpstan-import-type Value from \WebCodingCat\WpAppFramework\Value\ValueFactory
+ * @phpstan-import-type CacheEntry from \WebCodingCat\WpAppFramework\Cache\CachePolicy
  */
 #[NoService]
 final readonly class BlockDefinition

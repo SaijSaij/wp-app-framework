@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Release;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Release;
 
-use Saij\WpAppFramework\Release\Archive;
-use Saij\WpAppFramework\Release\ReleaseException;
+use WebCodingCat\WpAppFramework\Release\Archive;
+use WebCodingCat\WpAppFramework\Release\ReleaseException;
 use ZipArchive;
 
 final class ArchiveTest extends ReleaseTestCase

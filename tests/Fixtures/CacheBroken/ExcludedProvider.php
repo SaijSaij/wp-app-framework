@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CacheBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CacheBroken;
 
-use Saij\WpAppFramework\Cache\VaryProvider;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Cache\VaryProvider;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 #[NoService]
 final class ExcludedProvider implements VaryProvider

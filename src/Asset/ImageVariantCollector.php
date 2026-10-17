@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Asset;
+namespace WebCodingCat\WpAppFramework\Asset;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Twig\TemplateFiles;
 use Throwable;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
@@ -17,6 +15,8 @@ use Twig\Source;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 use Twig\TwigTest;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Twig\TemplateFiles;
 
 /**
  * Finds the image variants the templates of a project ask for during the

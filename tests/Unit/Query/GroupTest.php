@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Query;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Query;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Query\All;
-use Saij\WpAppFramework\Query\Any;
-use Saij\WpAppFramework\Query\Field\FieldTypes;
-use Saij\WpAppFramework\Query\Field\IntField;
-use Saij\WpAppFramework\Query\Field\NullableIntField;
-use Saij\WpAppFramework\Query\Group;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetails;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetailsFields;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\LogEntryFields;
+use WebCodingCat\WpAppFramework\Query\All;
+use WebCodingCat\WpAppFramework\Query\Any;
+use WebCodingCat\WpAppFramework\Query\Field\FieldTypes;
+use WebCodingCat\WpAppFramework\Query\Field\IntField;
+use WebCodingCat\WpAppFramework\Query\Field\NullableIntField;
+use WebCodingCat\WpAppFramework\Query\Group;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetails;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetailsFields;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\LogEntryFields;
 
 /**
  * The kinds of conditions: meta fields, terms and the columns of tables.

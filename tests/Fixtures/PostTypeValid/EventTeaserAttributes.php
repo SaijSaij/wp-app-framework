@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\PostTypeValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid;
 
-use Saij\WpAppFramework\Post\Category;
-use Saij\WpAppFramework\Value\TermReference;
+use WebCodingCat\WpAppFramework\Post\Category;
+use WebCodingCat\WpAppFramework\Value\TermReference;
 
 final readonly class EventTeaserAttributes
 {

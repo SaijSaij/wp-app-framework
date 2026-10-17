@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cron;
+namespace WebCodingCat\WpAppFramework\Cron;
 
 /**
  * A day of the week, numbered as in ISO 8601 (PHP date format `N`).

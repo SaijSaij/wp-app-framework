@@ -11,7 +11,7 @@ Block supports apply only to the blocks of the same theme or plugin, not to core
 A support is a service class with `#[BlockSupport]` and a public method `className()`. The method receives the value of the attribute and returns the class names for it:
 
 ```php
-use Saij\WpAppFramework\Block\Support\BlockSupport;
+use WebCodingCat\WpAppFramework\Block\Support\BlockSupport;
 
 #[BlockSupport('surface', label: 'Surface')]
 final class Surface
@@ -86,7 +86,7 @@ The control appears in the support's group, only in the default editing mode. In
 A script next to the support class can replace the generated control in every block that uses the support. For `src/Support/Surface.php` that is `src/Support/Surface.editor.js`; it is loaded with the runtime if a block uses the support:
 
 ```jsx
-import { registerSupportControl } from '@saij/wp-app-framework';
+import { registerSupportControl } from '@webcodingcat/wp-app-framework';
 
 registerSupportControl( 'surface', ( { value, onChange } ) => <SurfacePicker value={ value } onChange={ onChange } /> );
 ```

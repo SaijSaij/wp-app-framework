@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TableValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid;
 
 enum Level: string
 {

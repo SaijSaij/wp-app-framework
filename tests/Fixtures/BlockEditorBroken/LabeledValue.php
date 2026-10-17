@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockEditorBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockEditorBroken;
 
-use Saij\WpAppFramework\Value\Labeled;
+use WebCodingCat\WpAppFramework\Value\Labeled;
 
 final readonly class LabeledValue implements Labeled
 {

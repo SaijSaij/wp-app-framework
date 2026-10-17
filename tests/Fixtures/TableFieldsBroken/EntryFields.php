@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TableFieldsBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TableFieldsBroken;
 
 use RuntimeException;
-use Saij\WpAppFramework\Query\Field\EnumField;
-use Saij\WpAppFramework\Query\Field\Field;
-use Saij\WpAppFramework\Query\Field\IntField;
-use Saij\WpAppFramework\Query\Field\NullableIntField;
-use Saij\WpAppFramework\Query\Field\StringField;
-use Saij\WpAppFramework\Table\TableFields;
+use WebCodingCat\WpAppFramework\Query\Field\EnumField;
+use WebCodingCat\WpAppFramework\Query\Field\Field;
+use WebCodingCat\WpAppFramework\Query\Field\IntField;
+use WebCodingCat\WpAppFramework\Query\Field\NullableIntField;
+use WebCodingCat\WpAppFramework\Query\Field\StringField;
+use WebCodingCat\WpAppFramework\Table\TableFields;
 
 /**
  * One method per error; the valid ones are not reported.

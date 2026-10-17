@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Project;
+namespace WebCodingCat\WpAppFramework\Project;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Prefixes of names derived from the slug or namespace of a theme or plugin; used at build and run time, so they do

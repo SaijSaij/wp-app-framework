@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\View;
+namespace WebCodingCat\WpAppFramework\View;
 
 use LogicException;
-use Saij\WpAppFramework\Asset\BuildAssets;
-use Saij\WpAppFramework\Asset\ScriptKind;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Asset\BuildAssets;
+use WebCodingCat\WpAppFramework\Asset\ScriptKind;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
 
 /**
  * Loads the view scripts (front-end scripts) of one framework instance.

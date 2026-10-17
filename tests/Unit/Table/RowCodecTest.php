@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Table;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Table;
 
 use DateTimeImmutable;
 use DateTimeZone;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Table\RowCodec;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\Level;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\LogEntry;
-use Saij\WpAppFramework\Tests\Fixtures\TableValid\Priority;
-use Saij\WpAppFramework\Tests\Support\Tables;
+use WebCodingCat\WpAppFramework\Table\RowCodec;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\Level;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\LogEntry;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\TableValid\Priority;
+use WebCodingCat\WpAppFramework\Tests\Support\Tables;
 
 /**
  * Values of columns between wpdb (strings) and PHP.

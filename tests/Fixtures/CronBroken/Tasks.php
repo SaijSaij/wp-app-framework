@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CronBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CronBroken;
 
-use Saij\WpAppFramework\Cron\CronTask;
-use Saij\WpAppFramework\Post\Post;
+use WebCodingCat\WpAppFramework\Cron\CronTask;
+use WebCodingCat\WpAppFramework\Post\Post;
 
 /**
  * Every build error of #[CronTask].

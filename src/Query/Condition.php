@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
 /**
  * A condition of a query: created by the methods of meta fields (`EventDetailsFields::capacity()->greaterThan(10)`),

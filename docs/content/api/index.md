@@ -20,5 +20,5 @@ Everything else in the framework is internal, even if PHP lets you reach it: cla
 - **Values and exceptions** are value objects, interfaces you implement and exceptions you throw.
 - **Enums** are the cases attributes and queries take.
 - **Twig functions** are available in every template, the framework's own and the wrappers of WordPress functions. Besides them, templates have the global `settings` with your [settings groups](../guides/settings.md).
-- **JavaScript** lists the exports of `@saij/wp-app-framework` for editor scripts, of `@saij/wp-app-framework/view` for view scripts and of `@saij/wp-app-framework/settings` for settings scripts.
+- **JavaScript** lists the exports of `@webcodingcat/wp-app-framework` for editor scripts, of `@webcodingcat/wp-app-framework/view` for view scripts and of `@webcodingcat/wp-app-framework/settings` for settings scripts.
 - **Configuration and commands** covers what is not code: [hooks](./hooks.md), [`composer.json`](./composer.md), [commands](./commands.md), the [webpack helper](./webpack.md) and the [release workflow](./workflow.md).

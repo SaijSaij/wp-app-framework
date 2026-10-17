@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Post;
+namespace WebCodingCat\WpAppFramework\Post;
 
 /**
  * The post formats of WordPress, stored as terms `post-format-{value}` of the taxonomy `post_format`; Standard is a

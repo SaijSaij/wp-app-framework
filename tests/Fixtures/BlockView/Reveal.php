@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockView;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockView;
 
-use Saij\WpAppFramework\Block\Support\BlockSupport;
+use WebCodingCat\WpAppFramework\Block\Support\BlockSupport;
 
 /** A block support with a view script (Reveal.view.js). */
 #[BlockSupport('revealOnScroll', label: 'Reveal on scroll')]

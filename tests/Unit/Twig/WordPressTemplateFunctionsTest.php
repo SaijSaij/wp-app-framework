@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Twig;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Twig;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Twig\WordPressTemplateFunctions;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Twig\WordPressTemplateFunctions;
 use WP_Post;
 use WP_Term;
 use WP_User;

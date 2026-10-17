@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\Broken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\Broken;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Hook\Hook;
 
 #[NoService]
 final class ExcludedWithHook

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cron;
+namespace WebCodingCat\WpAppFramework\Cron;
 
 use Closure;
 use LogicException;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Hook\HookRegistrar;
-use Saij\WpAppFramework\Instance;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Project\NamePrefix;
-use Saij\WpAppFramework\Value\ValueFactory;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Hook\HookRegistrar;
+use WebCodingCat\WpAppFramework\Instance;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Project\NamePrefix;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 use WP_Error;
 
 /**

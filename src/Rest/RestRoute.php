@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Rest;
+namespace WebCodingCat\WpAppFramework\Rest;
 
 use Attribute;
-use Saij\WpAppFramework\Rest\Permission\Permission;
+use WebCodingCat\WpAppFramework\Rest\Permission\Permission;
 
 /**
  * Registers a public method of a `#[RestController]` service as a REST route.

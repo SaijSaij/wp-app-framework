@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Table;
+namespace WebCodingCat\WpAppFramework\Table;
 
 use BackedEnum;
 use DateTimeInterface;
 use LogicException;
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Query\Field\DateTimeField;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Query\Field\DateTimeField;
 
 /**
  * Converts the values of columns between the database and PHP. wpdb returns every value as a string (null for NULL);

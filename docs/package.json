@@ -1,7 +1,7 @@
 {
 	"name": "wp-app-framework-docs",
 	"private": true,
-	"description": "Documentation website of saij/wp-app-framework, published on GitHub Pages.",
+	"description": "Documentation website of webcodingcat/wp-app-framework, published on GitHub Pages.",
 	"license": "GPL-2.0-or-later",
 	"type": "module",
 	"engines": {

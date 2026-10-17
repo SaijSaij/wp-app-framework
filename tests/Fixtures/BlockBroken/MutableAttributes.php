@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockBroken;
 
 final class MutableAttributes
 {

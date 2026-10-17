@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SettingsBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SettingsBroken;
 
-use Saij\WpAppFramework\Setting\SettingsGroup;
-use Saij\WpAppFramework\Value\Content;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
+use WebCodingCat\WpAppFramework\Value\Content;
 
 #[SettingsGroup('content_marker', title: 'Content marker')]
 final readonly class ContentMarker

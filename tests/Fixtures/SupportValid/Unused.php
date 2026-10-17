@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SupportValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SupportValid;
 
-use Saij\WpAppFramework\Block\Support\BlockSupport;
+use WebCodingCat\WpAppFramework\Block\Support\BlockSupport;
 
 /** Used by no block: its unresolvable dependency is never checked. */
 #[BlockSupport('unused', label: 'Unused')]

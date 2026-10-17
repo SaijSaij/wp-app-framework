@@ -84,7 +84,7 @@ bin/e2e --instances tdt --project theme-dev-test --results tdt -- specs/blocks.s
 bin/down tdt
 ```
 
-A **pool file** (`tests/dev.pools`, `tests/release.pools` of each consumer) describes the instances of a run: which projects are prepared and linked, which themes and plugins (or ZIPs) each pool installs, and whether it runs the browser tests or a script. The package links (`link saij/wp-app-framework=wp-app-framework`) replace the framework the consumer installed with your checkout, so the consumers test it without a release. Plugins can run without a theme; then the default theme of WordPress is active. The [README of wp-test-env](https://github.com/webcodingcat/wp-test-env) describes the format.
+A **pool file** (`tests/dev.pools`, `tests/release.pools` of each consumer) describes the instances of a run: which projects are prepared and linked, which themes and plugins (or ZIPs) each pool installs, and whether it runs the browser tests or a script. The package links (`link webcodingcat/wp-app-framework=wp-app-framework`) replace the framework the consumer installed with your checkout, so the consumers test it without a release. Plugins can run without a theme; then the default theme of WordPress is active. The [README of wp-test-env](https://github.com/webcodingcat/wp-test-env) describes the format.
 
 ## The benchmark
 

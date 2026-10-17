@@ -8,9 +8,9 @@ import {
 	registerToolbarButton,
 	type ControlProps,
 	type PanelProps,
-} from '@saij/wp-app-framework';
-import { registerSettingsControl, type SettingsControlProps } from '@saij/wp-app-framework/settings';
-import { BlockView, DocumentView, SupportView } from '@saij/wp-app-framework/view';
+} from '@webcodingcat/wp-app-framework';
+import { registerSettingsControl, type SettingsControlProps } from '@webcodingcat/wp-app-framework/settings';
+import { BlockView, DocumentView, SupportView } from '@webcodingcat/wp-app-framework/view';
 
 registerControl<string>('hero', 'title', ({ value, onChange, clientId }: ControlProps<string>) => {
 	onChange(value + clientId);

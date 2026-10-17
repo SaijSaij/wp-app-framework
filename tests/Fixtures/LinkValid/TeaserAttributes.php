@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\LinkValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\LinkValid;
 
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Value\Link;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Value\Link;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\PlainText;
 
 final readonly class TeaserAttributes
 {

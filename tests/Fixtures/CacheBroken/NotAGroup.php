@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\CacheBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\CacheBroken;
 
 final class NotAGroup {}

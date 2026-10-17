@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\Markup;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\Markup;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\CoreBlock;
-use Saij\WpAppFramework\Block\InnerBlocks;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\CoreBlock;
+use WebCodingCat\WpAppFramework\Block\InnerBlocks;
 
 /**
  * A container without content: in a pattern or template part nothing can be inserted into it.

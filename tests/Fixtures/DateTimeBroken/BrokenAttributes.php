@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\DateTimeBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\DateTimeBroken;
 
-use Saij\WpAppFramework\Value\Color;
-use Saij\WpAppFramework\Value\DateTime;
-use Saij\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\Color;
+use WebCodingCat\WpAppFramework\Value\DateTime;
+use WebCodingCat\WpAppFramework\Value\PlainText;
 
 final readonly class BrokenAttributes
 {

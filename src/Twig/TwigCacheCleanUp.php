@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Twig;
+namespace WebCodingCat\WpAppFramework\Twig;
 
 use Closure;
 use FilesystemIterator;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Filesystem\FileTree;
-use Saij\WpAppFramework\Hook\HookRegistrar;
 use SplFileInfo;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Filesystem\FileTree;
+use WebCodingCat\WpAppFramework\Hook\HookRegistrar;
 
 /**
  * Deletes compiled templates of older releases (WP-Cron, release mode only).

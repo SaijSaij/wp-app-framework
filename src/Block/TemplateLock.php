@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Block;
+namespace WebCodingCat\WpAppFramework\Block;
 
 /**
  * Lock of the inner blocks of a container (`#[InnerBlocks(templateLock)]`).

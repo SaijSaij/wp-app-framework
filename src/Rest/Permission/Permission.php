@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Rest\Permission;
+namespace WebCodingCat\WpAppFramework\Rest\Permission;
 
 /**
  * Who may call a `#[RestRoute]`.

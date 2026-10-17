@@ -11,10 +11,10 @@ declare(strict_types=1);
  * manifest was built from (load-sources) or the hook names of the loaded manifest (load).
  */
 
-use Saij\WpAppFramework\Cache\CodeGeneration;
-use Saij\WpAppFramework\Manifest\DevCache\DevCache;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Support\ProjectLoader;
+use WebCodingCat\WpAppFramework\Cache\CodeGeneration;
+use WebCodingCat\WpAppFramework\Manifest\DevCache\DevCache;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Support\ProjectLoader;
 
 require __DIR__ . '/../../vendor/autoload.php';
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockValid;
 
 enum Gradient: string
 {

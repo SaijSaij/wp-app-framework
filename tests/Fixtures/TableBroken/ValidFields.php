@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\TableBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\TableBroken;
 
-use Saij\WpAppFramework\Query\Field\StringField;
-use Saij\WpAppFramework\Table\TableFields;
+use WebCodingCat\WpAppFramework\Query\Field\StringField;
+use WebCodingCat\WpAppFramework\Table\TableFields;
 
 #[TableFields(Valid::class)]
 final class ValidFields

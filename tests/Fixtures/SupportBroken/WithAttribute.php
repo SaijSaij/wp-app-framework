@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SupportBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SupportBroken;
 
-use Saij\WpAppFramework\Block\Support\BlockSupport;
-use Saij\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Block\Support\BlockSupport;
+use WebCodingCat\WpAppFramework\Value\Label;
 
 #[BlockSupport('withAttribute', label: 'X')]
 final class WithAttribute

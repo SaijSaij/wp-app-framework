@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\WpCliValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliValid;
 
-use Saij\WpAppFramework\WpCli\CliCommand;
-use Saij\WpAppFramework\WpCli\CliOutput;
-use Saij\WpAppFramework\WpCli\CliSubcommand;
+use WebCodingCat\WpAppFramework\WpCli\CliCommand;
+use WebCodingCat\WpAppFramework\WpCli\CliOutput;
+use WebCodingCat\WpAppFramework\WpCli\CliSubcommand;
 
 #[CliCommand('tools', 'Tools.')]
 final class ToolCommands

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Manifest;
+namespace WebCodingCat\WpAppFramework\Manifest;
 
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * The manifest cannot be built; lists every problem found.

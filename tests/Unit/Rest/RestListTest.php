@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Rest;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Rest;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Rest\RestRegistrar;
-use Saij\WpAppFramework\Tests\Fixtures\RestList;
-use Saij\WpAppFramework\Tests\Support\Requests;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Rest\RestRegistrar;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\RestList;
+use WebCodingCat\WpAppFramework\Tests\Support\Requests;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * REST arguments with #[ListOf]: schema derivation and conversion share the
@@ -87,8 +87,8 @@ final class RestListTest extends TestCase
             new ManifestBuilder([ManifestBuilderTest::fixture('RestListBroken')])->build();
             self::fail('BuildException expected.');
         } catch (BuildException $exception) {
-            $c = 'Saij\\WpAppFramework\\Tests\\Fixtures\\RestListBroken\\BrokenListController';
-            $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\RestListBroken\\';
+            $c = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\RestListBroken\\BrokenListController';
+            $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\RestListBroken\\';
             $expected = [
                 "parameter \$item of {$c}::single(): a single value class is not supported as REST argument (a class type without #[ListOf] is injected as service); use #[ListOf({$ns}Item::class)] array for a list.",
                 "#[Param] on parameter \$kinds of {$c}::keyword(): minLength does not apply to list arguments.",

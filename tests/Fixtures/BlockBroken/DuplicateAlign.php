@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockBroken;
 
-use Saij\WpAppFramework\Block\Align;
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\Supports;
+use WebCodingCat\WpAppFramework\Block\Align;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\Supports;
 
 #[Block('duplicate-align', title: 'X', category: BlockCategory::Text)]
 #[Supports(align: [Align::Wide, Align::Wide])]

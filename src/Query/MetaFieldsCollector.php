@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
 use ReflectionClass;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Post\PostMeta;
-use Saij\WpAppFramework\Post\PostTypeCollector;
-use Saij\WpAppFramework\Query\Field\Field;
-use Saij\WpAppFramework\Query\Field\FieldTypes;
-use Saij\WpAppFramework\Value\ValueFactory;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Post\PostMeta;
+use WebCodingCat\WpAppFramework\Post\PostTypeCollector;
+use WebCodingCat\WpAppFramework\Query\Field\Field;
+use WebCodingCat\WpAppFramework\Query\Field\FieldTypes;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * Checks the classes with #[MetaFields] in the build: every public static method that returns a field is called,

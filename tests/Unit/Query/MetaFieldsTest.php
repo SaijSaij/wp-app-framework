@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Query;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Query;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Post\Post;
-use Saij\WpAppFramework\Query\Field\EnumField;
-use Saij\WpAppFramework\Query\Field\FieldTypes;
-use Saij\WpAppFramework\Query\Field\FloatField;
-use Saij\WpAppFramework\Query\Field\IntField;
-use Saij\WpAppFramework\Query\Field\PostField;
-use Saij\WpAppFramework\Query\Field\StringField;
-use Saij\WpAppFramework\Query\FieldClassGenerator;
-use Saij\WpAppFramework\Query\FieldCondition;
-use Saij\WpAppFramework\Query\MetaFields;
-use Saij\WpAppFramework\Query\MetaOrderClauses;
-use Saij\WpAppFramework\Tests\Fixtures\MetaFieldsBroken;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid;
-use Saij\WpAppFramework\Tests\Support\Posts;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Tests\Unit\Post\PostTypeCollectorTest;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Post\Post;
+use WebCodingCat\WpAppFramework\Query\Field\EnumField;
+use WebCodingCat\WpAppFramework\Query\Field\FieldTypes;
+use WebCodingCat\WpAppFramework\Query\Field\FloatField;
+use WebCodingCat\WpAppFramework\Query\Field\IntField;
+use WebCodingCat\WpAppFramework\Query\Field\PostField;
+use WebCodingCat\WpAppFramework\Query\Field\StringField;
+use WebCodingCat\WpAppFramework\Query\FieldClassGenerator;
+use WebCodingCat\WpAppFramework\Query\FieldCondition;
+use WebCodingCat\WpAppFramework\Query\MetaFields;
+use WebCodingCat\WpAppFramework\Query\MetaOrderClauses;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\MetaFieldsBroken;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid;
+use WebCodingCat\WpAppFramework\Tests\Support\Posts;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Tests\Unit\Post\PostTypeCollectorTest;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * Classes with #[MetaFields]: the check in the build, the generator and the SQL of fields.
@@ -92,7 +92,7 @@ final class MetaFieldsTest extends TestCase
         ];
         $source = FieldClassGenerator::generate(MetaFieldsBroken\ShowDetails::class, MetaFields::class, 'meta-fields', FieldTypes::queryable($values));
 
-        self::assertStringContainsString("namespace Saij\\WpAppFramework\\Tests\\Fixtures\\MetaFieldsBroken;\n\nuse Saij\\WpAppFramework\\Query\\Field\\EnumField;\nuse Saij\\WpAppFramework\\Query\\Field\\FloatField;\nuse Saij\\WpAppFramework\\Query\\Field\\PostField;\nuse Saij\\WpAppFramework\\Query\\MetaFields;\nuse Saij\\WpAppFramework\\Tests\\Fixtures\\PostTypeValid\\Density;\nuse Saij\\WpAppFramework\\Tests\\Fixtures\\PostTypeValid\\Venue;\n", $source);
+        self::assertStringContainsString("namespace WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\MetaFieldsBroken;\n\nuse WebCodingCat\\WpAppFramework\\Query\\Field\\EnumField;\nuse WebCodingCat\\WpAppFramework\\Query\\Field\\FloatField;\nuse WebCodingCat\\WpAppFramework\\Query\\Field\\PostField;\nuse WebCodingCat\\WpAppFramework\\Query\\MetaFields;\nuse WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\PostTypeValid\\Density;\nuse WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\PostTypeValid\\Venue;\n", $source);
         self::assertStringContainsString("        return new EnumField(ShowDetails::class, 'kind', Density::class);\n", $source);
         self::assertStringContainsString("    public static function rate(): FloatField\n", $source);
         self::assertStringContainsString("     * @return PostField<\\Other\\Venue>\n", $source);

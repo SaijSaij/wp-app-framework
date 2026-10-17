@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Api;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Api;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Api\InstanceBridge;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Manifest\Manifest;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Tests\Fixtures\ApiValid\Note;
-use Saij\WpAppFramework\Tests\Fixtures\ApiValid\NoteApi;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Twig\TemplateCallableKind;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
 use stdClass;
+use WebCodingCat\WpAppFramework\Api\InstanceBridge;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Manifest\Manifest;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ApiValid\Note;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ApiValid\NoteApi;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Twig\TemplateCallableKind;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * The hooks between framework instances: public APIs and public template callables of a plugin.

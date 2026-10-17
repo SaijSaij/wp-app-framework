@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query;
+namespace WebCodingCat\WpAppFramework\Query;
 
 /**
  * Post data to sort by; meta fields sort through their field (`EventDetailsFields::capacity()`).

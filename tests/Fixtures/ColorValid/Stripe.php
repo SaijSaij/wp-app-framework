@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ColorValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ColorValid;
 
-use Saij\WpAppFramework\Value\Color;
+use WebCodingCat\WpAppFramework\Value\Color;
 
 final readonly class Stripe
 {

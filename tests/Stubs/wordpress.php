@@ -2092,11 +2092,11 @@ final class wpdb
         return $result['result'];
     }
 
-    private static function database(): ?Saij\WpAppFramework\Tests\Support\Database
+    private static function database(): ?WebCodingCat\WpAppFramework\Tests\Support\Database
     {
         $database = $GLOBALS['wp_app_framework_test_database'] ?? null;
 
-        return $database instanceof Saij\WpAppFramework\Tests\Support\Database ? $database : null;
+        return $database instanceof WebCodingCat\WpAppFramework\Tests\Support\Database ? $database : null;
     }
 
     /**

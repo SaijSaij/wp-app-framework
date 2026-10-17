@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit;
+namespace WebCodingCat\WpAppFramework\Tests\Unit;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use Saij\WpAppFramework\Api\InstanceBridge;
-use Saij\WpAppFramework\Cron\CronRegistrar;
-use Saij\WpAppFramework\Instance;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Manifest\ManifestGenerator;
-use Saij\WpAppFramework\Plugin;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Tests\Fixtures\ApiValid\NoteApi;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Support\Recorded;
-use Saij\WpAppFramework\Tests\Unit\Api\PublicApiBuildTest;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateCallableKind;
+use WebCodingCat\WpAppFramework\Api\InstanceBridge;
+use WebCodingCat\WpAppFramework\Cron\CronRegistrar;
+use WebCodingCat\WpAppFramework\Instance;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Manifest\ManifestGenerator;
+use WebCodingCat\WpAppFramework\Plugin;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\ApiValid\NoteApi;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Support\Recorded;
+use WebCodingCat\WpAppFramework\Tests\Unit\Api\PublicApiBuildTest;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateCallableKind;
 
 /**
  * Boot of a framework instance: checks before anything is registered, and the
@@ -203,7 +203,7 @@ final class InstanceTest extends TestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(sprintf(
-            'The plugin my-plugin runs in development mode with the framework classes from %s, but its own framework is %s/my-plugin/vendor/saij/wp-app-framework (missing).',
+            'The plugin my-plugin runs in development mode with the framework classes from %s, but its own framework is %s/my-plugin/vendor/webcodingcat/wp-app-framework (missing).',
             realpath(__DIR__ . '/../..'),
             $this->root,
         ));
@@ -213,9 +213,9 @@ final class InstanceTest extends TestCase
 
     public function testDevelopmentModeNeedsTheLoadedTwigVersion(): void
     {
-        mkdir($this->root . '/my-plugin/vendor/saij', 0777, true);
+        mkdir($this->root . '/my-plugin/vendor/webcodingcat', 0777, true);
         mkdir($this->root . '/my-plugin/vendor/composer');
-        symlink((string) realpath(__DIR__ . '/../..'), $this->root . '/my-plugin/vendor/saij/wp-app-framework');
+        symlink((string) realpath(__DIR__ . '/../..'), $this->root . '/my-plugin/vendor/webcodingcat/wp-app-framework');
         file_put_contents(
             $this->root . '/my-plugin/vendor/composer/installed.php',
             "<?php return ['versions' => ['twig/twig' => ['pretty_version' => 'v1.0.0']]];",
@@ -230,9 +230,9 @@ final class InstanceTest extends TestCase
 
     public function testAnUninstallScriptOfAPluginIsAnErrorInDevelopmentMode(): void
     {
-        mkdir($this->root . '/my-plugin/vendor/saij', 0777, true);
+        mkdir($this->root . '/my-plugin/vendor/webcodingcat', 0777, true);
         mkdir($this->root . '/my-plugin/vendor/composer');
-        symlink((string) realpath(__DIR__ . '/../..'), $this->root . '/my-plugin/vendor/saij/wp-app-framework');
+        symlink((string) realpath(__DIR__ . '/../..'), $this->root . '/my-plugin/vendor/webcodingcat/wp-app-framework');
         file_put_contents(
             $this->root . '/my-plugin/vendor/composer/installed.php',
             "<?php return ['versions' => ['twig/twig' => ['pretty_version' => 'v" . \Twig\Environment::VERSION . "']]];",

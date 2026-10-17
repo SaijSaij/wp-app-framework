@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\DependencyInjection;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
-use Saij\WpAppFramework\DependencyInjection\ServiceResolver;
-use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Tests\Fixtures\Broken\InternalDependent;
+use WebCodingCat\WpAppFramework\DependencyInjection\ServiceResolver;
+use WebCodingCat\WpAppFramework\Editor\EditorTemplateFunctions;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\Broken\InternalDependent;
 
 final class ServiceResolverTest extends TestCase
 {

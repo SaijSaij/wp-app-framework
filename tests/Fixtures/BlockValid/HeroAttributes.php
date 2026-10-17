@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockValid;
 
-use Saij\WpAppFramework\Value\Content;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\PlainText;
-use Saij\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Value\Content;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\RichText;
 
 final readonly class HeroAttributes
 {

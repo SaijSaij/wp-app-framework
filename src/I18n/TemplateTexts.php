@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\I18n;
+namespace WebCodingCat\WpAppFramework\I18n;
 
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Twig\TemplateFiles;
 use Throwable;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
@@ -16,6 +14,8 @@ use Twig\Source;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 use Twig\TwigTest;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Twig\TemplateFiles;
 
 /**
  * Finds the texts of the templates of a project: the calls of `__()`, `_x()`, `_n()` and `_nx()` whose texts are

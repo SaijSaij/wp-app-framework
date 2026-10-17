@@ -13,11 +13,11 @@ Settings that several blocks share but that are stored per block, such as a colo
 Settings come in groups. A group is a `readonly` class with `#[SettingsGroup]`, and each setting is a public promoted constructor parameter with a default:
 
 ```php
-use Saij\WpAppFramework\Value\Image;
-use Saij\WpAppFramework\Value\Label;
-use Saij\WpAppFramework\Setting\SettingsGroup;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\Url;
+use WebCodingCat\WpAppFramework\Value\Image;
+use WebCodingCat\WpAppFramework\Value\Label;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\Url;
 
 #[SettingsGroup('general', title: 'General', description: 'Shown on every page.')]
 final readonly class GeneralSettings
@@ -127,7 +127,7 @@ The page script is built by the theme's or plugin's build, like the editor runti
 The generated form fits most settings. Some need more: a list of color schemes is easier to set up when each scheme shows a preview and the contrast of its colors. A *settings script* next to the group class replaces the control of a value with a component of your own – for `src/Setting/Design.php` that is `src/Setting/Design.settings.js`:
 
 ```jsx
-import { registerSettingsControl } from '@saij/wp-app-framework/settings';
+import { registerSettingsControl } from '@webcodingcat/wp-app-framework/settings';
 
 registerSettingsControl( 'design', [ 'schemes', '*' ], ( { value, path, DefaultControl } ) => (
 	<>
@@ -146,4 +146,4 @@ registerSettingsControl( 'design', [ 'schemes', '*' ], ( { value, path, DefaultC
 
 The settings page loads the script after its own and before it renders, so its controls are registered in time. It warns in the console about an unknown group and about a path that names no value with a control: a `#[Hidden]` setting, a field the value class does not have, `*` after a value that is no list.
 
-The import `@saij/wp-app-framework/settings` is mapped to the settings page of your theme or plugin (`window.wpAppFramework[slug].settingsApi`), like the editor API (see [Editor](./editor.md#editor-scripts)). The API of the editor and of the front end is not loaded there: a settings script that imports `@saij/wp-app-framework` or `@saij/wp-app-framework/view`, also through a shared module, fails the build, and so does an editor or view script that imports `@saij/wp-app-framework/settings`. A settings script next to a class without `#[SettingsGroup]` is a build error, because it would never be loaded.
+The import `@webcodingcat/wp-app-framework/settings` is mapped to the settings page of your theme or plugin (`window.wpAppFramework[slug].settingsApi`), like the editor API (see [Editor](./editor.md#editor-scripts)). The API of the editor and of the front end is not loaded there: a settings script that imports `@webcodingcat/wp-app-framework` or `@webcodingcat/wp-app-framework/view`, also through a shared module, fails the build, and so does an editor or view script that imports `@webcodingcat/wp-app-framework/settings`. A settings script next to a class without `#[SettingsGroup]` is a build error, because it would never be loaded.

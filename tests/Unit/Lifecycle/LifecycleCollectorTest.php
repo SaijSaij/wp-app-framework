@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Lifecycle;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Lifecycle;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Lifecycle\LifecycleCollector;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Project\ProjectKind;
-use Saij\WpAppFramework\Tests\Fixtures\LifecycleBroken;
-use Saij\WpAppFramework\Tests\Fixtures\LifecycleValid;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Lifecycle\LifecycleCollector;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Project\ProjectKind;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\LifecycleBroken;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\LifecycleValid;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 
 /**
  * #[OnActivation], #[OnDeactivation] and #[OnUninstall] in the build: the manifest entries and every error.

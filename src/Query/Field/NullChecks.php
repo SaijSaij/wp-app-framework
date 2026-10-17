@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Query\Field;
+namespace WebCodingCat\WpAppFramework\Query\Field;
 
-use Saij\WpAppFramework\Query\Condition;
+use WebCodingCat\WpAppFramework\Query\Condition;
 
 /**
  * Conditions on null for the field classes of nullable columns.

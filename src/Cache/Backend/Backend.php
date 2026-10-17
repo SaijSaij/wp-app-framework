@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache\Backend;
+namespace WebCodingCat\WpAppFramework\Cache\Backend;
 
 /**
  * Stores cache entries; values are plain data (null, scalars and arrays of them).

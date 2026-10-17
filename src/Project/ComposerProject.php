@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Project;
+namespace WebCodingCat\WpAppFramework\Project;
 
 use JsonException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\Discovery\Source;
-use Saij\WpAppFramework\Release\FileHeader;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\Discovery\Source;
+use WebCodingCat\WpAppFramework\Release\FileHeader;
 
 /**
  * What the build reads from a consumer's composer.json: its kind (`type`; for

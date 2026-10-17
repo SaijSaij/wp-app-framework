@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ExternalParent;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ExternalParent;
 
 use WordPress\AiClient\Common\{Contracts\CachesDataInterface, Traits\WithDataCachingTrait as Caching};
 

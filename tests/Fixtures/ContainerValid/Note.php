@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ContainerValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ContainerValid;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\CoreBlock;
-use Saij\WpAppFramework\Block\Example;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\CoreBlock;
+use WebCodingCat\WpAppFramework\Block\Example;
 
 #[Block('note', title: 'Note', category: BlockCategory::Text, ancestor: [Tabs::class, CoreBlock::Group])]
 #[Example(false)]

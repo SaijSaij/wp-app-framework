@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\ReferenceValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\ReferenceValid;
 
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\PostReference;
-use Saij\WpAppFramework\Value\TermReference;
-use Saij\WpAppFramework\Value\UserReference;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\PostReference;
+use WebCodingCat\WpAppFramework\Value\TermReference;
+use WebCodingCat\WpAppFramework\Value\UserReference;
 
 final readonly class TeaserAttributes
 {

@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\WpCliBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\WpCliBroken;
 
-use Saij\WpAppFramework\Rest\Param;
-use Saij\WpAppFramework\Value\ListOf;
-use Saij\WpAppFramework\Value\PostReference;
-use Saij\WpAppFramework\WpCli\Argument;
-use Saij\WpAppFramework\WpCli\CliCommand;
-use Saij\WpAppFramework\WpCli\CliOutput;
-use Saij\WpAppFramework\WpCli\CliSubcommand;
-use Saij\WpAppFramework\WpCli\Option;
+use WebCodingCat\WpAppFramework\Rest\Param;
+use WebCodingCat\WpAppFramework\Value\ListOf;
+use WebCodingCat\WpAppFramework\Value\PostReference;
+use WebCodingCat\WpAppFramework\WpCli\Argument;
+use WebCodingCat\WpAppFramework\WpCli\CliCommand;
+use WebCodingCat\WpAppFramework\WpCli\CliOutput;
+use WebCodingCat\WpAppFramework\WpCli\CliSubcommand;
+use WebCodingCat\WpAppFramework\WpCli\Option;
 
 #[CliCommand('broken', 'Broken commands.')]
 final class BrokenCommands

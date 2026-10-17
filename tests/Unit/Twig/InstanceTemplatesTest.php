@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Twig;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Twig;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Api\PluginTemplateFunctions;
-use Saij\WpAppFramework\DependencyInjection\Container;
-use Saij\WpAppFramework\Plugin;
-use Saij\WpAppFramework\Tests\Support\Files;
-use Saij\WpAppFramework\Tests\Support\Hooks;
-use Saij\WpAppFramework\Tests\Unit\Api\InstanceBridgeTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WebCodingCat\WpAppFramework\Api\PluginTemplateFunctions;
+use WebCodingCat\WpAppFramework\DependencyInjection\Container;
+use WebCodingCat\WpAppFramework\Plugin;
+use WebCodingCat\WpAppFramework\Tests\Support\Files;
+use WebCodingCat\WpAppFramework\Tests\Support\Hooks;
+use WebCodingCat\WpAppFramework\Tests\Unit\Api\InstanceBridgeTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * Templates of several framework instances: separated compiled templates,

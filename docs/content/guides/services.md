@@ -28,7 +28,7 @@ Every concrete class under the consumer's PSR-4 directories (`autoload.psr-4` in
 
 - interfaces, abstract classes, traits and enums;
 - attribute classes;
-- classes marked with `#[NoService]` (`Saij\WpAppFramework\DependencyInjection\NoService`);
+- classes marked with `#[NoService]` (`WebCodingCat\WpAppFramework\DependencyInjection\NoService`);
 - [settings groups](./settings.md#using-settings). A constructor parameter typed with a settings group receives the group with its stored values instead;
 - [post, meta and taxonomy classes](./posts.md#working-with-posts): they are data. Load posts with their class, `Event::get($id)`;
 - classes with [`#[MetaFields]`](./queries.md#meta-fields-in-queries): their static methods provide fields for queries;
@@ -106,9 +106,9 @@ The project object describes the theme or plugin itself and gives you its paths 
 
 | Project | Class | Methods |
 |---|---|---|
-| Theme | `Saij\WpAppFramework\Theme` | `getSlug()`, `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()`, `getFrameworkDirectory()` |
-| Plugin | `Saij\WpAppFramework\Plugin` | `getSlug()`, `getFile()`, `getDirectory()`, `getDirectoryUri()`, `getFrameworkDirectory()` |
-| Child theme | `Saij\WpAppFramework\ChildTheme` | `getSlug()`, `getParentSlug()`, `getDirectory()`, `getDirectoryUri()`, `getParentDirectory()`, `getParentDirectoryUri()`, `getFrameworkDirectory()` |
+| Theme | `WebCodingCat\WpAppFramework\Theme` | `getSlug()`, `getTemplateDirectory()`, `getTemplateDirectoryUri()`, `getStylesheetDirectory()`, `getStylesheetDirectoryUri()`, `getFrameworkDirectory()` |
+| Plugin | `WebCodingCat\WpAppFramework\Plugin` | `getSlug()`, `getFile()`, `getDirectory()`, `getDirectoryUri()`, `getFrameworkDirectory()` |
+| Child theme | `WebCodingCat\WpAppFramework\ChildTheme` | `getSlug()`, `getParentSlug()`, `getDirectory()`, `getDirectoryUri()`, `getParentDirectory()`, `getParentDirectoryUri()`, `getFrameworkDirectory()` |
 
 The boot method creates the object (its constructor is private) and hands it to the container, which never builds it itself. Injecting the class of another kind – `Plugin` in a theme, for example – is a build error.
 
@@ -116,11 +116,11 @@ The framework also provides these services. Inject them like your own; the frame
 
 | Class | What for |
 |---|---|
-| `Saij\WpAppFramework\Twig\TemplateRenderer` | Renders Twig templates in your own code, such as mails (see [Twig templates](./twig.md)). |
-| `Saij\WpAppFramework\Cache\CacheStore` | Caches values of your own code (see [Cache](./cache.md)). |
-| `Saij\WpAppFramework\Cron\CronScheduler` | Plans one-time tasks (see [Cron events and tasks](./cron.md)). |
-| `Saij\WpAppFramework\View\ViewData` | Passes data to the front-end scripts (see [Front-end scripts](./frontend.md#data-from-php)). |
-| `Saij\WpAppFramework\Asset\Assets` | URLs, paths, images and SVGs of static assets (see [Static assets](./assets.md#in-php)). |
-| `Saij\WpAppFramework\Asset\MediaLibrary` | Imports a static asset into the media library (see [Static assets](./assets.md#in-the-media-library)). |
+| `WebCodingCat\WpAppFramework\Twig\TemplateRenderer` | Renders Twig templates in your own code, such as mails (see [Twig templates](./twig.md)). |
+| `WebCodingCat\WpAppFramework\Cache\CacheStore` | Caches values of your own code (see [Cache](./cache.md)). |
+| `WebCodingCat\WpAppFramework\Cron\CronScheduler` | Plans one-time tasks (see [Cron events and tasks](./cron.md)). |
+| `WebCodingCat\WpAppFramework\View\ViewData` | Passes data to the front-end scripts (see [Front-end scripts](./frontend.md#data-from-php)). |
+| `WebCodingCat\WpAppFramework\Asset\Assets` | URLs, paths, images and SVGs of static assets (see [Static assets](./assets.md#in-php)). |
+| `WebCodingCat\WpAppFramework\Asset\MediaLibrary` | Imports a static asset into the media library (see [Static assets](./assets.md#in-the-media-library)). |
 
 Other classes of the framework that it uses itself, such as the render context of the editor, are internal: injecting them into a class of your theme or plugin is a build error.

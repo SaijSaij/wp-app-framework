@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SettingsScript;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SettingsScript;
 
-use Saij\WpAppFramework\Setting\SettingsGroup;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
 
 #[SettingsGroup('plain', title: 'Plain')]
 final readonly class Plain

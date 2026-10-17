@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\WpCli;
+namespace WebCodingCat\WpAppFramework\WpCli;
 
 use InvalidArgumentException;
 use RuntimeException;
-use Saij\WpAppFramework\DependencyInjection\NoService;
 use Throwable;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * Ends a WP-CLI command with an error: thrown from a `#[CliSubcommand]` method,

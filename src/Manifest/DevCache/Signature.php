@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Manifest\DevCache;
+namespace WebCodingCat\WpAppFramework\Manifest\DevCache;
 
 use Closure;
 use ReflectionAttribute;
@@ -11,10 +11,10 @@ use ReflectionEnum;
 use ReflectionEnumBackedCase;
 use ReflectionFunction;
 use ReflectionMethod;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Value\Labeled;
 use Throwable;
 use UnitEnum;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Value\Labeled;
 
 /**
  * Hash of everything in a class that can affect the manifest: kind, modifiers,

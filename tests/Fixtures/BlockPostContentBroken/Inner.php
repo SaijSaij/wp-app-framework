@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockPostContentBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockPostContentBroken;
 
-use Saij\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Value\RichText;
 
 final readonly class Inner
 {

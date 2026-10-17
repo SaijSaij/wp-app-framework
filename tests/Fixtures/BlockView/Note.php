@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockView;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockView;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Block\BlockTemplateFunctions;
-use Saij\WpAppFramework\Block\Support\UseSupport;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Block\BlockTemplateFunctions;
+use WebCodingCat\WpAppFramework\Block\Support\UseSupport;
 
 /** No view script of its own, only the one of the Reveal support. */
 #[Block('note', title: 'Note', category: BlockCategory::Text)]

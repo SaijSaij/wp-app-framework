@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tools\ApiReference;
+namespace WebCodingCat\WpAppFramework\Tools\ApiReference;
 
 use ReflectionClass;
 use ReflectionIntersectionType;
@@ -24,7 +24,7 @@ final class Types
     private array $errors = [];
 
     /**
-     * @param string                $prefix Namespace prefix of the framework, e.g. `Saij\WpAppFramework\`.
+     * @param string                $prefix Namespace prefix of the framework, e.g. `WebCodingCat\WpAppFramework\`.
      * @param array<string, string> $pages  Page paths below `docs/content/` without `.md`, by full class name.
      */
     public function __construct(

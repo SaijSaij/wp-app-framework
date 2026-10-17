@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Post;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Post;
 
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Post\Page;
-use Saij\WpAppFramework\Post\Post;
-use Saij\WpAppFramework\Post\PostRegistry;
-use Saij\WpAppFramework\Post\PostStatus;
-use Saij\WpAppFramework\Post\PostTemplateFunctions;
-use Saij\WpAppFramework\Post\PostTypeRegistrar;
-use Saij\WpAppFramework\Post\PostValidationException;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Density;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Event;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetails;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Ticket;
-use Saij\WpAppFramework\Tests\Fixtures\PostTypeValid\Venue;
-use Saij\WpAppFramework\Tests\Support\Posts;
-use Saij\WpAppFramework\Value\ValueFactory;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Post\Page;
+use WebCodingCat\WpAppFramework\Post\Post;
+use WebCodingCat\WpAppFramework\Post\PostRegistry;
+use WebCodingCat\WpAppFramework\Post\PostStatus;
+use WebCodingCat\WpAppFramework\Post\PostTemplateFunctions;
+use WebCodingCat\WpAppFramework\Post\PostTypeRegistrar;
+use WebCodingCat\WpAppFramework\Post\PostValidationException;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\Density;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\Event;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\EventDetails;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\Ticket;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\PostTypeValid\Venue;
+use WebCodingCat\WpAppFramework\Tests\Support\Posts;
+use WebCodingCat\WpAppFramework\Value\ValueFactory;
 
 /**
  * Post objects: loading, meta objects, saving and the post() template function.

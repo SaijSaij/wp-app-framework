@@ -13,7 +13,7 @@ You need PHP 8.5, Composer and Node 24. The simplest way to get them is [wp-dev-
 The [starter](https://github.com/webcodingcat/wp-app-starter) creates a theme, a child theme or a plugin with everything this page explains:
 
 ```sh
-composer create-project saij/wp-app-starter my-theme
+composer create-project webcodingcat/wp-app-starter my-theme
 ```
 
 The directory name becomes the slug. The installer asks for the kind of project, its name, the Composer package, the PHP namespace and the namespace of your blocks, and whether to add an example block, the code checks (PHPStan, PHP-CS-Fixer, ESLint), the [release workflow](./build-and-release/ci.md) and browser tests for [wp-test-env](https://github.com/webcodingcat/wp-test-env). Then it installs the dependencies and, if Node 24 is available, builds the scripts and styles. The project's README lists its commands.
@@ -46,7 +46,7 @@ my-theme/
 
 ### composer.json
 
-Composer installs the framework and tells it where your classes are. The framework comes from [Packagist](https://packagist.org/packages/saij/wp-app-framework) like any other package; the lock file pins the exact version. The PSR-4 namespace `Acme\MyTheme\` maps to `src/`, and every class in there is something the framework can use – a block, a hook, a service.
+Composer installs the framework and tells it where your classes are. The framework comes from [Packagist](https://packagist.org/packages/webcodingcat/wp-app-framework) like any other package; the lock file pins the exact version. The PSR-4 namespace `Acme\MyTheme\` maps to `src/`, and every class in there is something the framework can use – a block, a hook, a service.
 
 ```json
 {
@@ -55,7 +55,7 @@ Composer installs the framework and tells it where your classes are. The framewo
     "license": "GPL-2.0-or-later",
     "require": {
         "php": ">=8.5",
-        "saij/wp-app-framework": "^0.16"
+        "webcodingcat/wp-app-framework": "^0.16"
     },
     "autoload": {
         "psr-4": { "Acme\\MyTheme\\": "src/" }
@@ -118,7 +118,7 @@ require is_file(__DIR__ . '/vendor-prefixed/autoload.php')
     ? __DIR__ . '/vendor-prefixed/autoload.php'
     : __DIR__ . '/vendor/autoload.php';
 
-Saij\WpAppFramework\Theme::boot();
+WebCodingCat\WpAppFramework\Theme::boot();
 ```
 
 That is the only call into the framework you write by hand. Everything else – blocks, hooks, routes – the framework finds through the attributes on your classes.
@@ -133,7 +133,7 @@ The block editor needs JavaScript: the framework's editor runtime, which makes y
 	"private": true,
 	"scripts": { "build": "wp-scripts build", "start": "wp-scripts start" },
 	"devDependencies": {
-		"@saij/wp-app-framework": "file:vendor/saij/wp-app-framework",
+		"@webcodingcat/wp-app-framework": "file:vendor/webcodingcat/wp-app-framework",
 		"@tailwindcss/webpack": "^4.3.3",
 		"@wordpress/scripts": "^36.1.0",
 		"tailwindcss": "^4.3.3"
@@ -144,7 +144,7 @@ The block editor needs JavaScript: the framework's editor runtime, which makes y
 The helper needs the slug of the theme, which is its directory name:
 
 ```js
-module.exports = require( '@saij/wp-app-framework/webpack' )( {
+module.exports = require( '@webcodingcat/wp-app-framework/webpack' )( {
 	slug: 'my-theme',
 	root: __dirname,
 } );
@@ -180,9 +180,9 @@ declare(strict_types=1);
 
 namespace Acme\MyTheme\Block\Teaser;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 #[Block('teaser', title: 'Teaser', category: BlockCategory::Text, icon: 'text')]
 final readonly class Teaser
@@ -205,8 +205,8 @@ declare(strict_types=1);
 
 namespace Acme\MyTheme\Block\Teaser;
 
-use Saij\WpAppFramework\Value\PlainText;
-use Saij\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\RichText;
 
 final readonly class TeaserAttributes
 {

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Block\Support;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Block\Support;
 
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\SupportValid;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
-use Saij\WpAppFramework\Theme;
-use Saij\WpAppFramework\Twig\TemplateRenderer;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\SupportValid;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Theme;
+use WebCodingCat\WpAppFramework\Twig\TemplateRenderer;
 
 /**
  * Build of custom block supports: `#[BlockSupport]` declarations and their use with `#[UseSupport]`.
@@ -112,7 +112,7 @@ final class SupportCollectorTest extends TestCase
 
     public function testReportsAllErrorsOfTheDeclarations(): void
     {
-        $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\SupportBroken\\';
+        $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\SupportBroken\\';
         $reserved = 'lock, metadata, className, anchor, align, style';
         $values = 'int, float, string, bool or a backed enum, optionally nullable';
         self::assertBuildErrors('SupportBroken', [
@@ -135,7 +135,7 @@ final class SupportCollectorTest extends TestCase
 
     public function testReportsAllErrorsOfTheUse(): void
     {
-        $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\SupportUseBroken\\';
+        $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\SupportUseBroken\\';
         self::assertBuildErrors('SupportUseBroken', [
             "{$ns}Broken has #[BlockSupport], but no className() method returning the class names for a value.",
             "#[UseSupport({$ns}Surface)] on {$ns}Collision adds the attribute \"surface\", which the block attribute class already declares.",

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Twig;
+namespace WebCodingCat\WpAppFramework\Twig;
 
-use Saij\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
 use WP_Post;
 use WP_Term;
 use WP_User;

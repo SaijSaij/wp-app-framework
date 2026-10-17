@@ -1,8 +1,8 @@
 {
-	"name": "@saij/wp-app-framework",
+	"name": "@webcodingcat/wp-app-framework",
 	"version": "0.0.0",
 	"private": true,
-	"description": "Editor and view runtime of saij/wp-app-framework, the webpack helper (`@saij/wp-app-framework/webpack`) and the type declarations of its imports. Installed from the Composer package (file:vendor/saij/wp-app-framework); not published.",
+	"description": "Editor and view runtime of webcodingcat/wp-app-framework, the webpack helper (`@webcodingcat/wp-app-framework/webpack`) and the type declarations of its imports. Installed from the Composer package (file:vendor/webcodingcat/wp-app-framework); not published.",
 	"license": "GPL-2.0-or-later",
 	"types": "./types/index.d.ts",
 	"typesVersions": {

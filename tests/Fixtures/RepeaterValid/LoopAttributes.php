@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\RepeaterValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\RepeaterValid;
 
-use Saij\WpAppFramework\Value\PostReference;
+use WebCodingCat\WpAppFramework\Value\PostReference;
 
 final readonly class LoopAttributes
 {

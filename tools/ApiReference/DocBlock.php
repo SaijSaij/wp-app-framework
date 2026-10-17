@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tools\ApiReference;
+namespace WebCodingCat\WpAppFramework\Tools\ApiReference;
 
 use Closure;
 use PHPStan\PhpDocParser\Ast\Attribute;

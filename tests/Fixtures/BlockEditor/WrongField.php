@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\BlockEditor;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\BlockEditor;
 
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\BlockCategory;
-use Saij\WpAppFramework\Editor\EditorTemplateFunctions;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\BlockCategory;
+use WebCodingCat\WpAppFramework\Editor\EditorTemplateFunctions;
 
 #[Block('wrong-field', title: 'Wrong field', category: BlockCategory::Text)]
 final readonly class WrongField

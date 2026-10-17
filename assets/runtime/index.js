@@ -13,7 +13,7 @@ import { checkBlockPreview } from './repeater';
 /**
  * Starts the runtime of one framework instance: registers its blocks and the
  * panels of its meta classes with the editor and provides the API for its
- * editor scripts as wpAppFramework[slug].api (the import `@saij/wp-app-framework`).
+ * editor scripts as wpAppFramework[slug].api (the import `@webcodingcat/wp-app-framework`).
  * The server prefilled wpAppFramework[slug].config with the configuration.
  *
  * @param {string} slug Slug of the instance.

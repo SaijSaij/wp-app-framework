@@ -54,9 +54,9 @@ describe( 'JavaScript API reference', () => {
 			'[`ControlProps`](./ControlProps.md)'
 		);
 		expect( sidebar[ 0 ].items.map( ( group ) => group.text ) ).toEqual( [
-			'Editor (@saij/wp-app-framework)',
-			'View (@saij/wp-app-framework/view)',
-			'Settings (@saij/wp-app-framework/settings)',
+			'Editor (@webcodingcat/wp-app-framework)',
+			'View (@webcodingcat/wp-app-framework/view)',
+			'Settings (@webcodingcat/wp-app-framework/settings)',
 		] );
 	} );
 
@@ -79,12 +79,12 @@ describe( 'JavaScript API reference', () => {
 		expect( () => generate( directory, content ) ).toThrow(
 			[
 				'The JavaScript API reference is incomplete:',
-				' - @saij/wp-app-framework: parameter value of missingParameter() has no description.',
-				' - @saij/wp-app-framework: undocumented has no description.',
-				' - @saij/wp-app-framework: parameter value of undocumented() has no description.',
-				' - @saij/wp-app-framework: @see guides/missing.md of Props names no page below docs/content/.',
-				' - @saij/wp-app-framework: Props.open has no description.',
-				' - @saij/wp-app-framework/view: View.mount has no description.',
+				' - @webcodingcat/wp-app-framework: parameter value of missingParameter() has no description.',
+				' - @webcodingcat/wp-app-framework: undocumented has no description.',
+				' - @webcodingcat/wp-app-framework: parameter value of undocumented() has no description.',
+				' - @webcodingcat/wp-app-framework: @see guides/missing.md of Props names no page below docs/content/.',
+				' - @webcodingcat/wp-app-framework: Props.open has no description.',
+				' - @webcodingcat/wp-app-framework/view: View.mount has no description.',
 			].join( '\n' )
 		);
 	} );

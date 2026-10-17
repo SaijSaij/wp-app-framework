@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Manifest\Discovery;
+namespace WebCodingCat\WpAppFramework\Manifest\Discovery;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Manifest\BuildException;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
 
 /**
  * Lists the PHP files of a PSR-4 directory and derives their class names.

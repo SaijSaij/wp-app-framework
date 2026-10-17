@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\LinkBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\LinkBroken;
 
-use Saij\WpAppFramework\Value\Content;
-use Saij\WpAppFramework\Value\Image;
-use Saij\WpAppFramework\Value\Link;
-use Saij\WpAppFramework\Value\PlainText;
-use Saij\WpAppFramework\Value\PostReference;
-use Saij\WpAppFramework\Value\RichText;
-use Saij\WpAppFramework\Value\Url;
+use WebCodingCat\WpAppFramework\Value\Content;
+use WebCodingCat\WpAppFramework\Value\Image;
+use WebCodingCat\WpAppFramework\Value\Link;
+use WebCodingCat\WpAppFramework\Value\PlainText;
+use WebCodingCat\WpAppFramework\Value\PostReference;
+use WebCodingCat\WpAppFramework\Value\RichText;
+use WebCodingCat\WpAppFramework\Value\Url;
 
 final readonly class BrokenAttributes
 {

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Asset;
+namespace WebCodingCat\WpAppFramework\Asset;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
-use Saij\WpAppFramework\Block\Block;
-use Saij\WpAppFramework\Block\Support\BlockSupport;
-use Saij\WpAppFramework\DependencyInjection\NoService;
-use Saij\WpAppFramework\Setting\SettingsGroup;
 use SplFileInfo;
+use WebCodingCat\WpAppFramework\Block\Block;
+use WebCodingCat\WpAppFramework\Block\Support\BlockSupport;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
 
 /**
  * Finds editor and view scripts in a consumer's `src/` that belong to no block

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\WpCli;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\WpCli;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\WpCli\CliException;
+use WebCodingCat\WpAppFramework\WpCli\CliException;
 
 final class CliExceptionTest extends TestCase
 {

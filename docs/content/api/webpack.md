@@ -3,7 +3,7 @@
 The webpack helper builds the editor runtime of your theme or plugin, your editor and view scripts, the shared modules and the stylesheet. Your `webpack.config.js` calls it:
 
 ```js
-module.exports = require( '@saij/wp-app-framework/webpack' )( {
+module.exports = require( '@webcodingcat/wp-app-framework/webpack' )( {
 	slug: 'my-theme',
 	root: __dirname,
 } );
@@ -14,7 +14,7 @@ module.exports = require( '@saij/wp-app-framework/webpack' )( {
 | `slug` | The slug of the theme or plugin: its directory name. The script handles and the JavaScript global derive from it. |
 | `root` | The directory of the project. |
 
-Until 0.15 the helper was required by its path, `./vendor/saij/wp-app-framework/webpack.config.js`; that still works.
+Until 0.15 the helper was required by its path, `./vendor/webcodingcat/wp-app-framework/webpack.config.js`; that still works.
 
 ## Conventions
 
@@ -33,7 +33,7 @@ Until 0.15 the helper was required by its path, `./vendor/saij/wp-app-framework/
 
 | Import | Resolves to |
 |---|---|
-| `@saij/wp-app-framework` | the editor API of your theme or plugin (see [JavaScript](./js/editor/registerControl.md)); not in view scripts |
-| `@saij/wp-app-framework/view` | the view API (see [BlockView](./js/view/BlockView.md)) |
+| `@webcodingcat/wp-app-framework` | the editor API of your theme or plugin (see [JavaScript](./js/editor/registerControl.md)); not in view scripts |
+| `@webcodingcat/wp-app-framework/view` | the view API (see [BlockView](./js/view/BlockView.md)) |
 | `#shared/<name>` | a shared module of your theme or plugin |
 | `@wordpress/*` | the scripts of WordPress, as with `@wordpress/scripts` |

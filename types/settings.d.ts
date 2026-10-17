@@ -1,5 +1,5 @@
 /**
- * The API of `@saij/wp-app-framework/settings`, for settings scripts (`*.settings.js` next to a settings group
+ * The API of `@webcodingcat/wp-app-framework/settings`, for settings scripts (`*.settings.js` next to a settings group
  * class), which run on the settings page of your theme or plugin.
  *
  * The import is no module of its own: the webpack helper maps it to the settings page of your theme or plugin,

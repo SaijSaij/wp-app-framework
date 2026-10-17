@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\LifecycleValid;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\LifecycleValid;
 
-use Saij\WpAppFramework\Lifecycle\OnActivation;
-use Saij\WpAppFramework\Lifecycle\OnDeactivation;
+use WebCodingCat\WpAppFramework\Lifecycle\OnActivation;
+use WebCodingCat\WpAppFramework\Lifecycle\OnDeactivation;
 
 /**
  * Runs before Setup: the methods of a phase run in the order of class and method name.

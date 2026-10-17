@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Unit\Block;
+namespace WebCodingCat\WpAppFramework\Tests\Unit\Block;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Saij\WpAppFramework\Block\BlockDefinition;
-use Saij\WpAppFramework\Block\Repeater;
-use Saij\WpAppFramework\Editor\RenderContext;
-use Saij\WpAppFramework\Manifest\BuildException;
-use Saij\WpAppFramework\Manifest\BuildResult;
-use Saij\WpAppFramework\Manifest\ManifestBuilder;
-use Saij\WpAppFramework\Tests\Fixtures\RepeaterBroken;
-use Saij\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
+use WebCodingCat\WpAppFramework\Block\BlockDefinition;
+use WebCodingCat\WpAppFramework\Block\Repeater;
+use WebCodingCat\WpAppFramework\Editor\RenderContext;
+use WebCodingCat\WpAppFramework\Manifest\BuildException;
+use WebCodingCat\WpAppFramework\Manifest\BuildResult;
+use WebCodingCat\WpAppFramework\Manifest\ManifestBuilder;
+use WebCodingCat\WpAppFramework\Tests\Fixtures\RepeaterBroken;
+use WebCodingCat\WpAppFramework\Tests\Unit\Manifest\ManifestBuilderTest;
 use WP_Block;
 use WP_Comment;
 use WP_Post;
@@ -58,7 +58,7 @@ final class RepeaterTest extends TestCase
         self::assertSame(['my-theme/card'], $loop->getArgs()['allowed_blocks'] ?? null);
         self::assertTrue($loop->getEditor()['innerBlocks']);
         self::assertTrue($loop->getEditor()['repeater']);
-        self::assertSame([['param' => 'attrs', 'kind' => 'attributes', 'class' => \Saij\WpAppFramework\Tests\Fixtures\RepeaterValid\LoopAttributes::class], ['param' => 'repeater', 'kind' => 'repeater']], $loop->getArguments());
+        self::assertSame([['param' => 'attrs', 'kind' => 'attributes', 'class' => \WebCodingCat\WpAppFramework\Tests\Fixtures\RepeaterValid\LoopAttributes::class], ['param' => 'repeater', 'kind' => 'repeater']], $loop->getArguments());
     }
 
     public function testItemsReadTheContextOfTheirKind(): void
@@ -69,11 +69,11 @@ final class RepeaterTest extends TestCase
         self::assertSame(
             [
                 ['post', null, ['postId', 'postType']],
-                ['postClass', \Saij\WpAppFramework\Tests\Fixtures\RepeaterValid\Event::class, ['postId', 'postType']],
+                ['postClass', \WebCodingCat\WpAppFramework\Tests\Fixtures\RepeaterValid\Event::class, ['postId', 'postType']],
                 ['term', null, ['termId', 'taxonomy']],
                 ['comment', null, ['commentId']],
                 ['user', null, ['userId']],
-                ['row', \Saij\WpAppFramework\Tests\Fixtures\RepeaterValid\Visit::class, ['my-theme/visit']],
+                ['row', \WebCodingCat\WpAppFramework\Tests\Fixtures\RepeaterValid\Visit::class, ['my-theme/visit']],
             ],
             array_map(static fn(array $argument): array => [$argument['source'] ?? null, $argument['class'] ?? null, $argument['context'] ?? null], $card->getArguments()),
         );
@@ -122,7 +122,7 @@ final class RepeaterTest extends TestCase
 
     public function testReportsAllErrors(): void
     {
-        $ns = 'Saij\\WpAppFramework\\Tests\\Fixtures\\RepeaterBroken\\';
+        $ns = 'WebCodingCat\\WpAppFramework\\Tests\\Fixtures\\RepeaterBroken\\';
         $items = static fn(string $name): string => sprintf('parameter $%s of %sItems::render()', $name, $ns);
         $expected = [
             "{$ns}Both::render() accepts string \$content and Repeater; a block either renders its inner blocks once (string \$content) or once per item (Repeater).",

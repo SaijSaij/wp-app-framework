@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Cache\Vary;
+namespace WebCodingCat\WpAppFramework\Cache\Vary;
 
-use Saij\WpAppFramework\Cache\CacheVary;
-use Saij\WpAppFramework\DependencyInjection\NoService;
+use WebCodingCat\WpAppFramework\Cache\CacheVary;
+use WebCodingCat\WpAppFramework\DependencyInjection\NoService;
 
 /**
  * A parameter of the query string ($_GET); a missing parameter differs from an empty one.

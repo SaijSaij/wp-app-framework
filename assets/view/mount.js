@@ -66,7 +66,7 @@ export function mountWithin( slug, classes, root, { isPreview } ) {
 			}
 			if ( ! ( ViewClass.prototype instanceof Base ) ) {
 				reportError(
-					`the default export of the view script ${ entry.view } of ${ slug } must be a class that extends ${ Base.name } from @saij/wp-app-framework/view.`
+					`the default export of the view script ${ entry.view } of ${ slug } must be a class that extends ${ Base.name } from @webcodingcat/wp-app-framework/view.`
 				);
 				continue;
 			}
@@ -123,7 +123,7 @@ export function mountDocumentViews( slug, classes, scripts, doc ) {
 		}
 		if ( ! ( ViewClass.prototype instanceof DocumentView ) ) {
 			reportError(
-				`the default export of the document view ${ script } of ${ slug } must be a class that extends DocumentView from @saij/wp-app-framework/view.`
+				`the default export of the document view ${ script } of ${ slug } must be a class that extends DocumentView from @webcodingcat/wp-app-framework/view.`
 			);
 			continue;
 		}

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Saij\WpAppFramework\Tests\Fixtures\SettingsBroken;
+namespace WebCodingCat\WpAppFramework\Tests\Fixtures\SettingsBroken;
 
-use Saij\WpAppFramework\Hook\Hook;
-use Saij\WpAppFramework\Setting\SettingsGroup;
+use WebCodingCat\WpAppFramework\Hook\Hook;
+use WebCodingCat\WpAppFramework\Setting\SettingsGroup;
 
 #[SettingsGroup('hook_on_group', title: 'Hook on group')]
 final readonly class HookOnGroup
