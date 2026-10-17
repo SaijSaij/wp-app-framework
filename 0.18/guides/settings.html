@@ -5,12 +5,12 @@
 <title>Settings - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/0.18/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/0.18/static/js/async/route-7fe18372592b.0c8df14d62.js" as="script">
+<link rel="preload" href="/wp-app-framework/0.18/static/js/async/route-7fe18372592b.08b5eea0f6.js" as="script">
 <script defer src="/wp-app-framework/0.18/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/0.18/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/0.18/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/0.18/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/0.18/static/js/index.3cc038db1c.js"></script>
+<script defer src="/wp-app-framework/0.18/static/js/index.e43453f742.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -107,7 +107,7 @@
 <ul>
 <li>Themes and child themes find the page under &quot;Appearance&quot;, plugins under &quot;Settings&quot;.</li>
 <li>Only users with <code>manage_options</code> can open it.</li>
-<li>Each group is a form built from the same controls as the block inspector: text, number, toggle, select, rich text, image from the media library, reference search, nested values and the list editor. Several groups appear as tabs; a tab with unsaved changes is marked with &quot;•&quot;.</li>
+<li>Each group is a form built from the same controls as the block inspector: text, number, toggle, select, rich text, image from the media library, color, reference search, nested values and the list editor. The settings of a group are titled like headings, the values inside them like the inspector. Several groups appear as tabs; a tab with unsaved changes is marked with &quot;•&quot;.</li>
 <li>A list item is titled with its first text, a <code>#[PlainText]</code> or <code>#[RichText]</code> value, else with the item label and its number (see <a href="/wp-app-framework/0.18/guides/values.html#lists" class="rp-link">Lists</a>).</li>
 <li>One &quot;Save&quot; button saves all groups in a single request through <code>/wp/v2/settings</code>. If a value is invalid, WordPress rejects the whole request, the page names the group and the setting, and nothing is saved.</li>
 </ul>
