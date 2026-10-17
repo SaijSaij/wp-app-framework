@@ -5,12 +5,12 @@
 <title>Twig templates - wp-app-framework</title>
 <script>{;const saved = localStorage.getItem('rspress-theme-appearance');const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const defaultTheme = 'auto';const theme = saved === 'light' || saved === 'dark' || saved === 'auto' ? saved : defaultTheme;const isDark = theme === 'auto' ? preferDark : theme === 'dark';document.documentElement.classList.toggle('dark', isDark);document.documentElement.classList.toggle('rp-dark', isDark);document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';}</script>
 <link href="/wp-app-framework/next/static/css/styles.c6bb480910.css" rel="stylesheet">
-<link rel="preload" href="/wp-app-framework/next/static/js/async/route-03fb1368cb29.711bc7bbf6.js" as="script">
+<link rel="preload" href="/wp-app-framework/next/static/js/async/route-03fb1368cb29.c19488aad4.js" as="script">
 <script defer src="/wp-app-framework/next/static/js/styles.7d2f8ed2ca.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-react.0d58ccae02.js"></script>
 <script defer src="/wp-app-framework/next/static/js/lib-router.7ac08af67b.js"></script>
 <script defer src="/wp-app-framework/next/static/js/f.4544487104.js"></script>
-<script defer src="/wp-app-framework/next/static/js/index.16459955b8.js"></script>
+<script defer src="/wp-app-framework/next/static/js/index.9dcca04de2.js"></script>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Rspress v2.0.23">
 <meta property="og:type" content="website">
@@ -59,7 +59,7 @@
 <p>The <code>src/</code> of a <strong>child theme</strong> belongs to its own framework instance, if it boots one. Its templates are searched in its own <code>src/</code>, then in the framework&#x27;s, and they never override templates of the theme. To override the theme, a child theme uses <code>overrides/{theme-slug}/</code>.</p>
 <p>A <strong>plugin&#x27;s</strong> templates are searched in this order: <code>overrides/{plugin-slug}/</code> of the child theme, <code>overrides/{plugin-slug}/</code> of the theme, the plugin&#x27;s <code>src/</code>, the framework&#x27;s <code>src/</code>. A theme overrides <code>src/Block/Note/Note.twig</code> of the plugin <code>my-plugin</code> with <code>overrides/my-plugin/Block/Note/Note.twig</code>. Because overrides live in their own directory, the theme&#x27;s templates in <code>src/</code> never collide with the plugin&#x27;s. <code>@plugin/…</code> addresses the plugin&#x27;s own templates exactly.</p>
 <p>The plugin&#x27;s Twig environment renders the override. The override therefore sees the plugin&#x27;s template functions and filters and the context the plugin passes, not those of the theme.</p>
-<p>Compiled templates are named after the slug of their instance, so a theme and a plugin never share compiled code of templates with the same path.</p>
+<p>Compiled templates are named after the slug of their instance, so a theme and a plugin never share compiled code of templates with the same path. Their names also include a hash of the template functions and filters of the instance – name, class and method: when a function moves to another class or method, the templates are compiled anew.</p>
 <h2 class="rp-toc-include" id="environment"><a href="#environment" class="rp-header-anchor rp-link" aria-hidden="true">#</a>Environment</h2>
 <p>Twig runs with settings that catch mistakes early:</p>
 <ul>
